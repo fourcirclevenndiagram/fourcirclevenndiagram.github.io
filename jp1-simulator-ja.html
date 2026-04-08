@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>JP1/IM Mobile</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg:        #080b10;
+  --bg-card:   #0c1018;
+  --bg-header: #0e1422;
+  --border:    #181f30;
+  --border2:   #232d45;
+
+  --txt:       #b8c8e0;
+  --txt2:      #607090;
+  --txt3:      #304058;
+
+  --em:  #ff2244;
+  --al:  #ff6622;
+  --cr:  #ffaa00;
+  --er:  #ffdd00;
+  --wa:  #77cc33;
+  --nt:  #33aadd;
+  --inf: #445577;
+
+  --blue:      #2a6cd4;
+  --blue-l:    #4a8cf0;
+  --green:     #22bb55;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Noto Sans JP', sans-serif;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* scanline */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);
+  pointer-events:none; z-index:9000;
+}
+
+/* ── Top Header ── */
+.top-header {
+  background: linear-gradient(180deg,#121c35 0%,#0a1020 100%);
+  border-bottom: 1px solid #1e2c48;
+  padding: calc(var(--safe-top) + 8px) 12px 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-badge {
+  background: linear-gradient(135deg,#2a5cc0,#1a3a80);
+  border: 1px solid #3a6de0;
+  color: #fff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  letter-spacing: .05em;
+  flex-shrink: 0;
+}
+.header-info { flex:1; min-width:0; }
+.header-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: #8aabdd;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: #334466;
+  margin-top: 1px;
+}
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 6px var(--green)} 50%{opacity:.5;box-shadow:0 0 2px var(--green)} }
+.clock-sm {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: #445566;
+}
+
+/* ── Stats Row ── */
+.stats-row {
+  background: #09101a;
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+.stat-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  border-right: 1px solid var(--border);
+  padding: 2px 4px;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: 8px;
+  color: var(--txt3);
+  letter-spacing: .04em;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.stat-cell.total .stat-num { color: var(--blue-l); }
+.stat-cell.crit  .stat-num { color: var(--al); }
+.stat-cell.err   .stat-num { color: var(--er); }
+.stat-cell.warn  .stat-num { color: var(--wa); }
+
+/* ── Filter Chips ── */
+.filter-scroll {
+  background: #080e18;
+  border-bottom: 1px solid var(--border);
+  padding: 5px 10px;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  border: 1px solid transparent;
+  cursor: pointer;
+  opacity: .4;
+  transition: opacity .15s;
+  user-select: none;
+}
+.chip.on { opacity: 1; }
+.chip[data-s="0"] { color:var(--em); border-color:var(--em); }
+.chip[data-s="1"] { color:var(--al); border-color:var(--al); }
+.chip[data-s="2"] { color:var(--cr); border-color:var(--cr); }
+.chip[data-s="3"] { color:var(--er); border-color:var(--er); }
+.chip[data-s="4"] { color:var(--wa); border-color:var(--wa); }
+.chip[data-s="5"] { color:var(--nt); border-color:var(--nt); }
+
+/* ── Toolbar Row ── */
+.toolbar {
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.tb-btn {
+  padding: 5px 12px;
+  background: linear-gradient(180deg,#14203a,#0d1528);
+  border: 1px solid #1e2c48;
+  color: #6688aa;
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-appearance: none;
+}
+.tb-btn.pause-active { color:#ffcc33; border-color:#665500; }
+.tb-sep { flex:1; }
+.tb-btn-clear {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid #1e2c48;
+  color: #445566;
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* ── Event List ── */
+.event-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.event-list::-webkit-scrollbar { width: 3px; }
+.event-list::-webkit-scrollbar-track { background: transparent; }
+.event-list::-webkit-scrollbar-thumb { background: #1a2438; border-radius: 2px; }
+
+/* Event Card */
+.ev-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  border-radius: 3px;
+  padding: 8px 10px;
+  cursor: pointer;
+  animation: card-in .25s ease-out;
+  transition: background .1s;
+  position: relative;
+  overflow: visible;
+  flex-shrink: 0;
+}
+@keyframes card-in {
+  from { opacity:0; transform:translateY(-6px); background:#0d2040; }
+  to   { opacity:1; transform:translateY(0); }
+}
+.ev-card:active { background: #10182a; }
+.ev-card.selected { background: #0d1c32; border-color: var(--blue) !important; }
+
+/* severity border color */
+.ev-card.s0 { border-left-color: var(--em); }
+.ev-card.s1 { border-left-color: var(--al); }
+.ev-card.s2 { border-left-color: var(--cr); }
+.ev-card.s3 { border-left-color: var(--er); }
+.ev-card.s4 { border-left-color: var(--wa); }
+.ev-card.s5 { border-left-color: var(--nt); }
+
+/* Flash for emergency */
+.ev-card.s0 { animation: card-in .25s ease-out, flash-em .7s ease-out; }
+@keyframes flash-em { 0%{background:#2a0010} 100%{background:var(--bg-card)} }
+
+/* Card top row */
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.sev-pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+  letter-spacing: .08em;
+  flex-shrink: 0;
+}
+.s0 .sev-pill { background:rgba(255,34,68,.15);  color:var(--em); border:1px solid rgba(255,34,68,.4); }
+.s1 .sev-pill { background:rgba(255,102,34,.12); color:var(--al); border:1px solid rgba(255,102,34,.35); }
+.s2 .sev-pill { background:rgba(255,170,0,.12);  color:var(--cr); border:1px solid rgba(255,170,0,.35); }
+.s3 .sev-pill { background:rgba(255,221,0,.1);   color:var(--er); border:1px solid rgba(255,221,0,.3); }
+.s4 .sev-pill { background:rgba(119,204,51,.1);  color:var(--wa); border:1px solid rgba(119,204,51,.3); }
+.s5 .sev-pill { background:rgba(51,170,221,.1);  color:var(--nt); border:1px solid rgba(51,170,221,.3); }
+
+.card-evid {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--txt3);
+  flex-shrink: 0;
+}
+.card-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--txt3);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Card middle row */
+.card-mid {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.card-product {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--blue-l);
+  background: rgba(42,108,212,.12);
+  padding: 1px 5px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.card-host {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: #7a9abb;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.card-obj {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--txt3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Card message */
+.card-msg {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--txt);
+  word-break: break-all;
+  white-space: normal;
+}
+.s0 .card-msg { color: #ffa0b0; }
+.s1 .card-msg { color: #ffb090; }
+.s2 .card-msg { color: #ffd090; }
+.s3 .card-msg { color: #ffee88; }
+.s4 .card-msg { color: #aade77; }
+.s5 .card-msg { color: #77bbee; }
+
+/* Expand arrow - hidden now that messages are fully shown */
+.card-arrow { display: none; }
+
+/* ── Detail Drawer ── */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.drawer-backdrop.open { opacity:1; pointer-events:auto; }
+
+.drawer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #0c1020;
+  border-top: 2px solid #2a3c60;
+  border-radius: 12px 12px 0 0;
+  z-index: 101;
+  padding-bottom: var(--safe-bot);
+  transform: translateY(100%);
+  transition: transform .25s cubic-bezier(.22,.68,0,1.2);
+  max-height: 65vh;
+  display: flex;
+  flex-direction: column;
+}
+.drawer.open { transform: translateY(0); }
+
+.drawer-handle {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.drawer-handle::before {
+  content: '';
+  width: 36px; height: 4px;
+  background: #2a3a58;
+  border-radius: 2px;
+}
+.drawer-header {
+  padding: 0 14px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.drawer-sev-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--txt2);
+  margin-bottom: 2px;
+}
+.drawer-host-line {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--txt3);
+}
+.drawer-body {
+  overflow-y: auto;
+  padding: 12px 14px;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+.drawer-body::-webkit-scrollbar { display: none; }
+.drow {
+  display: flex;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #0f1525;
+  align-items: flex-start;
+}
+.drow:last-child { border-bottom: none; }
+.dk {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--txt3);
+  min-width: 90px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.dv {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: #9ab8d8;
+  word-break: break-all;
+}
+.drawer-msg-full {
+  margin-top: 10px;
+  padding: 10px;
+  background: #080e18;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--txt);
+}
+
+/* ── Bottom Nav ── */
+.bottom-nav {
+  background: #09101a;
+  border-top: 1px solid var(--border);
+  padding: 6px 0 calc(var(--safe-bot) + 4px);
+  display: flex;
+  flex-shrink: 0;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  cursor: pointer;
+}
+.nav-icon { font-size: 16px; }
+.nav-label {
+  font-size: 8px;
+  color: var(--txt3);
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.nav-item.active .nav-label { color: var(--blue-l); }
+.nav-item.active .nav-icon { filter: brightness(1.5); }
+
+/* Pause badge */
+.pause-badge {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  background: rgba(255,200,50,.12);
+  border: 1px solid rgba(255,200,50,.4);
+  color: #ffcc33;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 10px 24px;
+  letter-spacing: .12em;
+  z-index: 200;
+  pointer-events: none;
+  display: none;
+  border-radius: 4px;
+}
+.pause-badge.on { display: block; }
+
+/* New event flash ring */
+.flash-ring {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--em);
+  box-shadow: 0 0 8px var(--em);
+  z-index: 500;
+  opacity: 0;
+  transition: opacity .05s;
+}
+.flash-ring.on { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="flash-ring" id="flashRing"></div>
+
+<!-- Top Header -->
+<div class="top-header">
+  <div class="header-badge">JP1</div>
+  <div class="header-info">
+    <div class="header-title">JP1/IM2 イベントコンソール</div>
+    <div class="header-sub">jp1-mgr-01.corp.local · jp1admin</div>
+  </div>
+  <div class="header-right">
+    <div class="live-dot"></div>
+    <div class="clock-sm" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-cell total">
+    <div class="stat-num" id="stTotal">0</div>
+    <div class="stat-lbl">TOTAL</div>
+  </div>
+  <div class="stat-cell crit">
+    <div class="stat-num" id="stCrit">0</div>
+    <div class="stat-lbl">CRIT+</div>
+  </div>
+  <div class="stat-cell err">
+    <div class="stat-num" id="stErr">0</div>
+    <div class="stat-lbl">ERROR</div>
+  </div>
+  <div class="stat-cell warn">
+    <div class="stat-num" id="stWarn">0</div>
+    <div class="stat-lbl">WARN</div>
+  </div>
+</div>
+
+<!-- Filter chips -->
+<div class="filter-scroll">
+  <span class="chip on" data-s="0" onclick="toggleChip(this)">EM</span>
+  <span class="chip on" data-s="1" onclick="toggleChip(this)">AL</span>
+  <span class="chip on" data-s="2" onclick="toggleChip(this)">CR</span>
+  <span class="chip on" data-s="3" onclick="toggleChip(this)">ER</span>
+  <span class="chip on" data-s="4" onclick="toggleChip(this)">WA</span>
+  <span class="chip on" data-s="5" onclick="toggleChip(this)">NT</span>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <button class="tb-btn" id="btnPause" onclick="togglePause()">■ 一時停止</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn-clear" onclick="clearAll()">クリア</button>
+</div>
+
+<!-- Event List -->
+<div class="event-list" id="eventList"></div>
+
+<!-- Drawer backdrop -->
+<div class="drawer-backdrop" id="backdrop" onclick="closeDrawer()"></div>
+
+<!-- Detail Drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawer-handle" onclick="closeDrawer()"></div>
+  <div class="drawer-header">
+    <div class="drawer-sev-title" id="drawerTitle">—</div>
+    <div class="drawer-host-line" id="drawerSub">—</div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <div class="nav-icon">📋</div>
+    <div class="nav-label">イベント</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">サマリ</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">🖥</div>
+    <div class="nav-label">ホスト</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">設定</div>
+  </div>
+</div>
+
+<div class="pause-badge" id="pauseBadge">⏸ 一時停止中</div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const SEV = [
+  {l:0,n:'Emergency',s:'EM'},
+  {l:1,n:'Alert',    s:'AL'},
+  {l:2,n:'Critical', s:'CR'},
+  {l:3,n:'Error',    s:'ER'},
+  {l:4,n:'Warning',  s:'WA'},
+  {l:5,n:'Notice',   s:'NT'},
+];
+const HOSTS=['AP-SRV-01','AP-SRV-02','DB-SRV-01','DB-SRV-02','WEB-SRV-01','WEB-SRV-02','BATCH-SRV-01','NFS-SRV-01','LB-SRV-01','BACKUP-SRV','MQ-SRV-01','MONITOR-SRV'];
+const EVENTS=[
+  {
+    sev:()=>pick([3,3,3,4,4,5]), prod:'JP1/AJS3',
+    obj:()=>`JOBNET:${pick(['BATCH_DAILY','REPORT_GEN','DATA_SYNC','INV_CHECK','SALES_EOD','PAYROLL_JOB','MAIL_DISPATCH','CLEANUP_PROC'])}`,
+    evid:()=>`3B00${h4()}`,
+    msg:()=>{
+      const j=pick(['BATCH_DAILY','DATA_IMPORT','SALES_CALC','INV_UPDATE','REPORT_GEN']);
+      return pick([
+        `ジョブネット「${j}」が異常終了しました。終了コード=8 実行ホスト=${rh()}`,
+        `ジョブ「${j}[${ri(1,9999).toString().padStart(4,'0')}]」の実行が失敗しました。リターンコード=255`,
+        `ジョブネット「${j}」のスケジュール実行が遅延しています。遅延時間=${ri(5,120)}分`,
+        `ジョブ「${j}」のプロセスが応答しません。PID=${ri(1000,65535)}`,
+        `ジョブネット「${j}」が正常終了しました。処理件数=${ri(100,99999)}件`,
+        `スケジューラサービスの起動を確認しました。ルートジョブネット数=${ri(10,300)}`,
+        `ジョブ「${j}」の実行を開始しました。実行エージェント=${rh()}`,
+      ]);
+    }
+  },
+  {
+    sev:()=>pick([0,1,2,2,3,3,4,5]), prod:'JP1/Base',
+    obj:()=>`AGENT:${rh()}`,
+    evid:()=>`2210${h4()}`,
+    msg:()=>{
+      const h=rh();
+      return pick([
+        `エージェントホスト「${h}」との通信が切断されました。再接続を試みています。(試行回数=${ri(1,10)})`,
+        `ホスト「${h}」への接続タイムアウト。タイムアウト値=${ri(30,300)}秒`,
+        `マネージャ「${h}」へのイベント送信に失敗しました。ポート番号=20237`,
+        `ホスト「${h}」のJP1/Baseサービスが停止しました。`,
+        `エージェント「${h}」との接続を回復しました。`,
+        `ホスト「${h}」からハートビートを受信できません。経過時間=${ri(60,1800)}秒`,
+        `クラスタ系ホスト「${h}」のフェイルオーバを検出しました。`,
+      ]);
+    }
+  },
+  {
+    sev:()=>pick([0,1,2,2,3,3,3,4,5,5]), prod:'JP1/OA',
+    obj:()=>pick(['VOLUME:/data01','VOLUME:/log','DB:PRODDB','DB:REPORTDB','FS:/backup','FS:/var/log','DB:BATCHDB','TABLESPACE:IDX_TS']),
+    evid:()=>`4F${h2()}${h4()}`,
+    msg:()=>pick([
+      `ファイルシステム「/data01」の使用率が${ri(80,99)}%に達しました。空き容量=${ri(1,20)}GB`,
+      `データベース「PRODDB」への接続プールが枯渇しました。接続数上限=${ri(50,200)}`,
+      `テーブルスペース「IDX_TS」の自動拡張に失敗しました。ディスク空き容量不足`,
+      `DB接続エラー。ORA-${ri(1000,9999)}: ${pick(['TNS接続タイムアウト','リスナーが起動していません','セッション数が上限に達しました'])}`,
+      `ログファイルのローテーションに失敗しました。`,
+      `バックアップ領域「/backup」の空き容量が残り${ri(1,10)}GB未満になりました。`,
+      `ディスク書き込みエラー。デバイス=/dev/sd${pick(['b','c','d','e'])} セクタ=${ri(100000,9999999)}`,
+      `トランザクションログが${ri(80,99)}%に達しました。ログバックアップを実行してください。`,
+    ])
+  },
+  {
+    sev:()=>pick([0,1,2,3,3,4,5,5,5]), prod:'JP1/NNMi',
+    obj:()=>pick([`PORT:${rh()}:${rport()}`,`IF:${rh()}:eth${ri(0,3)}`,`ROUTER:CORE-RTR-${ri(1,4)}`,`SW:DIST-SW-${ri(1,8)}`]),
+    evid:()=>`5A${h2()}${h4()}`,
+    msg:()=>{
+      const h=rh(); const p=rport();
+      return pick([
+        `ホスト「${h}」ポート${p}への接続が拒否されました。`,
+        `ネットワークインタフェース「${h}:eth${ri(0,3)}」のリンクダウンを検出しました。`,
+        `スイッチ「DIST-SW-${ri(1,8)}」でパケットロスが${ri(5,80)}%発生しています。`,
+        `ルータ「CORE-RTR-${ri(1,4)}」との通信が途絶しました。最終応答=${ri(1,60)}分前`,
+        `SSL/TLS証明書の有効期限が${ri(1,30)}日後に切れます。対象=${h}`,
+        `ICMPタイムアウト: ホスト「${h}」が応答しません。`,
+        `VPN接続「${h}↔${rh()}」が切断されました。`,
+        `帯域使用率が${ri(80,99)}%を超過しました。インタフェース=${h}:eth${ri(0,3)}`,
+      ]);
+    }
+  },
+  {
+    sev:()=>pick([3,4,4,5,5,5]), prod:'JP1/PFM',
+    obj:()=>`ALARM:${rh()}`,
+    evid:()=>`6C${h2()}${h4()}`,
+    msg:()=>{
+      const h=rh();
+      return pick([
+        `CPU使用率アラーム: ホスト「${h}」のCPU使用率が${ri(85,100)}%に達しました。(しきい値=80%)`,
+        `メモリアラーム: ホスト「${h}」の空きメモリが${ri(1,512)}MBになりました。`,
+        `プロセス「${pick(['httpd','java','oracle','postgres','nginx'])}」の多重起動を検出。(${ri(2,20)}プロセス) ホスト=${h}`,
+        `レスポンス時間超過: 「${pick(['HTTP','AP','DB','MQ'])}」の平均応答時間=${ri(500,5000)}ms`,
+        `スワップ使用量が${ri(50,100)}%に達しました。ホスト=${h}`,
+      ]);
+    }
+  },
+];
+
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function rh(){return pick(HOSTS);}
+function rport(){return pick([80,443,1521,3306,5432,8080,8443,20237,9090,22,3389]);}
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function h4(){return Math.floor(Math.random()*0xFFFF).toString(16).toUpperCase().padStart(4,'0');}
+function h2(){return Math.floor(Math.random()*0xFF).toString(16).toUpperCase().padStart(2,'0');}
+function tsNow(){
+  const d=new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+function tsDate(){
+  const d=new Date();
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${tsNow()}.${String(d.getMilliseconds()).padStart(3,'0')}`;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let paused=false;
+let counts={total:0,crit:0,err:0,warn:0};
+let activeFilters=new Set([0,1,2,3,4,5]);
+const MAX=300;
+
+// ── Generate ──────────────────────────────────────────────────────────────────
+function generate(){
+  if(paused)return;
+  const tmpl=pick(EVENTS);
+  const sl=tmpl.sev();
+  if(!activeFilters.has(sl))return;
+  const sev=SEV.find(s=>s.l===sl);
+  const host=rh();
+  const prod=tmpl.prod;
+  const obj=tmpl.obj();
+  const evid=tmpl.evid();
+  const msg=tmpl.msg();
+  const ts=tsDate();
+  const tsShort=tsNow();
+
+  // flash ring for em/al
+  if(sl<=1){
+    const ring=document.getElementById('flashRing');
+    ring.classList.add('on');
+    setTimeout(()=>ring.classList.remove('on'),200);
+  }
+
+  // counters
+  counts.total++;
+  if(sl<=2) counts.crit++;
+  else if(sl===3) counts.err++;
+  else if(sl===4) counts.warn++;
+  document.getElementById('stTotal').textContent=counts.total;
+  document.getElementById('stCrit').textContent=counts.crit;
+  document.getElementById('stErr').textContent=counts.err;
+  document.getElementById('stWarn').textContent=counts.warn;
+
+  // card
+  const card=document.createElement('div');
+  card.className=`ev-card s${sl}`;
+  card.innerHTML=`
+    <div class="card-top">
+      <span class="sev-pill">${sev.s}</span>
+      <span class="card-evid">JP1EVT:${evid}</span>
+      <span class="card-time">${tsShort}</span>
+    </div>
+    <div class="card-mid">
+      <span class="card-product">${prod.replace('JP1/','')}</span>
+      <span class="card-host">${host}</span>
+      <span class="card-obj" title="${obj}">${obj}</span>
+    </div>
+    <div class="card-msg">${msg}</div>
+    <span class="card-arrow">▼詳細</span>
+  `;
+  card.addEventListener('click',()=>openDrawer({ts,evid,prod,host,obj,msg,sev:sev.n,sl}));
+
+  const list=document.getElementById('eventList');
+  list.insertBefore(card,list.firstChild);
+  while(list.children.length>MAX) list.removeChild(list.lastChild);
+}
+
+// ── Drawer ────────────────────────────────────────────────────────────────────
+function openDrawer(ev){
+  const sevColors=['var(--em)','var(--al)','var(--cr)','var(--er)','var(--wa)','var(--nt)','var(--inf)'];
+  const col=sevColors[ev.sl]||'var(--txt2)';
+  document.getElementById('drawerTitle').innerHTML=`<span style="color:${col}">${ev.sev}</span> &nbsp; JP1EVT:${ev.evid}`;
+  document.getElementById('drawerSub').textContent=`${ev.prod} / ${ev.host}`;
+  document.getElementById('drawerBody').innerHTML=`
+    <div class="drow"><span class="dk">受信日時</span><span class="dv">${ev.ts}</span></div>
+    <div class="drow"><span class="dk">プロダクト</span><span class="dv">${ev.prod}</span></div>
+    <div class="drow"><span class="dk">発生ホスト</span><span class="dv">${ev.host}</span></div>
+    <div class="drow"><span class="dk">オブジェクト名</span><span class="dv">${ev.obj}</span></div>
+    <div class="drow"><span class="dk">イベントID</span><span class="dv">JP1EVT:${ev.evid}</span></div>
+    <div class="drow"><span class="dk">重要度</span><span class="dv" style="color:${col}">${ev.sev} (${ev.sl})</span></div>
+    <div class="drawer-msg-full">${ev.msg}</div>
+  `;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('backdrop').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('open');
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+function togglePause(){
+  paused=!paused;
+  const btn=document.getElementById('btnPause');
+  const badge=document.getElementById('pauseBadge');
+  if(paused){
+    btn.textContent='▶ 再開'; btn.classList.add('pause-active');
+    badge.classList.add('on');
+  } else {
+    btn.textContent='■ 一時停止'; btn.classList.remove('pause-active');
+    badge.classList.remove('on');
+    scheduleNext();
+  }
+}
+function clearAll(){
+  document.getElementById('eventList').innerHTML='';
+  counts={total:0,crit:0,err:0,warn:0};
+  document.getElementById('stTotal').textContent='0';
+  document.getElementById('stCrit').textContent='0';
+  document.getElementById('stErr').textContent='0';
+  document.getElementById('stWarn').textContent='0';
+}
+function toggleChip(el){
+  const s=parseInt(el.dataset.s);
+  if(activeFilters.has(s)){activeFilters.delete(s);el.classList.remove('on');}
+  else{activeFilters.add(s);el.classList.add('on');}
+}
+
+// ── Scheduler ─────────────────────────────────────────────────────────────────
+function scheduleNext(){
+  if(paused)return;
+  const delay=Math.floor(Math.random()*29000)+1000;
+  setTimeout(()=>{
+    const burst=Math.random()<.15?Math.floor(Math.random()*2)+2:1;
+    for(let i=0;i<burst;i++) setTimeout(generate,i*Math.floor(Math.random()*250)+50);
+    scheduleNext();
+  },delay);
+}
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function updateClock(){
+  document.getElementById('clock').textContent=tsNow();
+}
+setInterval(updateClock,1000); updateClock();
+
+// Swipe to close drawer
+let touchStartY=0;
+document.getElementById('drawer').addEventListener('touchstart',e=>{touchStartY=e.touches[0].clientY;},{passive:true});
+document.getElementById('drawer').addEventListener('touchmove',e=>{
+  const dy=e.touches[0].clientY-touchStartY;
+  if(dy>40) closeDrawer();
+},{passive:true});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+for(let i=0;i<4;i++) setTimeout(generate,i*150);
+setTimeout(scheduleNext,800);
+</script>
+</body>
+</html>
