@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JJMarblocity의 게임방</title>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #12121c;
+      --border:    #2a2a3e;
+      --neon-cyan: #00f5ff;
+      --neon-pink: #ff2d78;
+      --neon-yel:  #ffe600;
+      --neon-grn:  #00ff99;
+      --text:      #e8e8f0;
+      --dim:       #6b6b8a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='%2300f5ff' opacity='0.8'/%3E%3C/svg%3E") 12 12, crosshair;
+    }
+
+    /* ── SCANLINE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.15) 2px,
+        rgba(0,0,0,0.15) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── GRID BG ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 72px 24px 56px;
+    }
+
+    .coin-row {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: var(--neon-yel);
+      letter-spacing: 3px;
+      margin-bottom: 24px;
+      animation: blink 1.2s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(18px, 4vw, 38px);
+      line-height: 1.5;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow:
+        0 0 10px var(--neon-cyan),
+        0 0 30px var(--neon-cyan),
+        0 0 60px rgba(0,245,255,0.4);
+      margin-bottom: 8px;
+      animation: flicker 5s infinite;
+    }
+    @keyframes flicker {
+      0%,19%,21%,23%,25%,54%,56%,100% { opacity: 1; }
+      20%,24%,55% { opacity: 0.6; }
+    }
+
+    .subtitle {
+      font-family: 'DotGothic16', monospace;
+      font-size: clamp(13px, 2vw, 17px);
+      color: var(--neon-pink);
+      letter-spacing: 4px;
+      margin-top: 12px;
+      text-shadow: 0 0 12px var(--neon-pink);
+    }
+
+    .insert-coin {
+      margin-top: 32px;
+      display: inline-block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--neon-yel);
+      border: 2px solid var(--neon-yel);
+      padding: 10px 24px;
+      box-shadow: 0 0 12px var(--neon-yel), inset 0 0 12px rgba(255,230,0,0.05);
+      animation: blink 1.5s step-end infinite;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; gap: 16px;
+      max-width: 860px; margin: 0 auto 48px;
+      padding: 0 24px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    }
+    .divider span {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--neon-cyan);
+      white-space: nowrap;
+      text-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    /* ── GAME GRID ── */
+    .game-grid {
+      position: relative; z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── GAME CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0;
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      display: block;
+      color: inherit;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .card:hover { transform: translateY(-6px) scale(1.02); }
+
+    .card[data-color="cyan"]  { --c: var(--neon-cyan); }
+    .card[data-color="pink"]  { --c: var(--neon-pink); }
+    .card[data-color="yel"]   { --c: var(--neon-yel);  }
+    .card[data-color="grn"]   { --c: var(--neon-grn);  }
+
+    .card:hover {
+      border-color: var(--c);
+      box-shadow: 0 0 20px rgba(0,0,0,0.6), 0 0 30px color-mix(in srgb, var(--c) 30%, transparent);
+    }
+    .card:hover .card-top { box-shadow: inset 0 0 40px color-mix(in srgb, var(--c) 20%, transparent); }
+
+    .card-top {
+      height: 140px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px;
+      background: #0d0d18;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      transition: box-shadow 0.3s;
+    }
+    .card-top .pixel-deco {
+      position: absolute;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--c);
+      opacity: 0.5;
+    }
+    .card-top .pixel-deco.tl { top: 8px; left: 10px; }
+    .card-top .pixel-deco.tr { top: 8px; right: 10px; }
+
+    .card-body { padding: 20px 22px 22px; }
+
+    .card-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--c);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      text-shadow: 0 0 6px var(--c);
+    }
+
+    .card-title {
+      font-family: 'DotGothic16', monospace;
+      font-size: 20px;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 4px 8px;
+      border: 1px solid var(--c);
+      color: var(--c);
+      border-radius: 2px;
+      opacity: 0.8;
+    }
+
+    .card-play {
+      margin-top: 18px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--bg);
+      background: var(--c);
+      padding: 10px 18px;
+      display: inline-block;
+      border-radius: 2px;
+      transition: box-shadow 0.2s;
+      box-shadow: 0 0 0 transparent;
+    }
+    .card:hover .card-play {
+      box-shadow: 0 0 16px var(--c);
+    }
+
+    /* ── COMING SOON CARD ── */
+    .card.soon {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .card.soon .card-play {
+      background: var(--border);
+      color: var(--dim);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 10;
+      text-align: center;
+      padding: 32px 24px 48px;
+      border-top: 1px solid var(--border);
+      font-family: 'DotGothic16', monospace;
+      font-size: 13px;
+      color: var(--dim);
+      letter-spacing: 2px;
+    }
+    footer span { color: var(--neon-pink); }
+
+    /* ── LOAD ANIMATION ── */
+    .card {
+      opacity: 0;
+      transform: translateY(24px);
+      animation: cardIn 0.5s forwards;
+    }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+    .card:nth-child(5) { animation-delay: 0.5s; }
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="coin-row">▶ PLAYER 1 ◀ &nbsp;&nbsp; HIGH SCORE: ∞</div>
+    <h1>JJMarblocity의<br>게임방</h1>
+    <div class="subtitle">// ARCADE · IDLE · STRATEGY //</div>
+    <div class="insert-coin">▶ INSERT COIN TO PLAY ◀</div>
+  </header>
+
+  <div class="divider"><span>── SELECT YOUR GAME ──</span></div>
+
+  <main class="game-grid">
+
+    <!-- VOID GARDEN -->
+    <a class="card" data-color="cyan" href="void-garden.html">
+      <div class="card-top">
+        🌌
+        <span class="pixel-deco tl">IDLE</span>
+        <span class="pixel-deco tr">★★★</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">GAME 01</div>
+        <div class="card-title">VOID GARDEN</div>
+        <div class="card-desc">우주 공간에서 별과 에너지를 수확하는 스페이스 아이들 클리커. 오프라인에서도 수익이 쌓인다.</div>
+        <div class="card-tags">
+          <span class="tag">IDLE</span>
+          <span class="tag">CLICKER</span>
+          <span class="tag">SPACE</span>
+        </div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <!-- DUNGEON -->
+    <a class="card" data-color="pink" href="dungeon.html">
+      <div class="card-top">
+        ⚔️
+        <span class="pixel-deco tl">AUTO</span>
+        <span class="pixel-deco tr">★★★</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">GAME 02</div>
+        <div class="card-title">던전 AUTO BATTLER</div>
+        <div class="card-desc">자동 전투 던전 탐험 아이들 게임. 영웅을 강화하고 끝없이 깊어지는 던전을 정복하라.</div>
+        <div class="card-tags">
+          <span class="tag">AUTO</span>
+          <span class="tag">RPG</span>
+          <span class="tag">DUNGEON</span>
+        </div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <!-- THUE-MORSE -->
+    <a class="card" data-color="yel" href="thue-morse.html">
+      <div class="card-top">
+        🔢
+        <span class="pixel-deco tl">PUZZLE</span>
+        <span class="pixel-deco tr">★★☆</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">GAME 03</div>
+        <div class="card-title">THUE-MORSE 퍼즐</div>
+        <div class="card-desc">어릴 때 혼자 발견한 수열, 이제 게임으로. 패턴을 읽고 다음 수를 맞혀라.</div>
+        <div class="card-tags">
+          <span class="tag">PUZZLE</span>
+          <span class="tag">MATH</span>
+          <span class="tag">PATTERN</span>
+        </div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <!-- COMING SOON -->
+    <a class="card soon" data-color="grn" href="#">
+      <div class="card-top">
+        ❓
+        <span class="pixel-deco tl">???</span>
+        <span class="pixel-deco tr">LOCKED</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">GAME 04</div>
+        <div class="card-title">COMING SOON</div>
+        <div class="card-desc">다음 게임이 준비 중입니다. 기대해 주세요.</div>
+        <div class="card-tags">
+          <span class="tag">???</span>
+        </div>
+        <div class="card-play">🔒 LOCKED</div>
+      </div>
+    </a>
+
+  </main>
+
+  <footer>
+    made with <span>♥</span> by JJMarblocity &nbsp;·&nbsp; powered by Claude
+  </footer>
+
+</body>
+</html>
