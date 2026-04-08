@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MARKET WATCH — JJMarblocity</title>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #060810;
+      --surface:  #0d0f1a;
+      --border:   #1e2235;
+      --cyan:     #00f5ff;
+      --green:    #00ff88;
+      --red:      #ff3d5a;
+      --yel:      #ffe600;
+      --dim:      #4a5070;
+      --text:     #c8d0e8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* scanline */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 3px,
+        rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .back-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--dim);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      border-radius: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .back-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+
+    .topbar-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan);
+      letter-spacing: 2px;
+    }
+
+    .clock {
+      font-size: 13px;
+      color: var(--green);
+      text-shadow: 0 0 8px var(--green);
+      letter-spacing: 2px;
+    }
+
+    /* ── NOTICE ── */
+    .notice {
+      text-align: center;
+      padding: 8px;
+      background: rgba(255,230,0,0.06);
+      border-bottom: 1px solid rgba(255,230,0,0.15);
+      font-size: 11px;
+      color: var(--yel);
+      letter-spacing: 1px;
+    }
+
+    /* ── LAYOUT ── */
+    .wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--dim);
+      letter-spacing: 3px;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after {
+      content: ''; flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .section-label .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+
+    /* ── WIDGET PANEL ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-name {
+      font-family: 'DotGothic16', monospace;
+      font-size: 15px;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .panel-sub {
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 1px;
+    }
+    .panel-badge {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 4px 8px;
+      border-radius: 2px;
+      border: 1px solid;
+    }
+    .badge-kr  { color: var(--cyan);  border-color: var(--cyan);  }
+    .badge-us  { color: var(--green); border-color: var(--green); }
+
+    .panel-body {
+      padding: 0;
+    }
+
+    /* TradingView iframes */
+    .tv-widget {
+      width: 100%;
+      display: block;
+      border: none;
+    }
+
+    /* ── TOP ROW: 2 col ── */
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 700px) {
+      .row-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ── TICKER TAPE ── */
+    .tape-wrap {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <a class="back-btn" href="index.html">◀ BACK</a>
+      <span class="topbar-title">MARKET WATCH</span>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+
+  <div class="notice">
+    ⚠ 무료 TradingView 데이터 기준 · 한국 시장 15분 지연 · 미국 시장 실시간
+  </div>
+
+  <div class="wrapper">
+
+    <!-- TICKER TAPE -->
+    <div class="tape-wrap">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+        {
+          "symbols": [
+            { "proName": "KRX:000660", "title": "SK하이닉스" },
+            { "proName": "KRX:KOSPI",  "title": "KOSPI" },
+            { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
+            { "proName": "NASDAQ:NVDA", "title": "NVIDIA" },
+            { "proName": "NASDAQ:TSMC", "title": "TSMC" },
+            { "proName": "FX_IDC:USDKRW", "title": "USD/KRW" }
+          ],
+          "showSymbolLogo": true,
+          "isTransparent": true,
+          "displayMode": "adaptive",
+          "colorTheme": "dark",
+          "locale": "kr"
+        }
+        </script>
+      </div>
+    </div>
+
+    <!-- SK하이닉스 차트 -->
+    <div>
+      <div class="section-label"><span class="dot"></span>SK하이닉스 · KRX:000660</div>
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-name">SK하이닉스</div>
+            <div class="panel-sub">Korea Stock Exchange · 000660</div>
+          </div>
+          <span class="panel-badge badge-kr">KR</span>
+        </div>
+        <div class="panel-body">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+            {
+              "autosize": true,
+              "height": 420,
+              "symbol": "KRX:000660",
+              "interval": "D",
+              "timezone": "Asia/Seoul",
+              "theme": "dark",
+              "style": "1",
+              "locale": "kr",
+              "backgroundColor": "rgba(13, 15, 26, 1)",
+              "gridColor": "rgba(30, 34, 53, 0.8)",
+              "hide_top_toolbar": false,
+              "hide_legend": false,
+              "save_image": false,
+              "calendar": false,
+              "hide_volume": false
+            }
+            </script>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KOSPI + S&P500 -->
+    <div>
+      <div class="section-label"><span class="dot"></span>지수 · INDEX</div>
+      <div class="row-2">
+
+        <!-- KOSPI -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-name">KOSPI</div>
+              <div class="panel-sub">Korea Composite Stock Price Index</div>
+            </div>
+            <span class="panel-badge badge-kr">KR</span>
+          </div>
+          <div class="panel-body">
+            <div class="tradingview-widget-container">
+              <div class="tradingview-widget-container__widget"></div>
+              <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+              {
+                "autosize": true,
+                "height": 320,
+                "symbol": "KRX:KOSPI",
+                "interval": "D",
+                "timezone": "Asia/Seoul",
+                "theme": "dark",
+                "style": "1",
+                "locale": "kr",
+                "backgroundColor": "rgba(13, 15, 26, 1)",
+                "gridColor": "rgba(30, 34, 53, 0.8)",
+                "hide_top_toolbar": false,
+                "save_image": false,
+                "hide_volume": true
+              }
+              </script>
+            </div>
+          </div>
+        </div>
+
+        <!-- S&P500 -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-name">S&amp;P 500</div>
+              <div class="panel-sub">Standard &amp; Poor's 500 Index</div>
+            </div>
+            <span class="panel-badge badge-us">US</span>
+          </div>
+          <div class="panel-body">
+            <div class="tradingview-widget-container">
+              <div class="tradingview-widget-container__widget"></div>
+              <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+              {
+                "autosize": true,
+                "height": 320,
+                "symbol": "FOREXCOM:SPXUSD",
+                "interval": "D",
+                "timezone": "America/New_York",
+                "theme": "dark",
+                "style": "1",
+                "locale": "kr",
+                "backgroundColor": "rgba(13, 15, 26, 1)",
+                "gridColor": "rgba(30, 34, 53, 0.8)",
+                "hide_top_toolbar": false,
+                "save_image": false,
+                "hide_volume": true
+              }
+              </script>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 미니 시세 3종 -->
+    <div>
+      <div class="section-label"><span class="dot"></span>현재가 스냅샷</div>
+      <div class="row-2" style="grid-template-columns: repeat(auto-fit, minmax(220px,1fr));">
+
+        <div class="panel">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+            {
+              "symbol": "KRX:000660",
+              "width": "100%",
+              "colorTheme": "dark",
+              "isTransparent": true,
+              "locale": "kr"
+            }
+            </script>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+            {
+              "symbol": "KRX:KOSPI",
+              "width": "100%",
+              "colorTheme": "dark",
+              "isTransparent": true,
+              "locale": "kr"
+            }
+            </script>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+            {
+              "symbol": "FOREXCOM:SPXUSD",
+              "width": "100%",
+              "colorTheme": "dark",
+              "isTransparent": true,
+              "locale": "kr"
+            }
+            </script>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 실시간 시계
+    function updateClock() {
+      const now = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      document.getElementById('clock').textContent =
+        `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+
+</body>
+</html>
