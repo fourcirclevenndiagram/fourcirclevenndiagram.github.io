@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>씨앗의 요새 🍉</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic+Coding&display=swap');
+
+  :root {
+    --wm-red: #c0392b;
+    --wm-red2: #e74c3c;
+    --wm-pink: #f1948a;
+    --wm-green: #27ae60;
+    --wm-green2: #2ecc71;
+    --wm-dark: #1a0a08;
+    --wm-seed: #1c1c1c;
+    --wm-rind: #145a32;
+    --wm-light: #fdf2f0;
+    --wm-yellow: #f39c12;
+    --wm-gold: #f1c40f;
+    --glow: 0 0 12px rgba(231,76,60,0.6);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: radial-gradient(ellipse at center, #2d0a05 0%, #0d1a0a 60%, #050d05 100%);
+    min-height: 100vh;
+    font-family: 'Jua', sans-serif;
+    color: var(--wm-light);
+    overflow-x: hidden;
+  }
+
+  /* 배경 씨앗 파티클 */
+  .bg-seeds {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .bg-seed {
+    position: absolute;
+    width: 6px; height: 10px;
+    background: #1c1c1c;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    opacity: 0.15;
+    animation: floatSeed linear infinite;
+  }
+
+  @keyframes floatSeed {
+    from { transform: translateY(100vh) rotate(0deg); opacity: 0.1; }
+    50% { opacity: 0.2; }
+    to { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* 메인 레이아웃 */
+  .game-wrapper {
+    position: relative; z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px;
+    min-height: 100vh;
+  }
+
+  /* 헤더 */
+  .header {
+    text-align: center;
+    padding: 16px 0 8px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    color: var(--wm-green2);
+    text-shadow: 0 0 20px rgba(46,204,113,0.8), 0 2px 0 #145a32;
+    letter-spacing: 2px;
+  }
+  .header .subtitle {
+    font-size: 0.75rem;
+    color: var(--wm-pink);
+    font-family: 'Nanum Gothic Coding', monospace;
+    margin-top: 4px;
+    opacity: 0.8;
+  }
+
+  /* 자원 바 */
+  .resources {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .res-card {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(231,76,60,0.3);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .res-icon { font-size: 1.4rem; }
+  .res-info { flex: 1; min-width: 0; }
+  .res-name { font-size: 0.65rem; color: var(--wm-pink); }
+  .res-val {
+    font-size: 1rem;
+    color: var(--wm-light);
+    font-family: 'Nanum Gothic Coding', monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .res-rate { font-size: 0.6rem; color: var(--wm-green2); }
+
+  /* 수박 대시 + 클릭 영역 */
+  .melon-zone {
+    position: relative;
+    margin: 14px 0;
+    display: flex;
+    justify-content: center;
+  }
+  .melon-btn {
+    position: relative;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: none; cursor: pointer;
+    background: radial-gradient(circle at 40% 35%, #e74c3c 0%, #c0392b 45%, #96281b 80%, #7b241c 100%);
+    box-shadow: 0 0 30px rgba(192,57,43,0.5), inset 0 -8px 20px rgba(0,0,0,0.4), inset 0 4px 10px rgba(255,150,130,0.2);
+    transition: transform 0.1s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+  .melon-btn:active {
+    transform: scale(0.93);
+    box-shadow: 0 0 50px rgba(231,76,60,0.9), inset 0 -4px 10px rgba(0,0,0,0.4);
+  }
+  /* 수박 무늬 줄 */
+  .melon-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: repeating-linear-gradient(
+      -30deg,
+      transparent 0px, transparent 18px,
+      rgba(0,0,0,0.12) 18px, rgba(0,0,0,0.12) 22px
+    );
+  }
+  .melon-label {
+    position: relative; z-index: 1;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .melon-label .emoji { font-size: 1.8rem; display: block; }
+
+  /* 클릭 파티클 */
+  .click-particle {
+    position: absolute;
+    font-size: 0.9rem;
+    font-family: 'Nanum Gothic Coding', monospace;
+    color: var(--wm-gold);
+    pointer-events: none;
+    animation: floatUp 0.9s ease-out forwards;
+    z-index: 10;
+    text-shadow: 0 0 8px rgba(241,196,15,0.8);
+  }
+  @keyframes floatUp {
+    from { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    to { opacity: 0; transform: translate(-50%, -60px) scale(0.6); }
+  }
+
+  /* 버튼 패널 */
+  .action-panel {
+    display: flex; gap: 10px;
+    margin: 10px 0;
+  }
+  .action-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border-radius: 12px;
+    border: none; cursor: pointer;
+    font-family: 'Jua', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .action-btn::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.1);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .action-btn:active::after { opacity: 1; }
+
+  .btn-dig {
+    background: linear-gradient(135deg, #2d6a4f, #1e8449);
+    color: #d5f5e3;
+    border: 1px solid #27ae60;
+    box-shadow: 0 4px 12px rgba(39,174,96,0.3);
+  }
+  .btn-dig:hover { box-shadow: 0 4px 20px rgba(39,174,96,0.6); transform: translateY(-1px); }
+  .btn-dig:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-luck {
+    background: linear-gradient(135deg, #7d3c98, #9b59b6);
+    color: #e8daef;
+    border: 1px solid #8e44ad;
+    box-shadow: 0 4px 12px rgba(142,68,173,0.3);
+  }
+  .btn-luck:hover { box-shadow: 0 4px 20px rgba(142,68,173,0.6); transform: translateY(-1px); }
+  .btn-luck:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-luck-cd {
+    display: block;
+    font-size: 0.65rem;
+    margin-top: 3px;
+    color: #d7bde2;
+  }
+
+  /* 탭 */
+  .tabs {
+    display: flex; gap: 6px;
+    margin: 12px 0 8px;
+  }
+  .tab-btn {
+    flex: 1; padding: 8px 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(231,76,60,0.3);
+    background: rgba(0,0,0,0.4);
+    color: rgba(255,255,255,0.5);
+    font-family: 'Jua', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: rgba(192,57,43,0.4);
+    border-color: var(--wm-red2);
+    color: var(--wm-light);
+    box-shadow: var(--glow);
+  }
+
+  /* 패널 */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* 건물/업그레이드 카드 */
+  .card-list { display: flex; flex-direction: column; gap: 8px; }
+  .build-card {
+    background: rgba(0,0,0,0.45);
+    border: 1px solid rgba(231,76,60,0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    transition: border-color 0.2s;
+  }
+  .build-card.can-afford { border-color: rgba(46,204,113,0.5); }
+  .build-icon { font-size: 1.8rem; width: 36px; text-align: center; }
+  .build-info { flex: 1; }
+  .build-name { font-size: 0.9rem; color: var(--wm-light); }
+  .build-desc { font-size: 0.65rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .build-owned { font-size: 0.7rem; color: var(--wm-green2); margin-top: 2px; }
+  .build-buy-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none; cursor: pointer;
+    font-family: 'Jua', sans-serif;
+    font-size: 0.75rem;
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    color: white;
+    transition: all 0.15s;
+    min-width: 70px;
+    text-align: center;
+  }
+  .build-buy-btn:disabled {
+    background: rgba(100,100,100,0.4);
+    color: rgba(255,255,255,0.3);
+    cursor: not-allowed;
+  }
+  .build-buy-btn:not(:disabled):hover { box-shadow: var(--glow); transform: scale(1.05); }
+  .cost-line { font-size: 0.7rem; margin-top: 3px; }
+
+  /* 도감 (수집) */
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .coll-item {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(231,76,60,0.2);
+    border-radius: 10px;
+    padding: 10px 6px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: default;
+    position: relative;
+  }
+  .coll-item.unlocked {
+    border-color: rgba(241,196,15,0.5);
+    background: rgba(241,196,15,0.08);
+  }
+  .coll-item .coll-icon { font-size: 1.6rem; filter: grayscale(1); transition: filter 0.3s; }
+  .coll-item.unlocked .coll-icon { filter: grayscale(0); }
+  .coll-item .coll-name { font-size: 0.6rem; margin-top: 4px; color: rgba(255,255,255,0.4); }
+  .coll-item.unlocked .coll-name { color: var(--wm-gold); }
+  .coll-item .coll-lock { font-size: 0.6rem; position: absolute; top: 4px; right: 5px; opacity: 0.5; }
+
+  /* 로그 */
+  .log-box {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(231,76,60,0.2);
+    border-radius: 10px;
+    padding: 10px;
+    height: 160px;
+    overflow-y: auto;
+    font-family: 'Nanum Gothic Coding', monospace;
+    font-size: 0.7rem;
+  }
+  .log-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .log-line:last-child { border-bottom: none; }
+  .log-line.good { color: var(--wm-green2); }
+  .log-line.bad { color: var(--wm-red2); }
+  .log-line.neutral { color: rgba(255,255,255,0.6); }
+  .log-line.luck { color: #a855f7; }
+  .log-line.gold { color: var(--wm-gold); }
+
+  /* 오프라인 보상 팝업 */
+  .offline-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .offline-popup.hidden { display: none; }
+  .offline-box {
+    background: radial-gradient(ellipse, #1a0a08 0%, #0d0d0d 100%);
+    border: 2px solid var(--wm-green2);
+    border-radius: 20px;
+    padding: 28px 32px;
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+    box-shadow: 0 0 40px rgba(46,204,113,0.4);
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .offline-box h2 { font-size: 1.4rem; color: var(--wm-green2); margin-bottom: 8px; }
+  .offline-box .time-away { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+  .offline-rewards { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+  .offline-reward-row {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 12px;
+  }
+  .offline-reward-row span:last-child { color: var(--wm-gold); font-family: 'Nanum Gothic Coding', monospace; }
+  .claim-btn {
+    width: 100%; padding: 12px;
+    border-radius: 12px; border: none; cursor: pointer;
+    font-family: 'Jua', sans-serif; font-size: 1rem;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    box-shadow: 0 4px 16px rgba(46,204,113,0.4);
+    transition: all 0.2s;
+  }
+  .claim-btn:hover { transform: scale(1.03); box-shadow: 0 6px 24px rgba(46,204,113,0.7); }
+
+  /* 진행 바 */
+  .progress-wrap { margin: 8px 0 4px; }
+  .progress-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); display: flex; justify-content: space-between; }
+  .progress-bar {
+    height: 8px; background: rgba(0,0,0,0.4); border-radius: 4px;
+    margin-top: 3px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--wm-green), var(--wm-green2));
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  /* 행운 주사위 결과 모달 */
+  .luck-result {
+    position: fixed; inset: 0; z-index: 99;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .luck-result-box {
+    background: rgba(20,10,30,0.97);
+    border: 2px solid #9b59b6;
+    border-radius: 16px;
+    padding: 20px 28px;
+    text-align: center;
+    animation: luckPop 0.3s ease-out, luckFade 0.5s ease-in 1.5s forwards;
+    box-shadow: 0 0 30px rgba(155,89,182,0.5);
+  }
+  @keyframes luckPop {
+    from { transform: scale(0.6); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @keyframes luckFade {
+    to { opacity: 0; transform: scale(0.9) translateY(-20px); }
+  }
+  .luck-result-box h3 { font-size: 1.2rem; }
+
+  /* 스크롤바 */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(192,57,43,0.4); border-radius: 2px; }
+
+  .section-title {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  .stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px; margin-bottom: 10px;
+  }
+  .stat-card {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .stat-card .s-label { font-size: 0.6rem; color: rgba(255,255,255,0.4); }
+  .stat-card .s-val { font-size: 0.9rem; color: var(--wm-light); font-family: 'Nanum Gothic Coding', monospace; }
+
+  .shake {
+    animation: shake 0.3s ease;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .pulse-green { animation: pulseGreen 0.5s ease; }
+  @keyframes pulseGreen {
+    0%,100% { box-shadow: 0 0 0 rgba(46,204,113,0); }
+    50% { box-shadow: 0 0 20px rgba(46,204,113,0.8); }
+  }
+</style>
+</head>
+<body>
+
+<!-- 배경 씨앗들 -->
+<div class="bg-seeds" id="bgSeeds"></div>
+
+<!-- 오프라인 팝업 -->
+<div class="offline-popup" id="offlinePopup">
+  <div class="offline-box">
+    <div style="font-size:2.5rem">🍉</div>
+    <h2>기지에 귀환!</h2>
+    <div class="time-away" id="timeAway">17분 동안 자리를 비웠습니다</div>
+    <div class="offline-rewards" id="offlineRewards"></div>
+    <div style="font-size:0.65rem;color:rgba(255,255,255,0.35);margin-bottom:12px">오프라인 수확률: 온라인의 1/3</div>
+    <button class="claim-btn" onclick="claimOffline()">🌱 수확하기</button>
+  </div>
+</div>
+
+<!-- 메인 -->
+<div class="game-wrapper">
+  <div class="header">
+    <h1>🍉 씨앗의 요새</h1>
+    <div class="subtitle">[ WATERMELON BASE — MICRO CIVILIZATION ]</div>
+  </div>
+
+  <!-- 자원 -->
+  <div class="resources">
+    <div class="res-card">
+      <div class="res-icon">💧</div>
+      <div class="res-info">
+        <div class="res-name">수분</div>
+        <div class="res-val" id="resWater">0</div>
+        <div class="res-rate" id="resWaterRate">+0/초</div>
+      </div>
+    </div>
+    <div class="res-card">
+      <div class="res-icon">🌱</div>
+      <div class="res-info">
+        <div class="res-name">섬유질</div>
+        <div class="res-val" id="resFiber">0</div>
+        <div class="res-rate" id="resFiberRate">+0/초</div>
+      </div>
+    </div>
+    <div class="res-card">
+      <div class="res-icon">🔴</div>
+      <div class="res-info">
+        <div class="res-name">과육 조각</div>
+        <div class="res-val" id="resPulp">0</div>
+        <div class="res-rate" id="resPulpRate">+0/초</div>
+      </div>
+    </div>
+    <div class="res-card">
+      <div class="res-icon">✨</div>
+      <div class="res-info">
+        <div class="res-name">씨앗 마나</div>
+        <div class="res-val" id="resMana">0</div>
+        <div class="res-rate" id="resManaRate">+0/초</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 수박 클릭 영역 -->
+  <div class="melon-zone" id="melonZone">
+    <button class="melon-btn" id="melonBtn" onclick="clickMelon(event)">
+      <div class="melon-label">
+        <span class="emoji">🪲</span>
+        <span>파기!</span>
+      </div>
+    </button>
+  </div>
+
+  <!-- 탭 버튼 들 -->
+  <div class="action-panel">
+    <button class="action-btn btn-dig" id="btnDig" onclick="doDigAction()">
+      ⛏️ 집중 굴착<br>
+      <span style="font-size:0.65rem;color:#a9dfbf">(수분 10 소모)</span>
+    </button>
+    <button class="action-btn btn-luck" id="btnLuck" onclick="doLuckRoll()">
+      🎲 운명의 씨앗<br>
+      <span class="btn-luck-cd" id="luckCd">쿨다운: 준비됨</span>
+    </button>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('build')">🏗️ 건설</button>
+    <button class="tab-btn" onclick="switchTab('upgrade')">⬆️ 강화</button>
+    <button class="tab-btn" onclick="switchTab('collection')">📖 도감</button>
+    <button class="tab-btn" onclick="switchTab('log')">📜 기록</button>
+  </div>
+
+  <!-- 건설 패널 -->
+  <div class="panel active" id="panelBuild">
+    <div class="section-title">건물 건설</div>
+    <div class="card-list" id="buildList"></div>
+  </div>
+
+  <!-- 강화 패널 -->
+  <div class="panel" id="panelUpgrade">
+    <div class="section-title">기술 연구</div>
+    <div class="card-list" id="upgradeList"></div>
+  </div>
+
+  <!-- 도감 패널 -->
+  <div class="panel" id="panelCollection">
+    <div class="section-title">발견 도감</div>
+    <div class="collection-grid" id="collectionGrid"></div>
+  </div>
+
+  <!-- 기록 패널 -->
+  <div class="panel" id="panelLog">
+    <div class="section-title">탐사 기록</div>
+    <div class="log-box" id="logBox"></div>
+    <div class="stat-grid" style="margin-top:10px">
+      <div class="stat-card"><div class="s-label">총 클릭</div><div class="s-val" id="statClicks">0</div></div>
+      <div class="stat-card"><div class="s-label">총 굴착량</div><div class="s-val" id="statDug">0</div></div>
+      <div class="stat-card"><div class="s-label">행운 시도</div><div class="s-val" id="statLuck">0</div></div>
+      <div class="stat-card"><div class="s-label">플레이 시간</div><div class="s-val" id="statTime">0분</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================
+//   게임 상태
+// ============================
+const G = {
+  res: { water: 0, fiber: 0, pulp: 0, mana: 0 },
+  rate: { water: 0, fiber: 0, pulp: 0, mana: 0 },
+  clickPower: { water: 3, fiber: 1, pulp: 0, mana: 0 },
+  buildings: {},
+  upgrades: {},
+  collection: {},
+  stats: { clicks: 0, dug: 0, luckRolls: 0, startTime: Date.now() },
+  luckCooldown: 0,
+  lastSave: Date.now(),
+};
+
+// ============================
+//   건물 데이터
+// ============================
+const BUILDINGS = [
+  {
+    id: 'waterRoot',
+    name: '수분 뿌리',
+    icon: '🌿',
+    desc: '수박 과육에서 수분을 흡수합니다',
+    cost: { water: 15, fiber: 5 },
+    produces: { water: 0.5 },
+    maxOwned: 999,
+  },
+  {
+    id: 'fiberTunnel',
+    name: '섬유 터널',
+    icon: '🕳️',
+    desc: '섬유질 채취 전용 굴착 통로',
+    cost: { water: 30, fiber: 20 },
+    produces: { fiber: 0.4, water: 0.1 },
+    maxOwned: 999,
+  },
+  {
+    id: 'pulpChamber',
+    name: '과육 저장고',
+    icon: '🏠',
+    desc: '과육 조각을 자동으로 수집합니다',
+    cost: { fiber: 40, pulp: 5 },
+    produces: { pulp: 0.3 },
+    maxOwned: 999,
+  },
+  {
+    id: 'seedAltar',
+    name: '씨앗 제단',
+    icon: '🪨',
+    desc: '씨앗 마나를 생성합니다. 강화의 핵심',
+    cost: { water: 80, pulp: 30 },
+    produces: { mana: 0.15 },
+    maxOwned: 20,
+  },
+  {
+    id: 'sugarCore',
+    name: '당분 코어',
+    icon: '⚡',
+    desc: '모든 자원 생산량을 20% 증가',
+    cost: { water: 200, fiber: 100, mana: 10 },
+    produces: { water: 1, fiber: 0.8, pulp: 0.5 },
+    maxOwned: 10,
+  },
+  {
+    id: 'greenRind',
+    name: '초록 껍질 방어막',
+    icon: '🛡️',
+    desc: '기지를 보호. 클릭 수분 +2 bonus',
+    cost: { fiber: 150, pulp: 50 },
+    produces: { fiber: 0.2 },
+    maxOwned: 5,
+  },
+];
+
+// ============================
+//   강화 데이터
+// ============================
+const UPGRADES = [
+  {
+    id: 'sharpClaw',
+    name: '날카로운 발톱',
+    icon: '🦷',
+    desc: '클릭 시 수분 +5 추가',
+    cost: { fiber: 30, mana: 3 },
+    effect: () => { G.clickPower.water += 5; },
+    once: true,
+  },
+  {
+    id: 'deepDigger',
+    name: '심층 굴착술',
+    icon: '⛏️',
+    desc: '집중 굴착 효율 2배',
+    cost: { water: 100, mana: 5 },
+    effect: () => { G.deepDigMulti = (G.deepDigMulti || 1) * 2; },
+    once: true,
+  },
+  {
+    id: 'waterSense',
+    name: '수분 감지',
+    icon: '💧',
+    desc: '클릭 시 과육도 +1',
+    cost: { water: 80, fiber: 40 },
+    effect: () => { G.clickPower.pulp = (G.clickPower.pulp || 0) + 1; },
+    once: true,
+  },
+  {
+    id: 'manaLens',
+    name: '마나 렌즈',
+    icon: '🔮',
+    desc: '씨앗 마나 생산 +50%',
+    cost: { mana: 8, pulp: 60 },
+    effect: () => { G.manaMulti = (G.manaMulti || 1) * 1.5; },
+    once: true,
+  },
+  {
+    id: 'luckyGene',
+    name: '행운의 유전자',
+    icon: '🍀',
+    desc: '운명의 씨앗 쿨다운 -30초',
+    cost: { mana: 12, fiber: 80 },
+    effect: () => { G.luckCdReduction = (G.luckCdReduction || 0) + 30; },
+    once: true,
+  },
+  {
+    id: 'colonySong',
+    name: '군락 노래',
+    icon: '🎵',
+    desc: '모든 클릭 보너스 +50%',
+    cost: { mana: 20, pulp: 100, water: 200 },
+    effect: () => { G.clickMulti = (G.clickMulti || 1) * 1.5; },
+    once: true,
+  },
+];
+
+// ============================
+//   도감 데이터
+// ============================
+const COLLECTIBLES = [
+  { id: 'firstDrop', name: '첫 수분', icon: '💧', hint: '처음 수분을 얻으면', check: () => G.stats.clicks >= 1 },
+  { id: 'seedling', name: '씨앗이 싹', icon: '🌱', hint: '섬유질 50 달성', check: () => G.res.fiber >= 50 },
+  { id: 'pulpFinder', name: '과육 발굴', icon: '🔴', hint: '과육 조각 20 달성', check: () => G.res.pulp >= 20 },
+  { id: 'luckyRoller', name: '행운아', icon: '🎲', hint: '운명의 씨앗 3회', check: () => G.stats.luckRolls >= 3 },
+  { id: 'builder', name: '건설자', icon: '🏗️', hint: '건물 5개 보유', check: () => totalBuildings() >= 5 },
+  { id: 'manaMiner', name: '마나 채굴자', icon: '✨', hint: '씨앗 마나 10 달성', check: () => G.res.mana >= 10 },
+  { id: 'jackpot', name: '대박!', icon: '💰', hint: '운명의 씨앗에서 대박', check: () => G.gotJackpot },
+  { id: 'centuryClick', name: '백타 굴착자', icon: '💯', hint: '클릭 100회', check: () => G.stats.clicks >= 100 },
+  { id: 'sugarRush', name: '당분 폭발', icon: '⚡', hint: '당분 코어 보유', check: () => (G.buildings['sugarCore'] || 0) >= 1 },
+  { id: 'deepDiver', name: '심층 탐험가', icon: '🌊', hint: '수분 500 달성', check: () => G.res.water >= 500 },
+  { id: 'rindDefender', name: '껍질 수호자', icon: '🛡️', hint: '초록 껍질 방어막 보유', check: () => (G.buildings['greenRind'] || 0) >= 1 },
+  { id: 'allUpgrades', name: '완전체', icon: '👑', hint: '모든 강화 완료', check: () => UPGRADES.every(u => G.upgrades[u.id]) },
+];
+
+// ============================
+//   초기화
+// ============================
+function init() {
+  G.deepDigMulti = 1;
+  G.manaMulti = 1;
+  G.luckCdReduction = 0;
+  G.clickMulti = 1;
+  G.gotJackpot = false;
+
+  spawnBgSeeds();
+  loadGame();
+  renderBuildings();
+  renderUpgrades();
+  renderCollection();
+  startLoop();
+  addLog('🌱 씨앗이 눈을 떴습니다. 수박 내부 탐험 시작!', 'good');
+}
+
+function spawnBgSeeds() {
+  const c = document.getElementById('bgSeeds');
+  for (let i = 0; i < 18; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-seed';
+    s.style.left = Math.random()*100 + '%';
+    s.style.animationDuration = (8 + Math.random()*14) + 's';
+    s.style.animationDelay = (-Math.random()*20) + 's';
+    s.style.width = (4 + Math.random()*5) + 'px';
+    s.style.height = (7 + Math.random()*8) + 'px';
+    c.appendChild(s);
+  }
+}
+
+// ============================
+//   클릭
+// ============================
+function clickMelon(e) {
+  G.stats.clicks++;
+  const multi = G.clickMulti || 1;
+  for (const [k, v] of Object.entries(G.clickPower)) {
+    if (v > 0) G.res[k] = (G.res[k] || 0) + v * multi;
+  }
+  G.stats.dug += G.clickPower.water * multi;
+
+  // 파티클
+  const zone = document.getElementById('melonZone');
+  const rect = zone.getBoundingClientRect();
+  const p = document.createElement('div');
+  p.className = 'click-particle';
+  p.textContent = '+' + fmt(G.clickPower.water * multi) + '💧';
+  p.style.left = (e.clientX - rect.left) + 'px';
+  p.style.top = (e.clientY - rect.top) + 'px';
+  zone.appendChild(p);
+  setTimeout(() => p.remove(), 900);
+
+  checkCollection();
+}
+
+// ============================
+//   집중 굴착
+// ============================
+function doDigAction() {
+  const cost = 10;
+  if (G.res.water < cost) {
+    document.getElementById('btnDig').classList.add('shake');
+    setTimeout(() => document.getElementById('btnDig').classList.remove('shake'), 400);
+    addLog('⛷ 수분이 부족합니다 (10 필요)', 'bad');
+    return;
+  }
+  G.res.water -= cost;
+  const multi = G.deepDigMulti || 1;
+  const gain = {
+    fiber: Math.floor((8 + Math.random() * 6) * multi),
+    pulp: Math.floor((3 + Math.random() * 4) * multi),
+  };
+  G.res.fiber += gain.fiber;
+  G.res.pulp += gain.pulp;
+  G.stats.dug += gain.fiber + gain.pulp;
+  document.getElementById('btnDig').classList.add('pulse-green');
+  setTimeout(() => document.getElementById('btnDig').classList.remove('pulse-green'), 500);
+  addLog(`⛏️ 집중 굴착! 섬유질 +${gain.fiber}, 과육 +${gain.pulp}`, 'good');
+  checkCollection();
+}
+
+// ============================
+//   운명의 씨앗 (운빨 버튼)
+// ============================
+const LUCK_CD_BASE = 90; // 초
+
+function doLuckRoll() {
+  const cdSecs = LUCK_CD_BASE - (G.luckCdReduction || 0);
+  if (G.luckCooldown > 0) {
+    addLog('⏳ 아직 씨앗이 충전 중...', 'neutral');
+    return;
+  }
+  G.luckCooldown = cdSecs * 1000;
+  G.stats.luckRolls++;
+
+  const roll = Math.random();
+  let msg, result, type;
+
+  if (roll < 0.05) {
+    // 잭팟 (5%)
+    const bonus = Math.floor(G.res.water * 0.5 + 100);
+    G.res.water += bonus; G.res.fiber += bonus; G.res.pulp += Math.floor(bonus / 3); G.res.mana += 5;
+    G.gotJackpot = true;
+    msg = `💥 대박!! 씨앗이 폭발! 수분 +${fmt(bonus)}, 섬유 +${fmt(bonus)}, 마나 +5`;
+    result = '🌟 JACKPOT!!'; type = 'gold';
+  } else if (roll < 0.25) {
+    // 대성공 (20%)
+    const w = Math.floor(30 + Math.random() * 50);
+    const f = Math.floor(20 + Math.random() * 30);
+    G.res.water += w; G.res.fiber += f;
+    msg = `✨ 행운! 수분 +${w}, 섬유질 +${f}`;
+    result = '✨ 행운!'; type = 'luck';
+  } else if (roll < 0.55) {
+    // 보통 (30%)
+    const w = Math.floor(8 + Math.random() * 15);
+    G.res.water += w;
+    msg = `🎲 평범한 발굴. 수분 +${w}`;
+    result = '🎲 평범함'; type = 'neutral';
+  } else if (roll < 0.75) {
+    // 작은 이득 (20%)
+    const m = Math.floor(1 + Math.random() * 3);
+    G.res.mana += m;
+    msg = `🌀 신비한 씨앗 발견. 마나 +${m}`;
+    result = '🌀 신비로움'; type = 'luck';
+  } else if (roll < 0.90) {
+    // 손실 (15%)
+    const loss = Math.floor(5 + Math.random() * 10);
+    G.res.water = Math.max(0, G.res.water - loss);
+    msg = `💀 함정이었다! 수분 -${loss}`;
+    result = '💀 함정!'; type = 'bad';
+  } else {
+    // 아무 일도 없음 (10%)
+    msg = '🌙 씨앗이 조용히 잠들었다...';
+    result = '😴 꽝...'; type = 'neutral';
+  }
+
+  addLog(msg, type);
+  showLuckResult(result, type);
+  checkCollection();
+}
+
+function showLuckResult(text, type) {
+  const colors = { gold: '#f1c40f', luck: '#a855f7', good: '#2ecc71', bad: '#e74c3c', neutral: 'rgba(255,255,255,0.7)' };
+  const div = document.createElement('div');
+  div.className = 'luck-result';
+  div.innerHTML = `<div class="luck-result-box" style="border-color:${colors[type]||'#9b59b6'}">
+    <h3 style="color:${colors[type]||'#a855f7'}">${text}</h3>
+  </div>`;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2100);
+}
+
+// ============================
+//   건물 구매
+// ============================
+function buyBuilding(id) {
+  const b = BUILDINGS.find(x => x.id === id);
+  if (!b) return;
+  const owned = G.buildings[id] || 0;
+  if (b.maxOwned && owned >= b.maxOwned) return;
+  const cost = scaledCost(b.cost, owned);
+  if (!canAfford(cost)) {
+    addLog(`🚫 자원이 부족합니다`, 'bad');
+    return;
+  }
+  spendRes(cost);
+  G.buildings[id] = owned + 1;
+  recalcRates();
+  renderBuildings();
+  addLog(`🏗️ [${b.name}] 건설 완료! (총 ${owned+1}개)`, 'good');
+  checkCollection();
+}
+
+function scaledCost(base, owned) {
+  const scale = Math.pow(1.15, owned);
+  const out = {};
+  for (const [k, v] of Object.entries(base)) out[k] = Math.floor(v * scale);
+  return out;
+}
+
+// ============================
+//   강화 구매
+// ============================
+function buyUpgrade(id) {
+  const u = UPGRADES.find(x => x.id === id);
+  if (!u || G.upgrades[id]) return;
+  if (!canAfford(u.cost)) { addLog(`🚫 연구 자원이 부족합니다`, 'bad'); return; }
+  spendRes(u.cost);
+  G.upgrades[id] = true;
+  u.effect();
+  recalcRates();
+  renderUpgrades();
+  renderBuildings();
+  addLog(`⬆️ [${u.name}] 연구 완료!`, 'gold');
+  checkCollection();
+}
+
+// ============================
+//   자원 계산
+// ============================
+function recalcRates() {
+  G.rate = { water: 0, fiber: 0, pulp: 0, mana: 0 };
+  const manaMulti = G.manaMulti || 1;
+  for (const b of BUILDINGS) {
+    const cnt = G.buildings[b.id] || 0;
+    if (!cnt) continue;
+    const sugarBonus = 1 + (G.buildings['sugarCore'] || 0) * 0.2;
+    for (const [k, v] of Object.entries(b.produces)) {
+      let rate = v * cnt;
+      if (k === 'mana') rate *= manaMulti;
+      else rate *= sugarBonus;
+      G.rate[k] = (G.rate[k] || 0) + rate;
+    }
+  }
+  // 껍질 방어막 클릭 보너스
+  G.clickPower.water = 3 + (G.buildings['greenRind'] || 0) * 2;
+  if (G.upgrades['sharpClaw']) G.clickPower.water += 5;
+  if (G.upgrades['waterSense']) G.clickPower.pulp = 1;
+}
+
+function canAfford(cost) {
+  for (const [k, v] of Object.entries(cost)) if ((G.res[k] || 0) < v) return false;
+  return true;
+}
+function spendRes(cost) {
+  for (const [k, v] of Object.entries(cost)) G.res[k] = Math.max(0, (G.res[k] || 0) - v);
+}
+
+function totalBuildings() {
+  return Object.values(G.buildings).reduce((a, b) => a + b, 0);
+}
+
+// ============================
+//   렌더링
+// ============================
+function renderResources() {
+  const fmt2 = v => fmt(Math.floor(v));
+  document.getElementById('resWater').textContent = fmt2(G.res.water);
+  document.getElementById('resFiber').textContent = fmt2(G.res.fiber);
+  document.getElementById('resPulp').textContent = fmt2(G.res.pulp);
+  document.getElementById('resMana').textContent = fmt2(G.res.mana);
+  document.getElementById('resWaterRate').textContent = '+' + G.rate.water.toFixed(1) + '/초';
+  document.getElementById('resFiberRate').textContent = '+' + G.rate.fiber.toFixed(1) + '/초';
+  document.getElementById('resPulpRate').textContent = '+' + G.rate.pulp.toFixed(1) + '/초';
+  document.getElementById('resManaRate').textContent = '+' + G.rate.mana.toFixed(2) + '/초';
+}
+
+function renderBuildings() {
+  const el = document.getElementById('buildList');
+  el.innerHTML = '';
+  for (const b of BUILDINGS) {
+    const owned = G.buildings[b.id] || 0;
+    const cost = scaledCost(b.cost, owned);
+    const affordable = canAfford(cost);
+    const maxed = b.maxOwned && owned >= b.maxOwned;
+    const card = document.createElement('div');
+    card.className = 'build-card' + (affordable && !maxed ? ' can-afford' : '');
+    card.innerHTML = `
+      <div class="build-icon">${b.icon}</div>
+      <div class="build-info">
+        <div class="build-name">${b.name}</div>
+        <div class="build-desc">${b.desc}</div>
+        <div class="build-owned">보유: ${owned}${b.maxOwned < 999 ? ' / ' + b.maxOwned : ''}</div>
+        <div class="cost-line" style="color:${affordable?'#a9dfbf':'rgba(255,100,100,0.7)'}">
+          ${Object.entries(cost).map(([k,v]) => resIcon(k)+fmt(v)).join('  ')}
+        </div>
+      </div>
+      <button class="build-buy-btn" onclick="buyBuilding('${b.id}')" ${affordable && !maxed ? '' : 'disabled'}>
+        ${maxed ? '최대' : '건설'}
+      </button>`;
+    el.appendChild(card);
+  }
+}
+
+function renderUpgrades() {
+  const el = document.getElementById('upgradeList');
+  el.innerHTML = '';
+  for (const u of UPGRADES) {
+    const done = G.upgrades[u.id];
+    const affordable = canAfford(u.cost);
+    const card = document.createElement('div');
+    card.className = 'build-card' + (affordable && !done ? ' can-afford' : '');
+    card.innerHTML = `
+      <div class="build-icon">${u.icon}</div>
+      <div class="build-info">
+        <div class="build-name">${u.name}</div>
+        <div class="build-desc">${u.desc}</div>
+        <div class="cost-line" style="color:${affordable||done?'#a9dfbf':'rgba(255,100,100,0.7)'}">
+          ${done ? '✅ 완료' : Object.entries(u.cost).map(([k,v]) => resIcon(k)+fmt(v)).join('  ')}
+        </div>
+      </div>
+      <button class="build-buy-btn" onclick="buyUpgrade('${u.id}')" ${affordable && !done ? '' : 'disabled'}>
+        ${done ? '완료' : '연구'}
+      </button>`;
+    el.appendChild(card);
+  }
+}
+
+function renderCollection() {
+  const el = document.getElementById('collectionGrid');
+  el.innerHTML = '';
+  for (const c of COLLECTIBLES) {
+    const unlocked = G.collection[c.id];
+    const item = document.createElement('div');
+    item.className = 'coll-item' + (unlocked ? ' unlocked' : '');
+    item.title = unlocked ? c.name : '???';
+    item.innerHTML = `
+      <div class="coll-icon">${unlocked ? c.icon : '⬛'}</div>
+      <div class="coll-name">${unlocked ? c.name : '???'}</div>
+      ${!unlocked ? `<div class="coll-lock">🔒</div>` : ''}`;
+    el.appendChild(item);
+  }
+}
+
+function checkCollection() {
+  let changed = false;
+  for (const c of COLLECTIBLES) {
+    if (!G.collection[c.id] && c.check()) {
+      G.collection[c.id] = true;
+      changed = true;
+      addLog(`📖 도감 등록: [${c.name}] ${c.icon}`, 'gold');
+    }
+  }
+  if (changed) renderCollection();
+}
+
+function renderStats() {
+  document.getElementById('statClicks').textContent = fmt(G.stats.clicks);
+  document.getElementById('statDug').textContent = fmt(G.stats.dug);
+  document.getElementById('statLuck').textContent = G.stats.luckRolls;
+  const mins = Math.floor((Date.now() - G.stats.startTime) / 60000);
+  document.getElementById('statTime').textContent = mins < 60 ? mins + '분' : Math.floor(mins/60) + '시간 ' + (mins%60) + '분';
+}
+
+function renderLuckCd() {
+  const el = document.getElementById('luckCd');
+  const btn = document.getElementById('btnLuck');
+  if (G.luckCooldown <= 0) {
+    el.textContent = '쿨다운: 준비됨';
+    btn.disabled = false;
+  } else {
+    const secs = Math.ceil(G.luckCooldown / 1000);
+    el.textContent = `쿨다운: ${secs}초`;
+    btn.disabled = true;
+  }
+}
+
+// ============================
+//   탭 전환
+// ============================
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['build','upgrade','collection','log'][i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+}
+
+// ============================
+//   로그
+// ============================
+const logLines = [];
+function addLog(msg, type = 'neutral') {
+  const now = new Date();
+  const time = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  logLines.unshift({ msg, type, time });
+  if (logLines.length > 60) logLines.pop();
+  const box = document.getElementById('logBox');
+  box.innerHTML = logLines.map(l =>
+    `<div class="log-line ${l.type}">[${l.time}] ${l.msg}</div>`
+  ).join('');
+}
+
+// ============================
+//   게임 루프
+// ============================
+let lastTick = Date.now();
+function startLoop() {
+  setInterval(() => {
+    const now = Date.now();
+    const dt = (now - lastTick) / 1000;
+    lastTick = now;
+
+    // 자원 생산
+    for (const [k, v] of Object.entries(G.rate)) {
+      G.res[k] = (G.res[k] || 0) + v * dt;
+    }
+
+    // 쿨다운
+    if (G.luckCooldown > 0) G.luckCooldown -= dt * 1000;
+    if (G.luckCooldown < 0) G.luckCooldown = 0;
+
+    renderResources();
+    renderLuckCd();
+    renderStats();
+
+    // 10초마다 건물/강화 갱신
+    if (Math.floor(now / 10000) !== Math.floor((now - dt * 1000) / 10000)) {
+      renderBuildings();
+      renderUpgrades();
+    }
+
+    // 30초마다 저장
+    if (now - G.lastSave > 30000) saveGame();
+
+  }, 200);
+}
+
+// ============================
+//   저장 / 불러오기
+// ============================
+function saveGame() {
+  const save = {
+    res: G.res,
+    buildings: G.buildings,
+    upgrades: G.upgrades,
+    collection: G.collection,
+    stats: G.stats,
+    deepDigMulti: G.deepDigMulti,
+    manaMulti: G.manaMulti,
+    luckCdReduction: G.luckCdReduction,
+    clickMulti: G.clickMulti,
+    gotJackpot: G.gotJackpot,
+    savedAt: Date.now(),
+    everSaved: true,
+    clickPower: G.clickPower,
+  };
+  try {
+    localStorage.setItem('watermelonBase_v1', JSON.stringify(save));
+  } catch(e) {}
+  G.lastSave = Date.now();
+}
+
+function loadGame() {
+  let raw;
+  try { raw = localStorage.getItem('watermelonBase_v1'); } catch(e) { return; }
+  if (!raw) return;
+  try {
+    const save = JSON.parse(raw);
+    // everSaved 플래그 없으면 이전 버전 혹은 비정상 저장 → 오프라인 팝업 차단
+    const canShowOffline = !!save.everSaved;
+
+    Object.assign(G.res, save.res || {});
+    Object.assign(G.buildings, save.buildings || {});
+    Object.assign(G.upgrades, save.upgrades || {});
+    Object.assign(G.collection, save.collection || {});
+    if (save.stats) Object.assign(G.stats, save.stats);
+    G.deepDigMulti = save.deepDigMulti || 1;
+    G.manaMulti = save.manaMulti || 1;
+    G.luckCdReduction = save.luckCdReduction || 0;
+    G.clickMulti = save.clickMulti || 1;
+    G.gotJackpot = save.gotJackpot || false;
+    if (save.clickPower) Object.assign(G.clickPower, save.clickPower);
+
+    recalcRates();
+
+    // everSaved + savedAt 둘 다 있고 + 5분 이상 경과한 경우만 오프라인 팝업
+    if (canShowOffline && save.savedAt) {
+      const away = Date.now() - save.savedAt;
+      if (away > 300000) showOfflineReward(away);
+    }
+  } catch (e) { console.error(e); }
+}
+
+// ============================
+//   오프라인 보상
+// ============================
+function showOfflineReward(awayMs) {
+  const awaySec = awayMs / 1000;
+  const offMulti = 1 / 3;
+
+  const rewards = {};
+  for (const [k, v] of Object.entries(G.rate)) {
+    const amount = Math.floor(v * awaySec * offMulti);
+    if (amount > 0) rewards[k] = amount;
+  }
+  // 클릭 없는 경우도 기본 수분 약간
+  if (!rewards.water) rewards.water = Math.floor(awaySec * 0.2);
+
+  const popup = document.getElementById('offlinePopup');
+  document.getElementById('timeAway').textContent = formatTime(awayMs) + ' 동안 자리를 비웠습니다';
+  const rewardsEl = document.getElementById('offlineRewards');
+  rewardsEl.innerHTML = Object.entries(rewards).map(([k, v]) =>
+    `<div class="offline-reward-row"><span>${resIcon(k)} ${resName(k)}</span><span>+${fmt(v)}</span></div>`
+  ).join('');
+  popup.classList.remove('hidden');
+  popup._rewards = rewards;
+}
+
+function claimOffline() {
+  const popup = document.getElementById('offlinePopup');
+  if (popup._rewards) {
+    for (const [k, v] of Object.entries(popup._rewards)) {
+      G.res[k] = (G.res[k] || 0) + v;
+    }
+    addLog('🌙 오프라인 보상 수령 완료!', 'gold');
+  }
+  popup.classList.add('hidden');
+  checkCollection();
+}
+
+// ============================
+//   유틸
+// ============================
+function fmt(n) {
+  n = Math.floor(n);
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e4) return (n/1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return s + '초';
+  if (s < 3600) return Math.floor(s/60) + '분 ' + (s%60) + '초';
+  return Math.floor(s/3600) + '시간 ' + Math.floor((s%3600)/60) + '분';
+}
+
+function resIcon(k) {
+  return { water: '💧', fiber: '🌱', pulp: '🔴', mana: '✨' }[k] || '';
+}
+function resName(k) {
+  return { water: '수분', fiber: '섬유질', pulp: '과육 조각', mana: '씨앗 마나' }[k] || k;
+}
+
+// 저장 단축키
+window.addEventListener('keydown', e => { if (e.key === 's' && e.ctrlKey) { saveGame(); addLog('💾 저장 완료', 'neutral'); } });
+// iOS Safari는 beforeunload 불안정 → visibilitychange + pagehide 사용
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveGame();
+});
+window.addEventListener('pagehide', saveGame);
+
+// 시작
+init();
+</script>
+</body>
+</html>
