@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🥐 황금 빵집</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8ED;
+    --warm: #F5E6C8;
+    --crust: #C8843A;
+    --crust-dark: #8B5C1E;
+    --brown: #4A2C0A;
+    --pink: #F4A7B9;
+    --gold: #E8C547;
+    --green: #7DB87A;
+    --text: #3A1E05;
+    --shadow: rgba(74,44,10,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(200,132,58,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(244,167,185,0.08) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8843a' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--crust) 0%, var(--crust-dark) 100%);
+    padding: 18px 20px 14px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(74,44,10,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 3 Q25 8 20 13 Q15 8 20 3Z M10 15 Q15 20 10 25 Q5 20 10 15Z M30 15 Q35 20 30 25 Q25 20 30 15Z' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E") repeat;
+    pointer-events: none;
+  }
+  .header h1 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 26px;
+    color: #FFF8ED;
+    letter-spacing: 2px;
+    text-shadow: 1px 2px 8px rgba(0,0,0,0.3);
+  }
+  .header .subtitle {
+    font-size: 11px;
+    color: rgba(255,248,237,0.7);
+    letter-spacing: 3px;
+    margin-top: 3px;
+  }
+
+  /* CURRENCY BAR */
+  .currency-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--warm);
+    border-bottom: 2px solid rgba(200,132,58,0.2);
+    flex-wrap: wrap;
+  }
+  .currency-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1.5px solid rgba(200,132,58,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: transform 0.1s;
+  }
+  .currency-item:hover { transform: scale(1.03); }
+  .currency-icon { font-size: 18px; }
+  .currency-label { font-size: 10px; color: #888; font-weight: 300; }
+  .currency-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--crust-dark);
+    min-width: 50px;
+    text-align: right;
+    transition: color 0.3s;
+  }
+  .currency-value.flash { color: var(--gold) !important; }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 0 0 80px;
+  }
+
+  /* SECTION */
+  .section {
+    padding: 18px 16px 10px;
+    border-bottom: 1px solid rgba(200,132,58,0.12);
+  }
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--crust);
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  /* OVEN (main click) */
+  .oven-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 16px;
+  }
+  .oven-btn {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 4px solid var(--crust);
+    background: radial-gradient(circle at 35% 35%, #FFD97A, var(--crust) 80%);
+    box-shadow: 0 6px 24px rgba(200,132,58,0.5), inset 0 -4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    font-size: 52px;
+    line-height: 1;
+    transition: transform 0.08s, box-shadow 0.08s;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .oven-btn:hover { transform: scale(1.04); }
+  .oven-btn:active { transform: scale(0.94); box-shadow: 0 2px 10px rgba(200,132,58,0.4); }
+  .oven-btn .ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: scale(0); animation: ripple 0.5s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+  .oven-label { font-size: 13px; color: var(--crust-dark); font-weight: 700; }
+  .oven-rate { font-size: 11px; color: #aaa; }
+
+  /* LUCKY BUTTON */
+  .lucky-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: 2.5px dashed var(--gold);
+    background: linear-gradient(135deg, #FFFDE7, #FFF8C5);
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--brown);
+    box-shadow: 0 3px 12px rgba(232,197,71,0.25);
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .lucky-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(232,197,71,0.35); }
+  .lucky-btn:active { transform: translateY(0); }
+  .lucky-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .lucky-btn .cooldown-bar {
+    position: absolute; bottom: 0; left: 0;
+    height: 4px; background: var(--gold);
+    border-radius: 0 0 12px 12px;
+    transition: width 0.1s linear;
+  }
+  .lucky-desc { font-size: 11px; color: #999; margin-top: 3px; }
+
+  /* UPGRADES */
+  .upgrades-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .upgrade-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 2px solid rgba(200,132,58,0.2);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px var(--shadow);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .upgrade-card:hover:not(.disabled) { border-color: var(--crust); transform: translateX(3px); }
+  .upgrade-card.disabled { opacity: 0.45; cursor: not-allowed; }
+  .upgrade-card.maxed { border-color: var(--gold); background: #FFFDF0; }
+  .upgrade-icon { font-size: 28px; }
+  .upgrade-info { flex: 1; }
+  .upgrade-name { font-size: 13px; font-weight: 700; }
+  .upgrade-desc { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .upgrade-level {
+    font-size: 11px;
+    color: var(--crust);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .upgrade-cost {
+    text-align: right;
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--crust-dark);
+    white-space: nowrap;
+  }
+  .upgrade-cost .icon { font-size: 14px; }
+
+  /* COLLECTION */
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .bread-card {
+    background: white;
+    border: 2px solid rgba(200,132,58,0.15);
+    border-radius: 12px;
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: all 0.3s;
+  }
+  .bread-card.unlocked {
+    border-color: var(--crust);
+    background: linear-gradient(135deg, white, #FFF5E6);
+  }
+  .bread-card.unlocked:hover { transform: scale(1.05); }
+  .bread-icon { font-size: 28px; filter: grayscale(1) opacity(0.25); transition: filter 0.4s; }
+  .bread-card.unlocked .bread-icon { filter: none; }
+  .bread-name { font-size: 10px; color: #bbb; margin-top: 4px; font-weight: 700; }
+  .bread-card.unlocked .bread-name { color: var(--crust-dark); }
+  .bread-count { font-size: 10px; color: #ddd; }
+  .bread-card.unlocked .bread-count { color: var(--crust); }
+
+  /* TOAST POPUP */
+  .toast-container {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+    width: 90%;
+    max-width: 380px;
+  }
+  .toast {
+    background: white;
+    border-left: 4px solid var(--crust);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brown);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease, fadeOut 0.4s ease 1.8s forwards;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.lucky { border-color: var(--gold); background: #FFFDE7; }
+  .toast.bad { border-color: #E57373; }
+  .toast.offline { border-color: var(--green); }
+  @keyframes slideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+
+  /* FLOAT NUMBERS */
+  .float-num {
+    position: fixed;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--crust-dark);
+    pointer-events: none;
+    z-index: 1000;
+    animation: floatUp 0.9s ease-out forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity:1; transform:translateY(0) scale(1); }
+    100% { opacity:0; transform:translateY(-60px) scale(0.8); }
+  }
+
+  /* OFFLINE MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(74,44,10,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 30px 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border: 3px solid var(--crust);
+  }
+  .modal h2 { font-family: 'Gowun Batang', serif; font-size: 22px; margin-bottom: 8px; }
+  .modal .offline-icon { font-size: 60px; margin-bottom: 16px; animation: bounce 1s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .modal .reward-text { font-size: 28px; font-weight: 900; color: var(--crust); margin: 16px 0; }
+  .modal .time-text { font-size: 13px; color: #888; margin-bottom: 20px; }
+  .modal-btn {
+    background: var(--crust);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 14px 40px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(200,132,58,0.4);
+    transition: transform 0.1s;
+  }
+  .modal-btn:hover { transform: scale(1.05); }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    background: rgba(200,132,58,0.15);
+    border-radius: 20px;
+    height: 8px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--crust), var(--gold));
+    border-radius: 20px;
+    transition: width 0.3s ease;
+  }
+  .auto-info { font-size: 11px; color: #bbb; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🥐 황금 빵집</h1>
+  <div class="subtitle">GOLDEN BOULANGERIE</div>
+</div>
+
+<div class="currency-bar">
+  <div class="currency-item">
+    <span class="currency-icon">🍞</span>
+    <div>
+      <div class="currency-label">빵 조각</div>
+      <div class="currency-value" id="breadVal">0</div>
+    </div>
+  </div>
+  <div class="currency-item">
+    <span class="currency-icon">⭐</span>
+    <div>
+      <div class="currency-label">별가루</div>
+      <div class="currency-value" id="starVal">0</div>
+    </div>
+  </div>
+  <div class="currency-item">
+    <span class="currency-icon">🧁</span>
+    <div>
+      <div class="currency-label">컵케이크</div>
+      <div class="currency-value" id="cupcakeVal">0</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="main">
+
+  <!-- 오븐 클릭 -->
+  <div class="section oven-wrap">
+    <button class="oven-btn" id="ovenBtn" onclick="clickOven(event)">🥖</button>
+    <div class="oven-label">오븐 두드리기</div>
+    <div class="oven-rate" id="autoRate">자동생산: 0 빵/초</div>
+    <div class="progress-bar-wrap" style="width:120px">
+      <div class="progress-bar-fill" id="autoProgress" style="width:0%"></div>
+    </div>
+    <div class="auto-info" id="autoInfo"></div>
+  </div>
+
+  <!-- 행운의 룰렛 -->
+  <div class="section">
+    <div class="section-title">🎲 행운의 오버나이트</div>
+    <button class="lucky-btn" id="luckyBtn" onclick="rollLucky()">
+      <div>🌙 오버나이트 룰렛 돌리기</div>
+      <div class="lucky-desc" id="luckyDesc">밤새 발효된 반죽... 결과는 신의 뜻에 달려있습니다</div>
+      <div class="cooldown-bar" id="cooldownBar" style="width:100%"></div>
+    </button>
+  </div>
+
+  <!-- 업그레이드 -->
+  <div class="section">
+    <div class="section-title">🔧 빵집 업그레이드</div>
+    <div class="upgrades-grid" id="upgradesGrid"></div>
+  </div>
+
+  <!-- 빵 컬렉션 -->
+  <div class="section">
+    <div class="section-title">📖 빵 도감</div>
+    <div class="collection-grid" id="collectionGrid"></div>
+  </div>
+
+</div>
+
+<!-- 오프라인 보상 모달 -->
+<div class="modal-overlay" id="offlineModal" style="display:none">
+  <div class="modal">
+    <div class="offline-icon">🌙</div>
+    <h2>빵집에 돌아오셨군요!</h2>
+    <div class="time-text" id="offlineTimeText"></div>
+    <div class="reward-text" id="offlineRewardText"></div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:16px">오프라인 보상 (온라인의 1/3)</div>
+    <button class="modal-btn" onclick="claimOffline()">🥖 빵 받기</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+const SAVE_KEY = 'bakeryIdle_v3';
+
+let state = {
+  bread: 0,
+  star: 0,
+  cupcake: 0,
+  totalBread: 0,
+  clickPower: 1,
+  autoPerSec: 0,
+  lastSave: Date.now(),
+  upgrades: {
+    click:   { level: 0, max: 10 },
+    oven:    { level: 0, max: 10 },
+    yeast:   { level: 0, max: 8 },
+    helper:  { level: 0, max: 6 },
+    display: { level: 0, max: 5 },
+    luck:    { level: 0, max: 5 },
+  },
+  collection: {}
+};
+
+// ── UPGRADE DEFS ──────────────────────────────────────
+const UPGRADES = [
+  { id:'click',   icon:'👆', name:'손맛 강화',    desc:'클릭당 빵 생산량 +2',  baseCost:25,  costMul:2.1,  effect: s => s.clickPower += 2 },
+  { id:'oven',    icon:'🔥', name:'오븐 온도 UP', desc:'자동생산 +0.5/초',    baseCost:50,  costMul:2.3,  effect: s => s.autoPerSec += 0.5 },
+  { id:'yeast',   icon:'🧫', name:'천연 효모',    desc:'자동생산 +1.5/초',    baseCost:200, costMul:2.5,  effect: s => s.autoPerSec += 1.5 },
+  { id:'helper',  icon:'👩‍🍳', name:'제빵사 고용', desc:'자동생산 +5/초',      baseCost:800, costMul:2.8,  effect: s => s.autoPerSec += 5 },
+  { id:'display', icon:'🏪', name:'진열대 확장',  desc:'별가루 수익 +1/분',   baseCost:300, costMul:2.4,  effect: s => {} },
+  { id:'luck',    icon:'🍀', name:'행운의 클로버', desc:'룰렛 확률 소폭 개선', baseCost:150, costMul:2.6,  effect: s => {} },
+];
+
+// ── BREAD COLLECTION ──────────────────────────────────
+const BREADS = [
+  { id:'baguette', icon:'🥖', name:'바게트',     unlock: 10 },
+  { id:'croissant',icon:'🥐', name:'크루아상',   unlock: 50 },
+  { id:'donut',    icon:'🍩', name:'도넛',       unlock: 150 },
+  { id:'cake',     icon:'🎂', name:'케이크',     unlock: 500 },
+  { id:'cupcake',  icon:'🧁', name:'컵케이크',   unlock: 1000 },
+  { id:'pretzel',  icon:'🥨', name:'프레첼',     unlock: 3000 },
+  { id:'waffle',   icon:'🧇', name:'와플',       unlock: 8000 },
+  { id:'pie',      icon:'🥧', name:'파이',       unlock: 20000 },
+];
+
+// ── LUCKY TABLE ────────────────────────────────────────
+const LUCKY_TABLE = [
+  { weight:30, label:'🍞 평범한 하루...',           bread: () => 0,               star:0,  cupcake:0,  type:'bad' },
+  { weight:30, label:'🍞 빵 10조각 획득!',         bread: () => 10,              star:0,  cupcake:0,  type:'' },
+  { weight:20, label:'🍞 빵 50조각 대박!',         bread: () => 50,              star:0,  cupcake:0,  type:'lucky' },
+  { weight:10, label:'⭐ 별가루 5개 획득!',        bread: () => 0,               star:5,  cupcake:0,  type:'lucky' },
+  { weight:6,  label:'🧁 컵케이크 1개 획득!',      bread: () => 0,               star:0,  cupcake:1,  type:'lucky' },
+  { weight:3,  label:'💥 빵 대박!! 빵 200조각!',   bread: () => 200,             star:0,  cupcake:0,  type:'lucky' },
+  { weight:1,  label:'🌟 전설의 빵!! ⭐30+🧁3',   bread: () => 0,               star:30, cupcake:3,  type:'lucky' },
+];
+
+let luckyCooldown = 0;
+const LUCKY_CD = 30000; // 30초
+let luckyTimer = null;
+let autoTick = null;
+let autoAccum = 0;
+
+// ── COMPUTE COST ──────────────────────────────────────
+function upgradeCost(id) {
+  const u = UPGRADES.find(x=>x.id===id);
+  const lv = state.upgrades[id].level;
+  return Math.floor(u.baseCost * Math.pow(u.costMul, lv));
+}
+
+// ── SAVE / LOAD ────────────────────────────────────────
+function save() {
+  state.lastSave = Date.now();
+  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    // merge
+    state.bread       = saved.bread       || 0;
+    state.star        = saved.star        || 0;
+    state.cupcake     = saved.cupcake     || 0;
+    state.totalBread  = saved.totalBread  || 0;
+    state.clickPower  = saved.clickPower  || 1;
+    state.autoPerSec  = saved.autoPerSec  || 0;
+    state.lastSave    = saved.lastSave    || Date.now();
+    state.collection  = saved.collection  || {};
+    if (saved.upgrades) {
+      for (const k in saved.upgrades) {
+        if (state.upgrades[k]) state.upgrades[k].level = saved.upgrades[k].level || 0;
+      }
+    }
+
+    // offline reward
+    const elapsed = (Date.now() - state.lastSave) / 1000;
+    if (elapsed > 30 && state.autoPerSec > 0) {
+      const earned = Math.floor(state.autoPerSec * elapsed / 3);
+      if (earned > 0) showOfflineModal(elapsed, earned);
+    }
+  } catch(e) {}
+}
+
+// ── RENDER ─────────────────────────────────────────────
+function render() {
+  document.getElementById('breadVal').textContent   = fmt(state.bread);
+  document.getElementById('starVal').textContent    = fmt(state.star);
+  document.getElementById('cupcakeVal').textContent = fmt(state.cupcake);
+  document.getElementById('autoRate').textContent   = `자동생산: ${state.autoPerSec.toFixed(1)} 빵/초`;
+  renderUpgrades();
+  renderCollection();
+  checkCollectionUnlocks();
+}
+
+function fmt(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return Math.floor(n).toString();
+}
+
+function renderUpgrades() {
+  const grid = document.getElementById('upgradesGrid');
+  grid.innerHTML = '';
+  UPGRADES.forEach(u => {
+    const lv = state.upgrades[u.id].level;
+    const max = state.upgrades[u.id].max;
+    const cost = upgradeCost(u.id);
+    const canBuy = state.bread >= cost && lv < max;
+    const isMax = lv >= max;
+
+    const card = document.createElement('div');
+    card.className = 'upgrade-card' + (isMax ? ' maxed' : canBuy ? '' : ' disabled');
+    card.innerHTML = `
+      <div class="upgrade-icon">${u.icon}</div>
+      <div class="upgrade-info">
+        <div class="upgrade-name">${u.name}</div>
+        <div class="upgrade-desc">${u.desc}</div>
+        <div class="upgrade-level">Lv.${lv} / ${max}</div>
+      </div>
+      <div class="upgrade-cost">
+        ${isMax ? '<span style="color:var(--gold)">MAX ✨</span>' : `<span class="icon">🍞</span> ${fmt(cost)}`}
+      </div>`;
+    if (canBuy) card.onclick = () => buyUpgrade(u.id);
+    grid.appendChild(card);
+  });
+}
+
+function renderCollection() {
+  const grid = document.getElementById('collectionGrid');
+  grid.innerHTML = '';
+  BREADS.forEach(b => {
+    const cnt = state.collection[b.id] || 0;
+    const unlocked = cnt > 0;
+    const card = document.createElement('div');
+    card.className = 'bread-card' + (unlocked ? ' unlocked' : '');
+    card.innerHTML = `
+      <div class="bread-icon">${b.icon}</div>
+      <div class="bread-name">${unlocked ? b.name : '???'}</div>
+      <div class="bread-count">${unlocked ? 'x'+cnt : `🍞${fmt(b.unlock)}`}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function checkCollectionUnlocks() {
+  BREADS.forEach(b => {
+    const prev = state.collection[b.id] || 0;
+    if (prev === 0 && state.totalBread >= b.unlock) {
+      state.collection[b.id] = 1;
+      toast(`📖 새 빵 수집! ${b.icon} ${b.name} 해금!`, 'lucky');
+    }
+  });
+}
+
+// ── ACTIONS ────────────────────────────────────────────
+function clickOven(e) {
+  const gained = state.clickPower;
+  state.bread += gained;
+  state.totalBread += gained;
+
+  // ripple
+  const btn = document.getElementById('ovenBtn');
+  const rect = btn.getBoundingClientRect();
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  const size = 80;
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(r);
+  setTimeout(()=>r.remove(), 600);
+
+  // float
+  spawnFloat(`+${gained}🍞`, e.clientX, e.clientY);
+  checkCollectionUnlocks();
+  render();
+}
+
+function buyUpgrade(id) {
+  const cost = upgradeCost(id);
+  if (state.bread < cost) return;
+  const u = UPGRADES.find(x=>x.id===id);
+  state.bread -= cost;
+  state.upgrades[id].level++;
+  u.effect(state);
+  toast(`✅ ${u.name} 업그레이드! (Lv.${state.upgrades[id].level})`, '');
+  render();
+  save();
+}
+
+function rollLucky() {
+  if (luckyCooldown > 0) return;
+  const luckBonus = state.upgrades.luck.level * 0.03; // +3% lucky per level
+
+  // weighted roll
+  const table = LUCKY_TABLE.map((e,i) => {
+    let w = e.weight;
+    if (e.type === 'lucky') w += w * luckBonus;
+    if (e.type === 'bad') w = Math.max(1, w - w * luckBonus * 0.5);
+    return {...e, w};
+  });
+  const total = table.reduce((a,b)=>a+b.w, 0);
+  let r = Math.random() * total;
+  let chosen = table[0];
+  for (const entry of table) { r -= entry.w; if (r <= 0) { chosen = entry; break; } }
+
+  const breadGain = chosen.bread();
+  state.bread += breadGain;
+  state.totalBread += breadGain;
+  state.star += chosen.star;
+  state.cupcake += chosen.cupcake;
+
+  let msg = chosen.label;
+  if (chosen.star) msg += ` (⭐${chosen.star})`;
+  if (chosen.cupcake) msg += ` (🧁${chosen.cupcake})`;
+  toast(msg, chosen.type);
+  checkCollectionUnlocks();
+  render();
+  save();
+
+  // start cooldown
+  luckyCooldown = LUCKY_CD;
+  document.getElementById('luckyBtn').disabled = true;
+  clearInterval(luckyTimer);
+  luckyTimer = setInterval(() => {
+    luckyCooldown -= 100;
+    const pct = Math.max(0, (luckyCooldown / LUCKY_CD) * 100);
+    document.getElementById('cooldownBar').style.width = pct + '%';
+    document.getElementById('luckyDesc').textContent =
+      luckyCooldown > 0 ? `다음 룰렛까지 ${(luckyCooldown/1000).toFixed(1)}초...` : '지금 돌릴 수 있어요!';
+    if (luckyCooldown <= 0) {
+      clearInterval(luckyTimer);
+      document.getElementById('luckyBtn').disabled = false;
+      document.getElementById('cooldownBar').style.width = '100%';
+    }
+  }, 100);
+}
+
+// ── AUTO PRODUCTION ────────────────────────────────────
+function startAutoTick() {
+  const TICK = 200; // ms
+  autoTick = setInterval(() => {
+    if (state.autoPerSec <= 0) return;
+    const gain = state.autoPerSec * (TICK / 1000);
+    autoAccum += gain;
+    state.bread += gain;
+    state.totalBread += gain;
+
+    // progress bar (visual feedback per second)
+    const progress = (autoAccum % 1);
+    document.getElementById('autoProgress').style.width = (progress * 100) + '%';
+
+    if (Math.floor(autoAccum) > Math.floor(autoAccum - gain)) {
+      checkCollectionUnlocks();
+    }
+
+    // display update throttle
+    renderCurrencies();
+  }, TICK);
+}
+
+function renderCurrencies() {
+  document.getElementById('breadVal').textContent   = fmt(state.bread);
+  document.getElementById('starVal').textContent    = fmt(state.star);
+  document.getElementById('cupcakeVal').textContent = fmt(state.cupcake);
+}
+
+// ── OFFLINE MODAL ──────────────────────────────────────
+let pendingOffline = 0;
+
+function showOfflineModal(elapsedSec, earned) {
+  pendingOffline = earned;
+  const hrs = Math.floor(elapsedSec / 3600);
+  const mins = Math.floor((elapsedSec % 3600) / 60);
+  let timeStr = '';
+  if (hrs > 0) timeStr += `${hrs}시간 `;
+  timeStr += `${mins}분 동안 자리를 비우셨네요`;
+  document.getElementById('offlineTimeText').textContent = timeStr;
+  document.getElementById('offlineRewardText').textContent = `🍞 ${fmt(earned)} 빵 획득!`;
+  document.getElementById('offlineModal').style.display = 'flex';
+}
+
+function claimOffline() {
+  state.bread += pendingOffline;
+  state.totalBread += pendingOffline;
+  pendingOffline = 0;
+  document.getElementById('offlineModal').style.display = 'none';
+  checkCollectionUnlocks();
+  render();
+  save();
+}
+
+// ── TOAST ──────────────────────────────────────────────
+function toast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(), 2300);
+}
+
+// ── FLOAT NUM ─────────────────────────────────────────
+function spawnFloat(text, x, y) {
+  const el = document.createElement('div');
+  el.className = 'float-num';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = (y - 20) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+}
+
+// ── STAR PRODUCTION (display upgrade) ─────────────────
+setInterval(() => {
+  const starPerMin = state.upgrades.display.level;
+  if (starPerMin > 0) {
+    state.star += starPerMin / 60;
+    renderCurrencies();
+  }
+}, 1000);
+
+// ── AUTO SAVE ─────────────────────────────────────────
+setInterval(save, 10000);
+
+// ── INIT ──────────────────────────────────────────────
+load();
+render();
+startAutoTick();
+</script>
+</body>
+</html>
