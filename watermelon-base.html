@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>씨앗의 요새 🍉</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic+Coding&display=swap');
@@ -23,6 +26,14 @@
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    touch-action: pan-y;          /* 세로 스크롤만 허용, 핀치줌 차단 */
+    -webkit-user-select: none;    /* 텍스트 선택 방지 */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent; /* 탭 시 파란 하이라이트 제거 */
+    overscroll-behavior: none;    /* 당겨서 새로고침 방지 */
+  }
 
   body {
     background: radial-gradient(ellipse at center, #2d0a05 0%, #0d1a0a 60%, #050d05 100%);
@@ -122,6 +133,8 @@
     box-shadow: 0 0 30px rgba(192,57,43,0.5), inset 0 -8px 20px rgba(0,0,0,0.4), inset 0 4px 10px rgba(255,150,130,0.2);
     transition: transform 0.1s, box-shadow 0.2s;
     overflow: hidden;
+    touch-action: none;   /* 버튼 터치 시 스크롤/줌 동작 방지 */
+    -webkit-touch-callout: none;  /* iOS 길게 눌러 메뉴 방지 */
   }
   .melon-btn:active {
     transform: scale(0.93);
@@ -178,6 +191,8 @@
     transition: all 0.15s;
     position: relative;
     overflow: hidden;
+    touch-action: none;
+    -webkit-touch-callout: none;
   }
   .action-btn::after {
     content: '';
@@ -1248,6 +1263,25 @@ function resIcon(k) {
 function resName(k) {
   return { water: '수분', fiber: '섬유질', pulp: '과육 조각', mana: '씨앗 마나' }[k] || k;
 }
+
+// ── 모바일 줌 완전 차단 ──────────────────────────────
+// 핀치줌 차단 (두 손가락 터치)
+document.addEventListener('touchstart', e => {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+
+// 더블탭 줌 차단
+let lastTap = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTap < 300) e.preventDefault();
+  lastTap = now;
+}, { passive: false });
+
+// gesturestart (Safari 전용 핀치 제스처) 차단
+document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+// ─────────────────────────────────────────────────────
 
 // 저장 단축키
 window.addEventListener('keydown', e => { if (e.key === 's' && e.ctrlKey) { saveGame(); addLog('💾 저장 완료', 'neutral'); } });
