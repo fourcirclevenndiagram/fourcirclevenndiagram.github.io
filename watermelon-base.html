@@ -1264,23 +1264,17 @@ function resName(k) {
   return { water: '수분', fiber: '섬유질', pulp: '과육 조각', mana: '씨앗 마나' }[k] || k;
 }
 
-// ── 모바일 줌 완전 차단 ──────────────────────────────
+// ── 모바일 줌 차단 (탭 연타는 정상 동작!) ─────────────
 // 핀치줌 차단 (두 손가락 터치)
 document.addEventListener('touchstart', e => {
   if (e.touches.length > 1) e.preventDefault();
 }, { passive: false });
 
-// 더블탭 줌 차단
-let lastTap = 0;
-document.addEventListener('touchend', e => {
-  const now = Date.now();
-  if (now - lastTap < 300) e.preventDefault();
-  lastTap = now;
-}, { passive: false });
-
 // gesturestart (Safari 전용 핀치 제스처) 차단
 document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+// 더블탭 줌은 viewport user-scalable=no 로 이미 차단됨
+// → touchend 에서 preventDefault 하면 연타가 막히므로 절대 쓰지 않음
 // ─────────────────────────────────────────────────────
 
 // 저장 단축키
