@@ -648,6 +648,7 @@ function doOvenClick(clientX, clientY) {
   spawnFloat(`+${gained}🍞`, clientX, clientY);
   checkCollectionUnlocks();
   renderCurrencies();
+  renderUpgrades();
 }
 
 function clickOven(e) { doOvenClick(e.clientX, e.clientY); }
@@ -713,16 +714,18 @@ function rollLucky() {
 }
 
 // ── AUTO PRODUCTION ────────────────────────────────────
+let _upgradeRenderAccum = 0;
 function startAutoTick() {
   const TICK = 200; // ms
   autoTick = setInterval(() => {
     if (state.autoPerSec <= 0) return;
     const gain = state.autoPerSec * (TICK / 1000);
     autoAccum += gain;
+    _upgradeRenderAccum += TICK;
     state.bread += gain;
     state.totalBread += gain;
 
-    // progress bar (visual feedback per second)
+    // progress bar
     const progress = (autoAccum % 1);
     document.getElementById('autoProgress').style.width = (progress * 100) + '%';
 
@@ -730,8 +733,13 @@ function startAutoTick() {
       checkCollectionUnlocks();
     }
 
-    // display update throttle
     renderCurrencies();
+
+    // 업그레이드 버튼은 1초마다 갱신 (빵 잔액 변화 반영)
+    if (_upgradeRenderAccum >= 1000) {
+      _upgradeRenderAccum = 0;
+      renderUpgrades();
+    }
   }, TICK);
 }
 
