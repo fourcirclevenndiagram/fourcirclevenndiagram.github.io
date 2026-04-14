@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>🏙️ 도시 개발자</title>
+<style>
+  :root{
+    --bg1:#1a2332;
+    --bg2:#243447;
+    --panel:#2d4059;
+    --panel2:#3a5272;
+    --accent:#e8c547;
+    --accent2:#f4d35e;
+    --good:#4caf82;
+    --bad:#e85d5d;
+    --text:#f0f4f8;
+    --sub:#a8b8cc;
+    --border:#4a6285;
+    --shadow:rgba(0,0,0,0.3);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+  html,body{
+    height:100%;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+    background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+    color:var(--text);
+    overflow:hidden;
+  }
+  #app{
+    display:flex;
+    flex-direction:column;
+    height:100dvh;
+    max-width:500px;
+    margin:0 auto;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  header{
+    padding:12px 16px 8px;
+    background:var(--panel);
+    border-bottom:2px solid var(--border);
+    box-shadow:0 2px 8px var(--shadow);
+  }
+  .city-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .city-name{
+    font-size:18px;
+    font-weight:700;
+    color:var(--accent);
+  }
+  .city-rank{
+    font-size:12px;
+    background:var(--bg1);
+    padding:4px 10px;
+    border-radius:12px;
+    color:var(--accent2);
+    border:1px solid var(--border);
+  }
+  .resources{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  }
+  .res{
+    background:var(--bg1);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 6px;
+    text-align:center;
+  }
+  .res-icon{font-size:18px;}
+  .res-val{
+    font-size:14px;
+    font-weight:700;
+    margin-top:2px;
+    color:var(--text);
+  }
+  .res-sub{
+    font-size:10px;
+    color:var(--sub);
+    margin-top:1px;
+  }
+  main{
+    flex:1;
+    overflow-y:auto;
+    padding:14px;
+    -webkit-overflow-scrolling:touch;
+  }
+  main::-webkit-scrollbar{width:6px;}
+  main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+  /* MAIN TAB */
+  .city-view{
+    background:linear-gradient(180deg,#3a5272 0%,#4a6285 60%,#5a7295 100%);
+    border-radius:12px;
+    padding:20px 14px;
+    margin-bottom:14px;
+    min-height:140px;
+    position:relative;
+    overflow:hidden;
+    border:1px solid var(--border);
+  }
+  .skyline{
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap:4px;
+    min-height:90px;
+    flex-wrap:wrap;
+  }
+  .bldg{
+    font-size:28px;
+    line-height:1;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+  }
+  .city-stat{
+    text-align:center;
+    margin-top:10px;
+    font-size:12px;
+    color:var(--text);
+    opacity:0.9;
+  }
+  .action-btns{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding:16px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    color:#fff;
+    min-height:60px;
+    transition:transform 0.08s,opacity 0.2s;
+    font-family:inherit;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .btn-work{
+    background:linear-gradient(180deg,#5a8a6e 0%,#3d6b4f 100%);
+    border:1px solid #4caf82;
+  }
+  .btn-redev{
+    background:linear-gradient(180deg,#c89a3c 0%,#8f6d1f 100%);
+    border:1px solid var(--accent);
+    position:relative;
+  }
+  .btn-redev.cooldown{
+    background:linear-gradient(180deg,#555 0%,#333 100%);
+    border-color:#666;
+  }
+  .btn-desc{
+    display:block;
+    font-size:11px;
+    font-weight:400;
+    opacity:0.85;
+    margin-top:3px;
+  }
+  .log{
+    background:var(--bg1);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px;
+    max-height:120px;
+    overflow-y:auto;
+    font-size:12px;
+  }
+  .log-title{
+    font-size:11px;
+    color:var(--sub);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .log-entry{
+    padding:3px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+    color:var(--text);
+  }
+  .log-entry:last-child{border-bottom:none;}
+  .log-good{color:var(--good);}
+  .log-bad{color:var(--bad);}
+
+  /* BUILDINGS TAB */
+  .bldg-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .bldg-card.locked{opacity:0.5;}
+  .bldg-emoji{font-size:34px;}
+  .bldg-info{flex:1;min-width:0;}
+  .bldg-name{font-size:14px;font-weight:700;}
+  .bldg-stats{font-size:11px;color:var(--sub);margin-top:2px;}
+  .bldg-count{font-size:11px;color:var(--accent2);margin-top:2px;}
+  .bldg-buy{
+    background:var(--accent);
+    color:#1a2332;
+    border:none;
+    border-radius:8px;
+    padding:10px 14px;
+    font-size:12px;
+    font-weight:700;
+    min-width:80px;
+    min-height:48px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .bldg-buy:disabled{background:#555;color:#888;}
+  .bldg-buy:active:not(:disabled){transform:scale(0.95);}
+
+  /* UPGRADE TAB */
+  .upg-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:10px;
+  }
+  .upg-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .upg-name{font-size:14px;font-weight:700;color:var(--accent2);}
+  .upg-lvl{font-size:11px;color:var(--sub);}
+  .upg-desc{font-size:11px;color:var(--sub);margin-bottom:10px;}
+  .upg-buy{
+    width:100%;
+    background:var(--panel2);
+    color:var(--text);
+    border:1px solid var(--accent);
+    border-radius:8px;
+    padding:10px;
+    font-size:12px;
+    font-weight:700;
+    min-height:44px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .upg-buy:disabled{border-color:#555;color:#888;}
+
+  /* TABS */
+  nav{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    background:var(--panel);
+    border-top:2px solid var(--border);
+    box-shadow:0 -2px 8px var(--shadow);
+  }
+  .tab{
+    background:transparent;
+    border:none;
+    color:var(--sub);
+    padding:14px 4px;
+    font-size:11px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+    min-height:56px;
+    transition:color 0.15s;
+  }
+  .tab .ico{font-size:20px;display:block;margin-bottom:3px;}
+  .tab.active{color:var(--accent);background:var(--bg1);}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .toast{
+    position:fixed;
+    top:80px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--panel2);
+    color:var(--text);
+    padding:10px 18px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+    border:1px solid var(--accent);
+    box-shadow:0 4px 12px var(--shadow);
+    opacity:0;
+    transition:opacity 0.3s,top 0.3s;
+    pointer-events:none;
+    z-index:100;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1;top:90px;}
+  .toast.bad{border-color:var(--bad);}
+  .toast.good{border-color:var(--good);}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="city-title">
+      <div class="city-name" id="cityName">🏙️ 도시 개발자</div>
+      <div class="city-rank" id="cityRank">등급 1 · 마을</div>
+    </div>
+    <div class="resources">
+      <div class="res">
+        <div class="res-icon">💰</div>
+        <div class="res-val" id="money">0</div>
+        <div class="res-sub" id="income">+0/s</div>
+      </div>
+      <div class="res">
+        <div class="res-icon">🧱</div>
+        <div class="res-val" id="mat">0</div>
+        <div class="res-sub" id="matRate">+0/s</div>
+      </div>
+      <div class="res">
+        <div class="res-icon">😊</div>
+        <div class="res-val" id="happy">100%</div>
+        <div class="res-sub">만족도</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- MAIN -->
+    <div class="screen active" id="scr-main">
+      <div class="city-view">
+        <div class="skyline" id="skyline">🌳🌳🌳</div>
+        <div class="city-stat" id="cityStat">빈 땅에서 시작하는 도시</div>
+      </div>
+      <div class="action-btns">
+        <button class="btn btn-work" id="btnWork">
+          🔨 공사하기
+          <span class="btn-desc">자재 즉시 획득</span>
+        </button>
+        <button class="btn btn-redev" id="btnRedev">
+          🏗️ 재개발 프로젝트
+          <span class="btn-desc">하이리스크 하이리턴 · 60초 쿨타임</span>
+        </button>
+      </div>
+      <div class="log">
+        <div class="log-title">📋 개발 로그</div>
+        <div id="logList"></div>
+      </div>
+    </div>
+
+    <!-- BUILDINGS -->
+    <div class="screen" id="scr-bldg">
+      <div id="bldgList"></div>
+    </div>
+
+    <!-- UPGRADES -->
+    <div class="screen" id="scr-upg">
+      <div id="upgList"></div>
+      <button id="btnReset" style="width:100%;margin-top:10px;background:transparent;color:var(--sub);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;font-family:inherit;cursor:pointer;">🔄 게임 초기화</button>
+    </div>
+  </main>
+
+  <nav>
+    <button class="tab active" data-scr="main"><span class="ico">🏙️</span>메인</button>
+    <button class="tab" data-scr="bldg"><span class="ico">🏢</span>건물</button>
+    <button class="tab" data-scr="upg"><span class="ico">⚡</span>업그레이드</button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SAVE_KEY = 'city_dev_save_v1';
+
+const BUILDINGS = [
+  {id:'house', name:'단독주택', emoji:'🏠', cost:50, matCost:5, income:1, rank:1},
+  {id:'shop',  name:'상점',     emoji:'🏪', cost:300, matCost:20, income:5, rank:1},
+  {id:'apt',   name:'아파트',   emoji:'🏢', cost:2000, matCost:80, income:30, rank:2},
+  {id:'office',name:'오피스빌딩',emoji:'🏬', cost:12000, matCost:300, income:150, rank:2},
+  {id:'hotel', name:'호텔',     emoji:'🏨', cost:75000, matCost:1000, income:800, rank:3},
+  {id:'mall',  name:'쇼핑몰',   emoji:'🏭', cost:400000, matCost:4000, income:4500, rank:3},
+  {id:'tower', name:'마천루',   emoji:'🗼', cost:2500000, matCost:15000, income:25000, rank:4},
+  {id:'stadium',name:'스타디움', emoji:'🏟️', cost:15000000, matCost:60000, income:150000, rank:4},
+];
+
+const UPGRADES = [
+  {id:'work', name:'🔨 건설 장비', desc:'공사하기로 얻는 자재 +50%', baseCost:200, mul:2.2, max:20},
+  {id:'income', name:'💰 세무 최적화', desc:'모든 건물 수입 +25%', baseCost:1000, mul:2.5, max:15},
+  {id:'redev', name:'🏗️ 재개발 전문가', desc:'재개발 성공률 +5%', baseCost:500, mul:2.3, max:10},
+  {id:'happy', name:'🌳 공원 조성', desc:'주민 만족도 +5%', baseCost:800, mul:2.0, max:10},
+  {id:'auto', name:'🚚 자재 공급망', desc:'자재 자동 수집량 +50%', baseCost:600, mul:2.2, max:15},
+  {id:'tax', name:'🏛️ 세금 징수원', desc:'세금 징수 주기 -3초 (최소 10초)', baseCost:1500, mul:2.4, max:10},
+];
+
+const RANKS = [
+  {lvl:1, name:'마을', need:0},
+  {lvl:2, name:'소도시', need:5},
+  {lvl:3, name:'중도시', need:20},
+  {lvl:4, name:'대도시', need:60},
+  {lvl:5, name:'메트로폴리스', need:150},
+];
+
+let state = {
+  money:100, mat:15, happy:100,
+  buildings:{}, upgrades:{},
+  redevCooldown:0,
+  taxTimer:40,
+  lastTick:Date.now(),
+  logs:[],
+};
+
+function save(){
+  try{localStorage.setItem(SAVE_KEY, JSON.stringify(state));}catch(e){}
+}
+function load(){
+  try{
+    const s = localStorage.getItem(SAVE_KEY);
+    if(s){
+      const d = JSON.parse(s);
+      state = Object.assign(state, d);
+      // offline progress (capped 2 hours)
+      const now = Date.now();
+      const dt = Math.min((now - (d.lastTick||now))/1000, 7200);
+      if(dt > 5){
+        const inc = getIncome()*dt;
+        const matInc = getMatRate()*dt;
+        if(inc>0) state.money += inc;
+        if(matInc>0) state.mat += matInc;
+        // auto tax collections that would have fired
+        const taxInterval = getTaxInterval();
+        const taxCount = Math.floor(dt / taxInterval);
+        if(taxCount>0){
+          const taxGain = getIncome() * 8 * taxCount;
+          state.money += taxGain;
+          addLog(`📴 오프라인: +💰${fmt(inc+taxGain)} +🧱${fmt(matInc)}`, 'good');
+        }else if(inc>0||matInc>0){
+          addLog(`📴 오프라인: +💰${fmt(inc)} +🧱${fmt(matInc)}`, 'good');
+        }
+      }
+      state.lastTick = now;
+    }
+  }catch(e){}
+}
+
+function fmt(n){
+  n = Math.floor(n);
+  if(n>=1e12) return (n/1e12).toFixed(2)+'T';
+  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+
+function getBldgCount(id){return state.buildings[id]||0;}
+function getUpgLvl(id){return state.upgrades[id]||0;}
+
+function getBldgCost(b){
+  const c = getBldgCount(b.id);
+  return Math.floor(b.cost * Math.pow(1.15, c));
+}
+function getBldgMatCost(b){
+  const c = getBldgCount(b.id);
+  return Math.floor(b.matCost * Math.pow(1.12, c));
+}
+
+function getIncome(){
+  let inc = 0;
+  BUILDINGS.forEach(b=>{
+    inc += (getBldgCount(b.id) * b.income);
+  });
+  inc *= (1 + 0.25*getUpgLvl('income'));
+  inc *= (state.happy/100);
+  return inc;
+}
+
+function getMatRate(){
+  // base rate so idle collection works even with 0 buildings
+  let rate = 0.2;
+  BUILDINGS.forEach(b=>{
+    rate += getBldgCount(b.id) * (0.05 + b.income*0.002);
+  });
+  rate *= (1 + 0.5*getUpgLvl('auto'));
+  return rate;
+}
+
+function getTaxInterval(){
+  return Math.max(10, 40 - 3*getUpgLvl('tax'));
+}
+
+function getRank(){
+  let totalBldg = 0;
+  BUILDINGS.forEach(b=>totalBldg += getBldgCount(b.id));
+  let r = RANKS[0];
+  for(const rk of RANKS){
+    if(totalBldg >= rk.need) r = rk;
+  }
+  return {rank:r, total:totalBldg};
+}
+
+function addLog(txt, type){
+  const cls = type==='good'?'log-good':type==='bad'?'log-bad':'';
+  state.logs.unshift({txt, cls, t:Date.now()});
+  if(state.logs.length>30) state.logs.pop();
+}
+
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'');
+  clearTimeout(t._to);
+  t._to = setTimeout(()=>{t.className='toast';}, 1800);
+}
+
+// Actions
+function doWork(){
+  const gain = Math.floor((2 + Math.random()*3) * (1 + 0.5*getUpgLvl('work')));
+  state.mat += gain;
+  toast(`🧱 +${gain} 자재`, 'good');
+  render();
+  save();
+}
+
+function doRedev(){
+  if(state.redevCooldown>0) return;
+  const matNeed = 30;
+  if(state.mat < matNeed){
+    toast(`자재 부족 (필요: ${matNeed})`, 'bad');
+    return;
+  }
+  state.mat -= matNeed;
+  const successRate = Math.min(0.9, 0.45 + 0.05*getUpgLvl('redev'));
+  if(Math.random() < successRate){
+    const inc = getIncome();
+    const base = Math.max(500, inc*120);
+    const reward = Math.floor(base*(1+Math.random()*0.8));
+    state.money += reward;
+    state.happy = Math.min(100+5*getUpgLvl('happy'), state.happy+3);
+    addLog(`✅ 재개발 성공! +💰${fmt(reward)}`, 'good');
+    toast(`✅ 성공 +💰${fmt(reward)}`, 'good');
+  }else{
+    const matLoss = Math.floor(state.mat*0.15) + 10;
+    state.mat = Math.max(0, state.mat - matLoss);
+    state.happy = Math.max(30, state.happy - 5);
+    addLog(`❌ 재개발 실패… -🧱${matLoss}`, 'bad');
+    toast(`❌ 실패 -🧱${matLoss}`, 'bad');
+  }
+  state.redevCooldown = 60;
+  render();
+  save();
+}
+
+function buyBldg(id){
+  const b = BUILDINGS.find(x=>x.id===id);
+  const cost = getBldgCost(b);
+  const matCost = getBldgMatCost(b);
+  if(state.money<cost || state.mat<matCost){
+    toast('자원 부족', 'bad');
+    return;
+  }
+  state.money -= cost;
+  state.mat -= matCost;
+  state.buildings[id] = getBldgCount(id)+1;
+  addLog(`🏗️ ${b.emoji} ${b.name} 건설`, 'good');
+  toast(`${b.emoji} ${b.name} +1`, 'good');
+  render();
+  save();
+}
+
+function buyUpg(id){
+  const u = UPGRADES.find(x=>x.id===id);
+  const lvl = getUpgLvl(id);
+  if(lvl>=u.max){toast('최대 레벨', 'bad');return;}
+  const cost = Math.floor(u.baseCost * Math.pow(u.mul, lvl));
+  if(state.money<cost){toast('돈 부족', 'bad');return;}
+  state.money -= cost;
+  state.upgrades[id] = lvl+1;
+  toast(`⚡ ${u.name} Lv${lvl+1}`, 'good');
+  render();
+  save();
+}
+
+// Render
+function renderHeader(){
+  document.getElementById('money').textContent = fmt(state.money);
+  document.getElementById('mat').textContent = fmt(state.mat);
+  document.getElementById('happy').textContent = Math.floor(state.happy)+'%';
+  document.getElementById('income').textContent = '+'+fmt(getIncome())+'/s';
+  const mr = getMatRate();
+  document.getElementById('matRate').textContent = mr>0 ? '+'+(mr<10?mr.toFixed(1):fmt(mr))+'/s' : '자재';
+  const {rank,total} = getRank();
+  document.getElementById('cityRank').textContent = `등급 ${rank.lvl} · ${rank.name}`;
+}
+
+function renderMain(){
+  // skyline
+  const sky = document.getElementById('skyline');
+  let html = '';
+  BUILDINGS.forEach(b=>{
+    const c = Math.min(getBldgCount(b.id), 8);
+    for(let i=0;i<c;i++) html+=`<span class="bldg">${b.emoji}</span>`;
+  });
+  if(!html) html = '🌳🌳🌳';
+  sky.innerHTML = html;
+
+  const {total} = getRank();
+  document.getElementById('cityStat').textContent = `총 건물 ${total}채 · 💰${fmt(getIncome())}/s · 🏛️ 다음 세금 ${Math.ceil(state.taxTimer)}s`;
+
+  // redev button cooldown
+  const btn = document.getElementById('btnRedev');
+  if(state.redevCooldown>0){
+    btn.classList.add('cooldown');
+    btn.innerHTML = `⏳ 쿨타임 ${Math.ceil(state.redevCooldown)}s<span class="btn-desc">재개발 준비 중</span>`;
+    btn.disabled = true;
+  }else{
+    btn.classList.remove('cooldown');
+    btn.innerHTML = `🏗️ 재개발 프로젝트<span class="btn-desc">자재 30 소모 · 성공 시 큰 수익</span>`;
+    btn.disabled = false;
+  }
+
+  // log
+  const ll = document.getElementById('logList');
+  ll.innerHTML = state.logs.slice(0,12).map(l=>`<div class="log-entry ${l.cls}">${l.txt}</div>`).join('') || '<div class="log-entry" style="color:var(--sub)">아직 기록 없음</div>';
+}
+
+function renderBldg(){
+  const {rank} = getRank();
+  const list = document.getElementById('bldgList');
+  list.innerHTML = BUILDINGS.map(b=>{
+    const c = getBldgCount(b.id);
+    const cost = getBldgCost(b);
+    const matCost = getBldgMatCost(b);
+    const locked = b.rank > rank.lvl;
+    const canBuy = !locked && state.money>=cost && state.mat>=matCost;
+    return `
+      <div class="bldg-card ${locked?'locked':''}">
+        <div class="bldg-emoji">${locked?'🔒':b.emoji}</div>
+        <div class="bldg-info">
+          <div class="bldg-name">${b.name}</div>
+          <div class="bldg-stats">💰${fmt(cost)} · 🧱${fmt(matCost)}</div>
+          <div class="bldg-count">수입 +${fmt(b.income)}/s · 보유 ${c}채${locked?` · 등급${b.rank}`:''}</div>
+        </div>
+        <button class="bldg-buy" data-buy="${b.id}" ${canBuy?'':'disabled'}>
+          ${locked?'잠김':'건설'}
+        </button>
+      </div>
+    `;
+  }).join('');
+  list.querySelectorAll('[data-buy]').forEach(btn=>{
+    btn.addEventListener('click',()=>buyBldg(btn.dataset.buy));
+  });
+}
+
+function renderUpg(){
+  const list = document.getElementById('upgList');
+  list.innerHTML = UPGRADES.map(u=>{
+    const lvl = getUpgLvl(u.id);
+    const cost = Math.floor(u.baseCost * Math.pow(u.mul, lvl));
+    const maxed = lvl>=u.max;
+    const canBuy = !maxed && state.money>=cost;
+    return `
+      <div class="upg-card">
+        <div class="upg-head">
+          <div class="upg-name">${u.name}</div>
+          <div class="upg-lvl">Lv ${lvl}/${u.max}</div>
+        </div>
+        <div class="upg-desc">${u.desc}</div>
+        <button class="upg-buy" data-upg="${u.id}" ${canBuy?'':'disabled'}>
+          ${maxed?'최대 레벨':`💰 ${fmt(cost)}`}
+        </button>
+      </div>
+    `;
+  }).join('');
+  list.querySelectorAll('[data-upg]').forEach(btn=>{
+    btn.addEventListener('click',()=>buyUpg(btn.dataset.upg));
+  });
+}
+
+function render(){
+  renderHeader();
+  renderMain();
+  renderBldg();
+  renderUpg();
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('scr-'+t.dataset.scr).classList.add('active');
+  });
+});
+
+document.getElementById('btnWork').addEventListener('click',doWork);
+document.getElementById('btnRedev').addEventListener('click',doRedev);
+document.getElementById('btnReset').addEventListener('click',()=>{
+  if(confirm('정말 처음부터 다시 시작할까요? 모든 진행이 삭제됩니다.')){
+    localStorage.removeItem(SAVE_KEY);
+    location.reload();
+  }
+});
+
+// Game loop
+let saveCounter = 0;
+setInterval(()=>{
+  const now = Date.now();
+  const dt = (now - state.lastTick)/1000;
+  state.lastTick = now;
+  state.money += getIncome()*dt;
+  state.mat += getMatRate()*dt;
+  if(state.redevCooldown>0){
+    state.redevCooldown = Math.max(0, state.redevCooldown - dt);
+  }
+  // auto tax collection event
+  state.taxTimer -= dt;
+  if(state.taxTimer<=0){
+    const inc = getIncome();
+    if(inc>0){
+      const taxGain = Math.floor(inc*8 + 50);
+      const matGain = Math.floor(getMatRate()*8 + 5);
+      state.money += taxGain;
+      state.mat += matGain;
+      addLog(`🏛️ 세금 징수 +💰${fmt(taxGain)} +🧱${fmt(matGain)}`, 'good');
+      toast(`🏛️ 세금 +💰${fmt(taxGain)}`, 'good');
+    }
+    state.taxTimer = getTaxInterval();
+  }
+  // happy drifts back toward baseline 100
+  const maxHappy = 100 + 5*getUpgLvl('happy');
+  if(state.happy < maxHappy) state.happy = Math.min(maxHappy, state.happy + 0.1*dt);
+  render();
+  saveCounter++;
+  if(saveCounter>=5){save();saveCounter=0;}
+},1000);
+
+load();
+render();
+</script>
+</body>
+</html>
