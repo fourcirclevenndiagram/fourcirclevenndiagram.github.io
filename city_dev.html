@@ -302,6 +302,72 @@
   .toast.show{opacity:1;top:90px;}
   .toast.bad{border-color:var(--bad);}
   .toast.good{border-color:var(--good);}
+
+  /* OFFLINE MODAL */
+  .modal-bg{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.7);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    padding:20px;
+  }
+  .modal-bg.show{display:flex;}
+  .modal{
+    background:var(--panel);
+    border:2px solid var(--accent);
+    border-radius:14px;
+    padding:24px 20px;
+    max-width:340px;
+    width:100%;
+    text-align:center;
+    box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  }
+  .modal-title{
+    font-size:18px;
+    font-weight:700;
+    color:var(--accent);
+    margin-bottom:6px;
+  }
+  .modal-time{
+    font-size:12px;
+    color:var(--sub);
+    margin-bottom:16px;
+  }
+  .modal-rewards{
+    background:var(--bg1);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:16px;
+  }
+  .modal-row{
+    display:flex;
+    justify-content:space-between;
+    padding:6px 0;
+    font-size:14px;
+  }
+  .modal-row + .modal-row{border-top:1px solid var(--border);}
+  .modal-note{
+    font-size:11px;
+    color:var(--sub);
+    margin-bottom:14px;
+  }
+  .modal-btn{
+    width:100%;
+    background:var(--accent);
+    color:#1a2332;
+    border:none;
+    border-radius:8px;
+    padding:14px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    min-height:48px;
+  }
+  .modal-btn:active{transform:scale(0.97);}
 </style>
 </head>
 <body>
@@ -372,6 +438,15 @@
   </nav>
 </div>
 <div class="toast" id="toast"></div>
+<div class="modal-bg" id="offlineModal">
+  <div class="modal">
+    <div class="modal-title">📴 오프라인 보상</div>
+    <div class="modal-time" id="offlineTime"></div>
+    <div class="modal-rewards" id="offlineRewards"></div>
+    <div class="modal-note">오프라인 보상은 온라인 수입의 1/3 (최대 2시간)</div>
+    <button class="modal-btn" id="offlineClose">수령하기</button>
+  </div>
+</div>
 
 <script>
 const SAVE_KEY = 'city_dev_save_v1';
@@ -422,28 +497,52 @@ function load(){
     if(s){
       const d = JSON.parse(s);
       state = Object.assign(state, d);
-      // offline progress (capped 2 hours)
+      // offline progress (capped 2 hours, 1/3 rate)
       const now = Date.now();
       const dt = Math.min((now - (d.lastTick||now))/1000, 7200);
-      if(dt > 5){
-        const inc = getIncome()*dt;
-        const matInc = getMatRate()*dt;
-        if(inc>0) state.money += inc;
-        if(matInc>0) state.mat += matInc;
-        // auto tax collections that would have fired
+      const OFFLINE_MULT = 1/3;
+      if(dt > 30){ // only show modal if away >30s
+        const inc = Math.floor(getIncome()*dt*OFFLINE_MULT);
+        const matInc = Math.floor(getMatRate()*dt*OFFLINE_MULT);
         const taxInterval = getTaxInterval();
         const taxCount = Math.floor(dt / taxInterval);
-        if(taxCount>0){
-          const taxGain = getIncome() * 8 * taxCount;
-          state.money += taxGain;
-          addLog(`📴 오프라인: +💰${fmt(inc+taxGain)} +🧱${fmt(matInc)}`, 'good');
-        }else if(inc>0||matInc>0){
-          addLog(`📴 오프라인: +💰${fmt(inc)} +🧱${fmt(matInc)}`, 'good');
-        }
+        const taxGain = Math.floor(getIncome() * 8 * taxCount * OFFLINE_MULT);
+        state.money += inc + taxGain;
+        state.mat += matInc;
+        // restart tax timer
+        state.taxTimer = getTaxInterval();
+        // stash for modal
+        window._offlineRewards = {dt, money:inc+taxGain, mat:matInc, taxCount};
+      }else if(dt > 5){
+        // short absence: just apply silently at 1/3 too, no modal
+        state.money += getIncome()*dt*OFFLINE_MULT;
+        state.mat += getMatRate()*dt*OFFLINE_MULT;
       }
       state.lastTick = now;
     }
   }catch(e){}
+}
+
+function showOfflineModal(){
+  const r = window._offlineRewards;
+  if(!r) return;
+  const mins = Math.floor(r.dt/60);
+  const secs = Math.floor(r.dt%60);
+  const hrs = Math.floor(mins/60);
+  let timeStr;
+  if(hrs>0) timeStr = `${hrs}시간 ${mins%60}분 자리비움`;
+  else if(mins>0) timeStr = `${mins}분 ${secs}초 자리비움`;
+  else timeStr = `${secs}초 자리비움`;
+  if(r.dt >= 7200) timeStr += ' (최대치)';
+  document.getElementById('offlineTime').textContent = timeStr;
+  document.getElementById('offlineRewards').innerHTML = `
+    <div class="modal-row"><span>💰 임대 수익</span><span style="color:var(--accent2)">+${fmt(r.money)}</span></div>
+    <div class="modal-row"><span>🧱 자재 공급</span><span style="color:var(--accent2)">+${fmt(r.mat)}</span></div>
+    <div class="modal-row"><span>🏛️ 세금 징수</span><span style="color:var(--sub)">${r.taxCount}회 포함</span></div>
+  `;
+  addLog(`📴 오프라인 보상: +💰${fmt(r.money)} +🧱${fmt(r.mat)}`, 'good');
+  document.getElementById('offlineModal').classList.add('show');
+  window._offlineRewards = null;
 }
 
 function fmt(n){
@@ -704,6 +803,9 @@ document.getElementById('btnReset').addEventListener('click',()=>{
     location.reload();
   }
 });
+document.getElementById('offlineClose').addEventListener('click',()=>{
+  document.getElementById('offlineModal').classList.remove('show');
+});
 
 // Game loop
 let saveCounter = 0;
@@ -740,6 +842,7 @@ setInterval(()=>{
 
 load();
 render();
+showOfflineModal();
 </script>
 </body>
 </html>
