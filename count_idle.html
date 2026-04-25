@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0014">
+<title>NUMBER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Major+Mono+Display&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0a0014;
+    color: #f0a0ff;
+    font-family: 'VT323', monospace;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  body {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse at center, #1a0030 0%, #0a0014 70%, #000 100%);
+    overflow: hidden;
+  }
+
+  /* CRT scanlines */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.15) 3px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+    mix-blend-mode: multiply;
+  }
+
+  /* CRT vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  .header {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top, 20px));
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Major Mono Display', monospace;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    color: #6a3a8a;
+    text-shadow: 0 0 8px rgba(240, 160, 255, 0.3);
+  }
+
+  .stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    flex: 1;
+  }
+
+  .number {
+    font-family: 'VT323', monospace;
+    font-size: clamp(72px, 28vw, 220px);
+    line-height: 1;
+    color: #ff79e1;
+    text-shadow:
+      0 0 8px #ff79e1,
+      0 0 24px #ff44c8,
+      0 0 48px rgba(255, 68, 200, 0.6),
+      0 0 80px rgba(255, 68, 200, 0.3);
+    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform;
+    letter-spacing: 0.02em;
+  }
+
+  .number.pulse {
+    transform: scale(1.12);
+  }
+
+  .number.auto-pulse {
+    transform: scale(1.2);
+    color: #aaff5b;
+    text-shadow:
+      0 0 8px #aaff5b,
+      0 0 24px #88ee44,
+      0 0 48px rgba(136, 238, 68, 0.6),
+      0 0 80px rgba(136, 238, 68, 0.3);
+  }
+
+  .timer-ring {
+    position: absolute;
+    width: clamp(200px, 60vw, 360px);
+    height: clamp(200px, 60vw, 360px);
+    pointer-events: none;
+  }
+
+  .timer-ring circle {
+    fill: none;
+    stroke-width: 2;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  .timer-ring .bg {
+    stroke: rgba(106, 58, 138, 0.3);
+  }
+
+  .timer-ring .fg {
+    stroke: #ff79e1;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s;
+    filter: drop-shadow(0 0 4px #ff79e1);
+  }
+
+  .footer {
+    position: absolute;
+    bottom: max(24px, env(safe-area-inset-bottom, 24px));
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 18px;
+    color: #6a3a8a;
+    letter-spacing: 0.2em;
+    line-height: 1.4;
+  }
+
+  .footer .next {
+    color: #ff79e1;
+    text-shadow: 0 0 6px rgba(255, 121, 225, 0.5);
+  }
+
+  /* Floating +N popups */
+  .pop {
+    position: absolute;
+    font-family: 'VT323', monospace;
+    font-size: 32px;
+    font-weight: 400;
+    pointer-events: none;
+    animation: floatUp 0.9s ease-out forwards;
+    text-shadow: 0 0 8px currentColor;
+    z-index: 10;
+  }
+
+  .pop.tap { color: #ff79e1; }
+  .pop.auto { color: #aaff5b; font-size: 44px; }
+
+  @keyframes floatUp {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+    20%  { opacity: 1; transform: translate(-50%, -10px) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
+  }
+
+  /* Subtle background grid */
+  .grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 121, 225, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 121, 225, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .reset-btn {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top, 16px));
+    right: 16px;
+    background: transparent;
+    border: 1px solid rgba(106, 58, 138, 0.5);
+    color: #6a3a8a;
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    padding: 4px 10px;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    z-index: 50;
+  }
+
+  .reset-btn:active {
+    background: rgba(255, 121, 225, 0.1);
+    color: #ff79e1;
+  }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+
+  <div class="header">─ NUMBER ─</div>
+  <button class="reset-btn" id="reset">RESET</button>
+
+  <div class="stage" id="stage">
+    <svg class="timer-ring" id="ring" viewBox="0 0 100 100">
+      <circle class="bg" cx="50" cy="50" r="48"></circle>
+      <circle class="fg" id="ringFg" cx="50" cy="50" r="48"
+              stroke-dasharray="301.59" stroke-dashoffset="0"></circle>
+    </svg>
+    <div class="number" id="num">0</div>
+  </div>
+
+  <div class="footer">
+    TAP <span class="next">+1</span> &nbsp;·&nbsp; AUTO <span class="next">+1~10</span> / 5s
+  </div>
+
+<script>
+(function() {
+  'use strict';
+
+  const SAVE_KEY = 'idle_number_v1';
+  const TICK_MS = 5000;
+  const RING_CIRC = 2 * Math.PI * 48; // ≈ 301.59
+
+  const numEl   = document.getElementById('num');
+  const stage   = document.getElementById('stage');
+  const ringFg  = document.getElementById('ringFg');
+  const resetBtn = document.getElementById('reset');
+
+  // ---- State ----
+  let value = 0;
+  let lastTickAt = Date.now();
+
+  // ---- Load ----
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (typeof s.value === 'number' && isFinite(s.value)) value = s.value;
+      if (typeof s.lastTickAt === 'number') lastTickAt = s.lastTickAt;
+
+      // 오프라인 보상: 자리비운 시간 동안 자동 증가했어야 할 횟수만큼 처리
+      const now = Date.now();
+      const elapsed = now - lastTickAt;
+      if (elapsed > TICK_MS) {
+        const ticks = Math.floor(elapsed / TICK_MS);
+        for (let i = 0; i < ticks; i++) {
+          value += 1 + Math.floor(Math.random() * 10);
+        }
+        lastTickAt = now - (elapsed % TICK_MS);
+      }
+    }
+  } catch (e) { /* ignore */ }
+
+  render();
+
+  // ---- Save ----
+  function save() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        value: value,
+        lastTickAt: lastTickAt
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  // iOS Safari 친화적 저장 트리거
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') save();
+  });
+  window.addEventListener('pagehide', save);
+
+  // ---- Render ----
+  function render() {
+    numEl.textContent = value.toLocaleString();
+  }
+
+  function popup(text, x, y, type) {
+    const el = document.createElement('div');
+    el.className = 'pop ' + type;
+    el.textContent = text;
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    stage.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+
+  function pulseTap()  {
+    numEl.classList.remove('pulse');
+    void numEl.offsetWidth;
+    numEl.classList.add('pulse');
+    setTimeout(() => numEl.classList.remove('pulse'), 140);
+  }
+  function pulseAuto() {
+    numEl.classList.remove('auto-pulse');
+    void numEl.offsetWidth;
+    numEl.classList.add('auto-pulse');
+    setTimeout(() => numEl.classList.remove('auto-pulse'), 350);
+  }
+
+  // ---- Tap (+1) ----
+  function handleTap(e) {
+    if (e.target === resetBtn || resetBtn.contains(e.target)) return;
+    e.preventDefault();
+
+    value += 1;
+    render();
+    pulseTap();
+
+    // 팝업 위치: 탭한 곳 근처 stage 좌표계로 변환
+    const rect = stage.getBoundingClientRect();
+    const t = (e.touches && e.touches[0]) || e.changedTouches?.[0] || e;
+    const cx = (t.clientX || (rect.left + rect.width / 2)) - rect.left;
+    const cy = (t.clientY || (rect.top + rect.height / 2)) - rect.top;
+    popup('+1', cx, cy, 'tap');
+  }
+
+  // pointerdown이 가장 즉각적이고 모바일/데스크탑 모두 커버
+  document.addEventListener('pointerdown', handleTap, { passive: false });
+
+  // ---- Auto tick (5s) ----
+  function autoTick() {
+    const add = 1 + Math.floor(Math.random() * 10);
+    value += add;
+    lastTickAt = Date.now();
+    render();
+    pulseAuto();
+
+    const rect = stage.getBoundingClientRect();
+    popup('+' + add, rect.width / 2, rect.height / 2 - 80, 'auto');
+    save();
+  }
+
+  // ---- Animation loop: 링 진행도 + 자동 증가 ----
+  function loop() {
+    const now = Date.now();
+    let elapsed = now - lastTickAt;
+
+    while (elapsed >= TICK_MS) {
+      autoTick();
+      elapsed = now - lastTickAt;
+    }
+
+    const progress = elapsed / TICK_MS; // 0 → 1
+    ringFg.setAttribute('stroke-dashoffset', RING_CIRC * progress);
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---- Reset ----
+  resetBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (confirm('숫자를 0으로 초기화할까요?')) {
+      value = 0;
+      lastTickAt = Date.now();
+      save();
+      render();
+    }
+  });
+
+  // 주기적 저장 (안전장치)
+  setInterval(save, 10000);
+})();
+</script>
+</body>
+</html>
