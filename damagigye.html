@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🖥️ 다마기간계 🖥️</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    background: #0a0a1a;
+    font-family: 'Courier New', Courier, monospace;
+    color: #fff;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #app {
+    width: 100%;
+    max-width: 480px;
+    height: 100%;
+    max-height: 900px;
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    overflow: hidden;
+  }
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 6px 0 8px;
+    border-bottom: 2px solid #16213e;
+  }
+  .title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #00ff9f;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(0,255,159,0.5);
+  }
+  .subtitle {
+    font-size: 11px;
+    color: #a0a0c0;
+    margin-top: 4px;
+  }
+  /* Character */
+  .char-box {
+    margin: 8px 0;
+    padding: 12px 8px;
+    background: #0f3460;
+    border: 3px solid #3498db;
+    border-radius: 12px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+  .char-emoji {
+    font-size: 70px;
+    line-height: 1;
+    margin-bottom: 4px;
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+  .char-emoji.bounce { animation: bounce 0.4s; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px) scale(1.1); }
+  }
+  .char-status {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #3498db;
+  }
+  .char-msg {
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 36px;
+    padding: 0 6px;
+    color: #fff;
+  }
+  /* Stats */
+  .stats {
+    background: #16213e;
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    margin: 3px 0;
+    font-size: 11px;
+  }
+  .stat-label {
+    width: 90px;
+    flex-shrink: 0;
+  }
+  .stat-bar-bg {
+    flex: 1;
+    height: 11px;
+    background: #0f3460;
+    border: 1px solid #2a3a5c;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-right: 6px;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    transition: width 0.3s, background-color 0.3s;
+    border-radius: 6px;
+  }
+  .stat-value {
+    width: 26px;
+    text-align: right;
+    font-size: 11px;
+  }
+  /* Actions */
+  .actions {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding-bottom: 6px;
+  }
+  .actions::-webkit-scrollbar { width: 4px; }
+  .actions::-webkit-scrollbar-thumb { background: #533483; border-radius: 2px; }
+  .btn {
+    aspect-ratio: 1 / 1;
+    background: #e94560;
+    border: 2px solid #ff6b81;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #fff;
+    font-family: inherit;
+    transition: transform 0.1s, opacity 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.35);
+    padding: 0;
+  }
+  .btn:active { transform: scale(0.92); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-emoji {
+    font-size: 26px;
+    margin-bottom: 2px;
+  }
+  .btn-label {
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .btn-reset {
+    background: #533483;
+    border-color: #7c5db8;
+  }
+  /* Flash effect */
+  .flash {
+    animation: flash 0.4s;
+  }
+  @keyframes flash {
+    0%, 100% { background-color: #0f3460; }
+    50% { background-color: #e74c3c; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="title">🖥️ 다마기간계 🖥️</div>
+    <div class="subtitle" id="subtitle">Day 1 · Score 0 · 👶 신입 운영자</div>
+  </div>
+
+  <div class="char-box" id="charBox">
+    <div class="char-emoji" id="charEmoji">🙂</div>
+    <div class="char-status" id="charStatus">정상</div>
+    <div class="char-msg" id="charMsg">처음 뵙겠습니다! 잘 부탁드립니다 _(_ _)_</div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="actions" id="actions"></div>
+</div>
+
+<script>
+// ============================================================
+//  다마기간계 — Vanilla JS 버전
+// ============================================================
+const STORAGE_KEY = 'damagigye_save_v1';
+const TICK_INTERVAL = 3000;
+const EVENT_CHANCE = 0.18;
+const TICKS_PER_DAY = 12;
+
+const STAGES = [
+  { name: '신입 운영자',      minScore: 0,    emoji: '👶' },
+  { name: '주니어 SE',        minScore: 120,  emoji: '🧑‍💻' },
+  { name: '시니어 SE',        minScore: 350,  emoji: '👨‍💻' },
+  { name: '장애 대응의 달인', minScore: 700,  emoji: '🦸' },
+  { name: '시스템 아키텍트',  minScore: 1200, emoji: '🧙' },
+  { name: '전설의 기간계 SE', minScore: 2000, emoji: '👑' },
+];
+
+const ACTIONS = [
+  { id: 'feed',     label: '밥',         emoji: '🍚', effects: { hunger: -35, health: 6 },
+    msg: '국밥 한 그릇! 든든합니다 🍲' },
+  { id: 'coffee',   label: '커피',       emoji: '☕', effects: { focus: 22, mental: -6, hunger: 4 },
+    msg: '아메리카노 샷 추가! 정신이 번쩍 ☕' },
+  { id: 'sleep',    label: '잠',         emoji: '😴', effects: { health: 28, mental: 16, focus: 10, stability: -10 },
+    msg: '쪽잠... 그 사이 알람이 안 울리길 🌙' },
+  { id: 'log',      label: '로그분석',   emoji: '📜', effects: { stability: 16, focus: -10, mental: -4 },
+    msg: 'tail -f /var/log/... 범인 검거!' },
+  { id: 'batch',    label: '배치모니터', emoji: '⏱️', effects: { stability: 14, health: -8, focus: -4 },
+    msg: '배치가 잘 도는지 지켜보는 중... 👀' },
+  { id: 'incident', label: '장애대응',   emoji: '🚨', effects: { stability: 32, mental: -22, health: -6 },
+    msg: '"장애 났습니다" 단톡방 폭발 💥' },
+  { id: 'refactor', label: '리팩토링',   emoji: '🔧', effects: { techDebt: -28, focus: -14, health: -8 },
+    msg: '20년 된 PL/SQL 다듬는 중... 🛠️' },
+  { id: 'doc',      label: '문서화',     emoji: '📝', effects: { techDebt: -16, mental: -4 },
+    msg: '"이거 왜 이렇게 짰지?" 일단 적어두자 ✍️' },
+  { id: 'meeting',  label: '회의',       emoji: '📅', effects: { mental: -10, focus: -4 },
+    msg: '"이 회의는 메일이었어도 됐을 텐데..." 🫠' },
+  { id: 'walk',     label: '산책',       emoji: '🚶', effects: { mental: 20, focus: -8, hunger: 8 },
+    msg: '잠깐 옥상에서 바람 한 점... 🌳' },
+];
+
+const RANDOM_EVENTS = [
+  { msg: '🌙 새벽 3시... 야간 배치가 죽었습니다',       effects: { stability: -22, mental: -12 } },
+  { msg: '🔒 DB Lock 발생! 누가 커밋 안 했냐...',        effects: { stability: -16, focus: -10 } },
+  { msg: '📊 월말 마감! 트래픽이 미쳐 날뜁니다',         effects: { stability: -12, health: -10 } },
+  { msg: '👻 레거시 소스의 주석이 실종되었습니다',       effects: { techDebt: 22, mental: -6 } },
+  { msg: '🚀 PM: "지금 바로 배포 가능하시죠?"',          effects: { mental: -16, focus: -8 } },
+  { msg: '💥 알 수 없는 NullPointerException 출현!',     effects: { stability: -12, mental: -6 } },
+  { msg: '💾 운영 서버 디스크 95%! 빨리!!',              effects: { stability: -18, health: -6 } },
+  { msg: '🚪 퇴근 5분 전 장애 알림이 떴습니다 ㅠㅠ',      effects: { mental: -22, health: -10 } },
+  { msg: '✨ 어? 갑자기 잘 돌아가네요?',                 effects: { stability: 22, mental: 12 } },
+  { msg: '🐢 차장님이 "옛날엔 어떻게 했지?"라고 물었다', effects: { mental: -8, techDebt: 6 } },
+];
+
+const STAT_CONFIG = [
+  { key: 'health',    label: '체력',          color: '#e74c3c', inverted: false },
+  { key: 'mental',    label: '멘탈',          color: '#9b59b6', inverted: false },
+  { key: 'focus',     label: '집중도',        color: '#f1c40f', inverted: false },
+  { key: 'hunger',    label: '배고픔',        color: '#e67e22', inverted: true  },
+  { key: 'stability', label: '시스템 안정성', color: '#2ecc71', inverted: false },
+  { key: 'techDebt',  label: '기술부채',      color: '#7f8c8d', inverted: true  },
+];
+
+// State
+let state = {
+  stats: { health: 80, mental: 80, focus: 70, hunger: 30, stability: 85, techDebt: 20 },
+  score: 0,
+  days: 1,
+  stage: 0,
+  isBurnout: false,
+  message: '처음 뵙겠습니다! 잘 부탁드립니다 _(_ _)_',
+};
+let isIncident = false;
+let tickCount = 0;
+
+const clamp = v => Math.max(0, Math.min(100, v));
+function applyEffects(stats, effects) {
+  const next = { ...stats };
+  for (const k in effects) next[k] = clamp((next[k]||0) + effects[k]);
+  return next;
+}
+
+function getFace() {
+  const s = state.stats;
+  if (state.isBurnout)                return { emoji: '💀', label: '번아웃 ㅠㅠ',    color: '#888' };
+  if (isIncident)                     return { emoji: '🚨', label: '장애 대응 중!',  color: '#e74c3c' };
+  if (s.mental < 25)                  return { emoji: '😰', label: '스트레스 폭발',  color: '#9b59b6' };
+  if (s.health < 25 || s.hunger > 80) return { emoji: '😪', label: '피곤함',         color: '#7f8c8d' };
+  if (s.health > 70 && s.mental > 70 && s.stability > 70 && s.hunger < 40)
+    return { emoji: '🥳', label: '행복함', color: '#2ecc71' };
+  return { emoji: '🙂', label: '정상', color: '#3498db' };
+}
+
+function calcTickScore() {
+  const s = state.stats;
+  return Math.max(1, Math.round((s.stability*0.4 + s.mental*0.2 + (100-s.techDebt)*0.1) / 8));
+}
+
+// Save / Load
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      state = { ...state, ...data };
+    }
+  } catch(e){}
+}
+
+// Render
+function renderStats() {
+  const html = STAT_CONFIG.map(c => {
+    const v = state.stats[c.key];
+    let color;
+    if (c.inverted) color = v > 70 ? '#e74c3c' : v > 40 ? '#f39c12' : '#2ecc71';
+    else            color = v < 25 ? '#e74c3c' : v < 50 ? '#f39c12' : c.color;
+    return `<div class="stat-row">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${v}%; background:${color}"></div></div>
+      <div class="stat-value">${v}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('stats').innerHTML = html;
+}
+
+function renderActions() {
+  const html = ACTIONS.map((a, i) =>
+    `<button class="btn" data-action="${i}"${state.isBurnout?' disabled':''}>
+      <div class="btn-emoji">${a.emoji}</div>
+      <div class="btn-label">${a.label}</div>
+    </button>`
+  ).join('') +
+  `<button class="btn btn-reset" data-action="reset">
+    <div class="btn-emoji">🔄</div>
+    <div class="btn-label">새 캐릭터</div>
+  </button>`;
+  document.getElementById('actions').innerHTML = html;
+  document.querySelectorAll('.btn').forEach(b => {
+    b.addEventListener('click', e => {
+      const a = b.dataset.action;
+      if (a === 'reset') reset();
+      else onAction(ACTIONS[+a]);
+    });
+  });
+}
+
+function renderChar() {
+  const f = getFace();
+  document.getElementById('charBox').style.borderColor = f.color;
+  document.getElementById('charEmoji').textContent = f.emoji;
+  document.getElementById('charStatus').textContent = f.label;
+  document.getElementById('charStatus').style.color = f.color;
+  document.getElementById('charMsg').textContent = state.message;
+  const stage = STAGES[state.stage];
+  document.getElementById('subtitle').textContent =
+    `Day ${state.days} · Score ${state.score} · ${stage.emoji} ${stage.name}`;
+}
+
+function bounceChar() {
+  const el = document.getElementById('charEmoji');
+  el.classList.remove('bounce');
+  void el.offsetWidth;
+  el.classList.add('bounce');
+}
+
+function flashChar() {
+  const el = document.getElementById('charBox');
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+function renderAll() {
+  renderChar();
+  renderStats();
+}
+
+// Actions
+function onAction(action) {
+  if (state.isBurnout) return;
+  state.stats = applyEffects(state.stats, action.effects);
+  state.message = action.msg;
+  state.score += 3;
+  bounceChar();
+  checkLevel();
+  renderAll();
+  save();
+}
+
+function reset() {
+  state = {
+    stats: { health: 80, mental: 80, focus: 70, hunger: 30, stability: 85, techDebt: 20 },
+    score: 0, days: 1, stage: 0, isBurnout: false,
+    message: '새 캐릭터가 출근했습니다! 화이팅 💪',
+  };
+  isIncident = false;
+  tickCount = 0;
+  localStorage.removeItem(STORAGE_KEY);
+  renderActions();
+  renderAll();
+}
+
+function checkLevel() {
+  let ns = 0;
+  for (let i=0; i<STAGES.length; i++) if (state.score >= STAGES[i].minScore) ns = i;
+  if (ns !== state.stage) {
+    state.stage = ns;
+    state.message = `🎉 레벨업! "${STAGES[ns].name}" 로 승급!`;
+  }
+}
+
+// Game loop
+function tick() {
+  if (state.isBurnout) return;
+  tickCount++;
+
+  // 자연 변화
+  let next = applyEffects(state.stats, {
+    hunger: 4, focus: -3, stability: -2, techDebt: 1, mental: -1,
+  });
+  if (next.hunger > 70) next = applyEffects(next, { health: -3 });
+  if (next.stability < 25) next = applyEffects(next, { mental: -3, health: -2 });
+  state.stats = next;
+
+  // 점수
+  state.score += calcTickScore();
+
+  // 일자
+  if (tickCount % TICKS_PER_DAY === 0) state.days++;
+
+  // 랜덤 이벤트
+  if (Math.random() < EVENT_CHANCE) {
+    const ev = RANDOM_EVENTS[Math.floor(Math.random()*RANDOM_EVENTS.length)];
+    state.message = ev.msg;
+    state.stats = applyEffects(state.stats, ev.effects);
+    if (Object.values(ev.effects).some(v => v <= -15)) {
+      isIncident = true;
+      flashChar();
+      setTimeout(() => { isIncident = false; renderAll(); }, 2500);
+    }
+  }
+
+  // 번아웃
+  if ((state.stats.health <= 0 || state.stats.mental <= 0) && !state.isBurnout) {
+    state.isBurnout = true;
+    state.message = '💀 번아웃입니다... "새 캐릭터" 버튼으로 리셋해주세요.';
+    renderActions();
+  }
+
+  // 자동 장애
+  if (state.stats.stability <= 8 && !isIncident && !state.isBurnout) {
+    isIncident = true;
+    state.message = '🚨 시스템 다운! 빨리 장애 대응하세요!';
+    flashChar();
+    setTimeout(() => { isIncident = false; renderAll(); }, 3000);
+  }
+
+  checkLevel();
+  renderAll();
+  save();
+}
+
+// 줌 방지 (더블탭 줌은 막되, 빠른 연타는 허용)
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+// Init
+load();
+renderActions();
+renderAll();
+setInterval(tick, TICK_INTERVAL);
+</script>
+</body>
+</html>
