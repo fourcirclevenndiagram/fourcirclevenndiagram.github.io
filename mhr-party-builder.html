@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>몬헌 라이즈 파티 빌더</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1206;
+    --panel: #2b1d0e;
+    --card: #3d2910;
+    --card2: #4a3318;
+    --accent: #e8a020;
+    --accent2: #f5c842;
+    --red: #d94f2e;
+    --green: #5aaa4a;
+    --text: #f5e8c8;
+    --muted: #a08060;
+    --border: #6b4520;
+    --shadow: rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 40px;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(232,160,32,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(217,79,46,0.08) 0%, transparent 50%);
+  }
+
+  /* ── Header ── */
+  .header {
+    width: 100%;
+    background: linear-gradient(180deg, #0e0a04 0%, var(--panel) 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 18px 20px 14px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent, transparent 8px,
+      rgba(232,160,32,0.03) 8px, rgba(232,160,32,0.03) 9px
+    );
+    pointer-events: none;
+  }
+  .header-logo {
+    font-family: 'Jua', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--accent2);
+    text-shadow: 0 0 12px rgba(245,200,66,0.5), 2px 2px 0 #7a3a00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 2px;
+  }
+
+  /* ── Palico deco ── */
+  .palico-strip {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 10px 0 0;
+    font-size: 22px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+
+  /* ── Party Size Toggle ── */
+  .size-section {
+    width: 100%;
+    max-width: 420px;
+    padding: 16px 20px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .size-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .size-toggle {
+    display: flex;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .size-btn {
+    padding: 7px 22px;
+    border-radius: 24px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Jua', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--muted);
+  }
+  .size-btn.active {
+    background: var(--accent);
+    color: #1a0e00;
+    box-shadow: 0 2px 8px rgba(232,160,32,0.4);
+  }
+
+  /* ── Party Grid ── */
+  .party-section {
+    width: 100%;
+    max-width: 420px;
+    padding: 8px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .slot-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+    overflow: hidden;
+    min-height: 80px;
+  }
+  .slot-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--slot-color, var(--accent));
+    opacity: 0.7;
+  }
+  .slot-card.filled {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .slot-card.empty {
+    opacity: 0.35;
+    border-style: dashed;
+    border-color: #4a3318;
+  }
+  .slot-card.pop {
+    animation: cardPop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes cardPop {
+    0% { transform: scale(0.85); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Slot number badge */
+  .slot-num {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'Jua', sans-serif;
+  }
+
+  /* Weapon icon circle */
+  .weapon-icon-wrap {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--card2);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .weapon-icon-wrap .sparkle {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 60% 30%, rgba(255,255,255,0.15), transparent 60%);
+    pointer-events: none;
+  }
+
+  .slot-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .weapon-name-kr {
+    font-family: 'Jua', sans-serif;
+    font-size: 17px;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .weapon-name-en {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .weapon-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .empty-slot-text {
+    font-size: 13px;
+    color: #4a3318;
+    font-family: 'Jua', sans-serif;
+    flex: 1;
+    text-align: center;
+  }
+
+  /* ── Roll Button ── */
+  .btn-section {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px 16px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-roll {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Jua', sans-serif;
+    font-size: 19px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #e8720a 0%, #f5a820 50%, #e8720a 100%);
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(232,114,10,0.5), 0 2px 0 #8a3500, inset 0 1px 0 rgba(255,255,255,0.25);
+    transition: transform 0.12s, box-shadow 0.12s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-roll:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 10px rgba(232,114,10,0.4), 0 0 0 #8a3500;
+  }
+  .btn-roll::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .btn-clear {
+    width: 100%;
+    padding: 11px;
+    font-family: 'Jua', sans-serif;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-clear:active { background: var(--panel); }
+
+  /* ── Summary Bar ── */
+  .summary-bar {
+    width: 100%;
+    max-width: 420px;
+    padding: 0 16px;
+  }
+  .summary-inner {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.6;
+  }
+  .summary-inner .highlight {
+    color: var(--accent2);
+    font-family: 'Jua', sans-serif;
+    font-size: 14px;
+  }
+
+  /* ── Weapon Catalog Footer ── */
+  .catalog-title {
+    width: 100%;
+    max-width: 420px;
+    padding: 24px 16px 8px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .weapon-grid {
+    width: 100%;
+    max-width: 420px;
+    padding: 0 14px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .weapon-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 18px;
+    cursor: default;
+    transition: transform 0.15s;
+  }
+  .weapon-chip:active { transform: scale(0.9); }
+  .weapon-chip .chip-label {
+    font-size: 8px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .weapon-chip.used {
+    border-color: var(--accent);
+    background: #3d2910;
+    box-shadow: 0 0 8px rgba(232,160,32,0.2);
+  }
+  .weapon-chip.used .chip-label { color: var(--accent2); }
+
+  /* ── Floating deco particles ── */
+  .deco-particle {
+    position: fixed;
+    pointer-events: none;
+    animation: floatUp 3s ease-in forwards;
+    font-size: 16px;
+    z-index: 100;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-120px) scale(0.5) rotate(20deg); }
+  }
+
+  .divider {
+    width: 100%;
+    max-width: 420px;
+    padding: 0 16px;
+  }
+  .divider hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">
+    🐾 몬스터 헌터 라이즈 🐾
+  </div>
+  <div class="header-sub">PARTY BUILDER</div>
+  <div class="palico-strip">
+    <span title="팰리코">🐱</span>
+    <span title="파우레트">🐶</span>
+    <span title="파우레트">🐾</span>
+    <span title="팰리코">🐱</span>
+  </div>
+</div>
+
+<!-- Party Size Toggle -->
+<div class="size-section">
+  <div class="size-label">파티 인원 설정</div>
+  <div class="size-toggle">
+    <button class="size-btn" data-size="random" onclick="setMode('random')">🎲 랜덤</button>
+    <button class="size-btn active" data-size="3" onclick="setMode('3')">3인</button>
+    <button class="size-btn" data-size="4" onclick="setMode('4')">4인</button>
+  </div>
+</div>
+
+<!-- Party Slots -->
+<div class="party-section" id="partySection">
+  <!-- Generated by JS -->
+</div>
+
+<!-- Roll Button -->
+<div class="btn-section">
+  <button class="btn-roll" onclick="rollParty()">
+    ⚔️ 파티 랜덤 편성! ⚔️
+  </button>
+  <button class="btn-clear" onclick="clearParty()">초기화</button>
+</div>
+
+<!-- Summary -->
+<div class="summary-bar">
+  <div class="summary-inner" id="summaryBar">
+    버튼을 눌러 파티를 편성하세요! 🏔️
+  </div>
+</div>
+
+<div class="catalog-title">── 전체 무기 종류 ──</div>
+
+<!-- Weapon Catalog -->
+<div class="weapon-grid" id="weaponGrid">
+  <!-- Generated by JS -->
+</div>
+
+<script>
+const WEAPONS = [
+  { id:'gs',  kr:'대검',      en:'Great Sword',     emoji:'⚔️',  color:'#c0392b', type:'근거리·중격', typeColor:'#c0392b' },
+  { id:'sns', kr:'한손검',    en:'Sword & Shield',  emoji:'🗡️',  color:'#2980b9', type:'근거리·민첩', typeColor:'#2980b9' },
+  { id:'db',  kr:'쌍검',      en:'Dual Blades',     emoji:'🌀',  color:'#8e44ad', type:'근거리·연격', typeColor:'#8e44ad' },
+  { id:'ls',  kr:'태도',      en:'Long Sword',      emoji:'🔱',  color:'#e67e22', type:'근거리·속공', typeColor:'#e67e22' },
+  { id:'hm',  kr:'해머',      en:'Hammer',          emoji:'🔨',  color:'#795548', type:'근거리·타격', typeColor:'#795548' },
+  { id:'hh',  kr:'수렵피리',  en:'Hunting Horn',    emoji:'🎺',  color:'#00897b', type:'근거리·지원', typeColor:'#00897b' },
+  { id:'la',  kr:'랜스',      en:'Lance',            emoji:'🛡️',  color:'#546e7a', type:'근거리·방어', typeColor:'#546e7a' },
+  { id:'gl',  kr:'건랜스',    en:'Gunlance',        emoji:'💥',  color:'#d84315', type:'근거리·폭발', typeColor:'#d84315' },
+  { id:'sa',  kr:'슬래시액스',en:'Switch Axe',       emoji:'🪓',  color:'#33691e', type:'근거리·변형', typeColor:'#33691e' },
+  { id:'cb',  kr:'차지액스',  en:'Charge Blade',    emoji:'⚡',  color:'#f9a825', type:'근거리·변형', typeColor:'#f9a825' },
+  { id:'ig',  kr:'조충곤',    en:'Insect Glaive',   emoji:'🐛',  color:'#6d4c41', type:'근거리·공중', typeColor:'#ad5f4b' },
+  { id:'lbg', kr:'라이트보우건', en:'Light Bowgun', emoji:'🔫',  color:'#1565c0', type:'원거리·경량', typeColor:'#1565c0' },
+  { id:'hbg', kr:'헤비보우건', en:'Heavy Bowgun',  emoji:'🚀',  color:'#37474f', type:'원거리·중량', typeColor:'#37474f' },
+  { id:'bo',  kr:'활',        en:'Bow',              emoji:'🏹',  color:'#2e7d32', type:'원거리·기동', typeColor:'#2e7d32' },
+];
+
+const SLOT_COLORS = ['#e8720a','#5aaa4a','#4a90d9','#c066d4'];
+const PALICO_EMOJIS = ['🐱','🐶','🦊','🐺','🐯','🦁','🐻','🐼'];
+
+let currentMode = '3';
+let currentParty = [null, null, null, null];
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.size-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.size === mode);
+  });
+}
+
+function getPartySize() {
+  if (currentMode === 'random') return Math.random() < 0.4 ? 3 : 4;
+  return parseInt(currentMode);
+}
+
+function rollParty() {
+  const size = getPartySize();
+  currentParty = [null, null, null, null];
+  for (let i = 0; i < size; i++) {
+    currentParty[i] = WEAPONS[Math.floor(Math.random() * WEAPONS.length)];
+  }
+  renderParty(true);
+  renderCatalog();
+  updateSummary(size);
+  spawnParticles();
+}
+
+function clearParty() {
+  currentParty = [null, null, null, null];
+  renderParty(false);
+  renderCatalog();
+  document.getElementById('summaryBar').innerHTML = '버튼을 눌러 파티를 편성하세요! 🏔️';
+}
+
+function renderParty(animate) {
+  const section = document.getElementById('partySection');
+  section.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const w = currentParty[i];
+    const card = document.createElement('div');
+    card.className = 'slot-card ' + (w ? 'filled' : 'empty');
+    if (animate && w) card.classList.add('pop');
+    card.style.setProperty('--slot-color', SLOT_COLORS[i]);
+
+    const palico = PALICO_EMOJIS[i];
+
+    if (w) {
+      card.innerHTML = `
+        <div class="weapon-icon-wrap" style="background: ${w.color}22; border-color: ${w.color}55;">
+          <span>${w.emoji}</span>
+          <div class="sparkle"></div>
+        </div>
+        <div class="slot-info">
+          <div class="weapon-name-kr">${palico} 헌터 ${i+1}</div>
+          <div class="weapon-name-kr" style="color:${w.color}; font-size:15px;">${w.kr}</div>
+          <div class="weapon-name-en">${w.en}</div>
+          <div class="weapon-type-badge" style="background:${w.typeColor}22; color:${w.typeColor}; border:1px solid ${w.typeColor}44;">
+            ${w.type}
+          </div>
+        </div>
+        <div class="slot-num">P${i+1}</div>
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="weapon-icon-wrap" style="opacity:0.3;">
+          <span>❓</span>
+        </div>
+        <div class="empty-slot-text">빈 슬롯</div>
+        <div class="slot-num">P${i+1}</div>
+      `;
+    }
+
+    if (animate && w) {
+      card.style.animationDelay = (i * 0.07) + 's';
+    }
+
+    section.appendChild(card);
+  }
+}
+
+function renderCatalog() {
+  const usedIds = new Set(currentParty.filter(Boolean).map(w => w.id));
+  const grid = document.getElementById('weaponGrid');
+  grid.innerHTML = '';
+  WEAPONS.forEach(w => {
+    const chip = document.createElement('div');
+    chip.className = 'weapon-chip' + (usedIds.has(w.id) ? ' used' : '');
+    chip.innerHTML = `
+      <span>${w.emoji}</span>
+      <div class="chip-label">${w.kr}</div>
+    `;
+    grid.appendChild(chip);
+  });
+}
+
+function updateSummary(size) {
+  const filled = currentParty.filter(Boolean);
+  const types = filled.map(w => w.type);
+  const hasRanged = filled.some(w => w.type.includes('원거리'));
+  const hasMelee = filled.some(w => w.type.includes('근거리'));
+  const hasSupport = filled.some(w => w.id === 'hh');
+
+  let note = '';
+  if (hasSupport) note += '🎺 수렵피리 지원 파티! ';
+  if (hasRanged && hasMelee) note += '⚔️🏹 균형 파티! ';
+  else if (!hasRanged) note += '⚔️ 올근거리 파티! ';
+  else note += '🏹 원거리 특화! ';
+
+  const wNames = filled.map(w => `<span class="highlight">${w.kr}</span>`).join(' · ');
+
+  document.getElementById('summaryBar').innerHTML =
+    `<div>${size}인 파티 편성 완료 🎉</div>` +
+    `<div style="margin:4px 0">${wNames}</div>` +
+    `<div style="font-size:11px">${note}</div>`;
+}
+
+function spawnParticles() {
+  const emojis = ['✨','⭐','💫','🌟','🎉','🔥','💥','🗡️'];
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'deco-particle';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = (15 + Math.random() * 70) + 'vw';
+      el.style.top = (40 + Math.random() * 30) + 'vh';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }, i * 80);
+  }
+}
+
+// Init
+renderParty(false);
+renderCatalog();
+</script>
+</body>
+</html>
