@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>BPM TAPPER</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #07060d;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255, 50, 150, 0.18), transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(50, 220, 255, 0.18), transparent 60%),
+      #07060d;
+  }
+
+  /* subtle scanlines */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.025) 0px,
+      rgba(255,255,255,0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    z-index: 100;
+  }
+
+  #tapArea {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    cursor: pointer;
+  }
+
+  /* top: BPM display */
+  .top {
+    width: 100%;
+    text-align: center;
+    padding: 28px 16px 0;
+  }
+  .label {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: #ff3e9d;
+    text-shadow: 0 0 8px #ff3e9d;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  #bpm {
+    font-family: 'Courier New', monospace;
+    font-size: 22vw;
+    font-weight: 900;
+    line-height: 1;
+    color: #00fff0;
+    text-shadow:
+      0 0 10px #00fff0,
+      0 0 25px #00fff0,
+      0 0 45px rgba(0, 255, 240, 0.6);
+    letter-spacing: -0.04em;
+    transition: transform 0.08s ease-out;
+  }
+  #bpm.beat { transform: scale(1.05); }
+  #bpm.idle { color: #2a3a4a; text-shadow: none; }
+
+  .sub {
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: #6b7a8a;
+    margin-top: 12px;
+  }
+  .sub span { color: #ffd93d; text-shadow: 0 0 8px rgba(255, 217, 61, 0.5); }
+
+  /* middle: tap zone hint */
+  .middle {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 12px;
+  }
+  .pulse-ring {
+    position: absolute;
+    width: 60vw;
+    height: 60vw;
+    max-width: 320px;
+    max-height: 320px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 62, 157, 0.25);
+    box-shadow:
+      inset 0 0 30px rgba(255, 62, 157, 0.1),
+      0 0 30px rgba(255, 62, 157, 0.1);
+  }
+  .pulse-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid #ff3e9d;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pulse-ring.hit::after {
+    animation: ring-pulse 0.5s ease-out;
+  }
+  @keyframes ring-pulse {
+    0%   { transform: scale(1);   opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .tap-hint {
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: #ff3e9d;
+    text-shadow: 0 0 10px rgba(255, 62, 157, 0.7);
+    text-align: center;
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.35; } }
+
+  /* bottom: stats + reset */
+  .bottom {
+    width: 100%;
+    padding: 0 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+  }
+  .stat {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: #6b7a8a;
+    line-height: 1.6;
+  }
+  .stat b {
+    display: block;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 6px rgba(255,255,255,0.4);
+  }
+  #resetBtn {
+    background: transparent;
+    border: 1px solid #ff3e9d;
+    color: #ff3e9d;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    border-radius: 4px;
+    cursor: pointer;
+    text-shadow: 0 0 6px rgba(255, 62, 157, 0.6);
+    box-shadow: 0 0 12px rgba(255, 62, 157, 0.25), inset 0 0 12px rgba(255, 62, 157, 0.1);
+  }
+  #resetBtn:active { transform: scale(0.95); }
+
+  /* beat strip — visualizes recent taps */
+  .strip {
+    width: 100%;
+    height: 6px;
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+  }
+  .strip span {
+    width: 8px;
+    height: 6px;
+    background: #1a2030;
+    border-radius: 1px;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .strip span.on {
+    background: #00fff0;
+    box-shadow: 0 0 8px #00fff0;
+  }
+</style>
+</head>
+<body>
+<div id="tapArea">
+  <div class="top">
+    <div class="label">▸ BPM ◂</div>
+    <div id="bpm" class="idle">---</div>
+    <div class="sub">TAPS <span id="count">0</span> &nbsp;·&nbsp; AVG <span id="avg">--</span> MS</div>
+    <div class="strip" id="strip">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <div class="middle">
+    <div class="pulse-ring" id="ring"></div>
+    <div class="tap-hint" id="hint">TAP&nbsp;&nbsp;ANYWHERE</div>
+  </div>
+
+  <div class="bottom">
+    <div class="stat">
+      LAST<b id="last">-- ms</b>
+    </div>
+    <div class="stat" style="text-align:center;">
+      STABILITY<b id="stab">--</b>
+    </div>
+    <button id="resetBtn" type="button">RESET</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const WINDOW_SIZE = 8;     // 직전 8탭으로 평균
+  const RESET_GAP_MS = 2500; // 2.5초 이상 멈추면 자동 리셋
+  const MIN_INTERVAL = 60;   // 중복 탭 방지 (60ms 이하 무시)
+
+  const $bpm   = document.getElementById('bpm');
+  const $count = document.getElementById('count');
+  const $avg   = document.getElementById('avg');
+  const $last  = document.getElementById('last');
+  const $stab  = document.getElementById('stab');
+  const $ring  = document.getElementById('ring');
+  const $hint  = document.getElementById('hint');
+  const $strip = document.getElementById('strip').children;
+  const $reset = document.getElementById('resetBtn');
+  const $area  = document.getElementById('tapArea');
+
+  let taps = [];      // 최근 탭 시각(ms) 배열
+  let stripIdx = 0;
+
+  function fmtMs(ms) { return Math.round(ms) + ''; }
+
+  function update(now) {
+    // 오래된 탭은 잘라냄
+    while (taps.length > WINDOW_SIZE) taps.shift();
+
+    const n = taps.length;
+    $count.textContent = n;
+
+    if (n < 2) {
+      $bpm.textContent = '---';
+      $bpm.classList.add('idle');
+      $avg.textContent = '--';
+      $last.textContent = '-- ms';
+      $stab.textContent = '--';
+      return;
+    }
+
+    // 간격 계산
+    const gaps = [];
+    for (let i = 1; i < n; i++) gaps.push(taps[i] - taps[i - 1]);
+    const avg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    const bpm = 60000 / avg;
+
+    // 표준편차 → 안정도(%)
+    const variance = gaps.reduce((s, g) => s + (g - avg) * (g - avg), 0) / gaps.length;
+    const sd = Math.sqrt(variance);
+    const stability = Math.max(0, Math.min(100, 100 - (sd / avg) * 100));
+
+    $bpm.textContent = bpm.toFixed(1);
+    $bpm.classList.remove('idle');
+    $avg.textContent  = fmtMs(avg);
+    $last.textContent = fmtMs(gaps[gaps.length - 1]) + ' ms';
+    $stab.textContent = stability.toFixed(0) + '%';
+  }
+
+  function tap(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const now = performance.now();
+
+    // 자동 리셋: 너무 오래 쉬었으면 새로 시작
+    if (taps.length && now - taps[taps.length - 1] > RESET_GAP_MS) {
+      taps = [];
+    }
+    // 중복 탭 방지
+    if (taps.length && now - taps[taps.length - 1] < MIN_INTERVAL) return;
+
+    taps.push(now);
+
+    // 비주얼 피드백
+    $bpm.classList.add('beat');
+    $ring.classList.add('hit');
+    $hint.style.opacity = '0';
+    setTimeout(() => $bpm.classList.remove('beat'), 90);
+    setTimeout(() => $ring.classList.remove('hit'), 500);
+
+    // 비트 스트립
+    for (let i = 0; i < $strip.length; i++) $strip[i].classList.remove('on');
+    $strip[stripIdx].classList.add('on');
+    stripIdx = (stripIdx + 1) % $strip.length;
+
+    update(now);
+  }
+
+  function resetAll() {
+    taps = [];
+    stripIdx = 0;
+    for (let i = 0; i < $strip.length; i++) $strip[i].classList.remove('on');
+    $hint.style.opacity = '';
+    update(performance.now());
+  }
+
+  // 터치 우선, 클릭은 폴백 (이중 발생 방지)
+  let lastTouch = 0;
+  $area.addEventListener('touchstart', (e) => {
+    lastTouch = Date.now();
+    tap(e);
+  }, { passive: false });
+  $area.addEventListener('mousedown', (e) => {
+    if (Date.now() - lastTouch < 500) return; // 터치 직후 mouse 이벤트 무시
+    tap(e);
+  });
+
+  // 키보드 (PC에서 테스트용) — 스페이스바
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') { e.preventDefault(); tap(); }
+    else if (e.code === 'KeyR') { resetAll(); }
+  });
+
+  $reset.addEventListener('touchstart', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    resetAll();
+  }, { passive: false });
+  $reset.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resetAll();
+  });
+
+  // 더블탭 줌 방지 (iOS)
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+  // idle 워치독 — 2.5초 이상 입력 없으면 idle 표시
+  setInterval(() => {
+    if (!taps.length) return;
+    const since = performance.now() - taps[taps.length - 1];
+    if (since > RESET_GAP_MS) {
+      $bpm.classList.add('idle');
+      $hint.style.opacity = '';
+    }
+  }, 300);
+})();
+</script>
+</body>
+</html>
