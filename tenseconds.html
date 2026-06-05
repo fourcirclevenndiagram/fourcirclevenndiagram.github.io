@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>10초 맞추기</title>
+<style>
+  :root{
+    --bg:#070912; --neon:#00f0ff; --pink:#ff2d95; --yellow:#ffe600;
+    --green:#39ff14; --dim:#3a4a6b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:"Courier New",monospace;
+    background:radial-gradient(circle at 50% 20%,#101630,#070912 70%);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;user-select:none;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 2px,transparent 2px 4px);
+  }
+  .wrap{width:100%;max-width:440px;padding:28px 22px;text-align:center;z-index:1;}
+  h1{
+    font-size:30px;letter-spacing:4px;margin-bottom:6px;
+    color:var(--neon);text-shadow:0 0 8px var(--neon),0 0 22px var(--neon);
+  }
+  .sub{color:var(--dim);font-size:13px;letter-spacing:2px;margin-bottom:30px;}
+
+  .diff{display:flex;gap:12px;justify-content:center;margin-bottom:34px;}
+  .diff button{
+    flex:1;padding:14px 0;font-family:inherit;font-size:15px;font-weight:bold;
+    letter-spacing:2px;background:transparent;color:var(--dim);
+    border:2px solid var(--dim);border-radius:10px;cursor:pointer;transition:.15s;
+  }
+  .diff button.on{
+    color:var(--yellow);border-color:var(--yellow);
+    box-shadow:0 0 10px var(--yellow),inset 0 0 10px rgba(255,230,0,.15);
+    text-shadow:0 0 6px var(--yellow);
+  }
+
+  .timer{
+    font-size:74px;font-weight:bold;letter-spacing:2px;margin:10px 0 6px;
+    color:var(--green);text-shadow:0 0 12px var(--green);
+    font-variant-numeric:tabular-nums;
+  }
+  .timer.hidden{visibility:hidden;}
+  .hint{height:22px;font-size:13px;color:var(--dim);letter-spacing:2px;margin-bottom:26px;}
+
+  .action{
+    width:100%;padding:20px 0;font-family:inherit;font-size:24px;font-weight:bold;
+    letter-spacing:6px;border:none;border-radius:14px;cursor:pointer;transition:.12s;
+    background:var(--neon);color:#001015;box-shadow:0 0 16px var(--neon);
+  }
+  .action:active{transform:scale(.97);}
+  .action.stop{background:var(--pink);color:#1a0010;box-shadow:0 0 16px var(--pink);}
+  .action.again{background:var(--yellow);color:#1a1500;box-shadow:0 0 16px var(--yellow);}
+
+  .result{margin-top:30px;min-height:96px;}
+  .result .stopped{font-size:46px;font-weight:bold;color:var(--pink);
+    text-shadow:0 0 12px var(--pink);font-variant-numeric:tabular-nums;}
+  .result .diffval{font-size:15px;letter-spacing:1px;margin-top:10px;}
+  .result .verdict{font-size:22px;font-weight:bold;letter-spacing:3px;margin-top:4px;}
+  .perfect{color:var(--green);text-shadow:0 0 14px var(--green);}
+  .close{color:var(--yellow);text-shadow:0 0 10px var(--yellow);}
+  .far{color:var(--dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>10초 맞추기</h1>
+  <div class="sub">STOP AT EXACTLY 10.00s</div>
+
+  <div class="diff">
+    <button id="normal" class="on">NORMAL · 0.0</button>
+    <button id="hard">HARD · 0.00</button>
+  </div>
+
+  <div id="timer" class="timer hidden">0.0</div>
+  <div id="hint" class="hint">난이도를 고르고 시작</div>
+
+  <button id="action" class="action">시작</button>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+(function(){
+  var diff="normal", dp=1;          // dp: 소수 자리수
+  var state="idle";                 // idle | running | done
+  var startTime=0, raf=0;
+
+  var bNormal=document.getElementById("normal");
+  var bHard=document.getElementById("hard");
+  var elTimer=document.getElementById("timer");
+  var elHint=document.getElementById("hint");
+  var elAction=document.getElementById("action");
+  var elResult=document.getElementById("result");
+
+  function fmt(sec){ return sec.toFixed(dp); }
+
+  function setDiff(d){
+    if(state==="running") return;
+    diff=d; dp=(d==="hard")?2:1;
+    bNormal.classList.toggle("on",d==="normal");
+    bHard.classList.toggle("on",d==="hard");
+    if(state==="idle"){ elHint.textContent="목표: 정확히 10.00초"; }
+  }
+  bNormal.addEventListener("click",function(){setDiff("normal");});
+  bHard.addEventListener("click",function(){setDiff("hard");});
+
+  function tick(){
+    var sec=(performance.now()-startTime)/1000;
+    if(sec>=14){ sec=14; } // 안전 상한
+    elTimer.textContent=fmt(sec);
+    raf=requestAnimationFrame(tick);
+  }
+
+  function start(){
+    state="running";
+    elResult.innerHTML="";
+    elTimer.classList.remove("hidden");
+    elTimer.textContent=fmt(0);
+    elTimer.style.color="var(--green)";
+    elTimer.style.textShadow="0 0 12px var(--green)";
+    elHint.textContent="10.00초에서 정지!";
+    elAction.textContent="정지";
+    elAction.className="action stop";
+    startTime=performance.now();
+    raf=requestAnimationFrame(tick);
+  }
+
+  function stop(){
+    cancelAnimationFrame(raf);
+    state="done";
+    var sec=(performance.now()-startTime)/1000;
+    elTimer.textContent=fmt(sec);
+
+    var gap=Math.abs(sec-10);
+    var tol=(dp===2)?0.005:0.05;   // 표시 자리수 기준 "정확" 허용오차
+    var verdict, cls;
+    if(gap<=tol){ verdict="PERFECT!"; cls="perfect"; }
+    else if(gap<=(dp===2?0.10:0.30)){ verdict="아깝다!"; cls="close"; }
+    else { verdict="다음엔 더!"; cls="far"; }
+
+    var sign=(sec>10)?"+":"-";
+    elHint.textContent="";
+    elResult.innerHTML=
+      '<div class="stopped '+cls+'">'+fmt(sec)+'초</div>'+
+      '<div class="diffval '+cls+'">10초와 차이: '+sign+gap.toFixed(dp)+'초</div>'+
+      '<div class="verdict '+cls+'">'+verdict+'</div>';
+
+    elAction.textContent="다시";
+    elAction.className="action again";
+  }
+
+  function reset(){
+    state="idle";
+    elTimer.classList.add("hidden");
+    elTimer.textContent=fmt(0);
+    elResult.innerHTML="";
+    elHint.textContent="목표: 정확히 10.00초";
+    elAction.textContent="시작";
+    elAction.className="action";
+  }
+
+  elAction.addEventListener("click",function(){
+    if(state==="idle") start();
+    else if(state==="running") stop();
+    else reset();
+  });
+})();
+</script>
+</body>
+</html>
