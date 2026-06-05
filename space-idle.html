@@ -310,6 +310,139 @@
   }
   #offline-btn:active { transform: scale(0.96); }
 
+  /* ── 에테르 HUD ── */
+  #aether-hud {
+    position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+    display: none; align-items: center; gap: 6px;
+    background: rgba(122,223,212,0.08);
+    border: 1px solid rgba(122,223,212,0.25);
+    border-radius: 20px; padding: 4px 14px;
+    pointer-events: none;
+  }
+  #aether-hud.show { display: flex; }
+  #aether-hud .ae-icon { font-size: 13px; }
+  #aether-hud .ae-val {
+    font-family: 'Noto Serif KR', serif; font-size: 15px; color: var(--mint);
+    text-shadow: 0 0 12px rgba(122,223,212,0.6);
+  }
+  #aether-hud .ae-mult { font-size: 10px; color: rgba(122,223,212,0.6); letter-spacing: 1px; }
+
+  /* 생명체는 탭 가능하게 */
+  .creature { pointer-events: auto !important; cursor: pointer; }
+  .creature.absorbing {
+    animation: absorbPop 0.5s ease-out forwards !important;
+  }
+  @keyframes absorbPop {
+    0% { transform: scale(1); opacity: 1; }
+    40% { transform: scale(1.6); opacity: 1; filter: drop-shadow(0 0 16px rgba(122,223,212,0.9)); }
+    100% { transform: scale(0) translateY(-30px); opacity: 0; }
+  }
+
+  /* ── 하단 탭 토글 버튼 ── */
+  #codex-toggle {
+    position: fixed; bottom: 12px; left: 14px;
+    background: rgba(122,223,212,0.1);
+    border: 1px solid rgba(122,223,212,0.3);
+    border-radius: 16px; padding: 7px 14px;
+    font-family: 'Gowun Dodum', sans-serif; font-size: 11px;
+    color: var(--mint); cursor: pointer; letter-spacing: 1px;
+    z-index: 10; display: none; align-items: center; gap: 5px;
+    transition: transform 0.15s;
+  }
+  #codex-toggle.show { display: flex; }
+  #codex-toggle:active { transform: scale(0.95); }
+  #codex-toggle .badge {
+    background: var(--mint); color: var(--void);
+    border-radius: 10px; padding: 0 5px; font-size: 9px; font-weight: bold;
+  }
+
+  /* ── 도감 패널 ── */
+  #codex-panel {
+    position: fixed; inset: 0; z-index: 400;
+    background: rgba(4,5,15,0.92);
+    backdrop-filter: blur(10px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s;
+    display: flex; flex-direction: column;
+    padding: 24px 18px;
+    overflow-y: auto;
+  }
+  #codex-panel.show { opacity: 1; pointer-events: all; }
+  #codex-panel h2 {
+    font-family: 'Noto Serif KR', serif; font-weight: 300;
+    font-size: 20px; letter-spacing: 3px; color: var(--soft);
+    text-align: center; margin-bottom: 4px;
+    text-shadow: 0 0 20px rgba(168,159,255,0.5);
+  }
+  #codex-sub {
+    text-align: center; font-size: 11px; color: rgba(122,223,212,0.6);
+    letter-spacing: 1px; margin-bottom: 18px;
+  }
+
+  /* 도감 그리드 */
+  #codex-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px; margin-bottom: 24px;
+  }
+  .codex-cell {
+    aspect-ratio: 1; border-radius: 14px;
+    background: rgba(124,106,247,0.06);
+    border: 1px solid rgba(124,106,247,0.15);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    position: relative;
+  }
+  .codex-cell.found {
+    background: rgba(122,223,212,0.08);
+    border-color: rgba(122,223,212,0.35);
+  }
+  .codex-cell .cc-emoji { font-size: 26px; filter: grayscale(1) opacity(0.25); }
+  .codex-cell.found .cc-emoji { filter: none; }
+  .codex-cell .cc-count {
+    font-size: 9px; color: var(--mint); opacity: 0.8;
+  }
+  .codex-cell .cc-lock { position: absolute; font-size: 16px; opacity: 0.3; }
+  .codex-cell.found .cc-lock { display: none; }
+
+  /* 차원 업그레이드 섹션 */
+  #rift-section h3 {
+    font-family: 'Noto Serif KR', serif; font-weight: 300;
+    font-size: 15px; letter-spacing: 2px; color: var(--mint);
+    text-align: center; margin-bottom: 4px;
+  }
+  #rift-bonus-txt {
+    text-align: center; font-size: 11px; color: rgba(196,187,255,0.5);
+    margin-bottom: 14px; letter-spacing: 1px;
+  }
+  .rift-btn {
+    width: 100%;
+    background: rgba(122,223,212,0.06);
+    border: 1px solid rgba(122,223,212,0.2);
+    border-radius: 16px; padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .rift-btn:active { transform: scale(0.98); }
+  .rift-btn.affordable { border-color: rgba(122,223,212,0.6); box-shadow: 0 0 12px rgba(122,223,212,0.15); }
+  .rift-btn.locked { opacity: 0.35; }
+  .rift-btn .rb-icon { font-size: 26px; }
+  .rift-btn .rb-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .rift-btn .rb-name { font-size: 13px; color: var(--soft); }
+  .rift-btn .rb-desc { font-size: 10px; color: rgba(196,187,255,0.5); }
+  .rift-btn .rb-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+  .rift-btn .rb-cost { font-size: 12px; color: var(--mint); font-family: 'Noto Serif KR', serif; }
+  .rift-btn .rb-lvl { font-size: 9px; color: rgba(122,223,212,0.6); }
+
+  #codex-close {
+    margin: 8px auto 0;
+    background: linear-gradient(135deg, var(--pulse), #5a4fd4);
+    border: none; border-radius: 50px; padding: 12px 36px;
+    font-family: 'Gowun Dodum', sans-serif; font-size: 13px;
+    color: var(--cream); cursor: pointer; letter-spacing: 1px;
+  }
+  #codex-close:active { transform: scale(0.96); }
+
   /* 저장 인디케이터 */
   #save-dot {
     position: fixed; bottom: 10px; right: 14px;
@@ -349,6 +482,13 @@
       <div id="level-badge">Lv.1 씨앗</div>
     </div>
     <div id="whisper">우주는 조용히 팽창한다</div>
+  </div>
+
+  <!-- 에테르 HUD -->
+  <div id="aether-hud">
+    <span class="ae-icon">💎</span>
+    <span class="ae-val" id="aether-val">0</span>
+    <span class="ae-mult" id="codex-mult">×1.00</span>
   </div>
 
   <!-- 하단 -->
@@ -417,6 +557,25 @@
   </div>
 </div>
 
+<!-- 도감 토글 버튼 -->
+<div id="codex-toggle" onclick="openCodex()">
+  <span>🌌 차원 균열</span>
+  <span class="badge" id="codex-badge" style="display:none">!</span>
+</div>
+
+<!-- 도감 + 차원 패널 -->
+<div id="codex-panel">
+  <h2>✦ 차원 도감 ✦</h2>
+  <div id="codex-sub">떠도는 생명체를 거두어 에테르를 모으세요</div>
+  <div id="codex-grid"></div>
+  <div id="rift-section">
+    <h3>차원 균열</h3>
+    <div id="rift-bonus-txt">전체 생산 배수 ×1.00</div>
+    <div id="rift-list"></div>
+  </div>
+  <button id="codex-close" onclick="closeCodex()">✦ 닫기</button>
+</div>
+
 <div id="save-dot">● 자동저장</div>
 
 <script>
@@ -459,6 +618,7 @@ for (let i = 0; i < 3; i++) {
 }
 
 let frame = 0;
+let meteors = [];
 let bgRunning = true;  // 백그라운드 감지 시 false
 let lastBgTime = 0;
 const BG_FPS = 30; // 60 → 30fps로 제한
@@ -498,12 +658,31 @@ function drawBg(now) {
     ctx.fill();
   });
 
+  // 유성 그리기
+  for (let i = meteors.length - 1; i >= 0; i--) {
+    const m = meteors[i];
+    m.x += m.vx; m.y += m.vy; m.life -= 0.012;
+    if (m.life <= 0 || m.y > H + 20 || m.x > W + 20) {
+      meteors.splice(i, 1);
+      continue;
+    }
+    const tailX = m.x - m.vx * 8, tailY = m.y - m.vy * 8;
+    const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+    grad.addColorStop(0, `rgba(245,217,122,${m.life * 0.9})`);
+    grad.addColorStop(1, 'rgba(245,217,122,0)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(m.x, m.y);
+    ctx.lineTo(tailX, tailY);
+    ctx.stroke();
+  }
+
   // 유성 (드물게)
   if (frame % 420 === 0) spawnMeteor();
 }
 requestAnimationFrame(drawBg);
 
-let meteors = [];
 function spawnMeteor() {
   const sx = Math.random() * W;
   meteors.push({ x: sx, y: -10, vx: Math.random()*3+1, vy: Math.random()*3+4, life: 1 });
@@ -539,6 +718,25 @@ const LEVELS = [
 const CREATURE_EMOJIS = ['🌸','✨','🦋','🌿','🔮','💫','🌙','⭐','🌊','🎐','🕊️','🫧'];
 let creatureList = [];
 
+// ── 에테르 / 도감 / 차원 시스템 ──
+let aether = 0;
+let codexUnlocked = false;           // 차원 균열 해금 여부
+const CODEX_UNLOCK_TOTAL = 1e6;      // 총 100만 스타더스트 모으면 해금
+// 각 생명체 종별 수집 횟수 (인덱스 = CREATURE_EMOJIS 인덱스)
+let codexCounts = new Array(CREATURE_EMOJIS.length).fill(0);
+
+const CREATURE_NAMES = [
+  '벚꽃령','반짝별','우주나비','초록숨','점성구','은하편',
+  '달조각','항성핵','은빛물결','바람종','평화새','거품혼'
+];
+
+// 차원 균열 업그레이드 (에테르로 구매, 전체 pps에 곱연산)
+const RIFTS = [
+  { name:'균열 안정화', icon:'🌀', desc:'생산 ×1.5 / 레벨', base:5,  mult:1.5, count:0 },
+  { name:'별의 정수',   icon:'⚛️', desc:'생산 ×2 / 레벨',   base:25, mult:2.0, count:0 },
+  { name:'보이드 공명', icon:'🕳️', desc:'생산 ×3 / 레벨',   base:120,mult:3.0, count:0 },
+];
+
 const WHISPERS = [
   '우주는 조용히 팽창한다', '별빛은 수만 년 전의 기억',
   '모든 것은 별의 먼지', '고요함 속에서 자란다',
@@ -550,8 +748,26 @@ function getUpgradeCost(i) {
   return Math.floor(UPGRADES[i].base * Math.pow(1.15, UPGRADES[i].count));
 }
 
+// 도감 배수: 발견한 종마다 +3%, 12종 전부면 추가 ×1.5
+function getCodexMult() {
+  const found = codexCounts.filter(c => c > 0).length;
+  let m = 1 + found * 0.03;
+  if (found === CREATURE_EMOJIS.length) m *= 1.5;
+  return m;
+}
+
+// 차원 배수: 각 균열 레벨만큼 곱연산
+function getRiftMult() {
+  return RIFTS.reduce((m, r) => m * Math.pow(r.mult, r.count), 1);
+}
+
+function getTotalMult() {
+  return getCodexMult() * getRiftMult();
+}
+
 function recalcPps() {
-  pps = UPGRADES.reduce((sum, u) => sum + u.basePps * u.count, 0);
+  const base = UPGRADES.reduce((sum, u) => sum + u.basePps * u.count, 0);
+  pps = base * getTotalMult();
 }
 
 function fmt(n) {
@@ -566,7 +782,7 @@ function updateHUD() {
   document.getElementById('pps').textContent = fmt(pps);
 
   // XP 바
-  const pct = Math.min((xp / xpNeeded) * 100, 100);
+  const pct = xpNeeded === Infinity ? 100 : Math.min((xp / xpNeeded) * 100, 100);
   document.getElementById('xp-bar').style.width = pct + '%';
 
   // 업그레이드 버튼
@@ -605,6 +821,7 @@ function gainPts(amount, isClick = false, x, y) {
 }
 
 function checkLevelUp() {
+  if (xpNeeded === Infinity) return; // 만렙 도달 시 스킵
   const next = LEVELS.find(l => l.lv === level);
   if (next && xp >= next.xp) {
     level++;
@@ -660,13 +877,17 @@ function spawnCreature() {
   const rect = center.getBoundingClientRect();
   const el = document.createElement('div');
   el.className = 'creature';
-  el.textContent = CREATURE_EMOJIS[Math.floor(Math.random() * CREATURE_EMOJIS.length)];
+  const speciesIdx = Math.floor(Math.random() * CREATURE_EMOJIS.length);
+  el.textContent = CREATURE_EMOJIS[speciesIdx];
+  el.dataset.species = speciesIdx;
   const side = Math.random() > 0.5;
   el.style.left = (side ? Math.random()*30 : Math.random()*30+65) + '%';
   el.style.top = (Math.random()*70 + 10) + '%';
   el.style.animationDuration = (4 + Math.random() * 5) + 's';
   el.style.animationDelay = (-Math.random() * 5) + 's';
   el.style.fontSize = (14 + Math.random() * 14) + 'px';
+  // 차원 해금 후에는 탭하면 흡수
+  el.addEventListener('click', (e) => absorbCreature(el, e));
   document.getElementById('creatures').appendChild(el);
   creatureList.push(el);
   // 최대 12마리로 제한 (배터리 절약)
@@ -674,6 +895,136 @@ function spawnCreature() {
     creatureList[0].remove();
     creatureList.shift();
   }
+}
+
+// ── 생명체 흡수 ──
+function absorbCreature(el, e) {
+  if (!codexUnlocked) {
+    // 해금 전엔 그냥 작은 스타더스트 보너스만
+    gainPts(clickPower * 5, true, e.clientX, e.clientY);
+    return;
+  }
+  if (el.dataset.absorbed) return;
+  el.dataset.absorbed = '1';
+
+  const sp = parseInt(el.dataset.species);
+  const wasNew = codexCounts[sp] === 0;
+  codexCounts[sp]++;
+  const gain = 1 + Math.floor(Math.random() * 3); // 에테르 1~3
+  aether += gain;
+
+  // 흡수 애니메이션
+  el.classList.add('absorbing');
+  spawnFloatMsg(`💎 +${gain}`, e.clientX, e.clientY);
+
+  // 리스트에서 제거
+  const idx = creatureList.indexOf(el);
+  if (idx > -1) creatureList.splice(idx, 1);
+  setTimeout(() => el.remove(), 500);
+
+  if (wasNew) {
+    showAchievement('새 생명체 발견', CREATURE_NAMES[sp], CREATURE_EMOJIS[sp]);
+    recalcPps(); // 도감 배수 갱신
+  }
+
+  updateAetherHUD();
+  if (document.getElementById('codex-panel').classList.contains('show')) {
+    renderCodex();
+  }
+}
+
+// ── 에테르 HUD 갱신 ──
+function updateAetherHUD() {
+  if (!codexUnlocked) return;
+  document.getElementById('aether-val').textContent = fmt(aether);
+  document.getElementById('codex-mult').textContent = '×' + getTotalMult().toFixed(2);
+  // 살 수 있는 균열 있으면 토글 버튼에 알림
+  const canBuy = RIFTS.some((r, i) => aether >= getRiftCost(i));
+  document.getElementById('codex-badge').style.display = canBuy ? 'inline-block' : 'none';
+}
+
+// ── 차원 해금 체크 ──
+function checkCodexUnlock() {
+  if (codexUnlocked) return;
+  if (totalEarned >= CODEX_UNLOCK_TOTAL) {
+    codexUnlocked = true;
+    document.getElementById('aether-hud').classList.add('show');
+    document.getElementById('codex-toggle').classList.add('show');
+    showAchievement('차원 균열 개방', '생명체를 탭해 에테르를 모으세요', '🌌');
+    updateAetherHUD();
+  }
+}
+
+// ── 차원 균열 비용 ──
+function getRiftCost(i) {
+  return Math.floor(RIFTS[i].base * Math.pow(1.6, RIFTS[i].count));
+}
+
+function buyRift(i) {
+  const cost = getRiftCost(i);
+  if (aether < cost) return;
+  aether -= cost;
+  RIFTS[i].count++;
+  recalcPps();
+  updateAetherHUD();
+  updateHUD();
+  renderCodex();
+}
+
+// ── 도감 패널 ──
+function openCodex() {
+  renderCodex();
+  document.getElementById('codex-panel').classList.add('show');
+}
+function closeCodex() {
+  document.getElementById('codex-panel').classList.remove('show');
+}
+
+function renderCodex() {
+  // 도감 그리드
+  const grid = document.getElementById('codex-grid');
+  grid.innerHTML = '';
+  codexCounts.forEach((cnt, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'codex-cell' + (cnt > 0 ? ' found' : '');
+    cell.innerHTML = cnt > 0
+      ? `<span class="cc-emoji">${CREATURE_EMOJIS[i]}</span>
+         <span class="cc-count">${CREATURE_NAMES[i]} ×${cnt}</span>`
+      : `<span class="cc-emoji">${CREATURE_EMOJIS[i]}</span>
+         <span class="cc-lock">❔</span>`;
+    grid.appendChild(cell);
+  });
+
+  // 도감 완성도 텍스트
+  const found = codexCounts.filter(c => c > 0).length;
+  document.getElementById('codex-sub').textContent =
+    `발견 ${found} / ${CREATURE_EMOJIS.length}  ·  도감 배수 ×${getCodexMult().toFixed(2)}`;
+
+  // 차원 배수 텍스트
+  document.getElementById('rift-bonus-txt').textContent =
+    `전체 생산 배수 ×${getTotalMult().toFixed(2)}`;
+
+  // 차원 균열 목록
+  const list = document.getElementById('rift-list');
+  list.innerHTML = '';
+  RIFTS.forEach((r, i) => {
+    const cost = getRiftCost(i);
+    const can = aether >= cost;
+    const btn = document.createElement('div');
+    btn.className = 'rift-btn' + (can ? ' affordable' : ' locked');
+    btn.innerHTML = `
+      <span class="rb-icon">${r.icon}</span>
+      <span class="rb-info">
+        <span class="rb-name">${r.name}</span>
+        <span class="rb-desc">${r.desc}</span>
+      </span>
+      <span class="rb-right">
+        <span class="rb-cost">💎 ${fmt(cost)}</span>
+        <span class="rb-lvl">Lv.${r.count}</span>
+      </span>`;
+    btn.onclick = () => buyRift(i);
+    list.appendChild(btn);
+  });
 }
 
 // 업적
@@ -707,8 +1058,18 @@ document.getElementById('orb').addEventListener('click', (e) => {
 // ── 자동 수집 틱 — rAF 대신 1초 setInterval (배터리 절약) ──
 setInterval(() => {
   if (pps > 0) gainPts(pps);
+  checkCodexUnlock();
+  updateAetherHUD();
   updateHUD();
 }, 1000);
+
+// ── 생명체 자동 스폰 (들어왔을 때 거둘 게 쌓여있도록) ──
+// 해금 후 12초마다, 화면에 8마리 미만일 때만 새로 등장
+setInterval(() => {
+  if (codexUnlocked && creatureList.length < 8) {
+    spawnCreature();
+  }
+}, 12000);
 
 // ── 마일스톤 업적 ──
 const milestones = [100, 1000, 10000, 100000, 1e6];
@@ -731,6 +1092,8 @@ function saveGame() {
     pts, totalEarned, xp, level, xpNeeded, clickPower,
     upgrades: UPGRADES.map(u => u.count),
     creatureCount: creatureList.length,
+    aether, codexUnlocked, codexCounts,
+    rifts: RIFTS.map(r => r.count),
     savedAt: Date.now()
   };
   try {
@@ -760,7 +1123,25 @@ function loadGame() {
     if (d.upgrades) {
       d.upgrades.forEach((cnt, i) => { if (UPGRADES[i]) UPGRADES[i].count = cnt; });
     }
+
+    // ── 에테르 / 도감 / 차원 복원 ──
+    aether        = d.aether || 0;
+    codexUnlocked = d.codexUnlocked || false;
+    if (Array.isArray(d.codexCounts)) {
+      d.codexCounts.forEach((c, i) => { if (i < codexCounts.length) codexCounts[i] = c; });
+    }
+    if (Array.isArray(d.rifts)) {
+      d.rifts.forEach((c, i) => { if (RIFTS[i]) RIFTS[i].count = c; });
+    }
+
     recalcPps();
+
+    // 차원 UI 복원
+    if (codexUnlocked) {
+      document.getElementById('aether-hud').classList.add('show');
+      document.getElementById('codex-toggle').classList.add('show');
+      updateAetherHUD();
+    }
 
     // xpNeeded 복원
     const lvData = LEVELS.find(l => l.lv === level);
@@ -841,10 +1222,20 @@ document.addEventListener('visibilitychange', () => {
 // ── 게임 시작: 불러오기 시도 ──
 const loaded = loadGame();
 
+// 해금 상태 즉시 점검 (이미 100만 넘은 유저는 바로 차원 개방)
+checkCodexUnlock();
+
 // 처음 시작 시에만 생명체 초기 스폰
 if (!loaded || creatureList.length === 0) {
   setTimeout(() => spawnCreature(), 500);
   setTimeout(() => spawnCreature(), 1500);
+}
+
+// 차원 해금됐으면 거둘 생명체 몇 마리 깔아두기
+if (codexUnlocked && creatureList.length < 4) {
+  for (let i = creatureList.length; i < 4; i++) {
+    setTimeout(() => spawnCreature(), 400 + i * 600);
+  }
 }
 
 updateHUD();
