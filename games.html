@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>미니게임 — JJMarblocity</title>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #12121c;
+      --border:    #2a2a3e;
+      --neon-cyan: #00f5ff;
+      --neon-pink: #ff2d78;
+      --neon-yel:  #ffe600;
+      --neon-grn:  #00ff99;
+      --text:      #e8e8f0;
+      --dim:       #6b6b8a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh; overflow-x: hidden;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='%2300f5ff' opacity='0.8'/%3E%3C/svg%3E") 12 12, crosshair;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px);
+      pointer-events: none; z-index: 9999;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+      background-size: 48px 48px; pointer-events: none; z-index: 0;
+    }
+    /* TOPBAR */
+    .topbar {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; gap: 16px;
+      padding: 24px 28px 0;
+    }
+    .back-btn {
+      font-family: 'Press Start 2P', monospace; font-size: 8px;
+      color: var(--dim); text-decoration: none;
+      border: 1px solid var(--border); padding: 8px 12px; border-radius: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .back-btn:hover { color: var(--neon-cyan); border-color: var(--neon-cyan); }
+    .topbar-title {
+      font-family: 'Press Start 2P', monospace; font-size: 10px;
+      color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);
+    }
+    /* HEADER */
+    header {
+      position: relative; z-index: 10;
+      text-align: center; padding: 40px 24px 48px;
+    }
+    h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(16px, 3.5vw, 30px);
+      line-height: 1.5; letter-spacing: 2px; color: #fff;
+      text-shadow: 0 0 10px var(--neon-cyan), 0 0 30px var(--neon-cyan), 0 0 60px rgba(0,245,255,0.4);
+      animation: flicker 5s infinite;
+    }
+    @keyframes flicker {
+      0%,19%,21%,23%,25%,54%,56%,100% { opacity: 1; }
+      20%,24%,55% { opacity: 0.6; }
+    }
+    .subtitle {
+      font-family: 'DotGothic16', monospace; font-size: 15px;
+      color: var(--neon-pink); letter-spacing: 4px; margin-top: 10px;
+      text-shadow: 0 0 12px var(--neon-pink);
+    }
+    /* DIVIDER */
+    .divider {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; gap: 16px;
+      max-width: 960px; margin: 0 auto 40px; padding: 0 24px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    }
+    .divider span {
+      font-family: 'Press Start 2P', monospace; font-size: 9px;
+      color: var(--neon-cyan); white-space: nowrap; text-shadow: 0 0 8px var(--neon-cyan);
+    }
+    /* GAME GRID */
+    .game-grid {
+      position: relative; z-index: 10;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; max-width: 960px; margin: 0 auto; padding: 0 24px 80px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 4px; overflow: hidden; position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none; display: block; color: inherit;
+      opacity: 0; transform: translateY(24px); animation: cardIn 0.5s forwards;
+    }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+    .card:nth-child(1){animation-delay:0.05s} .card:nth-child(2){animation-delay:0.10s}
+    .card:nth-child(3){animation-delay:0.15s} .card:nth-child(4){animation-delay:0.20s}
+    .card:nth-child(5){animation-delay:0.25s} .card:nth-child(6){animation-delay:0.30s}
+    .card:nth-child(7){animation-delay:0.35s} .card:nth-child(8){animation-delay:0.40s}
+    .card:nth-child(9){animation-delay:0.45s} .card:nth-child(10){animation-delay:0.50s}
+    .card[data-color="cyan"] { --c: var(--neon-cyan); }
+    .card[data-color="pink"] { --c: var(--neon-pink); }
+    .card[data-color="yel"]  { --c: var(--neon-yel);  }
+    .card[data-color="grn"]  { --c: var(--neon-grn);  }
+    .card:hover {
+      transform: translateY(-6px) scale(1.02);
+      border-color: var(--c);
+      box-shadow: 0 0 20px rgba(0,0,0,0.6), 0 0 30px color-mix(in srgb, var(--c) 30%, transparent);
+    }
+    .card:hover .card-top { box-shadow: inset 0 0 40px color-mix(in srgb, var(--c) 20%, transparent); }
+    .card-top {
+      height: 140px; display: flex; align-items: center; justify-content: center;
+      font-size: 56px; background: #0d0d18; border-bottom: 1px solid var(--border);
+      position: relative; transition: box-shadow 0.3s;
+    }
+    .pixel-deco {
+      position: absolute; font-family: 'Press Start 2P', monospace;
+      font-size: 8px; color: var(--c); opacity: 0.5;
+    }
+    .pixel-deco.tl { top: 8px; left: 10px; }
+    .pixel-deco.tr { top: 8px; right: 10px; }
+    .card-body { padding: 20px 22px 22px; }
+    .card-num {
+      font-family: 'Press Start 2P', monospace; font-size: 9px;
+      color: var(--c); letter-spacing: 2px; margin-bottom: 8px;
+      text-shadow: 0 0 6px var(--c);
+    }
+    .card-title { font-family: 'DotGothic16', monospace; font-size: 20px; color: #fff; margin-bottom: 8px; letter-spacing: 1px; }
+    .card-desc { font-size: 13px; color: var(--dim); line-height: 1.7; margin-bottom: 16px; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-family: 'Press Start 2P', monospace; font-size: 7px;
+      padding: 4px 8px; border: 1px solid var(--c); color: var(--c);
+      border-radius: 2px; opacity: 0.8;
+    }
+    .card-play {
+      margin-top: 18px; font-family: 'Press Start 2P', monospace; font-size: 9px;
+      color: var(--bg); background: var(--c); padding: 10px 18px;
+      display: inline-block; border-radius: 2px; transition: box-shadow 0.2s;
+    }
+    .card:hover .card-play { box-shadow: 0 0 16px var(--c); }
+    .card.soon { opacity: 0.45; pointer-events: none; }
+    .card.soon .card-play { background: var(--border); color: var(--dim); }
+    footer {
+      position: relative; z-index: 10; text-align: center;
+      padding: 32px 24px 48px; border-top: 1px solid var(--border);
+      font-family: 'DotGothic16', monospace; font-size: 13px;
+      color: var(--dim); letter-spacing: 2px;
+    }
+    footer span { color: var(--neon-pink); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="back-btn" href="index.html">◀ HOME</a>
+    <span class="topbar-title">🕹️ 미니게임</span>
+  </div>
+
+  <header>
+    <h1>미니게임</h1>
+    <div class="subtitle">// PLAY · CLICK · TAP //</div>
+  </header>
+
+  <div class="divider"><span>── SELECT YOUR GAME ──</span></div>
+
+  <main class="game-grid">
+
+    <a class="card" data-color="cyan" href="space-idle.html">
+      <div class="card-top">🚀<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 01</div>
+        <div class="card-title">우주 방치형 포인트맵</div>
+        <div class="card-desc">우주 테마의 방치형 게임. 포인트를 쌓고 맵을 확장하며 은하를 지배하라.</div>
+        <div class="card-tags"><span class="tag">IDLE</span><span class="tag">SPACE</span><span class="tag">MAP</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="watermelon-base.html">
+      <div class="card-top">🍉<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 02</div>
+        <div class="card-title">수박 기지 방치형</div>
+        <div class="card-desc">수박을 키우고 기지를 확장하는 방치형 게임. 자리를 비워도 수박은 자란다.</div>
+        <div class="card-tags"><span class="tag">IDLE</span><span class="tag">BASE</span><span class="tag">수박</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="yel" href="bakery_idle.html">
+      <div class="card-top">🍞<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 03</div>
+        <div class="card-title">황금 빵집</div>
+        <div class="card-desc">빵을 굽고 빵집을 키워나가는 방치형 게임. 황금 레시피를 향해 달려라.</div>
+        <div class="card-tags"><span class="tag">IDLE</span><span class="tag">BAKERY</span><span class="tag">빵집</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="cyan" href="city_dev.html">
+      <div class="card-top">🏙️<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 04</div>
+        <div class="card-title">도시 개발 방치형</div>
+        <div class="card-desc">황무지에서 시작해 대도시를 건설하는 방치형 게임. 자리를 비워도 도시는 성장한다.</div>
+        <div class="card-tags"><span class="tag">IDLE</span><span class="tag">CITY</span><span class="tag">건설</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="pink" href="count_idle.html">
+      <div class="card-top">🔢<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 05</div>
+        <div class="card-title">NUMBER</div>
+        <div class="card-desc">그냥 숫자가 올라간다. 탭하면 +1. 5초마다 1~10이 자동으로 더해진다. 그게 다다.</div>
+        <div class="card-tags"><span class="tag">IDLE</span><span class="tag">CLICKER</span><span class="tag">숫자</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="damagigye.html">
+      <div class="card-top">🖥️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 06</div>
+        <div class="card-title">다마기간계</div>
+        <div class="card-desc">다마고치 × 기간계 SE. 밥 먹이고 커피 먹이고 장애 대응시키고... 번아웃 주의.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">육성</span><span class="tag">기간계</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="pink" href="mhr-party-builder.html">
+      <div class="card-top">⚔️<span class="pixel-deco tl">TOOL</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 07</div>
+        <div class="card-title">몬헌 랜덤 파티구성</div>
+        <div class="card-desc">몬스터 헌터 라이즈 파티를 랜덤으로 구성해주는 툴. 무기 조합 뽑기로 새로운 플레이를 즐겨라.</div>
+        <div class="card-tags"><span class="tag">TOOL</span><span class="tag">MHR</span><span class="tag">랜덤</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="yel" href="molegame.html">
+      <div class="card-top">🦔<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 08</div>
+        <div class="card-title">두더지 잡기</div>
+        <div class="card-desc">튀어나오는 두더지를 빠르게 잡아라! 반응속도가 관건.</div>
+        <div class="card-tags"><span class="tag">ACTION</span><span class="tag">두더지</span><span class="tag">반응속도</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="cyan" href="bpm_tapper.html">
+      <div class="card-top">🎵<span class="pixel-deco tl">TOOL</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 09</div>
+        <div class="card-title">BPM TAPPER</div>
+        <div class="card-desc">화면을 박자에 맞춰 탭하면 BPM을 측정해준다. 안정도까지 표시. 음악 작업할 때 유용.</div>
+        <div class="card-tags"><span class="tag">TOOL</span><span class="tag">BPM</span><span class="tag">음악</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="tenseconds.html">
+      <div class="card-top">⏱️<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 10</div>
+        <div class="card-title">10초 맞추기</div>
+        <div class="card-desc">눈을 감고 딱 10초에 멈춰라. NORMAL·HARD 두 난이도. 쉬워 보이지만 생각보다 어렵다.</div>
+        <div class="card-tags"><span class="tag">ACTION</span><span class="tag">타이밍</span><span class="tag">반응속도</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card soon" data-color="cyan" href="#">
+      <div class="card-top">❓<span class="pixel-deco tl">???</span><span class="pixel-deco tr">LOCKED</span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 11</div>
+        <div class="card-title">COMING SOON</div>
+        <div class="card-desc">다음 게임이 준비 중입니다. 기대해 주세요.</div>
+        <div class="card-tags"><span class="tag">???</span></div>
+        <div class="card-play">🔒 LOCKED</div>
+      </div>
+    </a>
+
+  </main>
+
+  <footer>made with <span>♥</span> by JJMarblocity &nbsp;·&nbsp; powered by Claude</footer>
+
+  <a href="market.html" title="Market Watch" style="position:fixed;bottom:18px;right:18px;font-size:14px;color:#2a2a3e;text-decoration:none;z-index:1000;line-height:1;transition:color 0.3s;" onmouseover="this.style.color='#ffe600'" onmouseout="this.style.color='#2a2a3e'">★</a>
+</body>
+</html>
