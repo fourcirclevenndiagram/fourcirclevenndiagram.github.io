@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>통합감시 콘솔 - 모바일</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg:        #080b10;
+  --bg-card:   #0c1018;
+  --bg-header: #0e1422;
+  --border:    #181f30;
+  --border2:   #232d45;
+
+  --txt:       #b8c8e0;
+  --txt2:      #607090;
+  --txt3:      #304058;
+
+  --em:  #ff2244;
+  --al:  #ff6622;
+  --cr:  #ffaa00;
+  --er:  #ffdd00;
+  --wa:  #77cc33;
+  --nt:  #33aadd;
+  --inf: #445577;
+
+  --blue:   #2a6cd4;
+  --blue-l: #4a8cf0;
+  --green:  #22bb55;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Noto Sans KR', sans-serif;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* 스캔라인 오버레이 */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);
+  pointer-events:none; z-index:9000;
+}
+
+/* ── 상단 헤더 ── */
+.top-header {
+  background: linear-gradient(180deg,#121c35 0%,#0a1020 100%);
+  border-bottom: 1px solid #1e2c48;
+  padding: calc(var(--safe-top) + 8px) 12px 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-badge {
+  background: linear-gradient(135deg,#1a4a90,#0d2d60);
+  border: 1px solid #2a5dbb;
+  color: #aac8ff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 6px;
+  letter-spacing: .04em;
+  flex-shrink: 0;
+  line-height: 1.3;
+  text-align: center;
+}
+.header-info { flex:1; min-width:0; }
+.header-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8aabdd;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: #334466;
+  margin-top: 1px;
+}
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 6px var(--green)} 50%{opacity:.5;box-shadow:0 0 2px var(--green)} }
+.clock-sm {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: #445566;
+}
+
+/* ── 통계 바 ── */
+.stats-row {
+  background: #09101a;
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+.stat-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  border-right: 1px solid var(--border);
+  padding: 2px 4px;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: 8px;
+  color: var(--txt3);
+  letter-spacing: .02em;
+}
+.stat-cell.total .stat-num { color: var(--blue-l); }
+.stat-cell.crit  .stat-num { color: var(--al); }
+.stat-cell.err   .stat-num { color: var(--er); }
+.stat-cell.warn  .stat-num { color: var(--wa); }
+
+/* ── 필터 칩 ── */
+.filter-scroll {
+  background: #080e18;
+  border-bottom: 1px solid var(--border);
+  padding: 5px 10px;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  align-items: center;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+.filter-label {
+  font-size: 9px;
+  color: var(--txt3);
+  flex-shrink: 0;
+  letter-spacing: -.01em;
+}
+.chip {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  border: 1px solid transparent;
+  cursor: pointer;
+  opacity: .35;
+  transition: opacity .15s;
+  user-select: none;
+}
+.chip.on { opacity: 1; }
+.chip[data-s="0"] { color:var(--em); border-color:var(--em); }
+.chip[data-s="1"] { color:var(--al); border-color:var(--al); }
+.chip[data-s="2"] { color:var(--cr); border-color:var(--cr); }
+.chip[data-s="3"] { color:var(--er); border-color:var(--er); }
+.chip[data-s="4"] { color:var(--wa); border-color:var(--wa); }
+.chip[data-s="5"] { color:var(--nt); border-color:var(--nt); }
+
+/* ── 툴바 ── */
+.toolbar {
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.tb-btn {
+  padding: 5px 13px;
+  background: linear-gradient(180deg,#14203a,#0d1528);
+  border: 1px solid #1e2c48;
+  color: #6688aa;
+  font-size: 11px;
+  font-family: 'Noto Sans KR', sans-serif;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-appearance: none;
+  letter-spacing: -.01em;
+}
+.tb-btn.pause-active { color:#ffcc33; border-color:#665500; }
+.tb-sep { flex:1; }
+.tb-btn-clear {
+  padding: 5px 13px;
+  background: transparent;
+  border: 1px solid #1e2c48;
+  color: #445566;
+  font-size: 11px;
+  font-family: 'Noto Sans KR', sans-serif;
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: -.01em;
+}
+
+/* ── 이벤트 목록 ── */
+.event-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.event-list::-webkit-scrollbar { width: 3px; }
+.event-list::-webkit-scrollbar-track { background: transparent; }
+.event-list::-webkit-scrollbar-thumb { background: #1a2438; border-radius: 2px; }
+
+/* 이벤트 카드 */
+.ev-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  border-radius: 3px;
+  padding: 8px 10px;
+  cursor: pointer;
+  animation: card-in .25s ease-out;
+  transition: background .1s;
+  position: relative;
+  overflow: visible;
+  flex-shrink: 0;
+}
+@keyframes card-in {
+  from { opacity:0; transform:translateY(-6px); background:#0d2040; }
+  to   { opacity:1; transform:translateY(0); }
+}
+.ev-card:active { background: #10182a; }
+.ev-card.selected { background: #0d1c32; border-color: var(--blue) !important; }
+
+.ev-card.s0 { border-left-color: var(--em); }
+.ev-card.s1 { border-left-color: var(--al); }
+.ev-card.s2 { border-left-color: var(--cr); }
+.ev-card.s3 { border-left-color: var(--er); }
+.ev-card.s4 { border-left-color: var(--wa); }
+.ev-card.s5 { border-left-color: var(--nt); }
+
+.ev-card.s0 { animation: card-in .25s ease-out, flash-em .7s ease-out; }
+@keyframes flash-em { 0%{background:#2a0010} 100%{background:var(--bg-card)} }
+
+/* 카드 상단 행 */
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.sev-pill {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+  letter-spacing: .04em;
+  flex-shrink: 0;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.s0 .sev-pill { background:rgba(255,34,68,.15);  color:var(--em); border:1px solid rgba(255,34,68,.4); }
+.s1 .sev-pill { background:rgba(255,102,34,.12); color:var(--al); border:1px solid rgba(255,102,34,.35); }
+.s2 .sev-pill { background:rgba(255,170,0,.12);  color:var(--cr); border:1px solid rgba(255,170,0,.35); }
+.s3 .sev-pill { background:rgba(255,221,0,.1);   color:var(--er); border:1px solid rgba(255,221,0,.3); }
+.s4 .sev-pill { background:rgba(119,204,51,.1);  color:var(--wa); border:1px solid rgba(119,204,51,.3); }
+.s5 .sev-pill { background:rgba(51,170,221,.1);  color:var(--nt); border:1px solid rgba(51,170,221,.3); }
+
+.card-evid {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--txt3);
+  flex-shrink: 0;
+}
+.card-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--txt3);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 카드 중간 행 */
+.card-mid {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+.card-product {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--blue-l);
+  background: rgba(42,108,212,.12);
+  padding: 1px 5px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.card-host {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: #7a9abb;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.card-obj {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--txt3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 메세지 본문 */
+.card-msg {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--txt);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  letter-spacing: -.01em;
+}
+.s0 .card-msg { color: #ffa0b0; }
+.s1 .card-msg { color: #ffb090; }
+.s2 .card-msg { color: #ffd090; }
+.s3 .card-msg { color: #ffee88; }
+.s4 .card-msg { color: #aade77; }
+.s5 .card-msg { color: #77bbee; }
+
+/* ── 상세 드로어 ── */
+.drawer-backdrop {
+  position: fixed; inset:0;
+  background: rgba(0,0,0,.6);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.drawer-backdrop.open { opacity:1; pointer-events:auto; }
+
+.drawer {
+  position: fixed;
+  bottom:0; left:0; right:0;
+  background: #0c1020;
+  border-top: 2px solid #2a3c60;
+  border-radius: 12px 12px 0 0;
+  z-index: 101;
+  padding-bottom: var(--safe-bot);
+  transform: translateY(100%);
+  transition: transform .25s cubic-bezier(.22,.68,0,1.2);
+  max-height: 65vh;
+  display: flex;
+  flex-direction: column;
+}
+.drawer.open { transform: translateY(0); }
+
+.drawer-handle {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.drawer-handle::before {
+  content:'';
+  width:36px; height:4px;
+  background: #2a3a58;
+  border-radius: 2px;
+}
+.drawer-header {
+  padding: 0 14px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.drawer-sev-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--txt2);
+  margin-bottom: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.drawer-host-line {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--txt3);
+}
+.drawer-body {
+  overflow-y: auto;
+  padding: 10px 14px;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+.drawer-body::-webkit-scrollbar { display: none; }
+.drow {
+  display: flex;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #0f1525;
+  align-items: flex-start;
+}
+.drow:last-child { border-bottom: none; }
+.dk {
+  font-size: 9px;
+  color: var(--txt3);
+  min-width: 72px;
+  flex-shrink: 0;
+  padding-top: 1px;
+  letter-spacing: -.01em;
+}
+.dv {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: #9ab8d8;
+  word-break: break-all;
+}
+.drawer-msg-full {
+  margin-top: 10px;
+  padding: 10px;
+  background: #080e18;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--txt);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  letter-spacing: -.01em;
+}
+
+/* ── 하단 네비 ── */
+.bottom-nav {
+  background: #09101a;
+  border-top: 1px solid var(--border);
+  padding: 6px 0 calc(var(--safe-bot) + 4px);
+  display: flex;
+  flex-shrink: 0;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  cursor: pointer;
+}
+.nav-icon { font-size: 16px; }
+.nav-label {
+  font-size: 8px;
+  color: var(--txt3);
+  letter-spacing: -.01em;
+}
+.nav-item.active .nav-label { color: var(--blue-l); }
+
+/* 일시정지 배지 */
+.pause-badge {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  background: rgba(255,200,50,.12);
+  border: 1px solid rgba(255,200,50,.4);
+  color: #ffcc33;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 24px;
+  letter-spacing: -.01em;
+  z-index: 200;
+  pointer-events: none;
+  display: none;
+  border-radius: 4px;
+}
+.pause-badge.on { display: block; }
+
+/* 긴급 플래시 */
+.flash-ring {
+  position: fixed;
+  top:0; left:0; right:0;
+  height: 2px;
+  background: var(--em);
+  box-shadow: 0 0 8px var(--em);
+  z-index: 500;
+  opacity: 0;
+  transition: opacity .05s;
+}
+.flash-ring.on { opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="flash-ring" id="flashRing"></div>
+
+<!-- 상단 헤더 -->
+<div class="top-header">
+  <div class="header-badge">통합<br>감시</div>
+  <div class="header-info">
+    <div class="header-title">시스템 통합감시 콘솔</div>
+    <div class="header-sub">mgr-srv-01.corp.local · admin</div>
+  </div>
+  <div class="header-right">
+    <div class="live-dot"></div>
+    <div class="clock-sm" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- 통계 바 -->
+<div class="stats-row">
+  <div class="stat-cell total">
+    <div class="stat-num" id="stTotal">0</div>
+    <div class="stat-lbl">전체</div>
+  </div>
+  <div class="stat-cell crit">
+    <div class="stat-num" id="stCrit">0</div>
+    <div class="stat-lbl">긴급+</div>
+  </div>
+  <div class="stat-cell err">
+    <div class="stat-num" id="stErr">0</div>
+    <div class="stat-lbl">오류</div>
+  </div>
+  <div class="stat-cell warn">
+    <div class="stat-num" id="stWarn">0</div>
+    <div class="stat-lbl">경고</div>
+  </div>
+</div>
+
+<!-- 필터 칩 -->
+<div class="filter-scroll">
+  <span class="filter-label">중요도:</span>
+  <span class="chip on" data-s="0" onclick="toggleChip(this)">긴급</span>
+  <span class="chip on" data-s="1" onclick="toggleChip(this)">경보</span>
+  <span class="chip on" data-s="2" onclick="toggleChip(this)">치명</span>
+  <span class="chip on" data-s="3" onclick="toggleChip(this)">오류</span>
+  <span class="chip on" data-s="4" onclick="toggleChip(this)">경고</span>
+  <span class="chip on" data-s="5" onclick="toggleChip(this)">알림</span>
+</div>
+
+<!-- 툴바 -->
+<div class="toolbar">
+  <button class="tb-btn" id="btnPause" onclick="togglePause()">■ 일시정지</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn-clear" onclick="clearAll()">초기화</button>
+</div>
+
+<!-- 이벤트 목록 -->
+<div class="event-list" id="eventList"></div>
+
+<!-- 드로어 백드롭 -->
+<div class="drawer-backdrop" id="backdrop" onclick="closeDrawer()"></div>
+
+<!-- 상세 드로어 -->
+<div class="drawer" id="drawer">
+  <div class="drawer-handle" onclick="closeDrawer()"></div>
+  <div class="drawer-header">
+    <div class="drawer-sev-title" id="drawerTitle">—</div>
+    <div class="drawer-host-line" id="drawerSub">—</div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<!-- 하단 네비 -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <div class="nav-icon">📋</div>
+    <div class="nav-label">이벤트</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">요약</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">🖥</div>
+    <div class="nav-label">호스트</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">설정</div>
+  </div>
+</div>
+
+<div class="pause-badge" id="pauseBadge">⏸ 일시정지 중</div>
+
+<script>
+// ── 데이터 정의 ────────────────────────────────────────────────────────────────
+const SEV = [
+  {l:0, n:'긴급(Emergency)', s:'긴급'},
+  {l:1, n:'경보(Alert)',     s:'경보'},
+  {l:2, n:'치명(Critical)',  s:'치명'},
+  {l:3, n:'오류(Error)',     s:'오류'},
+  {l:4, n:'경고(Warning)',   s:'경고'},
+  {l:5, n:'알림(Notice)',    s:'알림'},
+];
+
+const HOSTS = [
+  'AP-SRV-01', 'AP-SRV-02', 'DB-SRV-01', 'DB-SRV-02',
+  'WEB-SRV-01', 'WEB-SRV-02', 'BATCH-SRV-01', 'NFS-SRV-01',
+  'LB-SRV-01', 'BACKUP-SRV', 'MQ-SRV-01', 'MONITOR-SRV'
+];
+
+const EVENTS = [
+  // ── 잡 실행/완료/실패 ──────────────────────────────────────────────────────
+  {
+    sev: () => pick([3,3,3,4,4,5]),
+    prod: '잡관리',
+    obj: () => `JOBNET:${pick(['일일배치','보고서생성','데이터동기화','재고점검','일마감처리','급여처리','메일발송','정리작업'])}`,
+    evid: () => `JB${h2()}${h4()}`,
+    msg: () => {
+      const j = pick(['일일배치','데이터가져오기','매출집계','재고갱신','보고서생성','정산처리','로그정리']);
+      return pick([
+        `잡넷 [${j}]이(가) 비정상 종료되었습니다. 종료코드=8, 실행호스트=${rh()}`,
+        `잡 [${j} / 실행번호:${ri(1,9999).toString().padStart(4,'0')}]의 실행이 실패했습니다. 반환코드=255`,
+        `잡넷 [${j}]의 예약 실행이 지연되고 있습니다. 지연시간=${ri(5,120)}분`,
+        `잡 [${j}]의 프로세스가 응답하지 않습니다. PID=${ri(1000,65535)}`,
+        `잡넷 [${j}]이(가) 정상 완료되었습니다. 처리건수=${ri(100,99999).toLocaleString()}건`,
+        `스케줄러 서비스가 기동되었습니다. 루트 잡넷 수=${ri(10,300)}`,
+        `잡 [${j}]의 실행을 시작합니다. 실행 에이전트=${rh()}`,
+        `잡넷 [${j}] 선행 잡 대기 중. 대기시간=${ri(1,30)}분 초과`,
+      ]);
+    }
+  },
+  // ── 서버/호스트 연결 이상 ──────────────────────────────────────────────────
+  {
+    sev: () => pick([0,1,2,2,3,3,4,5]),
+    prod: '기반소프트',
+    obj: () => `AGENT:${rh()}`,
+    evid: () => `AG${h2()}${h4()}`,
+    msg: () => {
+      const h = rh();
+      return pick([
+        `에이전트 호스트 [${h}]와의 통신이 끊어졌습니다. 재접속 시도 중입니다. (시도횟수=${ri(1,10)}회)`,
+        `호스트 [${h}]에 대한 접속 타임아웃이 발생했습니다. 타임아웃 값=${ri(30,300)}초`,
+        `관리서버 [${h}]로의 이벤트 전송에 실패했습니다. 포트번호=20237`,
+        `호스트 [${h}]의 감시 에이전트 서비스가 정지되었습니다.`,
+        `에이전트 [${h}]와의 접속이 복구되었습니다.`,
+        `호스트 [${h}]로부터 하트비트를 수신하지 못하고 있습니다. 경과시간=${ri(60,1800)}초`,
+        `호스트 [${h}]와의 인증에 실패했습니다. 사용자=admin`,
+        `클러스터 호스트 [${h}]의 페일오버가 감지되었습니다.`,
+        `호스트 [${h}]의 원격 로그인(SSH)이 ${ri(3,20)}회 연속 실패했습니다. 보안 잠금 발생`,
+      ]);
+    }
+  },
+  // ── DB/파일시스템 경고 ─────────────────────────────────────────────────────
+  {
+    sev: () => pick([0,1,2,2,3,3,3,4,5,5]),
+    prod: '자원감시',
+    obj: () => pick(['VOLUME:/data01','VOLUME:/log','DB:운영DB','DB:보고서DB','FS:/backup','FS:/var/log','DB:배치DB','TABLESPACE:IDX_TS']),
+    evid: () => `RS${h2()}${h4()}`,
+    msg: () => pick([
+      `파일시스템 [/data01]의 사용률이 ${ri(80,99)}%에 도달했습니다. 여유공간=${ri(1,20)}GB`,
+      `데이터베이스 [운영DB]의 접속 풀이 고갈되었습니다. 최대접속수=${ri(50,200)}`,
+      `테이블스페이스 [IDX_TS]의 자동 확장에 실패했습니다. 디스크 여유공간 부족`,
+      `DB 접속 오류 발생. ORA-${ri(1000,9999)}: ${pick(['TNS 접속 타임아웃','리스너가 기동되어 있지 않습니다','세션 수가 상한에 도달했습니다'])}`,
+      `로그 파일 [/var/log/app.log]의 로테이션에 실패했습니다.`,
+      `백업 영역 [/backup]의 여유공간이 ${ri(1,10)}GB 미만이 되었습니다.`,
+      `디스크 쓰기 오류 발생. 장치=/dev/sd${pick(['b','c','d','e'])}, 섹터=${ri(100000,9999999)}`,
+      `트랜잭션 로그 사용률이 ${ri(80,99)}%에 도달했습니다. 로그 백업을 실행하십시오.`,
+      `데이터베이스 [보고서DB]의 응답시간이 ${ri(5,60)}초를 초과하고 있습니다.`,
+      `데이터 파일 무결성 검사에서 오류가 감지되었습니다. 파일=운영DB_data02.dbf`,
+    ])
+  },
+  // ── 네트워크/포트 이상 ────────────────────────────────────────────────────
+  {
+    sev: () => pick([0,1,2,3,3,4,5,5,5]),
+    prod: '네트워크감시',
+    obj: () => pick([
+      `PORT:${rh()}:${rport()}`,
+      `IF:${rh()}:eth${ri(0,3)}`,
+      `ROUTER:코어-RTR-${ri(1,4)}`,
+      `SW:분배-SW-${ri(1,8)}`
+    ]),
+    evid: () => `NW${h2()}${h4()}`,
+    msg: () => {
+      const h = rh(); const p = rport();
+      return pick([
+        `호스트 [${h}] 포트 ${p}에 대한 접속이 거부되었습니다.`,
+        `네트워크 인터페이스 [${h}:eth${ri(0,3)}]의 링크 다운을 감지했습니다.`,
+        `스위치 [분배-SW-${ri(1,8)}] 포트 ${ri(1,48)}에서 패킷 손실이 ${ri(5,80)}% 발생하고 있습니다.`,
+        `라우터 [코어-RTR-${ri(1,4)}]와의 통신이 두절되었습니다. 최종 응답=${ri(1,60)}분 전`,
+        `방화벽에 의해 통신이 차단되었습니다. 발신지=${h}, 목적지 포트=${p}`,
+        `ICMP 도달 불가: 호스트 [${h}]가 응답하지 않습니다.`,
+        `SSL/TLS 인증서 유효기간이 ${ri(1,30)}일 후 만료됩니다. 대상=${h}`,
+        `VPN 접속 [${h}↔${rh()}]이 끊어졌습니다.`,
+        `대역폭 사용률이 ${ri(80,99)}%를 초과했습니다. 인터페이스=${h}:eth${ri(0,3)}`,
+        `DNS 쿼리 타임아웃 발생. DNS서버=${h}`,
+      ]);
+    }
+  },
+  // ── 성능 감시 ────────────────────────────────────────────────────────────
+  {
+    sev: () => pick([3,4,4,5,5,5,5]),
+    prod: '성능감시',
+    obj: () => `ALARM:${rh()}`,
+    evid: () => `PF${h2()}${h4()}`,
+    msg: () => {
+      const h = rh();
+      return pick([
+        `CPU 사용률 경보: 호스트 [${h}]의 CPU 사용률이 ${ri(85,100)}%에 도달했습니다. (임계값=80%)`,
+        `메모리 경보: 호스트 [${h}]의 여유 메모리가 ${ri(1,512)}MB가 되었습니다.`,
+        `프로세스 [${pick(['httpd','java','oracle','postgres','nginx'])}] 중복 기동 감지. (${ri(2,20)}개 프로세스) 호스트=${h}`,
+        `응답시간 초과: 서비스 [${pick(['HTTP','AP','DB','MQ'])}]의 평균 응답시간=${ri(500,5000)}ms`,
+        `스왑 사용량이 ${ri(50,100)}%에 도달했습니다. 호스트=${h}`,
+        `파일 디스크립터 사용수가 상한의 ${ri(80,99)}%에 도달했습니다. 호스트=${h}`,
+        `시스템 로드 평균이 임계값을 초과했습니다. load avg=${(ri(30,120)/10).toFixed(1)}, 호스트=${h}`,
+      ]);
+    }
+  },
+];
+
+// ── 유틸 함수 ─────────────────────────────────────────────────────────────────
+function pick(a)  { return a[Math.floor(Math.random()*a.length)]; }
+function rh()     { return pick(HOSTS); }
+function rport()  { return pick([80,443,1521,3306,5432,8080,8443,9090,22,3389,6379]); }
+function ri(a,b)  { return Math.floor(Math.random()*(b-a+1))+a; }
+function h4()     { return Math.floor(Math.random()*0xFFFF).toString(16).toUpperCase().padStart(4,'0'); }
+function h2()     { return Math.floor(Math.random()*0xFF).toString(16).toUpperCase().padStart(2,'0'); }
+function tsNow() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+function tsDate() {
+  const d = new Date();
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${tsNow()}.${String(d.getMilliseconds()).padStart(3,'0')}`;
+}
+
+// ── 상태 ──────────────────────────────────────────────────────────────────────
+let paused = false;
+let counts = {total:0, crit:0, err:0, warn:0};
+let activeFilters = new Set([0,1,2,3,4,5]);
+const MAX = 300;
+
+// ── 이벤트 생성 ───────────────────────────────────────────────────────────────
+function generate() {
+  if (paused) return;
+  const tmpl = pick(EVENTS);
+  const sl = tmpl.sev();
+  if (!activeFilters.has(sl)) return;
+
+  const sev = SEV.find(s => s.l === sl);
+  const host = rh();
+  const prod = tmpl.prod;
+  const obj  = tmpl.obj();
+  const evid = tmpl.evid();
+  const msg  = tmpl.msg();
+  const ts   = tsDate();
+  const tsS  = tsNow();
+
+  // 긴급/경보 플래시
+  if (sl <= 1) {
+    const ring = document.getElementById('flashRing');
+    ring.classList.add('on');
+    setTimeout(() => ring.classList.remove('on'), 200);
+  }
+
+  // 카운터 갱신
+  counts.total++;
+  if (sl <= 2) counts.crit++;
+  else if (sl === 3) counts.err++;
+  else if (sl === 4) counts.warn++;
+  document.getElementById('stTotal').textContent = counts.total;
+  document.getElementById('stCrit').textContent  = counts.crit;
+  document.getElementById('stErr').textContent   = counts.err;
+  document.getElementById('stWarn').textContent  = counts.warn;
+
+  // 카드 생성
+  const card = document.createElement('div');
+  card.className = `ev-card s${sl}`;
+  card.innerHTML = `
+    <div class="card-top">
+      <span class="sev-pill">${sev.s}</span>
+      <span class="card-evid">EVT:${evid}</span>
+      <span class="card-time">${tsS}</span>
+    </div>
+    <div class="card-mid">
+      <span class="card-product">${prod}</span>
+      <span class="card-host">${host}</span>
+      <span class="card-obj" title="${obj}">${obj}</span>
+    </div>
+    <div class="card-msg">${msg}</div>
+  `;
+  card.addEventListener('click', () => openDrawer({ts, evid, prod, host, obj, msg, sev: sev.n, sl}));
+
+  const list = document.getElementById('eventList');
+  list.insertBefore(card, list.firstChild);
+  while (list.children.length > MAX) list.removeChild(list.lastChild);
+}
+
+// ── 드로어 ────────────────────────────────────────────────────────────────────
+function openDrawer(ev) {
+  const cols = ['var(--em)','var(--al)','var(--cr)','var(--er)','var(--wa)','var(--nt)','var(--inf)'];
+  const col = cols[ev.sl] || 'var(--txt2)';
+  document.getElementById('drawerTitle').innerHTML =
+    `<span style="color:${col}">${ev.sev}</span> &nbsp; EVT:${ev.evid}`;
+  document.getElementById('drawerSub').textContent = `${ev.prod} / ${ev.host}`;
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drow"><span class="dk">수신일시</span><span class="dv">${ev.ts}</span></div>
+    <div class="drow"><span class="dk">제품</span><span class="dv">${ev.prod}</span></div>
+    <div class="drow"><span class="dk">발생호스트</span><span class="dv">${ev.host}</span></div>
+    <div class="drow"><span class="dk">오브젝트</span><span class="dv">${ev.obj}</span></div>
+    <div class="drow"><span class="dk">이벤트 ID</span><span class="dv">EVT:${ev.evid}</span></div>
+    <div class="drow"><span class="dk">중요도</span><span class="dv" style="color:${col}">${ev.sev}</span></div>
+    <div class="drawer-msg-full">${ev.msg}</div>
+  `;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('backdrop').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('open');
+}
+
+// ── 컨트롤 ────────────────────────────────────────────────────────────────────
+function togglePause() {
+  paused = !paused;
+  const btn   = document.getElementById('btnPause');
+  const badge = document.getElementById('pauseBadge');
+  if (paused) {
+    btn.textContent = '▶ 재개';
+    btn.classList.add('pause-active');
+    badge.classList.add('on');
+  } else {
+    btn.textContent = '■ 일시정지';
+    btn.classList.remove('pause-active');
+    badge.classList.remove('on');
+    scheduleNext();
+  }
+}
+function clearAll() {
+  document.getElementById('eventList').innerHTML = '';
+  counts = {total:0, crit:0, err:0, warn:0};
+  ['stTotal','stCrit','stErr','stWarn'].forEach(id => document.getElementById(id).textContent = '0');
+}
+function toggleChip(el) {
+  const s = parseInt(el.dataset.s);
+  if (activeFilters.has(s)) { activeFilters.delete(s); el.classList.remove('on'); }
+  else { activeFilters.add(s); el.classList.add('on'); }
+}
+
+// ── 스케줄러 (1~30초 랜덤) ───────────────────────────────────────────────────
+function scheduleNext() {
+  if (paused) return;
+  const delay = Math.floor(Math.random() * 29000) + 1000;
+  setTimeout(() => {
+    const burst = Math.random() < .15 ? Math.floor(Math.random()*2)+2 : 1;
+    for (let i = 0; i < burst; i++) setTimeout(generate, i * Math.floor(Math.random()*250)+50);
+    scheduleNext();
+  }, delay);
+}
+
+// ── 시계 ──────────────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('clock').textContent = tsNow();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// 스와이프 다운으로 드로어 닫기
+let touchStartY = 0;
+document.getElementById('drawer').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive:true});
+document.getElementById('drawer').addEventListener('touchmove', e => {
+  if (e.touches[0].clientY - touchStartY > 40) closeDrawer();
+}, {passive:true});
+
+// ── 초기 이벤트 ───────────────────────────────────────────────────────────────
+for (let i = 0; i < 4; i++) setTimeout(generate, i * 150);
+setTimeout(scheduleNext, 800);
+</script>
+</body>
+</html>
