@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>NEON FLIPPER</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#05060f; font-family:'Courier New',monospace; }
+  #wrap { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  canvas { display:block; touch-action:none; background:#070818;
+    box-shadow:0 0 40px rgba(0,255,200,.15), inset 0 0 60px rgba(0,0,0,.6); }
+  #hud { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between;
+    padding:8px 14px; font-size:13px; letter-spacing:1px; pointer-events:none; z-index:10; }
+  .stat { color:#5ffbf1; text-shadow:0 0 8px #0ff; }
+  .stat b { color:#fff; font-size:16px; }
+  #msg { color:#ffcf3f; text-shadow:0 0 10px #ff9d00; }
+  #overlay { position:fixed; inset:0; background:rgba(5,6,15,.92); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; z-index:20; text-align:center; padding:20px; }
+  #overlay h1 { color:#5ffbf1; font-size:34px; letter-spacing:4px; text-shadow:0 0 18px #0ff; margin-bottom:6px; }
+  #overlay h1 span { color:#ff5fa2; text-shadow:0 0 18px #ff2e88; }
+  #overlay p { color:#9aa7c7; font-size:13px; line-height:1.7; margin:14px 0; max-width:300px; }
+  #overlay .big { color:#ffcf3f; font-size:22px; text-shadow:0 0 12px #ff9d00; }
+  #start { margin-top:16px; padding:14px 40px; font-family:inherit; font-size:16px; letter-spacing:2px;
+    color:#05060f; background:linear-gradient(135deg,#5ffbf1,#ff5fa2); border:none; border-radius:30px;
+    font-weight:bold; box-shadow:0 0 24px rgba(95,251,241,.5); }
+  .hide { display:none!important; }
+  .flicker { animation:fl .8s infinite; }
+  @keyframes fl { 50%{opacity:.4;} }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div class="stat">SCORE <b id="score">0</b></div>
+  <div class="stat" id="msg"></div>
+  <div class="stat">BALL <b id="balls">3</b></div>
+</div>
+<div id="overlay">
+  <h1>NEON <span>FLIPPER</span></h1>
+  <p id="introtxt">오른쪽 아래 <b style="color:#5fff8f">발사대</b>를 누르고 있다가 떼서 공을 쏘세요.<br>화면 좌/우 아래쪽을 터치해 플리퍼를 움직입니다.<br><br>
+  기믹 6종: <b style="color:#5ffbf1">범퍼</b> · <b style="color:#ff5fa2">슬링샷</b> · <b style="color:#ffcf3f">스피너</b> · <b style="color:#9d7bff">멀티볼</b> · <b style="color:#5fff8f">콤보레인</b> · <b style="color:#ff8a3f">잭팟홀</b></p>
+  <button id="start">START</button>
+</div>
+<script>
+const cvs=document.getElementById('c'), ctx=cvs.getContext('2d');
+const elScore=document.getElementById('score'), elBalls=document.getElementById('balls'), elMsg=document.getElementById('msg');
+const overlay=document.getElementById('overlay'), startBtn=document.getElementById('start'), introtxt=document.getElementById('introtxt');
+
+// ---- sizing (portrait, fixed logical resolution) ----
+let W=400,H=700,scale=1,offX=0,offY=0;
+function resize(){
+  const vw=window.innerWidth, vh=window.innerHeight;
+  scale=Math.min(vw/W, vh/H);
+  cvs.width=W*devicePixelRatio*scale|0; cvs.height=H*devicePixelRatio*scale|0;
+  cvs.style.width=(W*scale)+'px'; cvs.style.height=(H*scale)+'px';
+  ctx.setTransform(devicePixelRatio*scale,0,0,devicePixelRatio*scale,0,0);
+  const r=cvs.getBoundingClientRect(); offX=r.left; offY=r.top;
+}
+window.addEventListener('resize',resize); resize();
+
+// ---- vector helpers ----
+const V=(x,y)=>({x,y});
+function refl(vx,vy,nx,ny,rest){ const d=vx*nx+vy*ny; return [vx-(1+rest)*d*nx, vy-(1+rest)*d*ny]; }
+
+// 공 vs 선분 충돌. 경사 벽에서는 튕기지 않고 미끄러져 내려가도록 처리.
+// rest=반발(0이면 미끄러짐 위주), 큰 값이면 잘 튕긴다.
+function hitSeg(b,ax,ay,bx,by,rest){
+  const dx=bx-ax, dy=by-ay, L2=dx*dx+dy*dy||1;
+  let t=((b.x-ax)*dx+(b.y-ay)*dy)/L2; t=Math.max(0,Math.min(1,t));
+  const px=ax+dx*t, py=ay+dy*t;
+  let ndx=b.x-px, ndy=b.y-py, dist=Math.hypot(ndx,ndy);
+  if(dist < b.r){
+    if(dist<0.001){ ndx=0; ndy=-1; dist=0.001; } // 정확히 선 위면 위로 밀어냄
+    const nx=ndx/dist, ny=ndy/dist;
+    b.x=px+nx*b.r; b.y=py+ny*b.r;                 // 벽 밖으로 밀어냄
+    const vn=b.vx*nx+b.vy*ny;                     // 법선(파고드는) 속도 성분
+    if(vn<0){
+      // 법선 성분만 제거+약하게 반발 → 접선 속도는 보존되어 경사를 미끄러짐
+      b.vx-=(1+rest)*vn*nx;
+      b.vy-=(1+rest)*vn*ny;
+    }
+    // 경사 아래쪽으로 미끄러지는 힘(중력의 접선 성분) — 모서리 끼임을 풀어줌
+    let tx=dx, ty=dy; if(ty<0){tx=-tx;ty=-ty;}    // 접선을 아래 방향으로 정렬
+    const tl=Math.hypot(tx,ty)||1; tx/=tl; ty/=tl;
+    b.vx+=tx*0.18; b.vy+=ty*0.18;
+    return true;
+  }
+  return false;
+}
+
+// ---- game state ----
+let score=0, balls=3, running=false, comboTimer=0, combo=0, jackpot=2500, spinnerSpin=0;
+let ball={x:200,y:600,vx:0,vy:0,r:9,active:false};
+let particles=[], flashes=[];
+const GRAV=0.28, WALL=8;
+
+// ---- launcher (right corner) ----
+const LANE_W=34;                       // 발사 레인 폭
+const LANE_X=W-WALL-LANE_W;            // 레인 왼쪽 경계 x
+const LANE_CX=LANE_X+LANE_W/2;         // 레인 중심 x
+const LANE_TOP=70;                      // 레인 상단 (여기서 본판으로 빠짐)
+const PLUNGER_REST=H-WALL-20;          // 플런저 기본 위치 y
+const launcher={ charging:false, pull:0, ballOn:true }; // pull 0~1
+
+// ---- elements ----
+// bumpers (gimmick 1)
+const bumpers=[
+  {x:120,y:200,r:26,col:'#5ffbf1',pts:100,glow:0},
+  {x:280,y:200,r:26,col:'#5ffbf1',pts:100,glow:0},
+  {x:200,y:140,r:30,col:'#ff5fa2',pts:150,glow:0},
+];
+// slingshots (gimmick 2) - triangular kickers above flippers
+const slings=[
+  {x:118,y:515,pts:50,glow:0,cool:0},
+  {x:282,y:515,pts:50,glow:0,cool:0},
+];
+// spinner (gimmick 3)
+const spinner={x:200,y:300,len:34,pts:25,vel:0};
+// multiball trigger lane (gimmick 4): 3 drop targets
+let targets=[
+  {x:155,y:380,hit:false},{x:200,y:380,hit:false},{x:245,y:380,hit:false},
+];
+// combo ramp (gimmick 5): rollover lane on right that builds combo
+const ramp={x:325,y:240,w:16,h:120,glow:0};
+// jackpot hole (gimmick 6)
+const hole={x:200,y:430,r:16,glow:0,cool:0};
+
+// flippers
+const FL_Y=600, FL_LEN=72;
+const flipL={x:120,y:FL_Y,ang:0.5,rest:0.45,up:false,side:-1};
+const flipR={x:280,y:FL_Y,ang:Math.PI-0.5,rest:Math.PI-0.45,up:false,side:1};
+
+// 깔때기 벽: 어디로 떨어지든 결국 플리퍼 쪽으로 모이도록 하단을 좁힌다.
+// 끼임 방지를 위해 급한 꺾임 없이 매끄러운 곡선(짧은 선분들)으로 구성.
+function makeFunnel(side){ // side: -1 왼쪽, +1 오른쪽
+  const segs=[], N=10;
+  const topX = side<0 ? WALL : LANE_X;          // 측벽 시작 x
+  const botX = side<0 ? 95 : 305;               // 슬링샷보다 바깥에서 끝나 틈을 없앰
+  const y0=300, y1=575;
+  let prev=null;
+  for(let i=0;i<=N;i++){
+    const u=i/N;
+    // ease-in 곡선: 위는 완만, 아래로 갈수록 안쪽으로 (제곱 보간)
+    const x = topX + (botX-topX)*(u*u*0.78 + u*0.22);
+    const y = y0 + (y1-y0)*u;
+    if(prev) segs.push({ax:prev.x, ay:prev.y, bx:x, by:y});
+    prev={x,y};
+  }
+  return segs;
+}
+const walls=[...makeFunnel(-1), ...makeFunnel(1)];
+// 아웃레인 가드(플리퍼 바깥 좁은 틈을 막는 짧은 벽). 살짝 틈을 남겨 난이도 유지.
+const outGuards=[
+  {ax:88,  ay:545, bx:106, by:600},          // 왼쪽 플리퍼 바깥
+  {ax:312, ay:545, bx:294, by:600},          // 오른쪽 플리퍼 바깥
+];
+
+let multiballs=[]; // extra balls
+
+function resetBall(){
+  // 공을 발사 레인 하단(플런저 위)에 대기시킨다
+  ball.x=LANE_CX; ball.y=PLUNGER_REST-ball.r-2; ball.vx=0; ball.vy=0; ball.active=true;
+  launcher.ballOn=true; launcher.pull=0; launcher.charging=false;
+}
+function addScore(n){ score+=n*(1+combo*0.5)|0; elScore.textContent=score; }
+function flash(x,y,col){ flashes.push({x,y,col,t:1}); }
+function burst(x,y,col,n=8){ for(let i=0;i<n;i++){const a=Math.random()*7;particles.push({x,y,vx:Math.cos(a)*(1+Math.random()*3),vy:Math.sin(a)*(1+Math.random()*3),col,t:1});} }
+function showMsg(t){ elMsg.textContent=t; clearTimeout(showMsg._); showMsg._=setTimeout(()=>elMsg.textContent='',1100); }
+
+// ---- input ----
+function press(side,down){ if(side<0)flipL.up=down; else flipR.up=down; }
+// 발사 레인 하단부 터치인지 판정
+function isLauncherTouch(x,y){ return launcher.ballOn && x>LANE_X-10 && y>H*0.5; }
+function handle(e,down){
+  for(const t of e.changedTouches||[e]){
+    const x=(t.clientX-offX)/scale, y=(t.clientY-offY)/scale;
+    if(down && isLauncherTouch(x,y)){ launcher.charging=true; continue; }
+    if(launcher.charging && !down){ releasePlunger(); continue; }
+    press(x< W/2 ? -1 : 1, down);
+  }
+}
+cvs.addEventListener('touchstart',e=>{e.preventDefault();handle(e,true);},{passive:false});
+cvs.addEventListener('touchend',e=>{e.preventDefault();handle(e,false);},{passive:false});
+cvs.addEventListener('touchcancel',e=>{e.preventDefault();handle(e,false);},{passive:false});
+cvs.addEventListener('mousedown',e=>{e.preventDefault();handle(e,true);});
+window.addEventListener('mouseup',e=>{ if(launcher.charging)releasePlunger(); flipL.up=false;flipR.up=false;});
+document.addEventListener('keydown',e=>{if(e.repeat)return; if(e.key==='ArrowLeft')flipL.up=true; if(e.key==='ArrowRight')flipR.up=true; if(e.key===' '&&launcher.ballOn)launcher.charging=true;});
+document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')flipL.up=false; if(e.key==='ArrowRight')flipR.up=false; if(e.key===' '&&launcher.charging)releasePlunger();});
+
+function releasePlunger(){
+  if(!launcher.ballOn) { launcher.charging=false; return; }
+  const power = 11 + launcher.pull*16;   // 당긴 만큼 강하게
+  ball.vy = -power; ball.vx = 0;
+  launcher.ballOn=false; launcher.charging=false; launcher.pull=0;
+}
+
+// ---- physics: ball vs circle ----
+function hitCircle(b,cx,cy,cr,rest,kick){
+  const dx=b.x-cx, dy=b.y-cy, d=Math.hypot(dx,dy);
+  if(d < cr+b.r){
+    const nx=dx/d, ny=dy/d;
+    b.x=cx+nx*(cr+b.r); b.y=cy+ny*(cr+b.r);
+    const [rx,ry]=refl(b.vx,b.vy,nx,ny,rest);
+    b.vx=rx+nx*kick; b.vy=ry+ny*kick;
+    return true;
+  }
+  return false;
+}
+// ball vs flipper (as moving line segment)
+function flipperHit(b,f){
+  const ex=f.x+Math.cos(f.ang)*FL_LEN, ey=f.y+Math.sin(f.ang)*FL_LEN;
+  const dx=ex-f.x, dy=ey-f.y, L2=dx*dx+dy*dy;
+  let t=((b.x-f.x)*dx+(b.y-f.y)*dy)/L2; t=Math.max(0,Math.min(1,t));
+  const px=f.x+dx*t, py=f.y+dy*t;
+  const ndx=b.x-px, ndy=b.y-py, dist=Math.hypot(ndx,ndy);
+  if(dist < b.r+7){
+    const nx=ndx/(dist||1), ny=ndy/(dist||1);
+    b.x=px+nx*(b.r+7); b.y=py+ny*(b.r+7);
+    const [rx,ry]=refl(b.vx,b.vy,nx,ny,0.4);
+    b.vx=rx; b.vy=ry;
+    if(f.up && !b._kicked){ const power=10+t*6; b.vx+=nx*power*0.5; b.vy-=Math.abs(ny)*power; if(b.vy>-3)b.vy=-9; b._kicked=true; }
+    return true;
+  }
+  return false;
+}
+
+function stepBall(b){
+  // 발사 대기: 플런저 위에 정지, 차징 중이면 눌러 내려감
+  if(b===ball && launcher.ballOn){
+    if(launcher.charging) launcher.pull=Math.min(1,launcher.pull+0.025);
+    b.x=LANE_CX; b.y=(PLUNGER_REST-b.r-2)+launcher.pull*40; b.vx=0; b.vy=0;
+    return;
+  }
+  b.vy+=GRAV;
+  b.vx*=0.995;
+
+  // 속도 상한: 극단적 가속 시 터널링 및 substep 폭주 방지
+  const MAXV=34;
+  const sp0=Math.hypot(b.vx,b.vy);
+  if(sp0>MAXV){ b.vx*=MAXV/sp0; b.vy*=MAXV/sp0; }
+
+  // 과속 방지: 한 프레임 이동 거리가 공 반지름보다 크면 벽/플리퍼를 뚫을 수 있다.
+  // 이동을 여러 작은 스텝으로 쪼개 각 스텝마다 충돌검사를 돌린다(터널링 방지).
+  const speed=Math.hypot(b.vx,b.vy);
+  const maxStep=b.r*0.5;                         // 한 스텝 최대 이동 = 반지름의 절반
+  const steps=Math.max(1, Math.ceil(speed/maxStep));
+  b._kicked=false;                                // 이 프레임에 플리퍼 킥은 1회만
+  for(let i=0;i<steps;i++){
+    b.x+=b.vx/steps; b.y+=b.vy/steps;
+    collide(b);
+  }
+
+  // 끼임 탈출: 깔때기 구간(y 440~580)에서 너무 오래 느리게 맴돌면 가운데 아래로 밀어냄
+  const slow = Math.hypot(b.vx,b.vy) < 1.2;
+  if(slow && b.y>440 && b.y<580){
+    b._stuck=(b._stuck||0)+1;
+    if(b._stuck>30){                              // 약 0.5초 이상 정체 시
+      b.vx += (b.x<200? 0.9 : -0.9);              // 중앙으로
+      b.vy += 1.6;                                // 아래로 확실히
+      if(b._stuck>50) b._stuck=0;
+    }
+  } else b._stuck=0;
+}
+
+function collide(b){
+  // 발사 레인 안에 있는 동안은 좌측 레인벽으로 본판과 분리
+  const inLane = b.x > LANE_X-1 && b.y > LANE_TOP;
+  if(inLane && b.x-b.r < LANE_X){ b.x=LANE_X+b.r; b.vx=Math.abs(b.vx)*0.5; }
+
+  // 레인 상단 곡면 가이드: 위로 올라온 공을 본판 왼쪽으로 휘어 보냄
+  if(b.y < LANE_TOP+b.r && b.x > LANE_X-60){
+    const cx=LANE_X-60, cy=LANE_TOP+30, cr=90;
+    const dx=b.x-cx, dy=b.y-cy, d=Math.hypot(dx,dy);
+    if(d > cr-b.r){
+      const nx=-dx/d, ny=-dy/d;
+      b.x=cx-nx*(cr-b.r); b.y=cy-ny*(cr-b.r);
+      const [rx,ry]=refl(b.vx,b.vy,nx,ny,0.6);
+      b.vx=rx; b.vy=ry;
+    }
+  }
+
+  // walls (가장자리 직선 — 상단부 안전망)
+  if(b.x<WALL+b.r){b.x=WALL+b.r;b.vx=Math.abs(b.vx)*0.8;}
+  if(b.x>W-WALL-b.r){b.x=W-WALL-b.r;b.vx=-Math.abs(b.vx)*0.8;}
+  if(b.y<WALL+b.r && b.x < LANE_X-60){b.y=WALL+b.r;b.vy=Math.abs(b.vy)*0.7;}
+
+  // 깔때기 벽: 하단을 좁혀 공을 플리퍼 쪽으로 모은다 (낮은 반발=미끄러짐)
+  for(const w of walls) hitSeg(b,w.ax,w.ay,w.bx,w.by,0.15);
+  // 아웃레인 가드: 플리퍼 바깥으로 새는 걸 줄인다
+  for(const w of outGuards) hitSeg(b,w.ax,w.ay,w.bx,w.by,0.2);
+
+  // gimmick 1: bumpers
+  for(const bp of bumpers){
+    if(hitCircle(b,bp.x,bp.y,bp.r,0.5,4.5)){ bp.glow=1; addScore(bp.pts); burst(bp.x,bp.y,bp.col); bumpCombo(); }
+  }
+  // gimmick 2: slingshots — 항상 위+안쪽(가운데)으로만 튕겨 벽 사이 핑퐁 방지
+  for(const s of slings){
+    const dx=b.x-s.x, dy=b.y-s.y, d=Math.hypot(dx,dy);
+    if(d < 22+b.r){
+      // 겹침 해소: 일단 바깥으로 밀어냄
+      const nx=dx/(d||1), ny=dy/(d||1);
+      b.x=s.x+nx*(22+b.r); b.y=s.y+ny*(22+b.r);
+      if(s.cool<=0){
+        // 발동: 속도를 '위 + 플레이필드 안쪽' 고정 방향으로 새로 부여
+        const inward = (s.x<200? 1 : -1);          // 왼쪽 슬링샷이면 오른쪽으로
+        const kx = inward*4.5 + (Math.random()*1.5);
+        const ky = -7.5 - Math.random()*1.5;        // 항상 위로
+        b.vx = kx; b.vy = ky;
+        s.glow=1; s.cool=12; addScore(s.pts); burst(s.x,s.y,'#ff5fa2');
+      } else {
+        // 쿨다운 중엔 약하게만 밀어내 끼임 방지
+        b.vx += nx*0.5; b.vy += ny*0.5 - 0.3;
+      }
+    }
+  }
+  // gimmick 3: spinner (vertical line region)
+  if(Math.abs(b.x-spinner.x)<spinner.len/2 && Math.abs(b.y-spinner.y)<10){
+    spinner.vel+=Math.abs(b.vy)*0.4+2; addScore(spinner.pts); spinnerSpin+=0.5;
+  }
+  // gimmick 4: drop targets -> multiball
+  for(const t of targets){
+    if(!t.hit && Math.abs(b.x-t.x)<18 && Math.abs(b.y-t.y)<10){
+      t.hit=true; addScore(300); flash(t.x,t.y,'#9d7bff'); burst(t.x,t.y,'#9d7bff');
+      if(targets.every(q=>q.hit)){ triggerMultiball(); targets.forEach(q=>q.hit=false); }
+    }
+  }
+  // gimmick 5: combo ramp (right lane rollover)
+  if(b.x>ramp.x-12 && b.x<ramp.x+ramp.w && b.y>ramp.y && b.y<ramp.y+ramp.h && b.vy<0){
+    ramp.glow=1; bumpCombo(); addScore(40); b.vy*=1.04;
+  }
+  // gimmick 6: jackpot hole
+  if(hole.cool<=0){
+    const hd=Math.hypot(b.x-hole.x,b.y-hole.y);
+    if(hd<hole.r){
+      hole.glow=1; hole.cool=120;
+      const won=jackpot*(1+combo);
+      addScore(won); showMsg('💰 JACKPOT '+won+'!'); flash(hole.x,hole.y,'#ff8a3f'); burst(hole.x,hole.y,'#ff8a3f',20);
+      b.vy=-12; b.vx=(Math.random()-0.5)*4; jackpot=2500;
+    }
+  }
+  // flippers
+  flipperHit(b,flipL); flipperHit(b,flipR);
+}
+
+function bumpCombo(){ combo++; comboTimer=120; if(combo>1)showMsg('COMBO x'+combo); jackpot+=200; }
+function triggerMultiball(){
+  showMsg('⚡ MULTIBALL!');
+  for(let i=0;i<2;i++) multiballs.push({x:200,y:300,vx:(i?3:-3),vy:-4,r:9,active:true});
+}
+
+// ---- flipper animation ----
+function animFlip(f){
+  const target=f.up? f.rest+f.side*-0.9 : f.rest;
+  // simpler: rest vs raised
+  const raised = f.side<0 ? f.rest-0.95 : f.rest+0.95;
+  const want = f.up? raised : f.rest;
+  f.ang += (want-f.ang)*0.45;
+}
+
+// ---- main loop ----
+function update(){
+  if(!running)return;
+  animFlip(flipL); animFlip(flipR);
+  if(ball.active) stepBall(ball);
+  multiballs.forEach(b=>{ if(b.active)stepBall(b); });
+
+  // drain check
+  const drained=(b)=> b.y>H+20;
+  if(ball.active && !launcher.ballOn && drained(ball)){
+    if(multiballs.some(m=>m.active)){ // promote a multiball to main
+      const m=multiballs.find(x=>x.active); ball=Object.assign(ball,m); m.active=false;
+    } else { ball.active=false; loseBall(); }
+  }
+  multiballs.forEach(m=>{ if(m.active&&drained(m))m.active=false; });
+
+  if(spinner.vel>0)spinner.vel*=0.94;
+  spinnerSpin+=spinner.vel*0.05;
+  if(comboTimer>0){comboTimer--; if(comboTimer===0)combo=0;}
+  if(hole.cool>0)hole.cool--;
+  bumpers.forEach(b=>b.glow*=0.88);
+  slings.forEach(s=>{s.glow*=0.85; if(s.cool>0)s.cool--;});
+  ramp.glow*=0.9; hole.glow*=0.9;
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.t-=0.03;});
+  particles=particles.filter(p=>p.t>0);
+  flashes.forEach(f=>f.t-=0.05); flashes=flashes.filter(f=>f.t>0);
+}
+
+function loseBall(){
+  balls--; elBalls.textContent=balls; combo=0;
+  if(balls<=0){ gameOver(); }
+  else { showMsg('BALL LOST'); setTimeout(()=>{resetBall();},700); }
+}
+function gameOver(){
+  running=false;
+  overlay.querySelector('h1').innerHTML='GAME <span>OVER</span>';
+  introtxt.innerHTML='최종 점수<br><span class="big">'+score+'</span>';
+  startBtn.textContent='RETRY';
+  overlay.classList.remove('hide');
+}
+
+// ---- rendering ----
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // table frame (벽)
+  ctx.strokeStyle='#1b2348'; ctx.lineWidth=WALL*2;
+  ctx.strokeRect(WALL,WALL,W-WALL*2,H-WALL*2);
+
+  // ---- 발사 레인 벽 ----
+  // 레인을 본판과 나누는 좌측 분리벽 (LANE_TOP 아래로만)
+  ctx.save();
+  ctx.strokeStyle='#2a3566'; ctx.lineWidth=6; ctx.lineCap='round';
+  ctx.shadowColor='#3a4a8a'; ctx.shadowBlur=6;
+  ctx.beginPath(); ctx.moveTo(LANE_X,LANE_TOP); ctx.lineTo(LANE_X,H-WALL); ctx.stroke();
+  // 상단 곡면 가이드(공이 좌측 본판으로 휘어 빠지도록) — 충돌 곡면과 동일한 원호
+  ctx.beginPath();
+  ctx.arc(LANE_X-60, LANE_TOP+30, 90, -Math.PI*0.5, 0);
+  ctx.stroke();
+  ctx.restore();
+  // 레인 바닥 음영
+  ctx.fillStyle='rgba(20,26,54,.35)'; ctx.fillRect(LANE_X+3,LANE_TOP,LANE_W,H-WALL-LANE_TOP);
+
+  // ---- 플런저 (발사대) ----
+  drawPlunger();
+
+  // 깔때기 벽 + 아웃레인 가드 (실제 충돌 벽)
+  ctx.save();
+  ctx.strokeStyle='#3a4a8a'; ctx.lineWidth=7; ctx.lineCap='round';
+  ctx.shadowColor='#2a5bdf'; ctx.shadowBlur=8;
+  for(const w of walls){ ctx.beginPath(); ctx.moveTo(w.ax,w.ay); ctx.lineTo(w.bx,w.by); ctx.stroke(); }
+  ctx.strokeStyle='#2a3566'; ctx.lineWidth=5; ctx.shadowBlur=4;
+  for(const w of outGuards){ ctx.beginPath(); ctx.moveTo(w.ax,w.ay); ctx.lineTo(w.bx,w.by); ctx.stroke(); }
+  ctx.restore();
+
+  // gimmick 5: combo ramp
+  glowRect(ramp.x-2,ramp.y,ramp.w,ramp.h,'#5fff8f',ramp.glow);
+  // gimmick 6: jackpot hole
+  ctx.save();
+  const hg=ctx.createRadialGradient(hole.x,hole.y,2,hole.x,hole.y,hole.r+8);
+  hg.addColorStop(0,'#ff8a3f'); hg.addColorStop(.6,'#3a1c08'); hg.addColorStop(1,'transparent');
+  ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(hole.x,hole.y,hole.r+8,0,7); ctx.fill();
+  ctx.fillStyle=hole.cool>0?'#222':'#1a0f04'; ctx.beginPath(); ctx.arc(hole.x,hole.y,hole.r,0,7); ctx.fill();
+  ctx.fillStyle='#ffcf3f'; ctx.font='9px monospace'; ctx.textAlign='center';
+  ctx.fillText(hole.cool>0?'...':'JACKPOT',hole.x,hole.y-hole.r-6); ctx.restore();
+
+  // gimmick 4: drop targets
+  for(const t of targets){
+    ctx.fillStyle=t.hit?'#2a2350':'#9d7bff';
+    ctx.shadowColor='#9d7bff'; ctx.shadowBlur=t.hit?0:12;
+    ctx.fillRect(t.x-14,t.y-5,28,10); ctx.shadowBlur=0;
+  }
+
+  // gimmick 3: spinner
+  ctx.save(); ctx.translate(spinner.x,spinner.y); ctx.rotate(spinnerSpin);
+  ctx.strokeStyle='#ffcf3f'; ctx.lineWidth=4; ctx.shadowColor='#ff9d00'; ctx.shadowBlur=10;
+  ctx.beginPath(); ctx.moveTo(-spinner.len/2,0); ctx.lineTo(spinner.len/2,0); ctx.stroke();
+  ctx.restore(); ctx.shadowBlur=0;
+
+  // gimmick 1: bumpers
+  for(const b of bumpers) glowCircle(b.x,b.y,b.r,b.col,b.glow);
+  // gimmick 2: slingshots
+  for(const s of slings){
+    ctx.save(); ctx.fillStyle='rgba(255,95,162,'+(0.3+s.glow*0.7)+')';
+    ctx.shadowColor='#ff5fa2'; ctx.shadowBlur=10+s.glow*15;
+    const dir = s.x<W/2?1:-1;
+    ctx.beginPath(); ctx.moveTo(s.x-18*dir,s.y-22); ctx.lineTo(s.x-18*dir,s.y+22); ctx.lineTo(s.x+14*dir,s.y); ctx.closePath(); ctx.fill();
+    ctx.restore(); ctx.shadowBlur=0;
+  }
+
+  // flippers
+  drawFlip(flipL,'#5ffbf1'); drawFlip(flipR,'#ff5fa2');
+
+  // particles
+  for(const p of particles){ ctx.globalAlpha=p.t; ctx.fillStyle=p.col; ctx.fillRect(p.x-2,p.y-2,4,4); }
+  ctx.globalAlpha=1;
+  // flashes
+  for(const f of flashes){ ctx.globalAlpha=f.t*0.6; ctx.fillStyle=f.col; ctx.beginPath(); ctx.arc(f.x,f.y,40*(1-f.t)+10,0,7); ctx.fill(); }
+  ctx.globalAlpha=1;
+
+  // balls
+  if(ball.active)drawBall(ball);
+  multiballs.forEach(b=>{if(b.active)drawBall(b);});
+}
+function drawPlunger(){
+  const py = PLUNGER_REST + launcher.pull*40;   // 당긴 만큼 내려감
+  const lit = launcher.ballOn;
+  // 가이드 트랙
+  ctx.save();
+  ctx.strokeStyle='rgba(95,251,241,.15)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(LANE_CX,LANE_TOP); ctx.lineTo(LANE_CX,H-WALL); ctx.stroke();
+  // 플런저 머리
+  const grad=ctx.createLinearGradient(0,py,0,py+26);
+  grad.addColorStop(0, lit?'#5fff8f':'#3a4a6a'); grad.addColorStop(1,'#142036');
+  ctx.fillStyle=grad; ctx.shadowColor=lit?'#5fff8f':'#000'; ctx.shadowBlur=lit?14:0;
+  ctx.fillRect(LANE_CX-13,py+8,26,22);
+  ctx.shadowBlur=0;
+  // 스템
+  ctx.fillStyle='#0a1020'; ctx.fillRect(LANE_CX-4,py+28,8,H-WALL-(py+28));
+  // 파워 게이지
+  if(launcher.charging){
+    const gh=46*launcher.pull;
+    ctx.fillStyle='#ff5fa2'; ctx.globalAlpha=.85;
+    ctx.fillRect(LANE_X+5,H-WALL-50, LANE_W-7, -0); // base
+    ctx.fillRect(LANE_X+5,H-WALL-4-gh, LANE_W-7, gh);
+    ctx.globalAlpha=1;
+  }
+  ctx.restore();
+}
+function glowCircle(x,y,r,col,glow){
+  ctx.save(); ctx.shadowColor=col; ctx.shadowBlur=15+glow*20;
+  ctx.fillStyle=col; ctx.globalAlpha=0.85;
+  ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
+  ctx.globalAlpha=1; ctx.fillStyle='#070818'; ctx.beginPath(); ctx.arc(x,y,r*0.55,0,7); ctx.fill();
+  ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,r*0.35*(1+glow),0,7); ctx.fill();
+  ctx.restore();
+}
+function glowRect(x,y,w,h,col,glow){
+  ctx.save(); ctx.shadowColor=col; ctx.shadowBlur=8+glow*18; ctx.globalAlpha=0.4+glow*0.6;
+  ctx.fillStyle=col; ctx.fillRect(x,y,w,h); ctx.restore();
+}
+function drawFlip(f,col){
+  const ex=f.x+Math.cos(f.ang)*FL_LEN, ey=f.y+Math.sin(f.ang)*FL_LEN;
+  ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=14; ctx.lineCap='round';
+  ctx.shadowColor=col; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(ex,ey); ctx.stroke(); ctx.restore();
+}
+function drawBall(b){
+  ctx.save(); const g=ctx.createRadialGradient(b.x-3,b.y-3,1,b.x,b.y,b.r);
+  g.addColorStop(0,'#fff'); g.addColorStop(1,'#7fd8ff');
+  ctx.fillStyle=g; ctx.shadowColor='#9fe8ff'; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill(); ctx.restore();
+}
+
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
+
+function startGame(){
+  score=0; balls=3; combo=0; jackpot=2500; multiballs=[];
+  targets.forEach(t=>t.hit=false);
+  elScore.textContent=0; elBalls.textContent=3;
+  overlay.classList.add('hide'); running=true; resetBall();
+}
+startBtn.addEventListener('click',startGame);
+loop();
+</script>
+</body>
+</html>
