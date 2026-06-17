@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>數의 連鎖</title>
+<style>
+  :root{
+    --bg:#0b0a0f;
+    --cell:#141320;
+    --line:#272534;
+    --idle:#3b3850;
+    --live:#ffd97a;
+    --done:#5c5a70;
+    --c1:#ff7a3c; --c2:#4ad6c8; --c3:#9b7bd6;
+    --c4:#7fce82; --c5:#ff6f91; --c6:#62b6ff;
+    --c7:#f0c050; --c8:#c08bff; --c9:#ffe9a8;
+    --ink:#d6d2e4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:radial-gradient(130% 90% at 50% -8%,#191726 0%,var(--bg) 62%);
+    color:var(--ink);
+    font-family:"Hiragino Mincho ProN","Apple SD Gothic Neo","Noto Serif KR",serif;
+    display:flex;flex-direction:column;align-items:center;
+    min-height:100%;overflow:hidden;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    user-select:none;-webkit-user-select:none;
+  }
+  header{text-align:center;padding:16px 0 8px;}
+  h1{font-size:20px;font-weight:400;letter-spacing:.42em;text-indent:.42em;color:var(--live);}
+  .sub{font-size:10.5px;letter-spacing:.28em;color:var(--done);margin-top:6px;}
+
+  .grid{
+    width:min(95vw,440px);aspect-ratio:1;
+    display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+    gap:8px;margin:6px 0;
+  }
+  .cell{
+    position:relative;background:var(--cell);
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    display:flex;flex-direction:column;
+    transition:border-color .4s, box-shadow .4s;
+  }
+  .cell .top{display:flex;justify-content:space-between;align-items:center;
+    padding:5px 8px 2px;font-size:10px;letter-spacing:.06em;color:var(--idle);}
+  .cell .rule{font-size:8.5px;color:var(--idle);padding:0 8px;letter-spacing:0;
+    line-height:1.25;min-height:21px;}
+  .cell .body{flex:1;position:relative;}
+  .cell canvas{position:absolute;inset:0;width:100%;height:100%;}
+  .cell .pulse{position:absolute;left:8px;bottom:5px;font-size:9px;color:var(--done);
+    letter-spacing:.04em;}
+  .cell.live{box-shadow:0 0 20px -5px var(--live), inset 0 0 26px -16px var(--live);}
+  .cell.live .top,.cell.live .rule{color:var(--live);}
+  .cell.flash{animation:fl .5s;}
+  @keyframes fl{0%{box-shadow:0 0 0 0 var(--live);}50%{box-shadow:0 0 34px -2px var(--live);}100%{box-shadow:0 0 20px -5px var(--live);}}
+
+  .footer{display:flex;gap:10px;margin-top:6px;}
+  button{background:transparent;border:1px solid var(--line);color:var(--ink);
+    font-family:inherit;font-size:13px;letter-spacing:.2em;padding:10px 22px;
+    border-radius:30px;cursor:pointer;transition:.25s;}
+  button:active{transform:scale(.95);}
+  button.go{border-color:var(--live);color:var(--live);}
+  button:disabled{opacity:.4;}
+  .hint{font-size:10px;letter-spacing:.14em;color:var(--done);min-height:14px;
+    text-align:center;margin-top:8px;padding:0 12px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>數의 連鎖</h1>
+  <div class="sub">숫자가 조건을 채우면 · 다음 칸으로 흐른다</div>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<div class="footer">
+  <button class="go" id="start">시 작</button>
+  <button id="reset">처음으로</button>
+</div>
+<div class="hint" id="hint">바라보기만 하면 됩니다</div>
+
+<script>
+(()=>{
+const grid=document.getElementById('grid');
+const hint=document.getElementById('hint');
+const N=9;
+const colors=['--c1','--c2','--c3','--c4','--c5','--c6','--c7','--c8','--c9']
+  .map(v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim());
+
+const rules=[
+  '갈튼보드 · 공이 못을 타고 떨어져 초록=통과·빨강=소멸',
+  '숫자 4개가 쌓이고 그 합이 3의 배수면 통과',
+  '움직이는 못 · 공이 파랑 포털·빨강 포털로 갈라짐',
+  '좌우 비커 · 같은 색 3개가 차면 비우고 5번으로 색 전달',
+  '1↔100 왕복 · 빨강은 소수일 때, 파랑은 비소수일 때 통과',
+  '주사위 3칸 · 색이 모두 같거나 숫자가 모두 같으면 통과',
+  '사각 상자 · 통과한 공이 떨어져 담긴다',
+  '받은 수를 7로 나눈 나머지가 0·3·6이면 통과',
+  '세 번 도달하면 만다라 완성',
+];
+
+const cells=[];
+for(let i=0;i<N;i++){
+  const el=document.createElement('div');
+  el.className='cell';
+  el.innerHTML=`<div class="top"><span>${String(i+1).padStart(2,'0')}</span><span class="cnt"></span></div>
+    <div class="rule">${rules[i]}</div>
+    <div class="body"><canvas></canvas></div>
+    <div class="pulse"></div>`;
+  grid.appendChild(el);
+  const cv=el.querySelector('canvas');
+  cells.push({el,cv,ctx:cv.getContext('2d'),
+    cnt:el.querySelector('.cnt'),pulse:el.querySelector('.pulse')});
+}
+
+function fit(){const dpr=Math.min(devicePixelRatio||1,2);
+  for(const c of cells){const r=c.cv.getBoundingClientRect();
+    c.cv.width=r.width*dpr;c.cv.height=r.height*dpr;c.W=r.width;c.H=r.height;
+    c.ctx.setTransform(dpr,0,0,dpr,0,0);}}
+addEventListener('resize',fit);
+
+const rnd=n=>Math.floor(Math.random()*n);
+const digitalRoot=n=>{n=Math.abs(n);while(n>=10){n=String(n).split('').reduce((a,b)=>a+ +b,0);}return n;};
+const isPrime=n=>{if(n<2)return false;for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true;};
+
+let running=false,raf=null,last=0,acc=0;
+// 01번 물레방아 시뮬 상태
+let wheelAng=0;            // (미사용) 잔존
+let balls01=[];            // {x,y,vx,vy,life} 정규화 좌표(0~1)
+// 갈튼 보드 못 배치 (정규화 좌표, 한 번만 생성)
+const PEGS=(()=>{const arr=[];const rows=3;
+  for(let r=0;r<rows;r++){const y=0.36+r*0.17;const n=r+2;
+    const span=0.5, x0=0.5-span/2;
+    for(let i=0;i<n;i++){arr.push({x:x0+span*(i/(n-1)),y});}}
+  return arr;})();
+const PEG_R=0.022, BALL_R=0.03;
+// 02번 칸 적립 표시 상태
+let slot02=[];            // 쌓인 숫자들(최대 4)
+let sum02=null;           // {value, t} 합계 표시(페이드용)
+// 03번 칸: 좌우로 움직이는 못 + 낙하 공 + 파랑/빨강 포털
+let pegPhase=0;           // 못 무리 좌우 이동 위상
+let balls03=[];           // {x,y,vx,vy} 정규화 좌표
+// 03번 못 기본 배치(중심 기준 상대 위치). 매 프레임 pegOffset로 좌우 이동
+const PEGS03=[
+  {dx:-0.18,y:0.34},{dx:0.18,y:0.34},
+  {dx:0.00,y:0.50},
+  {dx:-0.18,y:0.66},{dx:0.18,y:0.66},
+];
+// 04번 칸: 좌우 비커(파랑/빨강), 각 3개 모이면 비우고 5번으로 색 전달
+let beaker04={blue:0, red:0};
+let pour04=[];            // 비커로 떨어지는 중인 공 {x,y,vy,color,target}
+// 05번 칸: 1↔100 왕복 카운터 + 색 공 도착 판정
+let count05=1;            // 현재 수
+let count05Dir=1;         // +1 상승 / -1 하강
+let count05T=0;           // 2초 타이머
+let flash05=null;         // {text, color, t} 통과/탈락 표시
+// 06번 칸: 주사위 슬롯(최대 3, 오래된 것부터 밀려남)
+let dice06=[];            // {color:'red'|'blue', value:1~6}
+// 07번 칸: 윗변 뚫린 사각 상자에 공이 담김
+let balls07=[];           // {x,y,vx,vy} 정규화 좌표
+let live=Array(N).fill(false);
+let done=Array(N).fill(false);
+let buf=Array.from({length:N},()=>[]);   // 각 칸에 쌓인 숫자
+let floaters=Array.from({length:N},()=>[]); // 떠다니는 숫자 시각효과
+let win9=0;
+
+function flash(i){cells[i].el.classList.add('flash');
+  setTimeout(()=>cells[i].el.classList.remove('flash'),500);}
+
+function addFloater(i,val,color){
+  floaters[i].push({val,x:0.15+Math.random()*0.7,y:1.05,vy:-(0.35+Math.random()*0.3),
+    life:1,color});
+  if(floaters[i].length>14)floaters[i].shift();
+}
+
+function setLive(i){if(i>=N){finish();return;}
+  live[i]=true;done[i]=false;cells[i].el.classList.add('live');flash(i);
+  hint.textContent=`${String(i+1).padStart(2,'0')} 번째 칸이 깨어났다`;}
+
+function setDone(i){live[i]=false;done[i]=true;cells[i].el.classList.remove('live');}
+
+// 한 칸에 값 전달 → 그 칸의 조건 검사
+function feed(i,val){
+  if(i>=N)return;
+  buf[i].push(val);
+  if(i!==1&&i!==2&&i!==3&&i!==4&&i!==5&&i!==6)addFloater(i,val,colors[i]);   // 02~07 전용
+  if(!live[i]&&!done[i])setLive(i);  // 도달하면 깨어남
+  check(i);
+}
+
+function check(i){
+  const b=buf[i];
+  const v=b[b.length-1];   // 이 칸에 방금 들어온 마지막 값
+  switch(i){
+    case 1:{ // 숫자를 칸에 적립, 4개 모이면 합계 표시 후 3배수면 통과
+      slot02.push(v);
+      if(slot02.length>=4){
+        const s=slot02.reduce((a,c)=>a+c,0);
+        sum02={value:s, t:0, pass:(s%3===0)};
+        if(s%3===0)feed(2,s);     // 합이 3의 배수면 03으로 통과
+        slot02=[];                // 다음 적립을 위해 비움
+      }
+      buf[1]=[];
+      break;}
+    case 2:{ // 02 통과 → 03칸에 공 하나 떨어뜨림 (판정은 시소+포털에서)
+      balls03.push({x:0.5+(Math.random()-0.5)*0.06,y:0.12,vx:0,vy:0});
+      buf[2]=[];break;}
+    case 3:{ // 03에서 받은 색(blue/red) 공을 해당 비커로 떨어뜨림
+      const col=(v==='red')?'red':'blue';
+      const tx=(col==='blue')?0.28:0.72;   // 파랑=좌 비커, 빨강=우 비커
+      pour04.push({x:tx, y:0.12, vy:0, color:col});
+      buf[3]=[];break;}
+    case 4:{ // 04에서 색이 도착 → 현재 카운터 수의 소수 여부로 판정
+      const prime=isPrime(count05);
+      let pass=false;
+      if(v==='red')  pass=prime;     // 빨강: 소수면 통과
+      if(v==='blue') pass=!prime;    // 파랑: 비소수면 통과
+      flash05={text:(pass?'통과':'탈락')+' '+count05, color:(v==='red'?'#ff6f91':'#62b6ff'), t:0};
+      if(pass)feed(5, v);            // 통과 시 6번으로 색 전달(주사위 색)
+      buf[4]=[];break;}
+    case 5:{ // 05 통과 → 그 색의 주사위(1~6) 배출. 슬롯 최대 3, 오래된 것부터 밀려남
+      const color=(v==='red')?'red':'blue';
+      if(!live[5]&&!done[5])setLive(5);   // 06 깨우기
+      dice06.push({color, value:1+rnd(6)});
+      if(dice06.length>3)dice06.shift();
+      flash(5);
+      // 3개 모두 같은 색 또는 모두 같은 숫자면 통과 → 07에 공 투입
+      if(dice06.length===3){
+        const sameColor=dice06.every(d=>d.color===dice06[0].color);
+        const sameValue=dice06.every(d=>d.value===dice06[0].value);
+        if(sameColor||sameValue){
+          balls07.push({x:0.5+(Math.random()-0.5)*0.1, y:0.1, vx:(Math.random()-0.5)*0.08, vy:0});
+          cells[5].pulse.textContent='통과 ✓';
+          feed(6, 1);   // 07 깨우기(값은 사각상자 판정과 무관)
+        }
+      }
+      break;}
+    case 6:{ // 06 통과 → 07 사각 상자에 공이 떨어짐(투입은 case5에서 처리). 깨어나기만.
+      buf[6]=[];break;}
+    case 7:{ // 7로 나눈 나머지 0,3,6
+      const r=v%7;if([0,3,6].includes(r))feed(8,v);buf[7]=[];break;}
+    case 8:{ // 3번 도달 → 완성
+      win9++;if(win9>=3)finish();buf[8]=[];break;}
+  }
+}
+
+function finish(){running=false;hint.textContent='數의 連鎖 完 · 아홉 칸을 모두 통과했다';
+  document.getElementById('start').disabled=false;}
+
+// 01번 칸: 갈튼 보드(핀볼 못) + 낙하 공 + 두 포털
+function tick01(dt){
+  acc+=dt;
+  if(acc>=3){acc=0;                 // 3초마다 공 생성(상단 중앙, 살짝 랜덤)
+    balls01.push({x:0.5+(Math.random()-0.5)*0.04,y:0.14,vx:0,vy:0});
+  }
+  for(let k=balls01.length-1;k>=0;k--){
+    const b=balls01[k];
+    b.vy+=1.2*dt;                   // 중력
+    b.x+=b.vx*dt; b.y+=b.vy*dt;
+    // 좌우 벽 반사
+    if(b.x<0.06){b.x=0.06;b.vx=Math.abs(b.vx)*0.6;}
+    if(b.x>0.94){b.x=0.94;b.vx=-Math.abs(b.vx)*0.6;}
+    // 못과의 원-원 충돌
+    for(const p of PEGS){
+      const dx=b.x-p.x, dy=b.y-p.y, d=Math.hypot(dx,dy), min=PEG_R+BALL_R;
+      if(d<min&&d>0){
+        const nx=dx/d, ny=dy/d;
+        b.x=p.x+nx*min; b.y=p.y+ny*min;        // 밀어내기
+        const dot=b.vx*nx+b.vy*ny;
+        b.vx=(b.vx-2*dot*nx)*0.55;             // 반사 + 감쇠
+        b.vy=(b.vy-2*dot*ny)*0.55;
+        b.vx+=(Math.random()-0.5)*0.25;        // 좌우 갈림 무작위성
+      }
+    }
+    // 하단 포털: 왼쪽 초록=통과, 오른쪽 빨강=소멸
+    if(b.y>0.9){
+      if(b.x<0.5){balls01.splice(k,1);
+        cells[0].pulse.textContent='통과 ✓';flash(0);feed(1,10+rnd(40));}
+      else{balls01.splice(k,1);cells[0].pulse.textContent='소멸';}
+    }
+    if(balls01.length>30)balls01.shift();
+  }
+}
+
+// 01번 전용 렌더
+function draw01(){
+  const c=cells[0];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  // 포털 (하단)
+  const py=0.9*H, ph=0.1*H;
+  ctx.fillStyle='rgba(95,206,106,0.22)';ctx.fillRect(0.06*W,py,0.4*W,ph);
+  ctx.strokeStyle='#5fce6a';ctx.strokeRect(0.06*W,py,0.4*W,ph);
+  ctx.fillStyle='rgba(255,111,145,0.22)';ctx.fillRect(0.54*W,py,0.4*W,ph);
+  ctx.strokeStyle='#ff6f91';ctx.strokeRect(0.54*W,py,0.4*W,ph);
+  // 못
+  ctx.fillStyle=colors[0];
+  for(const p of PEGS){ctx.beginPath();ctx.arc(p.x*W,p.y*H,PEG_R*W,0,7);ctx.fill();}
+  // 공
+  ctx.fillStyle='#ffe9a8';
+  for(const b of balls01){ctx.beginPath();ctx.arc(b.x*W,b.y*H,BALL_R*W,0,7);ctx.fill();}
+}
+
+// 02번 전용 렌더: 숫자 적립 + 합계 표시 후 페이드아웃
+function draw02(dt){
+  const c=cells[1];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=colors[1];
+  ctx.font=`${Math.round(H*0.24)}px "Hiragino Mincho ProN",serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  const n=slot02.length;
+  for(let i=0;i<n;i++){
+    const x=W*(0.5+(i-(4-1)/2)*0.2);     // 4칸 기준 균등 배치
+    ctx.fillText(slot02[i], x, H*0.4);
+  }
+  ctx.fillStyle='#3b3850';
+  for(let i=n;i<4;i++){const x=W*(0.5+(i-(4-1)/2)*0.2);
+    ctx.fillText('·', x, H*0.4);}
+  if(sum02){
+    sum02.t+=dt;
+    let alpha=1;
+    if(sum02.t>2)alpha=Math.max(0,1-(sum02.t-2)/0.8);  // 2초 뒤 0.8초간 페이드
+    if(alpha<=0){sum02=null;}
+    else{
+      ctx.globalAlpha=alpha;
+      ctx.fillStyle=sum02.pass?'#7fce82':'#ff6f91';    // 통과=초록, 탈락=빨강
+      ctx.font=`${Math.round(H*0.32)}px "Hiragino Mincho ProN",serif`;
+      ctx.fillText(sum02.value, W*0.5, H*0.74);
+      ctx.globalAlpha=1;
+    }
+  }
+}
+
+// 03번 칸: 좌우로 천천히 움직이는 못 + 낙하 공 + 파랑/빨강 포털
+function pegX03(dx){return 0.5+dx+Math.sin(pegPhase)*0.16;}  // 못 무리 좌우 이동
+function tick03(dt){
+  pegPhase+=dt*0.7;
+  const PEG_R3=0.03, BALL_R3=0.03;
+  for(let k=balls03.length-1;k>=0;k--){
+    const b=balls03[k];
+    b.vy+=1.2*dt; b.x+=b.vx*dt; b.y+=b.vy*dt;
+    if(b.x<0.06){b.x=0.06;b.vx=Math.abs(b.vx)*0.6;}
+    if(b.x>0.94){b.x=0.94;b.vx=-Math.abs(b.vx)*0.6;}
+    // 움직이는 못과 충돌
+    for(const p of PEGS03){
+      const px=pegX03(p.dx), py=p.y;
+      const dx=b.x-px, dy=b.y-py, d=Math.hypot(dx,dy), min=PEG_R3+BALL_R3;
+      if(d<min&&d>0){const nx=dx/d, ny=dy/d;
+        b.x=px+nx*min; b.y=py+ny*min;
+        const dot=b.vx*nx+b.vy*ny;
+        b.vx=(b.vx-2*dot*nx)*0.55; b.vy=(b.vy-2*dot*ny)*0.55;
+        b.vx+=(Math.random()-0.5)*0.25;}
+    }
+    // 하단 포털: 왼쪽=파랑공 생성, 오른쪽=빨강공 생성 → 둘 다 04로
+    if(b.y>0.9){
+      balls03.splice(k,1);
+      if(b.x<0.5){cells[2].pulse.textContent='파랑 ●';flash(2);feed(3,'blue');}
+      else{cells[2].pulse.textContent='빨강 ●';flash(2);feed(3,'red');}
+    }
+    if(balls03.length>20)balls03.shift();
+  }
+}
+
+function draw03(){
+  const c=cells[2];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  const py=0.9*H, ph=0.1*H;
+  // 파랑 포털(좌) · 빨강 포털(우)
+  ctx.fillStyle='rgba(98,182,255,0.22)';ctx.fillRect(0.06*W,py,0.4*W,ph);
+  ctx.strokeStyle='#62b6ff';ctx.strokeRect(0.06*W,py,0.4*W,ph);
+  ctx.fillStyle='rgba(255,111,145,0.22)';ctx.fillRect(0.54*W,py,0.4*W,ph);
+  ctx.strokeStyle='#ff6f91';ctx.strokeRect(0.54*W,py,0.4*W,ph);
+  // 움직이는 못
+  ctx.fillStyle=colors[2];
+  for(const p of PEGS03){ctx.beginPath();ctx.arc(pegX03(p.dx)*W,p.y*H,0.03*W,0,7);ctx.fill();}
+  // 공
+  ctx.fillStyle='#ffe9a8';
+  for(const b of balls03){ctx.beginPath();ctx.arc(b.x*W,b.y*H,0.03*W,0,7);ctx.fill();}
+}
+
+// 04번 칸: 좌우 비커. 공이 떨어져 비커에 담기고, 3개 차면 비우고 05로 색 전달
+function tick04(dt){
+  for(let k=pour04.length-1;k>=0;k--){
+    const b=pour04[k];
+    b.vy+=1.4*dt; b.y+=b.vy*dt;
+    if(b.y>=0.34){                     // 비커 입구 도달 → 담김
+      pour04.splice(k,1);
+      beaker04[b.color]++;
+      if(beaker04[b.color]>=3){         // 3개 차면 비우고 05로 색 넘김
+        beaker04[b.color]=0;
+        feed(4, b.color);
+        flash(3);
+      }
+    }
+  }
+}
+
+function draw04(){
+  const c=cells[3];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  // 두 비커 그리기 (좌: 파랑, 우: 빨강)
+  function beaker(cx, count, color){
+    const w=0.26*W, h=0.58*H, x=cx*W-w/2, y=0.34*H;   // 더 높고 위에서 시작
+    // 카운트 라벨 (비커 위)
+    ctx.fillStyle=color;ctx.textAlign='center';ctx.textBaseline='alphabetic';
+    ctx.font=`${Math.round(H*0.12)}px "Hiragino Mincho ProN",serif`;
+    ctx.fillText(count+' / 3', cx*W, y-0.03*H);
+    // 비커 외곽(U자)
+    ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();
+    ctx.moveTo(x, y);ctx.lineTo(x, y+h);ctx.lineTo(x+w, y+h);ctx.lineTo(x+w, y);
+    ctx.stroke();ctx.lineWidth=1;
+    // 담긴 공 (바닥부터 위로 쌓기)
+    const r=0.05*W;
+    for(let i=0;i<count;i++){
+      ctx.fillStyle=color;ctx.beginPath();
+      ctx.arc(cx*W, y+h-r-4-i*(r*2+3), r, 0,7);ctx.fill();
+    }
+  }
+  beaker(0.28, beaker04.blue, '#62b6ff');
+  beaker(0.72, beaker04.red,  '#ff6f91');
+  // 떨어지는 공
+  for(const b of pour04){
+    ctx.fillStyle = b.color==='blue' ? '#62b6ff' : '#ff6f91';
+    ctx.beginPath();ctx.arc(b.x*W, b.y*H, 0.045*W, 0,7);ctx.fill();
+  }
+}
+
+// 05번 칸: 1↔100 왕복 카운터 + 통과/탈락 표시
+function tick05(dt){
+  count05T+=dt;
+  while(count05T>=2){                   // 2초마다 1씩
+    count05T-=2;
+    count05+=count05Dir;
+    if(count05>=100){count05=100;count05Dir=-1;}
+    if(count05<=1){count05=1;count05Dir=1;}
+  }
+}
+
+function draw05(dt){
+  const c=cells[4];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  const prime=isPrime(count05);
+  // 큰 숫자
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle=prime?'#ffd97a':'#7c7a90';
+  ctx.font=`${Math.round(H*0.4)}px "Hiragino Mincho ProN",serif`;
+  ctx.fillText(count05, W*0.5, H*0.42);
+  // 소수 여부 라벨
+  ctx.font=`${Math.round(H*0.12)}px "Hiragino Mincho ProN",serif`;
+  ctx.fillStyle=prime?'#ffd97a':'#5c5a70';
+  ctx.fillText(prime?'素 prime':'非素', W*0.5, H*0.66);
+  // 통과/탈락 플래시
+  if(flash05){
+    flash05.t+=dt;let a=flash05.t>1.2?Math.max(0,1-(flash05.t-1.2)/0.6):1;
+    if(a<=0)flash05=null;
+    else{ctx.globalAlpha=a;ctx.fillStyle=flash05.color;
+      ctx.font=`${Math.round(H*0.15)}px "Hiragino Mincho ProN",serif`;
+      ctx.fillText(flash05.text, W*0.5, H*0.86);ctx.globalAlpha=1;}
+  }
+}
+
+// 06번 칸: 주사위 최대 3개 가로 표시
+function drawDie(ctx, cx, cy, s, color, value){
+  const r=s*0.16;
+  ctx.fillStyle=color;
+  // 둥근 사각 본체
+  ctx.beginPath();
+  const x=cx-s/2,y=cy-s/2,rr=s*0.18;
+  ctx.moveTo(x+rr,y);ctx.arcTo(x+s,y,x+s,y+s,rr);ctx.arcTo(x+s,y+s,x,y+s,rr);
+  ctx.arcTo(x,y+s,x,y,rr);ctx.arcTo(x,y,x+s,y,rr);ctx.closePath();ctx.fill();
+  // 눈(흰 점)
+  ctx.fillStyle='#0b0a0f';
+  const o=s*0.26;
+  const pips={1:[[0,0]],2:[[-o,-o],[o,o]],3:[[-o,-o],[0,0],[o,o]],
+    4:[[-o,-o],[o,-o],[-o,o],[o,o]],5:[[-o,-o],[o,-o],[0,0],[-o,o],[o,o]],
+    6:[[-o,-o],[o,-o],[-o,0],[o,0],[-o,o],[o,o]]};
+  for(const [dx,dy] of pips[value]){
+    ctx.beginPath();ctx.arc(cx+dx,cy+dy,r,0,7);ctx.fill();}
+}
+function draw06(){
+  const c=cells[5];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  const s=Math.min(W,H)*0.26;
+  const n=dice06.length;
+  for(let i=0;i<3;i++){
+    const cx=W*(0.5+(i-1)*0.3), cy=H*0.5;
+    if(i<n){const d=dice06[i];
+      drawDie(ctx, cx, cy, s, d.color==='red'?'#ff6f91':'#62b6ff', d.value);}
+    else{ // 빈 슬롯 윤곽
+      ctx.strokeStyle='#2b2937';ctx.strokeRect(cx-s/2,cy-s/2,s,s);}
+  }
+}
+
+// 07번 칸: 윗변이 뚫린 사각 상자에 공이 담김
+function tick07(dt){
+  const bx0=0.3, bx1=0.7, by=0.85;   // 상자 좌/우/바닥(정규화)
+  const R=0.05;
+  for(let i=0;i<balls07.length;i++){
+    const b=balls07[i];
+    b.vy+=1.0*dt; b.x+=b.vx*dt; b.y+=b.vy*dt;
+    if(b.y>by-R){b.y=by-R;b.vy*=-0.25;b.vx*=0.9;}   // 바닥
+    if(b.x<bx0+R){b.x=bx0+R;b.vx=Math.abs(b.vx)*0.4;}// 좌벽
+    if(b.x>bx1-R){b.x=bx1-R;b.vx=-Math.abs(b.vx)*0.4;}//우벽
+    for(let j=0;j<i;j++){const o=balls07[j];
+      const dx=b.x-o.x,dy=b.y-o.y,d=Math.hypot(dx,dy),min=R*2;
+      if(d<min&&d>0){const nx=dx/d,ny=dy/d,push=(min-d)/2;
+        b.x+=nx*push;b.y+=ny*push;o.x-=nx*push;o.y-=ny*push;}}
+  }
+}
+function draw07(){
+  const c=cells[6];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  const bx0=0.3*W,bx1=0.7*W,by=0.85*H,top=0.45*H;
+  // 윗변 뚫린 사각 상자(U자)
+  ctx.strokeStyle=colors[6];ctx.lineWidth=3;ctx.beginPath();
+  ctx.moveTo(bx0,top);ctx.lineTo(bx0,by);ctx.lineTo(bx1,by);ctx.lineTo(bx1,top);
+  ctx.stroke();ctx.lineWidth=1;
+  // 공
+  ctx.fillStyle='#ffe9a8';
+  for(const b of balls07){ctx.beginPath();ctx.arc(b.x*W,b.y*H,0.05*W,0,7);ctx.fill();}
+}
+
+function draw(i,dt){
+  const c=cells[i];const{ctx,W,H}=c;ctx.clearRect(0,0,W,H);
+  // 떠다니는 숫자
+  const fs=floaters[i];
+  for(let k=fs.length-1;k>=0;k--){const f=fs[k];f.y+=f.vy*dt;f.life-=dt*0.5;
+    if(f.life<=0){fs.splice(k,1);continue;}
+    ctx.globalAlpha=Math.max(0,Math.min(1,f.life));
+    ctx.fillStyle=f.color;ctx.font=`${Math.round(H*0.26)}px "Hiragino Mincho ProN",serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(f.val,W*f.x,H*f.y);}
+  ctx.globalAlpha=1;
+  // 칸별 누적 표시 점
+  const b=buf[i];
+  c.cnt.textContent=b.length?('▣'.repeat(Math.min(b.length,6))):'';
+}
+
+function step(t){
+  if(!running)return;
+  const dt=Math.min((t-last)/1000,0.05);last=t;
+  if(!done[0])tick01(dt);
+  tick03(dt);
+  tick04(dt);
+  tick05(dt);
+  tick07(dt);
+  draw01();
+  draw02(dt);
+  draw03();
+  draw04();
+  draw05(dt);
+  draw06();
+  draw07();
+  for(let i=7;i<N;i++)draw(i,dt);
+  raf=requestAnimationFrame(step);
+}
+
+function reset(){
+  cancelAnimationFrame(raf);running=false;acc=0;win9=0;last=0;
+  wheelAng=0;balls01=[];slot02=[];sum02=null;pegPhase=0;balls03=[];
+  beaker04={blue:0,red:0};pour04=[];count05=1;count05Dir=1;count05T=0;flash05=null;
+  dice06=[];balls07=[];
+  live=Array(N).fill(false);done=Array(N).fill(false);
+  buf=Array.from({length:N},()=>[]);floaters=Array.from({length:N},()=>[]);
+  cells.forEach(c=>{c.el.classList.remove('live','flash');c.pulse.textContent='';
+    c.cnt.textContent='';c.ctx&&c.ctx.clearRect(0,0,c.W||0,c.H||0);});
+  hint.textContent='바라보기만 하면 됩니다';
+  document.getElementById('start').disabled=false;
+}
+
+function start(){if(running)return;fit();reset();running=true;last=performance.now();
+  document.getElementById('start').disabled=true;
+  live[0]=true;cells[0].el.classList.add('live');
+  live[2]=true;cells[2].el.classList.add('live');   // 03 못 상시
+  live[4]=true;cells[4].el.classList.add('live');   // 05 카운터 상시
+  hint.textContent='01 번째 칸이 공을 떨어뜨리기 시작했다';
+  raf=requestAnimationFrame(step);}
+
+document.getElementById('start').addEventListener('click',start);
+document.getElementById('reset').addEventListener('click',reset);
+fit();reset();
+})();
+</script>
+</body>
+</html>
