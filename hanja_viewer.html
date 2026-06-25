@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>漢字 STREAM</title>
+<style>
+  :root{
+    --bg:#0a0512;
+    --bg2:#150a26;
+    --violet:#b06bff;
+    --violet-dim:#7a4ec0;
+    --magenta:#ff5ed4;
+    --cyan:#5ef0ff;
+    --cyan2:#6af0ff;
+    --txt:#e9defb;
+    --grid:rgba(176,107,255,0.07);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow:hidden;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% 30%, #2a1248 0%, var(--bg) 60%, #05020a 100%);
+    font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif;
+    color:var(--txt);
+    position:relative;
+    -webkit-tap-highlight-color:transparent;
+  }
+  /* scanline + grid atmosphere */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      linear-gradient(var(--grid) 1px,transparent 1px) 0 0/100% 42px,
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/42px 100%;
+    mask:radial-gradient(ellipse at 50% 45%,#000 30%,transparent 85%);
+    -webkit-mask:radial-gradient(ellipse at 50% 45%,#000 30%,transparent 85%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:6;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,0.18) 0,rgba(0,0,0,0.18) 1px,transparent 2px,transparent 3px);
+    opacity:.35;
+  }
+
+  /* corner HUD */
+  .hud{position:fixed;z-index:8;font-variant-numeric:tabular-nums;}
+  .hud-tl{top:env(safe-area-inset-top,18px);left:20px;top:max(18px,env(safe-area-inset-top));}
+  .hud-tr{top:max(18px,env(safe-area-inset-top));right:20px;text-align:right;}
+
+  .label{
+    font-size:11px;letter-spacing:.35em;text-transform:uppercase;
+    color:var(--cyan2);opacity:.7;
+  }
+  .count{
+    font-size:34px;font-weight:700;color:var(--violet);
+    text-shadow:0 0 14px rgba(176,107,255,.65);line-height:1.05;
+    font-family:"Courier New",monospace;
+  }
+  .count .suffix{font-size:15px;color:var(--txt);opacity:.55;font-weight:400;margin-left:2px;letter-spacing:0;}
+
+  .grade-badge{
+    display:inline-block;margin-top:4px;
+    padding:5px 13px;border:1px solid var(--violet-dim);
+    border-radius:3px;background:rgba(122,78,192,.13);
+    backdrop-filter:blur(3px);
+  }
+  .grade-num{font-size:26px;font-weight:700;color:var(--magenta);
+    text-shadow:0 0 12px rgba(255,94,212,.6);line-height:1;}
+  .grade-cap{font-size:10px;letter-spacing:.3em;color:var(--cyan2);opacity:.75;display:block;margin-top:3px;}
+
+  /* center stage */
+  .stage{
+    position:fixed;inset:0;z-index:5;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:0 16px;
+  }
+  .char-row{position:relative;display:flex;align-items:center;}
+
+  .reappear{
+    position:absolute;right:100%;margin-right:18px;
+    white-space:nowrap;text-align:right;
+    font-size:13px;line-height:1.4;color:var(--cyan2);
+    opacity:.85;text-shadow:0 0 8px rgba(110,240,255,.4);
+  }
+  .reappear b{color:var(--magenta);font-size:17px;}
+
+  .hanja{
+    font-family:"Noto Serif KR",serif;
+    font-size:clamp(120px,42vw,300px);
+    font-weight:700;line-height:1;
+    color:#fff;
+    text-shadow:
+      0 0 22px rgba(176,107,255,.85),
+      0 0 48px rgba(176,107,255,.45),
+      0 0 90px rgba(255,94,212,.3);
+  }
+  .meaning{
+    margin-top:30px;min-height:46px;
+    font-size:clamp(20px,5.5vw,34px);font-weight:500;
+    letter-spacing:.04em;color:var(--txt);
+    opacity:0;transform:translateY(8px);
+    transition:opacity .5s ease,transform .5s ease;
+  }
+  .meaning.show{opacity:1;transform:translateY(0);}
+  .meaning .rd{color:var(--cyan);text-shadow:0 0 12px rgba(94,240,255,.5);}
+  .meaning .sep{opacity:.3;margin:0 12px;color:var(--violet);}
+
+  /* enter animation */
+  @keyframes pop{
+    0%{opacity:0;transform:scale(.6) translateY(20px);filter:blur(8px);}
+    60%{opacity:1;filter:blur(0);}
+    100%{opacity:1;transform:scale(1) translateY(0);}
+  }
+  .char-row.anim .hanja{animation:pop .45s cubic-bezier(.2,.9,.25,1.1);}
+
+  @media (max-width:480px){
+    .hud-tl,.hud-tr{font-size:90%;}
+    .count{font-size:28px;}
+    .grade-num{font-size:22px;}
+    .reappear{font-size:11px;margin-right:10px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .char-row.anim .hanja{animation:none;}
+    .meaning{transition:opacity .2s;}
+  }
+</style>
+</head>
+<body>
+  <div class="hud hud-tl">
+    <div class="label">SEQ</div>
+    <div class="count"><span id="count">0</span><span class="suffix">번째</span></div>
+  </div>
+  <div class="hud hud-tr">
+    <div class="label">難易度</div>
+    <div class="grade-badge">
+      <span class="grade-num" id="gradeNum">—</span>
+      <span class="grade-cap" id="gradeCap">급 수준</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="char-row" id="row">
+      <div class="reappear" id="reappear"></div>
+      <div class="hanja" id="hanja">漢</div>
+    </div>
+    <div class="meaning" id="meaning"></div>
+  </div>
+
+<script>
+/* 어문회 급수별(준2급~특급II) 한자 데이터: 각 급수 50자, [한자,뜻,음] */
+const GRADES = ["준2급", "3급", "2급", "1급", "특급", "특급II"];
+const SHORT = {"준2급": "準2", "3급": "3", "2급": "2", "1급": "1", "특급": "特", "특급II": "特II"};
+const DATA = {
+  "준2급":[["乙","새","을"],["拳","주먹","권"],["槪","대개","개"],["宙","집","주"],["麥","보리","맥"],["隆","높을","륭"],["爐","화로","로"],["諾","허락할","낙"],["洲","물가","주"],["久","오랠","구"],["藏","감출","장"],["楓","단풍","풍"],["讓","사양할","양"],["館","집","관"],["獄","옥[囚舍]","옥"],["喪","잃을","상"],["乾","하늘","건"],["距","상거(相距)할","거"],["狂","미칠","광"],["靈","신령","령"],["漏","샐","루"],["昇","오를","승"],["憂","근심","우"],["介","낄","개"],["役","부릴","역"],["郞","사내","랑"],["諸","모두","제"],["逸","편안할","일"],["淨","깨끗할","정"],["裳","치마","상"],["嶺","고개","령"],["禪","선","선"],["悟","깨달을","오"],["猛","사나울","맹"],["賤","천할","천"],["兔","토끼","토"],["閣","집","각"],["枝","가지","지"],["拓","넓힐","척"],["丹","붉을","단"],["殿","전각","전"],["排","밀칠","배"],["旦","아침","단"],["裂","찢어질","렬"],["皇","임금","황"],["震","우레","진"],["輩","무리","배"],["簿","문서","부"],["怪","괴이할","괴"],["腹","배","복"]],
+  "3급":[["輿","수레","여"],["穫","거둘","확"],["昔","예[古]","석"],["郊","들[野]","교"],["遵","좇을","준"],["播","뿌릴","파"],["憐","불쌍히여길","련"],["畏","두려워할","외"],["棄","버릴","기"],["蔽","덮을","폐"],["囚","가둘","수"],["携","이끌","휴"],["娛","즐길","오"],["軒","집","헌"],["蜜","꿀","밀"],["謹","삼갈","근"],["矯","바로잡을","교"],["崩","무너질","붕"],["誰","누구","수"],["頻","자주","빈"],["挑","돋울","도"],["遙","멀","요"],["騷","떠들","소"],["拙","졸할","졸"],["吾","나","오"],["冥","어두울","명"],["擁","낄","옹"],["詠","읊을","영"],["飜","번역할","번"],["析","쪼갤","석"],["斤","근[무게단위]","근"],["丸","둥글","환"],["冒","무릅쓸","모"],["怠","게으를","태"],["賜","줄","사"],["俊","준걸","준"],["涉","건널","섭"],["幅","폭","폭"],["卜","점","복"],["押","누를","압"],["懼","두려워할","구"],["朋","벗","붕"],["枯","마를","고"],["尋","찾을","심"],["酉","닭","유"],["攝","다스릴","섭"],["叫","부르짖을","규"],["煩","번거로울","번"],["巷","거리","항"],["替","바꿀","체"]],
+  "2급":[["診","진찰할","진"],["怖","두려워할","포"],["冕","면류관","면"],["艾","쑥","애"],["貊","맥국(貊國)","맥"],["淳","순박할","순"],["鴨","오리","압"],["哨","망볼","초"],["秦","성(姓)","진"],["艇","배","정"],["碩","클","석"],["枚","낱","매"],["后","임금","후"],["晧","밝을","호"],["棟","마룻대","동"],["玖","옥돌","구"],["驪","검은말","려"],["紊","어지러울","문"],["旼","화할","민"],["撤","거둘","철"],["驥","천리마","기"],["濬","깊을","준"],["駐","머무를","주"],["艦","큰 배","함"],["繩","노끈","승"],["鉀","갑옷","갑"],["醴","단술[甘酒]","례"],["惹","이끌","야"],["鷹","매","응"],["漣","잔물결","련"],["邕","막힐","옹"],["楸","가래","추"],["玟","아름다운돌","민"],["阪","언덕","판"],["迦","부처이름","가"],["煥","빛날","환"],["弁","고깔","변"],["檜","전나무","회"],["亮","밝을","량"],["倭","왜나라","왜"],["弗","아닐","불"],["措","둘[置]","조"],["搬","옮길","반"],["柯","가지","가"],["媛","계집","원"],["昊","하늘","호"],["塏","높은땅","개"],["偵","염탐할","정"],["鎔","쇠녹일","용"],["宋","성(姓)","송"]],
+  "1급":[["寇","도적","구"],["疝","산증(疝症)","산"],["亘","뻗칠","긍"],["拏","잡을","나"],["巴","꼬리","파"],["几","안석","궤"],["瑚","산호","호"],["礫","조약돌","력"],["齡","나이","령"],["憚","꺼릴","탄"],["嗅","맡을","후"],["溟","바다","명"],["宵","밤[夜]","소"],["俠","의기로울","협"],["搾","짤","착"],["棒","막대","봉"],["煌","빛날","황"],["梵","불경","범"],["捐","버릴","연"],["糟","지게미","조"],["嫡","정실","적"],["擲","던질","척"],["盒","합(盒)","합"],["炒","볶을","초"],["臘","섣달","랍"],["牲","희생","생"],["鄙","더러울","비"],["嶇","험할","구"],["萎","시들","위"],["腱","힘줄","건"],["恤","불쌍할","휼"],["憊","고단할","비"],["忿","성낼","분"],["竿","낚싯대","간"],["葵","아욱","규"],["仇","원수","구"],["痺","저릴","비"],["蹶","일어설","궐"],["敲","두드릴","고"],["踊","뛸","용"],["緘","봉할","함"],["奢","사치할","사"],["丞","정승","승"],["慝","사특할","특"],["腑","육부(六腑)","부"],["碌","푸른돌","록"],["舵","키[正船木]","타"],["煞","죽일","살"],["胄","자손","주"],["醱","술괼","발"]],
+  "특급":[["郤","틈","극"],["亙","뻗칠","긍"],["戕","찌를","장"],["蕊","꽃술","예"],["貲","재물","자"],["桋","가시목","이"],["鰷","피라미","조"],["鞹","가죽","곽"],["爔","불","희"],["曁","미칠","기"],["桄","광랑나무","광"],["憖","물을","은"],["懌","기뻐할","역"],["鼐","큰솥","내"],["羆","곰","비"],["膴","두터울","무"],["茆","띠","묘"],["甃","우물벽돌","추"],["畋","사냥할","전"],["僮","아이종","동"],["鎡","호미","자"],["麰","보리","모"],["騂","붉은소","성"],["娣","제수","제"],["繽","어지러울","빈"],["媾","겹혼인","구"],["顓","오로지","전"],["菑","묵정밭","치"],["棊","바둑","기"],["邛","수고할","공"],["踧","삼갈","축"],["虡","쇠북걸이틀","거"],["殛","귀양보낼","극"],["閟","닫을","비"],["穋","올벼","륙"],["扆","병풍","의"],["蹲","걸어앉을","준"],["燽","드러날","주"],["荓","풀이름","병"],["汩","물흐를","율"],["佸","모일","괄"],["虆","덩굴","류"],["耰","고무래","우"],["珈","머리꾸미개","가"],["楰","산유자나무","유"],["婿","사위","서"],["鋥","칼날세울","정"],["柖","나무흔들릴","소"],["訿","훼방할","자"],["佗","짊어질","타"]],
+  "특급II":[["瓣","꽃잎","판"],["瞑","눈감을","명"],["琫","칼장식","봉"],["曄","빛날","엽"],["筮","점대","서"],["坵","언덕[丘]","구"],["鐄","큰쇠북","횡"],["咎","허물","구"],["瑥","사람이름","온"],["廐","마구간[廏]","구"],["梡","도마","관"],["拖","끌","타"],["桁","차꼬","항"],["畵","그림","화"],["瑁","대모","모"],["絿","급할","구"],["珦","옥구슬","향"],["錡","세발가마","기"],["褓","포대기","보"],["鈞","무거울","균"],["槻","물푸레나무","규"],["韶","풍류","소"],["瀞","맑을","정"],["儷","짝","려"],["燧","봉화","수"],["沽","살","고"],["饑","주릴","기"],["儁","영특할","준"],["葫","물외","호"],["饔","아침밥","옹"],["嘶","말울","시"],["梭","북[織具]","사"],["縕","묵은솜","온"],["淞","물이름","송"],["諶","믿을","심"],["癤","부스럼","절"],["菉","조개풀","록"],["瀛","바다","영"],["酢","초","초"],["昑","밝을","금"],["鑒","거울[鑑]","감"],["苕","완두","초"],["玳","대모(玳瑁)","대"],["芩","풀이름","금"],["蝗","황충[食苗蟲]","황"],["牀","평상[床]","상"],["孩","어린아이","해"],["瀨","여울","뢰"],["褘","휘장","위"],["璲","패옥","수"]],
+};
+const pool = [];
+GRADES.forEach(g=>DATA[g].forEach(([c,m,r])=>pool.push({char:c,mean:m,read:r,grade:g})));
+
+const $count=document.getElementById('count');
+const $gNum=document.getElementById('gradeNum');
+const $gCap=document.getElementById('gradeCap');
+const $hanja=document.getElementById('hanja');
+const $mean=document.getElementById('meaning');
+const $re=document.getElementById('reappear');
+const $row=document.getElementById('row');
+
+let seq=0;
+const seen={}; // char -> times shown
+
+function pick(){ return pool[Math.floor(Math.random()*pool.length)]; }
+
+function show(){
+  const item=pick();
+  seq++;
+  seen[item.char]=(seen[item.char]||0)+1;
+
+  $count.textContent=seq;
+  $gNum.textContent=SHORT[item.grade];
+  $gCap.textContent=item.grade+" 수준";
+
+  // reappear marker (left of char)
+  if(seen[item.char]>1){
+    $re.innerHTML='<b>'+seen[item.char]+'</b>번째<br>등장';
+    $re.style.display='block';
+  }else{
+    $re.style.display='none';
+  }
+
+  // hide meaning, set char with enter anim
+  $mean.classList.remove('show');
+  $hanja.textContent=item.char;
+  $row.classList.remove('anim');
+  void $row.offsetWidth;
+  $row.classList.add('anim');
+
+  // reveal meaning + reading after 2s
+  setTimeout(()=>{
+    $mean.innerHTML=
+      '<span class="mn">'+item.mean+'</span>'+
+      '<span class="sep">·</span>'+
+      '<span class="rd">'+item.read+'</span>';
+    $mean.classList.add('show');
+  },2000);
+
+  // next char after 2s more (total 4s)
+  setTimeout(show,4000);
+}
+
+show();
+</script>
+</body>
+</html>

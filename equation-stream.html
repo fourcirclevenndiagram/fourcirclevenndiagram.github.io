@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>EQ STREAM</title>
+<style>
+  :root{
+    --bg:#06080d;
+    --panel:#0b0f1a;
+    --grid:#10243a;
+    --green:#39ff14;
+    --cyan:#00e5ff;
+    --amber:#ffb627;
+    --pink:#ff2d95;
+    --dim:#3a5068;
+    --line:#7dffb0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--green);
+    font-family:"SFMono-Regular",ui-monospace,"Roboto Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+    height:100dvh;
+    overflow:hidden;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    display:flex;
+    flex-direction:column;
+    -webkit-font-smoothing:none;
+    user-select:none;
+  }
+  .scanlines{
+    pointer-events:none;
+    position:fixed;inset:0;z-index:50;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.18) 3px,rgba(0,0,0,0) 4px);
+    mix-blend-mode:multiply;
+  }
+  .vignette{
+    pointer-events:none;position:fixed;inset:0;z-index:49;
+    background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.55) 100%);
+  }
+
+  header{
+    flex:0 0 auto;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:8px;
+    padding:8px 10px 6px;
+    border-bottom:1px solid var(--grid);
+    background:linear-gradient(180deg,#0c1322,#070a12);
+  }
+  .title{
+    font-size:13px;letter-spacing:2px;color:var(--cyan);
+    text-shadow:0 0 6px rgba(0,229,255,.6);
+  }
+  .title small{display:block;font-size:8px;color:var(--dim);letter-spacing:1px;margin-top:2px;}
+
+  .records{
+    text-align:right;font-size:9px;line-height:1.45;max-width:62%;
+  }
+  .rec{
+    border:1px solid var(--grid);border-radius:4px;
+    padding:3px 6px;margin-bottom:4px;background:rgba(13,28,46,.5);
+  }
+  .rec .lbl{display:block;font-size:7.5px;letter-spacing:1px;color:var(--dim);margin-bottom:1px;}
+  .rec.max{color:var(--amber);text-shadow:0 0 5px rgba(255,182,39,.5);}
+  .rec.min{color:var(--pink);text-shadow:0 0 5px rgba(255,45,149,.5);}
+  .rec .seq{color:var(--cyan);}
+  .rec .val{font-weight:bold;}
+
+  #screen{
+    flex:1 1 auto;
+    overflow:hidden;
+    padding:6px 10px;
+    font-size:12px;
+    line-height:1.55;
+    position:relative;
+  }
+  .row{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:clip;
+    opacity:0;
+    transform:translateY(4px);
+    animation:appear .28s ease forwards;
+  }
+  @keyframes appear{to{opacity:1;transform:translateY(0);}}
+  .row .num{color:var(--dim);margin-right:6px;}
+  .row .expr{color:var(--line);}
+  .row .eq{color:var(--cyan);margin:0 4px;}
+  .row .res{color:var(--green);font-weight:bold;text-shadow:0 0 5px rgba(57,255,20,.45);}
+  .row.hi-max .res{color:var(--amber);text-shadow:0 0 7px rgba(255,182,39,.7);}
+  .row.hi-min .res{color:var(--pink);text-shadow:0 0 7px rgba(255,45,149,.7);}
+  .caret{color:var(--green);animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  footer{
+    flex:0 0 auto;
+    display:flex;gap:8px;align-items:center;justify-content:space-between;
+    padding:6px 10px calc(6px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--grid);
+    background:linear-gradient(0deg,#0c1322,#070a12);
+    font-size:10px;color:var(--dim);
+  }
+  .stat{letter-spacing:1px;}
+  .stat b{color:var(--cyan);}
+  button{
+    font-family:inherit;
+    background:#0e1a2c;color:var(--green);
+    border:1px solid var(--grid);border-radius:5px;
+    padding:7px 14px;font-size:11px;letter-spacing:1px;
+    text-shadow:0 0 4px rgba(57,255,20,.4);
+  }
+  button:active{background:#13263d;}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<header>
+  <div class="title">EQ://STREAM
+    <small>RANDOM EXPRESSION FEED</small>
+  </div>
+  <div class="records">
+    <div class="rec max">
+      <span class="lbl">▲ ALL-TIME MAX</span>
+      <span id="maxLine">—</span>
+    </div>
+    <div class="rec min">
+      <span class="lbl">▼ ALL-TIME MIN</span>
+      <span id="minLine">—</span>
+    </div>
+  </div>
+</header>
+
+<div id="screen"></div>
+
+<footer>
+  <span class="stat">SEQ <b id="seqStat">0</b></span>
+  <span class="stat">EVERY <b>2.0s</b></span>
+  <button id="toggle">PAUSE</button>
+</footer>
+
+<script>
+(function(){
+  const screen = document.getElementById('screen');
+  const seqStat = document.getElementById('seqStat');
+  const maxLine = document.getElementById('maxLine');
+  const minLine = document.getElementById('minLine');
+  const toggleBtn = document.getElementById('toggle');
+
+  const OPS = ['+','-','*','/'];
+  let seq = 0;
+  let timer = null;
+  let running = true;
+  let maxRec = null;   // {seq, expr, value}
+  let minRec = null;
+
+  // 무작위 피연산자: 0.1~0.9(0.1 단위) 또는 1~20(정수)
+  function randOperand(){
+    if(Math.random() < 0.5){
+      const t = Math.floor(Math.random()*9)+1;   // 1..9
+      return { raw: t/10, str: (t/10).toFixed(1) };
+    } else {
+      const n = Math.floor(Math.random()*20)+1;   // 1..20
+      return { raw: n, str: String(n) };
+    }
+  }
+  function randOp(){ return OPS[Math.floor(Math.random()*OPS.length)]; }
+
+  // 사칙연산 우선순위를 지켜 계산 (피연산자 6, 연산자 5)
+  function evaluate(nums, ops){
+    let val = [...nums.map(n=>n.raw)];
+    let op = [...ops];
+    // 1차: * /
+    for(let i=0;i<op.length;){
+      if(op[i]==='*'||op[i]==='/'){
+        let r = op[i]==='*' ? val[i]*val[i+1] : val[i]/val[i+1];
+        val.splice(i,2,r);
+        op.splice(i,1);
+      } else i++;
+    }
+    // 2차: + -
+    let acc = val[0];
+    for(let i=0;i<op.length;i++){
+      acc = op[i]==='+' ? acc+val[i+1] : acc-val[i+1];
+    }
+    return acc;
+  }
+
+  function fmt(v){
+    if(!isFinite(v)) return '∞';
+    let r = Math.round(v*1000)/1000;
+    return String(r);
+  }
+
+  function makeExpr(){
+    const nums = Array.from({length:6}, randOperand);
+    const ops  = Array.from({length:5}, randOp);
+    let s = nums[0].str;
+    for(let i=0;i<5;i++) s += ' ' + ops[i] + ' ' + nums[i+1].str;
+    const value = evaluate(nums, ops);
+    return { expr:s, value };
+  }
+
+  function updateRecords(){
+    if(maxRec){
+      maxLine.innerHTML = '#<span class="seq">'+maxRec.seq+'</span>  '+
+        maxRec.expr.replace(/\*/g,'×').replace(/\//g,'÷')+
+        ' = <span class="val">'+fmt(maxRec.value)+'</span>';
+    }
+    if(minRec){
+      minLine.innerHTML = '#<span class="seq">'+minRec.seq+'</span>  '+
+        minRec.expr.replace(/\*/g,'×').replace(/\//g,'÷')+
+        ' = <span class="val">'+fmt(minRec.value)+'</span>';
+    }
+  }
+
+  function lineCapacity(){
+    const rowH = 12 * 1.55; // font-size * line-height
+    const usable = screen.clientHeight - 12; // padding
+    return Math.max(4, Math.floor(usable / rowH));
+  }
+
+  function pushLine(){
+    seq++;
+    const {expr, value} = makeExpr();
+
+    let isMax=false, isMin=false;
+    if(!maxRec || value > maxRec.value){ maxRec={seq,expr,value}; isMax=true; }
+    if(!minRec || value < minRec.value){ minRec={seq,expr,value}; isMin=true; }
+
+    const row = document.createElement('div');
+    row.className = 'row' + (isMax?' hi-max':'') + (isMin?' hi-min':'');
+    const disp = expr.replace(/\*/g,'×').replace(/\//g,'÷');
+    row.innerHTML =
+      '<span class="num">'+String(seq).padStart(4,'0')+'</span>'+
+      '<span class="expr">'+disp+'</span>'+
+      '<span class="eq">=</span>'+
+      '<span class="res">'+fmt(value)+'</span>';
+    screen.appendChild(row);
+
+    // 화면이 꽉 차면 맨 윗줄부터 제거 (위로 스크롤되는 CLI 동작)
+    const cap = lineCapacity();
+    while(screen.children.length > cap){
+      screen.removeChild(screen.firstChild);
+    }
+
+    seqStat.textContent = seq;
+    updateRecords();
+  }
+
+  function start(){
+    if(timer) return;
+    timer = setInterval(pushLine, 2000);
+  }
+  function stop(){ clearInterval(timer); timer=null; }
+
+  toggleBtn.addEventListener('click', ()=>{
+    running = !running;
+    if(running){ start(); toggleBtn.textContent='PAUSE'; }
+    else{ stop(); toggleBtn.textContent='RESUME'; }
+  });
+
+  // 탭 전환 시 자동 일시정지
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){ stop(); }
+    else if(running){ start(); }
+  });
+
+  pushLine();   // 즉시 첫 줄
+  start();
+})();
+</script>
+</body>
+</html>

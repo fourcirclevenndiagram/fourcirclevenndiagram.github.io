@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>py.live // auto</title>
+<style>
+  :root{
+    --bg:#0a0e14;
+    --panel:#0d1320;
+    --grid:rgba(40,70,110,.12);
+    --txt:#c8d6e8;
+    --dim:#54657d;
+    --kw:#ff7edb;     /* keyword */
+    --def:#36f9f6;    /* def/class */
+    --str:#a3e635;    /* string */
+    --num:#ffb86c;    /* number */
+    --cmt:#5a6b82;    /* comment */
+    --bin:#82aaff;    /* builtin */
+    --op:#89ddff;     /* operator */
+    --ok:#3ef58a;
+    --warn:#ff5e7a;
+    --prompt:#ffce54;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:var(--bg);
+    color:var(--txt);
+    font-family:"SFMono-Regular",ui-monospace,"Menlo","Consolas","Cascadia Code",monospace;
+    height:100dvh;
+    display:flex;flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  /* CRT 배경 */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:5;
+    background:
+      linear-gradient(rgba(8,12,18,0) 50%, rgba(0,0,0,.22) 50%),
+      radial-gradient(circle at 50% 50%, rgba(40,70,110,.06), transparent 70%);
+    background-size:100% 3px, 100% 100%;
+    mix-blend-mode:multiply;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:6;
+    box-shadow:inset 0 0 140px rgba(0,0,0,.55);
+  }
+
+  header{
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:8px;
+    padding:11px 14px 9px;
+    border-bottom:1px solid var(--grid);
+    background:linear-gradient(180deg,#0c1422,#0a0e14);
+    z-index:7;
+  }
+  .dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 8px currentColor}
+  .d1{color:#ff5f57;background:#ff5f57}
+  .d2{color:#febc2e;background:#febc2e}
+  .d3{color:#28c840;background:#28c840}
+  .title{margin-left:6px;font-size:12px;letter-spacing:1px;color:var(--dim)}
+  .title b{color:var(--def);font-weight:600}
+  .stat{margin-left:auto;font-size:11px;color:var(--dim);letter-spacing:.5px}
+  .stat span{color:var(--prompt)}
+
+  main{
+    flex:1 1 auto;
+    overflow:hidden;
+    position:relative;
+    z-index:4;
+  }
+  #scroll{
+    position:absolute;inset:0;
+    overflow-y:hidden;
+    padding:14px 14px 60px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .ln{white-space:pre-wrap;word-break:break-word}
+  .gutter{color:var(--grid);color:#2c3a4d;margin-right:12px;user-select:none}
+  .kw{color:var(--kw)} .def{color:var(--def);font-weight:600}
+  .str{color:var(--str)} .num{color:var(--num)} .cmt{color:var(--cmt);font-style:italic}
+  .bin{color:var(--bin)} .op{color:var(--op)} .name{color:var(--txt)}
+  .dec{color:var(--prompt)}
+
+  .cursor{
+    display:inline-block;width:8px;height:15px;
+    background:var(--def);box-shadow:0 0 8px var(--def);
+    vertical-align:-2px;animation:blink .9s steps(1) infinite;
+  }
+  @keyframes blink{50%{opacity:0}}
+
+  .banner{
+    margin:10px 0 4px;padding:5px 10px;border-radius:4px;
+    font-size:11px;letter-spacing:1.5px;display:inline-block;
+  }
+  .b-build{color:var(--prompt);border:1px solid rgba(255,206,84,.35);background:rgba(255,206,84,.06)}
+  .b-build::before{content:"⏵ ";}
+  .b-run{color:var(--ok);border:1px solid rgba(62,245,138,.3);background:rgba(62,245,138,.05)}
+  .b-run::before{content:"$ python ";color:var(--dim)}
+  .out{color:#e8f0fb;white-space:pre-wrap;word-break:break-word;padding-left:2px}
+  .out-dim{color:var(--dim)}
+  .exit{color:var(--dim);font-size:11px;margin:4px 0 2px}
+  .exit b{color:var(--ok)}
+  .rule{height:1px;background:var(--grid);margin:14px 0;}
+
+  footer{
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:14px;
+    padding:9px 14px calc(9px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--grid);
+    background:linear-gradient(0deg,#0c1422,#0a0e14);
+    z-index:7;font-size:11px;color:var(--dim);letter-spacing:.5px;
+  }
+  .btn{
+    color:var(--txt);background:rgba(54,249,246,.07);
+    border:1px solid rgba(54,249,246,.25);
+    padding:6px 14px;border-radius:5px;font-size:12px;
+    font-family:inherit;cursor:pointer;letter-spacing:1px;
+  }
+  .btn:active{transform:scale(.95)}
+  .btn.paused{color:var(--warn);border-color:rgba(255,94,122,.4);background:rgba(255,94,122,.07)}
+  .speed{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .sp{padding:5px 9px;border:1px solid var(--grid);border-radius:4px;color:var(--dim);cursor:pointer}
+  .sp.on{color:var(--prompt);border-color:rgba(255,206,84,.4);background:rgba(255,206,84,.06)}
+</style>
+</head>
+<body>
+<header>
+  <span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span>
+  <span class="title">py<b>.live</b> // auto-coder</span>
+  <span class="stat">run <span id="count">0</span> · <span id="lines">0</span>L</span>
+</header>
+
+<main><div id="scroll"></div></main>
+
+<footer>
+  <button class="btn" id="toggle">❚❚ PAUSE</button>
+  <span id="mode">생성 중…</span>
+  <div class="speed">
+    <span class="sp" data-s="1.7">느림</span>
+    <span class="sp on" data-s="1">보통</span>
+    <span class="sp" data-s="0.45">빠름</span>
+  </div>
+</footer>
+
+<script>
+"use strict";
+const $scroll = document.getElementById('scroll');
+const $count  = document.getElementById('count');
+const $lines  = document.getElementById('lines');
+const $toggle = document.getElementById('toggle');
+const $mode   = document.getElementById('mode');
+
+let speed = 1, runs = 0, paused = false, alive = 0;
+const ri  = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick= a=>a[Math.floor(Math.random()*a.length)];
+const sleep=ms=>new Promise(r=>setTimeout(r, ms*speed));
+
+/* ---------- 데이터 풀 ---------- */
+const NAMES = ["data","items","values","nums","arr","result","total","cache","queue","stack","graph","nodes","matrix","grid","tokens","scores","weights","buffer","records","series","pixels","cells","heap","table","pool"];
+const FUNCS = ["process","compute","analyze","transform","build","resolve","collect","render","simulate","optimize","encode","traverse","aggregate","sample","evolve","scan","merge","reduce","filter_data","normalize"];
+const FRUITS= ["사과","바나나","포도","복숭아","수박","딸기","오렌지","키위","망고","체리","파인애플","멜론"];
+const WORDS = ["fire","water","grass","alpha","beta","gamma","nova","echo","flux","void","prism","quartz","cobalt","ember","frost"];
+
+/* ---------- syntax highlight ---------- */
+const KW = new Set("def class return if elif else for while in not and or is None True False import from as with try except finally lambda yield break continue pass global print range len".split(" "));
+const BI = new Set("print range len int str list dict set tuple sum max min sorted enumerate map filter zip abs round type input open format reversed any all".split(" "));
+function hl(line){
+  return line.replace(/(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+\.?\d*\b)|(@\w+)|([A-Za-z_]\w*)|([=+\-*/%<>!:.,()\[\]{}]+)/g,
+  (m,cmt,str,num,dec,word,op)=>{
+    if(cmt)return `<span class="cmt">${esc(cmt)}</span>`;
+    if(str)return `<span class="str">${esc(str)}</span>`;
+    if(num)return `<span class="num">${num}</span>`;
+    if(dec)return `<span class="dec">${dec}</span>`;
+    if(word){
+      if(KW.has(word))return `<span class="kw">${word}</span>`;
+      if(BI.has(word))return `<span class="bin">${word}</span>`;
+      return `<span class="name">${word}</span>`;
+    }
+    if(op)return `<span class="op">${esc(op)}</span>`;
+    return esc(m);
+  });
+}
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ---------- 20+ 코드 패턴 ---------- */
+/* 각 패턴: {code:[...lines], out:()=>"출력문자열"} */
+const PATTERNS = [
+
+// 1. 리스트 컴프리헨션 제곱
+()=>{const n=ri(5,9),nm=pick(NAMES);
+ return{code:[
+  `# 제곱수 생성`,
+  `${nm} = [x**2 for x in range(${n})]`,
+  `print(${nm})`],
+  out:`[${Array.from({length:n},(_,i)=>i*i).join(", ")}]`};},
+
+// 2. 피보나치
+()=>{const n=ri(7,12);let a=0,b=1,s=[];for(let i=0;i<n;i++){s.push(a);[a,b]=[b,a+b];}
+ return{code:[
+  `def fib(n):`,
+  `    a, b = 0, 1`,
+  `    seq = []`,
+  `    for _ in range(n):`,
+  `        seq.append(a)`,
+  `        a, b = b, a + b`,
+  `    return seq`,
+  ``,
+  `print(fib(${n}))`],
+  out:`[${s.join(", ")}]`};},
+
+// 3. dict 카운터 (과일)
+()=>{const sample=Array.from({length:ri(6,10)},()=>pick(FRUITS));
+ const cnt={};sample.forEach(f=>cnt[f]=(cnt[f]||0)+1);
+ const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+ return{code:[
+  `from collections import Counter`,
+  `basket = ${py(sample)}`,
+  `freq = Counter(basket)`,
+  `print(freq.most_common())`],
+  out:`[${top.map(([k,v])=>`('${k}', ${v})`).join(", ")}]`};},
+
+// 4. FizzBuzz
+()=>{const n=ri(10,16);let lines=[];for(let i=1;i<=n;i++){lines.push(i%15===0?"FizzBuzz":i%3===0?"Fizz":i%5===0?"Buzz":i);}
+ return{code:[
+  `for i in range(1, ${n+1}):`,
+  `    if i % 15 == 0:`,
+  `        print("FizzBuzz")`,
+  `    elif i % 3 == 0:`,
+  `        print("Fizz")`,
+  `    elif i % 5 == 0:`,
+  `        print("Buzz")`,
+  `    else:`,
+  `        print(i)`],
+  out:lines.join("\n")};},
+
+// 5. 클래스 정의 + 사용
+()=>{const x=ri(2,8),y=ri(2,8),ax=ri(1,5),ay=ri(1,5),cn=pick(["Vector","Point","Cell","Node"]);
+ return{code:[
+  `class ${cn}:`,
+  `    def __init__(self, x, y):`,
+  `        self.x, self.y = x, y`,
+  `    def __add__(self, o):`,
+  `        return ${cn}(self.x+o.x, self.y+o.y)`,
+  `    def __repr__(self):`,
+  `        return f"${cn}({self.x}, {self.y})"`,
+  ``,
+  `p = ${cn}(${x}, ${y}) + ${cn}(${ax}, ${ay})`,
+  `print(p)`],
+  out:`${cn}(${x+ax}, ${y+ay})`};},
+
+// 6. 소수 판별 (에라토스테네스)
+()=>{const n=ri(20,40);const sieve=new Array(n+1).fill(true);sieve[0]=sieve[1]=false;
+ for(let i=2;i*i<=n;i++)if(sieve[i])for(let j=i*i;j<=n;j+=i)sieve[j]=false;
+ const primes=[];for(let i=2;i<=n;i++)if(sieve[i])primes.push(i);
+ return{code:[
+  `def primes_upto(n):`,
+  `    sieve = [True] * (n + 1)`,
+  `    sieve[0] = sieve[1] = False`,
+  `    for i in range(2, int(n**0.5)+1):`,
+  `        if sieve[i]:`,
+  `            for j in range(i*i, n+1, i):`,
+  `                sieve[j] = False`,
+  `    return [i for i in range(n+1) if sieve[i]]`,
+  ``,
+  `print(primes_upto(${n}))`],
+  out:`[${primes.join(", ")}]`};},
+
+// 7. 문자열 reverse / 회문
+()=>{const w=pick(WORDS)+pick(WORDS);
+ return{code:[
+  `s = "${w}"`,
+  `rev = s[::-1]`,
+  `print(rev)`,
+  `print("회문" if s == rev else "비회문")`],
+  out:`${w.split("").reverse().join("")}\n비회문`};},
+
+// 8. map/filter/lambda
+()=>{const arr=Array.from({length:ri(5,8)},()=>ri(1,20));
+ const ev=arr.filter(x=>x%2===0).map(x=>x*x);
+ return{code:[
+  `nums = ${py(arr)}`,
+  `even_sq = list(map(lambda x: x*x,`,
+  `                filter(lambda x: x % 2 == 0, nums)))`,
+  `print(even_sq)`],
+  out:`[${ev.join(", ")}]`};},
+
+// 9. sum / max / min 통계
+()=>{const arr=Array.from({length:ri(6,9)},()=>ri(1,99));
+ const s=arr.reduce((a,b)=>a+b,0);
+ return{code:[
+  `data = ${py(arr)}`,
+  `print("합:", sum(data))`,
+  `print("최대:", max(data))`,
+  `print("평균:", round(sum(data)/len(data), 2))`],
+  out:`합: ${s}\n최대: ${Math.max(...arr)}\n평균: ${(s/arr.length).toFixed(2)}`};},
+
+// 10. 딕셔너리 컴프리헨션
+()=>{const n=ri(4,7);
+ return{code:[
+  `squares = {x: x**3 for x in range(1, ${n+1})}`,
+  `print(squares)`],
+  out:`{${Array.from({length:n},(_,i)=>`${i+1}: ${(i+1)**3}`).join(", ")}}`};},
+
+// 11. zip 매칭
+()=>{const ks=["fire","water","grass"];const vs=Array.from({length:3},()=>ri(10,99));
+ return{code:[
+  `keys = ${py(ks)}`,
+  `vals = ${py(vs)}`,
+  `paired = dict(zip(keys, vals))`,
+  `print(paired)`],
+  out:`{${ks.map((k,i)=>`'${k}': ${vs[i]}`).join(", ")}}`};},
+
+// 12. 재귀 팩토리얼
+()=>{const n=ri(4,7);let f=1;for(let i=2;i<=n;i++)f*=i;
+ return{code:[
+  `def fact(n):`,
+  `    return 1 if n <= 1 else n * fact(n-1)`,
+  ``,
+  `print(fact(${n}))`],
+  out:`${f}`};},
+
+// 13. enumerate 인덱싱
+()=>{const arr=Array.from({length:ri(3,5)},()=>pick(FRUITS));
+ return{code:[
+  `fruits = ${py(arr)}`,
+  `for i, name in enumerate(fruits, 1):`,
+  `    print(f"{i}. {name}")`],
+  out:arr.map((f,i)=>`${i+1}. ${f}`).join("\n")};},
+
+// 14. set 연산
+()=>{const a=[...new Set(Array.from({length:5},()=>ri(1,9)))];
+ const b=[...new Set(Array.from({length:5},()=>ri(1,9)))];
+ const inter=a.filter(x=>b.includes(x));const uni=[...new Set([...a,...b])].sort((x,y)=>x-y);
+ return{code:[
+  `A = ${pyset(a)}`,
+  `B = ${pyset(b)}`,
+  `print("교집합:", A & B)`,
+  `print("합집합:", A | B)`],
+  out:`교집합: {${[...new Set(inter)].sort((x,y)=>x-y).join(", ")||" "}}\n합집합: {${uni.join(", ")}}`};},
+
+// 15. 버블 정렬
+()=>{const arr=Array.from({length:ri(5,7)},()=>ri(1,99));const sorted=[...arr].sort((a,b)=>a-b);
+ return{code:[
+  `def bubble(a):`,
+  `    a = a[:]`,
+  `    for i in range(len(a)):`,
+  `        for j in range(len(a)-i-1):`,
+  `            if a[j] > a[j+1]:`,
+  `                a[j], a[j+1] = a[j+1], a[j]`,
+  `    return a`,
+  ``,
+  `print(bubble(${py(arr)}))`],
+  out:`[${sorted.join(", ")}]`};},
+
+// 16. f-string 포맷
+()=>{const nm=pick(WORDS),v=(Math.random()*100).toFixed(4);
+ return{code:[
+  `name = "${nm}"`,
+  `score = ${v}`,
+  `print(f"[{name:>8}] {score:6.2f}점")`],
+  out:`[${nm.padStart(8)}] ${Number(v).toFixed(2).padStart(6)}점`};},
+
+// 17. while 루프 카운트다운
+()=>{const n=ri(3,5);let o=[];for(let i=n;i>0;i--)o.push(`T-${i}`);o.push("발사!");
+ return{code:[
+  `n = ${n}`,
+  `while n > 0:`,
+  `    print(f"T-{n}")`,
+  `    n -= 1`,
+  `print("발사!")`],
+  out:o.join("\n")};},
+
+// 18. try/except
+()=>{const d=pick([0,ri(1,5)]);
+ return{code:[
+  `try:`,
+  `    result = 100 / ${d}`,
+  `    print(result)`,
+  `except ZeroDivisionError:`,
+  `    print("0으로 나눌 수 없음")`],
+  out:d===0?"0으로 나눌 수 없음":`${(100/d)}`};},
+
+// 19. 데코레이터
+()=>{const a=ri(2,9),b=ri(2,9);
+ return{code:[
+  `def logged(fn):`,
+  `    def wrap(*args):`,
+  `        print(f"call {fn.__name__}{args}")`,
+  `        return fn(*args)`,
+  `    return wrap`,
+  ``,
+  `@logged`,
+  `def add(a, b):`,
+  `    return a + b`,
+  ``,
+  `print(add(${a}, ${b}))`],
+  out:`call add(${a}, ${b})\n${a+b}`};},
+
+// 20. 행렬 전치
+()=>{const r=ri(2,3),c=ri(2,3);
+ const m=Array.from({length:r},()=>Array.from({length:c},()=>ri(1,9)));
+ const t=Array.from({length:c},(_,j)=>Array.from({length:r},(_,i)=>m[i][j]));
+ return{code:[
+  `matrix = ${py(m)}`,
+  `T = [list(row) for row in zip(*matrix)]`,
+  `print(T)`],
+  out:`[${t.map(row=>`[${row.join(", ")}]`).join(", ")}]`};},
+
+// 21. 슬라이싱
+()=>{const arr=Array.from({length:ri(8,12)},(_,i)=>i);
+ return{code:[
+  `xs = ${py(arr)}`,
+  `print(xs[2:7])`,
+  `print(xs[::2])`,
+  `print(xs[::-1])`],
+  out:`[${arr.slice(2,7).join(", ")}]\n[${arr.filter((_,i)=>i%2===0).join(", ")}]\n[${[...arr].reverse().join(", ")}]`};},
+
+// 22. 제너레이터
+()=>{const n=ri(4,6);
+ return{code:[
+  `def squares(n):`,
+  `    for i in range(n):`,
+  `        yield i * i`,
+  ``,
+  `print(list(squares(${n})))`],
+  out:`[${Array.from({length:n},(_,i)=>i*i).join(", ")}]`};},
+
+// 23. 콜라츠 추측
+()=>{let n=ri(6,27);const seq=[n];while(n!==1){n=n%2===0?n/2:3*n+1;seq.push(n);}
+ const start=seq[0];
+ return{code:[
+  `def collatz(n):`,
+  `    seq = [n]`,
+  `    while n != 1:`,
+  `        n = n // 2 if n % 2 == 0 else 3*n + 1`,
+  `        seq.append(n)`,
+  `    return seq`,
+  ``,
+  `print(collatz(${start}))`],
+  out:`[${seq.join(", ")}]`};},
+
+// 24. 문자 빈도 (Thue-Morse 풍 비트)
+()=>{const n=ri(8,16);let s="";for(let i=0;i<n;i++){let c=0,x=i;while(x){c+=x&1;x>>=1;}s+=c&1;}
+ return{code:[
+  `# Thue–Morse 수열`,
+  `tm = "".join(str(bin(i).count("1") % 2) for i in range(${n}))`,
+  `print(tm)`],
+  out:s};},
+
+// 25. random 시뮬레이션
+()=>{const n=ri(5,8);const rolls=Array.from({length:n},()=>ri(1,6));
+ return{code:[
+  `import random`,
+  `rolls = [random.randint(1, 6) for _ in range(${n})]`,
+  `print(rolls, "→ 합:", sum(rolls))`],
+  out:`[${rolls.join(", ")}] → 합: ${rolls.reduce((a,b)=>a+b,0)}`};},
+
+/* ========== 긴 프로그램 패턴 (15~90줄) ========== */
+
+// 26. 은행 계좌 시스템 (클래스 + 트랜잭션 로그)
+()=>{
+ const owner=pick(WORDS);
+ const start=ri(100,500), dep=ri(50,300), wd=ri(50,200);
+ const bal1=start+dep, bal2=bal1-wd;
+ const over = wd>bal1;
+ return{code:[
+  `class Account:`,
+  `    def __init__(self, owner, balance=0):`,
+  `        self.owner = owner`,
+  `        self.balance = balance`,
+  `        self.log = []`,
+  ``,
+  `    def deposit(self, amount):`,
+  `        self.balance += amount`,
+  `        self.log.append(("입금", amount))`,
+  `        return self.balance`,
+  ``,
+  `    def withdraw(self, amount):`,
+  `        if amount > self.balance:`,
+  `            self.log.append(("실패", amount))`,
+  `            print(f"잔액 부족: {amount} > {self.balance}")`,
+  `            return self.balance`,
+  `        self.balance -= amount`,
+  `        self.log.append(("출금", amount))`,
+  `        return self.balance`,
+  ``,
+  `    def statement(self):`,
+  `        print(f"== {self.owner}님 거래내역 ==")`,
+  `        for kind, amt in self.log:`,
+  `            print(f"  {kind}: {amt:,}원")`,
+  `        print(f"  최종 잔액: {self.balance:,}원")`,
+  ``,
+  ``,
+  `acc = Account("${owner}", ${start})`,
+  `acc.deposit(${dep})`,
+  `acc.withdraw(${wd})`,
+  `acc.statement()`],
+  out:(()=>{
+    let l=[];
+    if(over)l.push(`잔액 부족: ${wd} > ${bal1}`);
+    l.push(`== ${owner}님 거래내역 ==`);
+    l.push(`  입금: ${dep.toLocaleString()}원`);
+    l.push(over?`  실패: ${wd.toLocaleString()}원`:`  출금: ${wd.toLocaleString()}원`);
+    l.push(`  최종 잔액: ${(over?bal1:bal2).toLocaleString()}원`);
+    return l.join("\n");
+  })()};},
+
+// 27. 재고/주문 관리 시스템 (과일가게)
+()=>{
+ const fruits=[];
+ const used=new Set();
+ const n=ri(4,6);
+ while(fruits.length<n){const f=pick(FRUITS);if(!used.has(f)){used.add(f);fruits.push({name:f,price:ri(2,9)*1000,qty:ri(5,30)});}}
+ const orders=[];
+ const oc=ri(2,4);
+ for(let i=0;i<oc;i++){const f=fruits[ri(0,fruits.length-1)];orders.push({name:f.name,buy:ri(1,5)});}
+ const stock={};fruits.forEach(f=>stock[f.name]={...f});
+ let total=0;const receipt=[];
+ for(const o of orders){
+   const s=stock[o.name];
+   const take=Math.min(o.buy,s.qty);
+   const cost=take*s.price;
+   total+=cost;s.qty-=take;
+   receipt.push(`  ${o.name} x${take} = ${cost.toLocaleString()}원`);
+ }
+ return{code:[
+  `inventory = {`,
+  ...fruits.map(f=>`    "${f.name}": {"price": ${f.price}, "qty": ${f.qty}},`),
+  `}`,
+  ``,
+  `orders = [`,
+  ...orders.map(o=>`    ("${o.name}", ${o.buy}),`),
+  `]`,
+  ``,
+  `def fulfill(inv, orders):`,
+  `    total = 0`,
+  `    print("=== 영수증 ===")`,
+  `    for name, want in orders:`,
+  `        item = inv[name]`,
+  `        take = min(want, item["qty"])`,
+  `        cost = take * item["price"]`,
+  `        item["qty"] -= take`,
+  `        total += cost`,
+  `        print(f"  {name} x{take} = {cost:,}원")`,
+  `    print(f"  합계: {total:,}원")`,
+  `    return total`,
+  ``,
+  ``,
+  `fulfill(inventory, orders)`],
+  out:`=== 영수증 ===\n${receipt.join("\n")}\n  합계: ${total.toLocaleString()}원`};},
+
+// 28. 미니 인터프리터 (RPN 스택 계산기)
+()=>{
+ const count=ri(4,7);
+ const seq=[];
+ seq.push(ri(1,9),ri(1,9),pick(["+","-","*"]));
+ for(let i=0;i<count-1;i++){seq.push(ri(1,9));seq.push(pick(["+","-","*"]));}
+ let stack=[];const trace=[];
+ for(const t of seq){
+   if(typeof t==="number")stack.push(t);
+   else{const b=stack.pop(),a=stack.pop();const v=t==="+"?a+b:t==="-"?a-b:a*b;stack.push(v);trace.push(`  ${a} ${t} ${b} = ${v}`);}
+ }
+ const res=stack[0];
+ return{code:[
+  `def rpn_eval(tokens):`,
+  `    stack = []`,
+  `    ops = {`,
+  `        "+": lambda a, b: a + b,`,
+  `        "-": lambda a, b: a - b,`,
+  `        "*": lambda a, b: a * b,`,
+  `    }`,
+  `    for tok in tokens:`,
+  `        if tok in ops:`,
+  `            b = stack.pop()`,
+  `            a = stack.pop()`,
+  `            stack.append(ops[tok](a, b))`,
+  `            print(f"  {a} {tok} {b} = {stack[-1]}")`,
+  `        else:`,
+  `            stack.append(int(tok))`,
+  `    return stack[0]`,
+  ``,
+  ``,
+  `expr = ${py(seq.map(String))}`,
+  `print("계산 시작:", " ".join(expr))`,
+  `answer = rpn_eval(expr)`,
+  `print("결과:", answer)`],
+  out:`계산 시작: ${seq.join(" ")}\n${trace.join("\n")}\n결과: ${res}`};},
+
+// 29. 그래프 BFS 탐색
+()=>{
+ const nodes="ABCDEF".split("").slice(0,ri(5,6));
+ const adj={};nodes.forEach(n=>adj[n]=[]);
+ for(let i=0;i<nodes.length-1;i++){adj[nodes[i]].push(nodes[i+1]);adj[nodes[i+1]].push(nodes[i]);}
+ const extra=ri(1,2);
+ for(let i=0;i<extra;i++){const a=pick(nodes),b=pick(nodes);if(a!==b&&!adj[a].includes(b)){adj[a].push(b);adj[b].push(a);}}
+ nodes.forEach(n=>adj[n].sort());
+ const start=nodes[0];
+ const visited=[];const q=[start];const seen=new Set([start]);
+ while(q.length){const cur=q.shift();visited.push(cur);for(const nx of adj[cur]){if(!seen.has(nx)){seen.add(nx);q.push(nx);}}}
+ return{code:[
+  `from collections import deque`,
+  ``,
+  `graph = {`,
+  ...nodes.map(n=>`    "${n}": ${py(adj[n])},`),
+  `}`,
+  ``,
+  `def bfs(graph, start):`,
+  `    visited = []`,
+  `    queue = deque([start])`,
+  `    seen = {start}`,
+  `    while queue:`,
+  `        node = queue.popleft()`,
+  `        visited.append(node)`,
+  `        for nxt in graph[node]:`,
+  `            if nxt not in seen:`,
+  `                seen.add(nxt)`,
+  `                queue.append(nxt)`,
+  `    return visited`,
+  ``,
+  ``,
+  `order = bfs(graph, "${start}")`,
+  `print("방문 순서:", " → ".join(order))`],
+  out:`방문 순서: ${visited.join(" → ")}`};},
+
+// 30. 상속 계층 (동물 클래스)
+()=>{
+ const animals=[
+   {cls:"Dog",sound:"멍멍",name:pick(WORDS)},
+   {cls:"Cat",sound:"야옹",name:pick(WORDS)},
+   {cls:"Cow",sound:"음메",name:pick(WORDS)},
+ ];
+ const chosen=animals.slice(0,ri(2,3));
+ return{code:[
+  `class Animal:`,
+  `    def __init__(self, name):`,
+  `        self.name = name`,
+  ``,
+  `    def speak(self):`,
+  `        raise NotImplementedError`,
+  ``,
+  `    def intro(self):`,
+  `        return f"{self.name}: {self.speak()}"`,
+  ``,
+  ``,
+  `class Dog(Animal):`,
+  `    def speak(self): return "멍멍"`,
+  ``,
+  `class Cat(Animal):`,
+  `    def speak(self): return "야옹"`,
+  ``,
+  `class Cow(Animal):`,
+  `    def speak(self): return "음메"`,
+  ``,
+  ``,
+  `farm = [`,
+  ...chosen.map(a=>`    ${a.cls}("${a.name}"),`),
+  `]`,
+  `for animal in farm:`,
+  `    print(animal.intro())`],
+  out:chosen.map(a=>`${a.name}: ${a.sound}`).join("\n")};},
+
+// 31. 텍스트 분석기 (단어 빈도 + 통계)
+()=>{
+ const text=Array.from({length:ri(10,16)},()=>pick(WORDS)).join(" ");
+ const words=text.split(" ");
+ const freq={};words.forEach(w=>freq[w]=(freq[w]||0)+1);
+ const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+ const uniq=Object.keys(freq).length;
+ const avg=(words.reduce((a,w)=>a+w.length,0)/words.length).toFixed(2);
+ return{code:[
+  `text = "${text}"`,
+  ``,
+  `def analyze(text):`,
+  `    words = text.split()`,
+  `    freq = {}`,
+  `    for w in words:`,
+  `        freq[w] = freq.get(w, 0) + 1`,
+  `    return {`,
+  `        "total": len(words),`,
+  `        "unique": len(freq),`,
+  `        "avg_len": round(sum(len(w) for w in words) / len(words), 2),`,
+  `        "ranking": sorted(freq.items(), key=lambda x: (-x[1], x[0])),`,
+  `    }`,
+  ``,
+  ``,
+  `stats = analyze(text)`,
+  `print(f"총 단어: {stats['total']}")`,
+  `print(f"고유 단어: {stats['unique']}")`,
+  `print(f"평균 길이: {stats['avg_len']}")`,
+  `print("빈도 순위:")`,
+  `for word, cnt in stats["ranking"][:5]:`,
+  `    print(f"  {word}: {cnt}")`],
+  out:[
+   `총 단어: ${words.length}`,
+   `고유 단어: ${uniq}`,
+   `평균 길이: ${avg}`,
+   `빈도 순위:`,
+   ...sorted.slice(0,5).map(([w,c])=>`  ${w}: ${c}`)
+  ].join("\n")};},
+
+// 32. 상태 머신 (신호등 시뮬레이션)
+()=>{
+ const steps=ri(5,8);
+ const states=["빨강","초록","노랑"];
+ const dur={"빨강":3,"초록":3,"노랑":1};
+ let s=0,t=0;const log=[];
+ for(let i=0;i<steps;i++){
+   log.push(`t=${t}s: ${states[s]}`);
+   t+=dur[states[s]];
+   s=(s+1)%3;
+ }
+ return{code:[
+  `class TrafficLight:`,
+  `    TRANSITIONS = {`,
+  `        "빨강": ("초록", 3),`,
+  `        "초록": ("노랑", 3),`,
+  `        "노랑": ("빨강", 1),`,
+  `    }`,
+  ``,
+  `    def __init__(self):`,
+  `        self.state = "빨강"`,
+  `        self.time = 0`,
+  ``,
+  `    def step(self):`,
+  `        nxt, dur = self.TRANSITIONS[self.state]`,
+  `        log = f"t={self.time}s: {self.state}"`,
+  `        self.time += dur`,
+  `        self.state = nxt`,
+  `        return log`,
+  ``,
+  ``,
+  `light = TrafficLight()`,
+  `for _ in range(${steps}):`,
+  `    print(light.step())`],
+  out:log.join("\n")};},
+
+// 33. 정렬 알고리즘 비교 (퀵 vs 머지)
+()=>{
+ const arr=Array.from({length:ri(6,9)},()=>ri(1,50));
+ const sorted=[...arr].sort((a,b)=>a-b);
+ return{code:[
+  `def quicksort(a):`,
+  `    if len(a) <= 1:`,
+  `        return a`,
+  `    pivot = a[len(a) // 2]`,
+  `    left = [x for x in a if x < pivot]`,
+  `    mid = [x for x in a if x == pivot]`,
+  `    right = [x for x in a if x > pivot]`,
+  `    return quicksort(left) + mid + quicksort(right)`,
+  ``,
+  ``,
+  `def mergesort(a):`,
+  `    if len(a) <= 1:`,
+  `        return a`,
+  `    m = len(a) // 2`,
+  `    L, R = mergesort(a[:m]), mergesort(a[m:])`,
+  `    out, i, j = [], 0, 0`,
+  `    while i < len(L) and j < len(R):`,
+  `        if L[i] <= R[j]:`,
+  `            out.append(L[i]); i += 1`,
+  `        else:`,
+  `            out.append(R[j]); j += 1`,
+  `    return out + L[i:] + R[j:]`,
+  ``,
+  ``,
+  `data = ${py(arr)}`,
+  `print("원본 :", data)`,
+  `print("퀵   :", quicksort(data))`,
+  `print("머지 :", mergesort(data))`,
+  `print("일치 :", quicksort(data) == mergesort(data))`],
+  out:`원본 : [${arr.join(", ")}]\n퀵   : [${sorted.join(", ")}]\n머지 : [${sorted.join(", ")}]\n일치 : True`};},
+
+// 34. 데이터클래스 (학생 성적 랭킹)
+()=>{
+ const students=Array.from({length:ri(3,5)},()=>({
+   name:pick(WORDS),
+   scores:Array.from({length:3},()=>ri(50,100))
+ }));
+ students.forEach(s=>s.avg=s.scores.reduce((a,b)=>a+b,0)/3);
+ const ranked=[...students].sort((a,b)=>b.avg-a.avg);
+ return{code:[
+  `from dataclasses import dataclass, field`,
+  ``,
+  `@dataclass`,
+  `class Student:`,
+  `    name: str`,
+  `    scores: list = field(default_factory=list)`,
+  ``,
+  `    @property`,
+  `    def average(self):`,
+  `        return sum(self.scores) / len(self.scores)`,
+  ``,
+  `    def grade(self):`,
+  `        a = self.average`,
+  `        if a >= 90: return "A"`,
+  `        if a >= 80: return "B"`,
+  `        if a >= 70: return "C"`,
+  `        return "D"`,
+  ``,
+  ``,
+  `students = [`,
+  ...students.map(s=>`    Student("${s.name}", ${py(s.scores)}),`),
+  `]`,
+  ``,
+  `ranking = sorted(students, key=lambda s: s.average, reverse=True)`,
+  `for rank, s in enumerate(ranking, 1):`,
+  `    print(f"{rank}위 {s.name}: {s.average:.1f}점 ({s.grade()})")`],
+  out:ranked.map((s,i)=>{
+    const a=s.avg;const g=a>=90?"A":a>=80?"B":a>=70?"C":"D";
+    return `${i+1}위 ${s.name}: ${a.toFixed(1)}점 (${g})`;
+  }).join("\n")};},
+
+// 35. 게임 시뮬레이션 (가위바위보)
+()=>{
+ const rounds=ri(4,6);
+ const hands=["바위","보","가위"];
+ const beats={"바위":"가위","보":"바위","가위":"보"};
+ let p1win=0,p2win=0;const log=[];
+ for(let i=0;i<rounds;i++){
+   const a=pick(hands),b=pick(hands);
+   let r;
+   if(a===b)r="무승부";
+   else if(beats[a]===b){r="P1 승";p1win++;}
+   else{r="P2 승";p2win++;}
+   log.push(`R${i+1}: P1(${a}) vs P2(${b}) → ${r}`);
+ }
+ const final=p1win>p2win?"P1 최종 우승":p2win>p1win?"P2 최종 우승":"무승부";
+ return{code:[
+  `import random`,
+  ``,
+  `HANDS = ["바위", "보", "가위"]`,
+  `BEATS = {"바위": "가위", "보": "바위", "가위": "보"}`,
+  ``,
+  `def play_round(p1, p2):`,
+  `    if p1 == p2:`,
+  `        return "무승부"`,
+  `    return "P1 승" if BEATS[p1] == p2 else "P2 승"`,
+  ``,
+  ``,
+  `score = {"P1 승": 0, "P2 승": 0, "무승부": 0}`,
+  `for r in range(1, ${rounds+1}):`,
+  `    p1, p2 = random.choice(HANDS), random.choice(HANDS)`,
+  `    result = play_round(p1, p2)`,
+  `    score[result] += 1`,
+  `    print(f"R{r}: P1({p1}) vs P2({p2}) → {result}")`,
+  ``,
+  `if score["P1 승"] > score["P2 승"]:`,
+  `    print("P1 최종 우승")`,
+  `elif score["P2 승"] > score["P1 승"]:`,
+  `    print("P2 최종 우승")`,
+  `else:`,
+  `    print("무승부")`],
+  out:`${log.join("\n")}\n${final}`};},
+
+// 36. 행렬 곱셈
+()=>{
+ const n=ri(2,3);
+ const A=Array.from({length:n},()=>Array.from({length:n},()=>ri(1,5)));
+ const B=Array.from({length:n},()=>Array.from({length:n},()=>ri(1,5)));
+ const C=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>{
+   let s=0;for(let k=0;k<n;k++)s+=A[i][k]*B[k][j];return s;}));
+ return{code:[
+  `def matmul(A, B):`,
+  `    n, m, p = len(A), len(B), len(B[0])`,
+  `    result = [[0] * p for _ in range(n)]`,
+  `    for i in range(n):`,
+  `        for j in range(p):`,
+  `            for k in range(m):`,
+  `                result[i][j] += A[i][k] * B[k][j]`,
+  `    return result`,
+  ``,
+  ``,
+  `def show(M, label):`,
+  `    print(f"{label}:")`,
+  `    for row in M:`,
+  `        print("  ", row)`,
+  ``,
+  ``,
+  `A = ${py(A)}`,
+  `B = ${py(B)}`,
+  `C = matmul(A, B)`,
+  `show(A, "행렬 A")`,
+  `show(B, "행렬 B")`,
+  `show(C, "A x B")`],
+  out:[
+   `행렬 A:`,...A.map(r=>`   [${r.join(", ")}]`),
+   `행렬 B:`,...B.map(r=>`   [${r.join(", ")}]`),
+   `A x B:`,...C.map(r=>`   [${r.join(", ")}]`)
+  ].join("\n")};},
+
+// 37. 작업 스케줄러 (우선순위 힙)
+()=>{
+ const jobs=Array.from({length:ri(4,6)},(_,i)=>({
+   id:`job-${i+1}`,
+   pri:ri(1,5),
+   dur:ri(1,9)
+ }));
+ const sorted=[...jobs].sort((a,b)=>b.pri-a.pri||a.id.localeCompare(b.id));
+ let clock=0;const log=[];
+ for(const j of sorted){
+   log.push(`[t=${clock}] 실행 ${j.id} (우선순위 ${j.pri}, ${j.dur}s)`);
+   clock+=j.dur;
+ }
+ return{code:[
+  `import heapq`,
+  ``,
+  `class Scheduler:`,
+  `    def __init__(self):`,
+  `        self.heap = []`,
+  `        self.clock = 0`,
+  ``,
+  `    def submit(self, job_id, priority, duration):`,
+  `        heapq.heappush(self.heap, (-priority, job_id, duration))`,
+  ``,
+  `    def run(self):`,
+  `        while self.heap:`,
+  `            neg_pri, jid, dur = heapq.heappop(self.heap)`,
+  `            print(f"[t={self.clock}] 실행 {jid} "`,
+  `                  f"(우선순위 {-neg_pri}, {dur}s)")`,
+  `            self.clock += dur`,
+  `        print(f"전체 완료: {self.clock}s")`,
+  ``,
+  ``,
+  `sched = Scheduler()`,
+  ...jobs.map(j=>`sched.submit("${j.id}", ${j.pri}, ${j.dur})`),
+  `sched.run()`],
+  out:`${log.join("\n")}\n전체 완료: ${clock}s`};},
+
+// 38. 레코드 검증기
+()=>{
+ const fields=[
+   {k:"name",v:`"${pick(WORDS)}"`},
+   {k:"age",v:ri(1,99)},
+   {k:"score",v:(Math.random()*100).toFixed(1)},
+   {k:"active",v:pick(["True","False"])},
+ ];
+ const sel=fields.slice(0,ri(3,4));
+ const allKeys=["name","age","score","active"];
+ const present=sel.map(f=>f.k);
+ const missing=allKeys.filter(k=>!present.includes(k));
+ return{code:[
+  `def validate(record, schema):`,
+  `    errors = []`,
+  `    for key, expected in schema.items():`,
+  `        if key not in record:`,
+  `            errors.append(f"누락: {key}")`,
+  `        elif not isinstance(record[key], expected):`,
+  `            errors.append(f"타입오류: {key}")`,
+  `    return errors`,
+  ``,
+  ``,
+  `schema = {`,
+  `    "name": str,`,
+  `    "age": int,`,
+  `    "score": float,`,
+  `    "active": bool,`,
+  `}`,
+  ``,
+  `record = {`,
+  ...sel.map(f=>`    "${f.k}": ${f.v},`),
+  `}`,
+  ``,
+  `errs = validate(record, schema)`,
+  `if errs:`,
+  `    print("검증 실패:")`,
+  `    for e in errs:`,
+  `        print("  -", e)`,
+  `else:`,
+  `    print("✓ 모든 필드 유효")`,
+  `print(f"검사한 필드: {len(record)}개")`],
+  out:(()=>{
+    let l=[];
+    if(missing.length){l.push("검증 실패:");missing.forEach(m=>l.push(`  - 누락: ${m}`));}
+    else l.push("✓ 모든 필드 유효");
+    l.push(`검사한 필드: ${sel.length}개`);
+    return l.join("\n");
+  })()};},
+
+// 39. 셀룰러 오토마타 (Rule 30)
+()=>{
+ const W=ri(15,25);const gens=ri(4,7);
+ let row=Array.from({length:W},(_,i)=>i===(W>>1)?1:0);
+ const rule=30;const out=[];
+ const render=r=>r.map(c=>c?"█":" ").join("");
+ out.push(render(row));
+ for(let g=0;g<gens-1;g++){
+   const nx=row.map((_,i)=>{
+     const l=row[(i-1+W)%W],c=row[i],r=row[(i+1)%W];
+     const idx=(l<<2)|(c<<1)|r;
+     return (rule>>idx)&1;
+   });
+   row=nx;out.push(render(row));
+ }
+ return{code:[
+  `def rule30(width, generations):`,
+  `    row = [0] * width`,
+  `    row[width // 2] = 1`,
+  `    RULE = 30`,
+  `    for _ in range(generations):`,
+  `        print("".join("█" if c else " " for c in row))`,
+  `        new = []`,
+  `        for i in range(width):`,
+  `            left = row[(i - 1) % width]`,
+  `            mid = row[i]`,
+  `            right = row[(i + 1) % width]`,
+  `            idx = (left << 2) | (mid << 1) | right`,
+  `            new.append((RULE >> idx) & 1)`,
+  `        row = new`,
+  ``,
+  ``,
+  `rule30(${W}, ${gens})`],
+  out:out.join("\n")};},
+
+// 40. 메모이제이션 피보나치
+()=>{
+ const n=ri(10,18);
+ let memo={0:0,1:1};
+ for(let i=2;i<=n;i++)memo[i]=memo[i-1]+memo[i-2];
+ return{code:[
+  `from functools import lru_cache`,
+  ``,
+  `call_count = 0`,
+  ``,
+  `@lru_cache(maxsize=None)`,
+  `def fib(n):`,
+  `    global call_count`,
+  `    call_count += 1`,
+  `    if n < 2:`,
+  `        return n`,
+  `    return fib(n - 1) + fib(n - 2)`,
+  ``,
+  ``,
+  `for i in range(${n+1}):`,
+  `    print(f"fib({i:2}) = {fib(i)}")`,
+  ``,
+  `print(f"실제 호출 횟수: {call_count} (메모이제이션 덕분)")`],
+  out:[
+   ...Array.from({length:n+1},(_,i)=>`fib(${String(i).padStart(2)}) = ${memo[i]}`),
+   `실제 호출 횟수: ${n+1} (메모이제이션 덕분)`
+  ].join("\n")};},
+
+// 41. 미로 최단경로 (BFS)
+()=>{
+ const mazes=[
+   ["#####","#S..#","#.#.#","#..E#","#####"],
+   ["######","#S...#","##.#.#","#..#E#","######"],
+ ];
+ const maze=pick(mazes);
+ const grid=maze.map(r=>r.split(""));
+ const H=grid.length,Wd=grid[0].length;
+ let sr,sc,er,ec;
+ for(let r=0;r<H;r++)for(let c=0;c<Wd;c++){if(grid[r][c]==="S"){sr=r;sc=c;}if(grid[r][c]==="E"){er=r;ec=c;}}
+ const seen=Array.from({length:H},()=>new Array(Wd).fill(false));
+ const q=[[sr,sc,0]];seen[sr][sc]=true;let dist=-1;
+ while(q.length){const [r,c,d]=q.shift();if(r===er&&c===ec){dist=d;break;}
+   for(const [dr,dc] of [[0,1],[1,0],[0,-1],[-1,0]]){
+     const nr=r+dr,nc=c+dc;
+     if(nr>=0&&nr<H&&nc>=0&&nc<Wd&&!seen[nr][nc]&&grid[nr][nc]!=="#"){seen[nr][nc]=true;q.push([nr,nc,d+1]);}
+   }}
+ return{code:[
+  `from collections import deque`,
+  ``,
+  `maze = [`,
+  ...maze.map(r=>`    "${r}",`),
+  `]`,
+  ``,
+  `def solve(maze):`,
+  `    grid = [list(row) for row in maze]`,
+  `    H, W = len(grid), len(grid[0])`,
+  `    start = end = None`,
+  `    for r in range(H):`,
+  `        for c in range(W):`,
+  `            if grid[r][c] == "S": start = (r, c)`,
+  `            if grid[r][c] == "E": end = (r, c)`,
+  ``,
+  `    queue = deque([(start, 0)])`,
+  `    seen = {start}`,
+  `    while queue:`,
+  `        (r, c), dist = queue.popleft()`,
+  `        if (r, c) == end:`,
+  `            return dist`,
+  `        for dr, dc in [(0,1),(1,0),(0,-1),(-1,0)]:`,
+  `            nr, nc = r + dr, c + dc`,
+  `            if 0 <= nr < H and 0 <= nc < W \\`,
+  `                    and grid[nr][nc] != "#" and (nr, nc) not in seen:`,
+  `                seen.add((nr, nc))`,
+  `                queue.append(((nr, nc), dist + 1))`,
+  `    return -1`,
+  ``,
+  ``,
+  `for row in maze:`,
+  `    print(row)`,
+  `steps = solve(maze)`,
+  `print(f"최단 경로: {steps}칸")`],
+  out:`${maze.join("\n")}\n최단 경로: ${dist}칸`};},
+
+/* ========== 초장문 프로그램 (50~90줄) ========== */
+
+// 42. 미니 RPG 전투 엔진 (Fire vs Water vs Grass)
+()=>{
+ const types=["Fire","Water","Grass"];
+ const chart={Fire:{Grass:2,Water:.5,Fire:1},Water:{Fire:2,Grass:.5,Water:1},Grass:{Water:2,Fire:.5,Grass:1}};
+ const mk=()=>{const t=pick(types);return{name:pick(WORDS)+"-"+t[0],type:t,hp:ri(40,70),atk:ri(8,16)};};
+ const p1=mk(),p2=mk();
+ // 시뮬레이션
+ const log=[];let h1=p1.hp,h2=p2.hp,turn=1;
+ while(h1>0&&h2>0&&turn<=12){
+   const d1=Math.round(p1.atk*chart[p1.type][p2.type]);
+   h2-=d1;
+   log.push(`T${turn} ${p1.name}(${p1.type})→${p2.name}: ${d1}dmg [HP ${Math.max(0,h2)}]`);
+   if(h2<=0)break;
+   const d2=Math.round(p2.atk*chart[p2.type][p1.type]);
+   h1-=d2;
+   log.push(`T${turn} ${p2.name}(${p2.type})→${p1.name}: ${d2}dmg [HP ${Math.max(0,h1)}]`);
+   turn++;
+ }
+ const winner=h1>0?p1.name:p2.name;
+ return{code:[
+  `import random`,
+  ``,
+  `TYPE_CHART = {`,
+  `    "Fire":  {"Grass": 2.0, "Water": 0.5, "Fire": 1.0},`,
+  `    "Water": {"Fire": 2.0, "Grass": 0.5, "Water": 1.0},`,
+  `    "Grass": {"Water": 2.0, "Fire": 0.5, "Grass": 1.0},`,
+  `}`,
+  ``,
+  ``,
+  `class Monster:`,
+  `    def __init__(self, name, mtype, hp, atk):`,
+  `        self.name = name`,
+  `        self.type = mtype`,
+  `        self.hp = hp`,
+  `        self.atk = atk`,
+  ``,
+  `    def attack(self, other):`,
+  `        mult = TYPE_CHART[self.type][other.type]`,
+  `        dmg = round(self.atk * mult)`,
+  `        other.hp -= dmg`,
+  `        return dmg`,
+  ``,
+  `    def alive(self):`,
+  `        return self.hp > 0`,
+  ``,
+  ``,
+  `def battle(a, b):`,
+  `    turn = 1`,
+  `    while a.alive() and b.alive() and turn <= 12:`,
+  `        dmg = a.attack(b)`,
+  `        print(f"T{turn} {a.name}({a.type})→{b.name}: "`,
+  `              f"{dmg}dmg [HP {max(0, b.hp)}]")`,
+  `        if not b.alive():`,
+  `            break`,
+  `        dmg = b.attack(a)`,
+  `        print(f"T{turn} {b.name}({b.type})→{a.name}: "`,
+  `              f"{dmg}dmg [HP {max(0, a.hp)}]")`,
+  `        turn += 1`,
+  `    winner = a if a.alive() else b`,
+  `    print(f"★ 승자: {winner.name}")`,
+  ``,
+  ``,
+  `p1 = Monster("${p1.name}", "${p1.type}", ${p1.hp}, ${p1.atk})`,
+  `p2 = Monster("${p2.name}", "${p2.type}", ${p2.hp}, ${p2.atk})`,
+  `print(f"{p1.name} (HP {p1.hp}) vs {p2.name} (HP {p2.hp})")`,
+  `battle(p1, p2)`],
+  out:`${p1.name} (HP ${p1.hp}) vs ${p2.name} (HP ${p2.hp})\n${log.join("\n")}\n★ 승자: ${winner}`};},
+
+// 43. 간단한 가상 머신 (바이트코드 인터프리터)
+()=>{
+ // PUSH n / ADD / SUB / MUL / PRINT
+ const prog=[];const expect=[];let stack=[];
+ const steps=ri(3,4);
+ for(let i=0;i<steps;i++){
+   const a=ri(1,9),b=ri(1,9);
+   prog.push(["PUSH",a]);prog.push(["PUSH",b]);
+   const op=pick(["ADD","SUB","MUL"]);prog.push([op]);
+   prog.push(["PRINT"]);
+   const v=op==="ADD"?a+b:op==="SUB"?a-b:a*b;
+   expect.push(v);
+ }
+ const asm=prog.map(ins=>ins.length>1?`("${ins[0]}", ${ins[1]})`:`("${ins[0]}",)`);
+ return{code:[
+  `class VM:`,
+  `    def __init__(self, program):`,
+  `        self.program = program`,
+  `        self.stack = []`,
+  ``,
+  `    def run(self):`,
+  `        for instr in self.program:`,
+  `            op = instr[0]`,
+  `            if op == "PUSH":`,
+  `                self.stack.append(instr[1])`,
+  `            elif op == "ADD":`,
+  `                b, a = self.stack.pop(), self.stack.pop()`,
+  `                self.stack.append(a + b)`,
+  `            elif op == "SUB":`,
+  `                b, a = self.stack.pop(), self.stack.pop()`,
+  `                self.stack.append(a - b)`,
+  `            elif op == "MUL":`,
+  `                b, a = self.stack.pop(), self.stack.pop()`,
+  `                self.stack.append(a * b)`,
+  `            elif op == "PRINT":`,
+  `                print("출력:", self.stack[-1])`,
+  ``,
+  ``,
+  `bytecode = [`,
+  ...asm.map(a=>`    ${a},`),
+  `]`,
+  `VM(bytecode).run()`],
+  out:expect.map(v=>`출력: ${v}`).join("\n")};},
+
+// 44. 도서관 관리 시스템 (대출/반납 + 연체)
+()=>{
+ const books=Array.from({length:ri(4,5)},(_,i)=>({
+   id:`B${100+i}`,title:pick(WORDS)+"의 "+pick(["서사","기록","비밀","여행"]),
+   borrowed:false
+ }));
+ const actions=[];
+ const ac=ri(4,6);
+ for(let i=0;i<ac;i++){
+   const b=books[ri(0,books.length-1)];
+   actions.push({type:pick(["대출","반납"]),id:b.id});
+ }
+ // 시뮬레이션
+ const state={};books.forEach(b=>state[b.id]={...b});
+ const log=[];
+ for(const a of actions){
+   const b=state[a.id];
+   if(a.type==="대출"){
+     if(b.borrowed)log.push(`✗ ${b.id} 이미 대출 중`);
+     else{b.borrowed=true;log.push(`✓ ${b.id} 「${b.title}」 대출`);}
+   }else{
+     if(!b.borrowed)log.push(`✗ ${b.id} 대출 기록 없음`);
+     else{b.borrowed=false;log.push(`✓ ${b.id} 「${b.title}」 반납`);}
+   }
+ }
+ const out_count=Object.values(state).filter(b=>b.borrowed).length;
+ return{code:[
+  `class Library:`,
+  `    def __init__(self):`,
+  `        self.books = {}`,
+  ``,
+  `    def add(self, book_id, title):`,
+  `        self.books[book_id] = {"title": title, "out": False}`,
+  ``,
+  `    def borrow(self, book_id):`,
+  `        b = self.books[book_id]`,
+  `        if b["out"]:`,
+  `            print(f"✗ {book_id} 이미 대출 중")`,
+  `        else:`,
+  `            b["out"] = True`,
+  `            print(f"✓ {book_id} 「{b['title']}」 대출")`,
+  ``,
+  `    def give_back(self, book_id):`,
+  `        b = self.books[book_id]`,
+  `        if not b["out"]:`,
+  `            print(f"✗ {book_id} 대출 기록 없음")`,
+  `        else:`,
+  `            b["out"] = False`,
+  `            print(f"✓ {book_id} 「{b['title']}」 반납")`,
+  ``,
+  `    def report(self):`,
+  `        out = sum(1 for b in self.books.values() if b["out"])`,
+  `        print(f"현재 대출 중: {out}권 / 전체 {len(self.books)}권")`,
+  ``,
+  ``,
+  `lib = Library()`,
+  ...books.map(b=>`lib.add("${b.id}", "${b.title}")`),
+  ...actions.map(a=>a.type==="대출"?`lib.borrow("${a.id}")`:`lib.give_back("${a.id}")`),
+  `lib.report()`],
+  out:`${log.join("\n")}\n현재 대출 중: ${out_count}권 / 전체 ${books.length}권`};},
+
+// 45. 다익스트라 최단경로
+()=>{
+ const nodes=["A","B","C","D","E"];
+ const edges=[["A","B",ri(1,9)],["A","C",ri(1,9)],["B","C",ri(1,9)],["B","D",ri(1,9)],["C","D",ri(1,9)],["C","E",ri(1,9)],["D","E",ri(1,9)]];
+ const g={};nodes.forEach(n=>g[n]=[]);
+ edges.forEach(([a,b,w])=>{g[a].push([b,w]);g[b].push([a,w]);});
+ // dijkstra from A
+ const dist={};nodes.forEach(n=>dist[n]=Infinity);dist.A=0;
+ const pq=[["A",0]];const done=new Set();
+ while(pq.length){
+   pq.sort((x,y)=>x[1]-y[1]);
+   const [u,d]=pq.shift();
+   if(done.has(u))continue;done.add(u);
+   for(const [v,w] of g[u]){if(d+w<dist[v]){dist[v]=d+w;pq.push([v,dist[v]]);}}
+ }
+ return{code:[
+  `import heapq`,
+  ``,
+  `edges = [`,
+  ...edges.map(([a,b,w])=>`    ("${a}", "${b}", ${w}),`),
+  `]`,
+  ``,
+  `def build_graph(edges):`,
+  `    g = {}`,
+  `    for a, b, w in edges:`,
+  `        g.setdefault(a, []).append((b, w))`,
+  `        g.setdefault(b, []).append((a, w))`,
+  `    return g`,
+  ``,
+  ``,
+  `def dijkstra(graph, src):`,
+  `    dist = {node: float("inf") for node in graph}`,
+  `    dist[src] = 0`,
+  `    pq = [(0, src)]`,
+  `    while pq:`,
+  `        d, u = heapq.heappop(pq)`,
+  `        if d > dist[u]:`,
+  `            continue`,
+  `        for v, w in graph[u]:`,
+  `            if d + w < dist[v]:`,
+  `                dist[v] = d + w`,
+  `                heapq.heappush(pq, (dist[v], v))`,
+  `    return dist`,
+  ``,
+  ``,
+  `graph = build_graph(edges)`,
+  `dist = dijkstra(graph, "A")`,
+  `print("A에서 최단거리:")`,
+  `for node in sorted(dist):`,
+  `    print(f"  A → {node}: {dist[node]}")`],
+  out:`A에서 최단거리:\n${nodes.slice().sort().map(n=>`  A → ${n}: ${dist[n]}`).join("\n")}`};},
+
+// 46. 콘웨이 생명게임 (작은 격자 몇 세대)
+()=>{
+ const H=ri(6,8),Wd=ri(10,14);
+ let grid=Array.from({length:H},()=>Array.from({length:Wd},()=>Math.random()<0.32?1:0));
+ const initLit=grid.map(r=>[...r]);
+ const gens=3;
+ const render=g=>g.map(r=>r.map(c=>c?"●":"·").join("")).join("\n");
+ const out=[];
+ const step=g=>g.map((row,r)=>row.map((c,col)=>{
+   let n=0;
+   for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+     if(dr||dc){const rr=r+dr,cc=col+dc;if(rr>=0&&rr<H&&cc>=0&&cc<Wd)n+=g[rr][cc];}
+   }
+   return (c&&(n===2||n===3))||(!c&&n===3)?1:0;
+ }));
+ for(let i=0;i<gens;i++){
+   out.push(`--- 세대 ${i} ---`);
+   out.push(render(grid));
+   grid=step(grid);
+ }
+ return{code:[
+  `def neighbors(grid, r, c):`,
+  `    H, W = len(grid), len(grid[0])`,
+  `    total = 0`,
+  `    for dr in (-1, 0, 1):`,
+  `        for dc in (-1, 0, 1):`,
+  `            if dr == 0 and dc == 0:`,
+  `                continue`,
+  `            nr, nc = r + dr, c + dc`,
+  `            if 0 <= nr < H and 0 <= nc < W:`,
+  `                total += grid[nr][nc]`,
+  `    return total`,
+  ``,
+  ``,
+  `def step(grid):`,
+  `    H, W = len(grid), len(grid[0])`,
+  `    new = [[0] * W for _ in range(H)]`,
+  `    for r in range(H):`,
+  `        for c in range(W):`,
+  `            n = neighbors(grid, r, c)`,
+  `            if grid[r][c] and n in (2, 3):`,
+  `                new[r][c] = 1`,
+  `            elif not grid[r][c] and n == 3:`,
+  `                new[r][c] = 1`,
+  `    return new`,
+  ``,
+  ``,
+  `def show(grid):`,
+  `    for row in grid:`,
+  `        print("".join("●" if c else "·" for c in row))`,
+  ``,
+  ``,
+  `grid = [`,
+  ...initLit.map(r=>`    ${py(r)},`),
+  `]`,
+  `for gen in range(3):`,
+  `    print(f"--- 세대 {gen} ---")`,
+  `    show(grid)`,
+  `    grid = step(grid)`],
+  out:out.join("\n")};},
+];
+
+/* 헬퍼: JS배열 -> 파이썬 리터럴 */
+function py(v){
+  if(Array.isArray(v))return "["+v.map(py).join(", ")+"]";
+  if(typeof v==="string")return `"${v}"`;
+  return String(v);
+}
+function pyset(a){return "{"+a.join(", ")+"}";}
+
+/* ---------- 렌더링 엔진 ---------- */
+function addLine(html){
+  const div=document.createElement('div');
+  div.className='ln';
+  div.innerHTML=html;
+  $scroll.appendChild(div);
+  $scroll.scrollTop=$scroll.scrollHeight;
+  return div;
+}
+async function typeCode(lines){
+  let lineNo=1;
+  // 줄 수가 많을수록 타이핑을 빠르게 (감상 리듬 유지)
+  const total=lines.length;
+  const fast = total>45 ? 0.25 : total>30 ? 0.4 : total>18 ? 0.65 : 1;
+  for(const raw of lines){
+    if(!alive)return;
+    while(paused){await sleep(120);if(!alive)return;}
+    const gutter=`<span class="gutter">${String(lineNo).padStart(2," ")}</span>`;
+    const div=addLine(gutter+'<span class="code"></span><span class="cursor"></span>');
+    const codeSpan=div.querySelector('.code');
+    const cur=div.querySelector('.cursor');
+    // 한 글자씩 타이핑 (긴 줄/긴 프로그램은 청크 단위)
+    let buf="";
+    const step = raw.length>60 ? 4 : raw.length>40 ? 2 : 1;
+    for(let i=0;i<raw.length;i+=step){
+      if(!alive)return;
+      while(paused){await sleep(120);if(!alive)return;}
+      buf=raw.slice(0,i+step);
+      codeSpan.innerHTML=hl(buf);
+      $scroll.scrollTop=$scroll.scrollHeight;
+      await sleep(ri(6,26)*fast);
+    }
+    codeSpan.innerHTML=hl(raw);
+    cur.remove();
+    lineNo++;
+    await sleep(ri(30,90)*fast);
+  }
+}
+async function run(){
+  while(alive){
+    const gen=pick(PATTERNS);
+    let prog;
+    try{ prog=gen(); }catch(e){ continue; }
+    runs++; $count.textContent=runs;
+    $lines.textContent=prog.code.length;
+
+    $mode.textContent="✍ 코드 작성 중…";
+    await typeCode(prog.code);
+    if(!alive)return;
+    await sleep(ri(250,500));
+
+    // BUILD 단계
+    $mode.textContent="⚙ 빌드 중…";
+    const buildBanner=addLine('<span class="banner b-build">BUILDING…</span>');
+    await sleep(ri(400,800));
+    buildBanner.querySelector('.banner').innerHTML='compiled · 0 errors';
+    buildBanner.querySelector('.banner').style.color='var(--ok)';
+    buildBanner.querySelector('.banner').classList.remove('b-build');
+
+    if(!alive)return;
+    // RUN 단계
+    $mode.textContent="▶ 실행 출력";
+    addLine('<span class="banner b-run">main.py</span>');
+    await sleep(ri(150,350));
+
+    let out=(prog.out!==undefined?prog.out:"").toString();
+    // 출력 한 줄씩
+    const outLines=out.split("\n");
+    for(const ol of outLines){
+      if(!alive)return;
+      while(paused){await sleep(120);if(!alive)return;}
+      addLine(`<span class="out">${esc(ol)}</span>`);
+      await sleep(ri(80,200));
+    }
+    addLine(`<span class="exit">[Process finished · exit code <b>0</b>]</span>`);
+    addLine('<div class="rule"></div>');
+
+    // 화면 정리 (메모리/길이 관리)
+    while($scroll.children.length>260){
+      $scroll.removeChild($scroll.firstChild);
+    }
+    $mode.textContent="대기";
+    await sleep(ri(700,1200));
+  }
+}
+
+/* ---------- 컨트롤 ---------- */
+$toggle.addEventListener('click',()=>{
+  paused=!paused;
+  $toggle.textContent=paused?"▶ RESUME":"❚❚ PAUSE";
+  $toggle.classList.toggle('paused',paused);
+  if(paused)$mode.textContent="⏸ 일시정지";
+});
+document.querySelectorAll('.sp').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.sp').forEach(s=>s.classList.remove('on'));
+    el.classList.add('on');
+    speed=parseFloat(el.dataset.s);
+  });
+});
+// 더블탭 줌은 viewport meta로 차단됨
+
+// 백그라운드 자동 일시정지
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ if(!paused){paused=true;$toggle.textContent="▶ RESUME";$toggle.classList.add('paused');} }
+});
+
+// 시작
+alive=1;
+run();
+</script>
+</body>
+</html>

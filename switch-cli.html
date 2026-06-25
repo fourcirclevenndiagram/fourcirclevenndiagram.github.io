@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Catalyst CLI</title>
+<style>
+  :root{
+    --bg:#0a0e0a;
+    --panel:#0d130d;
+    --amber:#f0a500;
+    --green:#33ff66;
+    --dim:#1f6b32;
+    --gray:#6a7a6a;
+    --err:#ff5b5b;
+    --cyan:#3ad6e0;
+    --line:#162616;
+    --bezel:#05080500;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;}
+  body{
+    background:
+      radial-gradient(120% 80% at 50% 0%, #0f160f 0%, #060906 70%) ,
+      #060906;
+    color:var(--green);
+    font-family:"SF Mono","Cascadia Code","Roboto Mono",ui-monospace,Menlo,Consolas,monospace;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    user-select:none;
+  }
+  /* scanline + flicker atmosphere */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.18) 3px);
+    mix-blend-mode:multiply;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:51;
+    background:radial-gradient(140% 120% at 50% 50%, transparent 60%, rgba(0,0,0,.55) 100%);
+  }
+
+  header{
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:8px;
+    padding:9px 14px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0c120c,#080c08);
+    font-size:11px;letter-spacing:.5px;
+    z-index:10;
+  }
+  .led{width:8px;height:8px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 6px var(--green);animation:blink 2.4s infinite;}
+  @keyframes blink{0%,92%,100%{opacity:1}94%{opacity:.25}}
+  .hw{color:var(--gray);}
+  .hw b{color:var(--amber);font-weight:600;}
+  .pps{margin-left:auto;color:var(--dim);font-size:10px;}
+  #cmdcount{color:#33442f;letter-spacing:.5px;font-variant-numeric:tabular-nums;}
+
+  #screen{
+    flex:1 1 auto;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:12px 14px 4px;
+    font-size:13px;
+    line-height:1.45;
+    -webkit-overflow-scrolling:touch;
+    text-shadow:0 0 3px rgba(51,255,102,.35);
+    z-index:5;
+  }
+  #screen::-webkit-scrollbar{width:0;}
+  .ln{white-space:pre-wrap;word-break:break-word;}
+  .prompt{color:var(--green);}
+  .cmd{color:#dfffe5;}
+  .out{color:#9fe6ad;}
+  .hdr{color:var(--cyan);}
+  .amber{color:var(--amber);}
+  .err{color:var(--err);}
+  .gray{color:var(--gray);}
+  .ok{color:var(--green);}
+
+  /* input line */
+  #inputline{
+    flex:0 0 auto;
+    display:flex;align-items:center;
+    padding:8px 12px;
+    border-top:1px solid var(--line);
+    background:linear-gradient(180deg,#0a100a,#070a07);
+    z-index:10;
+  }
+  #ps{color:var(--green);font-size:13px;white-space:nowrap;margin-right:6px;text-shadow:0 0 4px rgba(51,255,102,.4);}
+  #inp{
+    flex:1;background:transparent;border:none;outline:none;
+    color:#eaffee;font-family:inherit;font-size:13px;
+    caret-color:transparent;
+  }
+  #curwrap{position:relative;}
+  #cursor{
+    display:inline-block;width:8px;height:15px;background:var(--green);
+    vertical-align:-2px;margin-left:1px;box-shadow:0 0 6px var(--green);
+    animation:cur 1.05s steps(1) infinite;
+  }
+  @keyframes cur{50%{opacity:0}}
+  #enter{
+    flex:0 0 auto;margin-left:8px;
+    background:var(--line);color:var(--green);
+    border:1px solid var(--dim);border-radius:5px;
+    font-family:inherit;font-size:12px;padding:7px 13px;
+    letter-spacing:1px;
+  }
+  #enter:active{background:var(--dim);color:#000;}
+
+  /* quick command chips */
+  #chips{
+    flex:0 0 auto;
+    display:flex;gap:6px;overflow-x:auto;
+    padding:7px 12px 9px;
+    border-top:1px solid var(--line);
+    background:#070a07;
+    z-index:10;
+  }
+  #chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto;
+    background:#0e160e;color:var(--dim);
+    border:1px solid var(--line);border-radius:20px;
+    font-family:inherit;font-size:11px;padding:6px 12px;white-space:nowrap;
+  }
+  .chip:active{color:var(--green);border-color:var(--dim);}
+  .typing{opacity:.6;}
+</style>
+</head>
+<body>
+  <header>
+    <span class="led"></span>
+    <span class="hw">CATALYST <b>C2960-X</b> · IOS 15.2(7)E</span>
+    <span class="pps">SYST&nbsp;●&nbsp;<span class="ok">OK</span><span id="cmdcount">&nbsp;&nbsp;cmd 0</span></span>
+  </header>
+
+  <div id="screen"></div>
+
+  <div id="inputline">
+    <span id="ps">Switch&gt;</span>
+    <span id="curwrap"><input id="inp" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send"><span id="cursor"></span></span>
+    <button id="enter">ENTER</button>
+  </div>
+
+  <div id="chips"></div>
+
+<script>
+const screen = document.getElementById('screen');
+const inp = document.getElementById('inp');
+const ps = document.getElementById('ps');
+const cursor = document.getElementById('cursor');
+const chipsBar = document.getElementById('chips');
+
+let mode = 'user';        // user | priv | config | config-if
+let curIf = '';
+let hostname = 'Switch';
+let history = [], hIdx = -1;
+let cmdCount = 0;
+let busy = false;
+
+/* prevent double-tap zoom */
+let lastTouch=0;
+document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTouch<=300){e.preventDefault();}lastTouch=n;},{passive:false});
+
+function promptStr(){
+  if(mode==='user') return hostname+'>';
+  if(mode==='priv') return hostname+'#';
+  if(mode==='config') return hostname+'(config)#';
+  if(mode==='config-if') return hostname+(/^range/i.test(curIf)?'(config-if-range)#':'(config-if)#');
+}
+function refreshPrompt(){ ps.textContent = promptStr(); }
+
+function out(text, cls){
+  const div=document.createElement('div');
+  div.className='ln '+(cls||'out');
+  div.textContent=text;
+  screen.appendChild(div);
+  screen.scrollTop=screen.scrollHeight;
+}
+function echoCmd(cmd){
+  const div=document.createElement('div');
+  div.className='ln';
+  div.innerHTML='<span class="prompt">'+promptStr().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span> <span class="cmd">'+cmd.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>';
+  screen.appendChild(div);
+  screen.scrollTop=screen.scrollHeight;
+}
+function blank(){ out('\u200b','out'); }
+
+/* ---- canned outputs ---- */
+const SHOW_VER =
+`Cisco IOS Software, C2960X Software (C2960X-UNIVERSALK9-M), Version 15.2(7)E3
+Technology Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2024 by Cisco Systems, Inc.
+Compiled Thu 25-Jan-24 by prod_rel_team
+
+ROM: Bootstrap program is C2960X boot loader
+BOOTLDR: C2960X Boot Loader (C2960X-HBOOT-M) Version 15.2
+
+${'__HOST__'} uptime is 4 weeks, 2 days, 11 hours, 6 minutes
+System returned to ROM by power-on
+System image file is "flash:c2960x-universalk9-mz.152-7.E3.bin"
+
+cisco WS-C2960X-24TS-L (APM86XXX) processor (revision N0) with 524288K bytes of memory.
+Processor board ID FOC2148L0AB
+Last reset from power-on
+1 Virtual Ethernet interface
+24 Gigabit Ethernet interfaces
+4 Ten Gigabit Ethernet interfaces
+The password-recovery mechanism is enabled.
+
+512K bytes of flash-simulated non-volatile configuration memory.
+Base ethernet MAC Address       : 00:1B:0C:4A:3F:80
+Motherboard assembly number     : 73-16290-04
+Power supply part number        : 341-0097-03
+Model number                    : WS-C2960X-24TS-L
+System serial number            : FOC2148L0AB
+Switch Ports Model              SW Version            SW Image
+------ ----- -----              ----------            ----------
+*    1 28    WS-C2960X-24TS-L   15.2(7)E3             C2960X-UNIVERSALK9-M
+
+Configuration register is 0xF`;
+
+const SHOW_IP_INT_BRIEF =
+`Interface              IP-Address      OK? Method Status                Protocol
+Vlan1                  192.168.1.10    YES NVRAM  up                    up
+GigabitEthernet0/1     unassigned      YES unset  up                    up
+GigabitEthernet0/2     unassigned      YES unset  up                    up
+GigabitEthernet0/3     unassigned      YES unset  down                  down
+GigabitEthernet0/4     unassigned      YES unset  down                  down
+GigabitEthernet0/5     unassigned      YES unset  up                    up
+GigabitEthernet0/24    unassigned      YES unset  down                  down
+TenGigabitEthernet0/1  unassigned      YES unset  up                    up
+TenGigabitEthernet0/2  unassigned      YES unset  down                  down`;
+
+const SHOW_VLAN =
+`VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Gi0/3, Gi0/4, Gi0/6, Gi0/7
+10   SALES                            active    Gi0/1, Gi0/2
+20   ENGINEERING                      active    Gi0/5
+30   GUEST                            active
+99   MGMT                             active    Vlan1
+1002 fddi-default                     act/unsup
+1003 trcrf-default                    act/unsup
+1004 fddinet-default                  act/unsup
+1005 trbrf-default                    act/unsup
+
+VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
+---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
+1    enet  100001     1500  -      -      -        -    -        0      0
+10   enet  100010     1500  -      -      -        -    -        0      0
+20   enet  100020     1500  -      -      -        -    -        0      0`;
+
+const SHOW_MAC =
+`          Mac Address Table
+-------------------------------------------
+
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+   1    0050.56a1.0b3c    DYNAMIC     Gi0/3
+   1    78ac.c0d2.119f    DYNAMIC     Gi0/4
+  10    0023.5d8e.4a01    DYNAMIC     Gi0/1
+  10    b827.eb6f.92c1    DYNAMIC     Gi0/2
+  20    f018.98c4.55de    DYNAMIC     Gi0/5
+  99    001b.0c4a.3f80    STATIC      CPU
+Total Mac Addresses for this criterion: 6`;
+
+const SHOW_INT_STATUS =
+`Port      Name               Status       Vlan       Duplex  Speed Type
+Gi0/1     uplink-sales       connected    10         a-full a-1000 10/100/1000BaseTX
+Gi0/2                        connected    10         a-full a-1000 10/100/1000BaseTX
+Gi0/3                        connected    1          a-full  a-100 10/100/1000BaseTX
+Gi0/4                        connected    1          a-full a-1000 10/100/1000BaseTX
+Gi0/5     eng-printer        connected    20         a-full a-1000 10/100/1000BaseTX
+Gi0/6                        notconnect   1            auto   auto 10/100/1000BaseTX
+Gi0/24                       notconnect   1            auto   auto 10/100/1000BaseTX
+Te0/1     core-uplink        connected    trunk      full    10G  10GBase-SR
+Te0/2                        notconnect   1            auto   auto unknown`;
+
+const SHOW_RUN =
+`Building configuration...
+
+Current configuration : 2104 bytes
+!
+version 15.2
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname ${'__HOST__'}
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+vlan 10
+ name SALES
+vlan 20
+ name ENGINEERING
+vlan 99
+ name MGMT
+!
+interface GigabitEthernet0/1
+ description uplink-sales
+ switchport access vlan 10
+ switchport mode access
+!
+interface TenGigabitEthernet0/1
+ description core-uplink
+ switchport mode trunk
+!
+interface Vlan1
+ ip address 192.168.1.10 255.255.255.0
+!
+ip default-gateway 192.168.1.1
+!
+line con 0
+ logging synchronous
+line vty 0 4
+ login local
+ transport input ssh
+!
+end`;
+
+const SHOW_CDP =
+`Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
+                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone
+
+Device ID    Local Intrfce   Holdtme   Capability   Platform    Port ID
+CORE-RTR-01  Ten 0/1         164       R S I        C9300-48    Ten 1/0/48
+AP-LOBBY-3   Gig 0/5         132       T H          AIR-CAP370  Gig 0
+SW-ACCESS-2  Gig 0/24        149        S I         WS-C2960X   Gig 0/1`;
+
+const SHOW_SPANNING =
+`VLAN0001
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32769
+             Address     001b.0c4a.3f80
+             This bridge is the root
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     001b.0c4a.3f80
+             Aging Time  300 sec
+
+Interface           Role Sts Cost      Prio.Nbr Type
+------------------- ---- --- --------- -------- ----
+Gi0/1               Desg FWD 4         128.1    P2p
+Gi0/2               Desg FWD 4         128.2    P2p
+Te0/1               Root FWD 2         128.25   P2p`;
+
+const SHOW_INT_GI1 =
+`GigabitEthernet0/1 is up, line protocol is up (connected)
+  Hardware is Gigabit Ethernet, address is 001b.0c4a.3f81 (bia 001b.0c4a.3f81)
+  Description: uplink-sales
+  MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
+     reliability 255/255, txload 12/255, rxload 8/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Full-duplex, 1000Mb/s, media type is 10/100/1000BaseTX
+  input flow-control is off, output flow-control is unsupported
+  Last input 00:00:01, output 00:00:00, output hang never
+  Last clearing of "show interface" counters never
+  Input queue: 0/75/0/0 (size/max/drops/flushes); Total output drops: 0
+  5 minute input rate 384000 bits/sec, 92 packets/sec
+  5 minute output rate 512000 bits/sec, 121 packets/sec
+     18402913 packets input, 9123847122 bytes, 0 no buffer
+     Received 84021 broadcasts (12043 multicasts)
+     0 runts, 0 giants, 0 throttles
+     0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+     22310847 packets output, 11820934712 bytes, 0 underruns
+     0 output errors, 0 collisions, 1 interface resets
+     0 babbles, 0 late collision, 0 deferred`;
+
+const SHOW_PROC_CPU =
+`CPU utilization for five seconds: 7%/2%; one minute: 9%; five minutes: 8%
+ PID Runtime(ms)   Invoked   uSecs   5Sec   1Min   5Min TTY Process
+   1           4        18     222  0.00%  0.00%  0.00%   0 Chunk Manager
+  72      884301   2910847     303  2.15%  1.88%  1.92%   0 Hulc LED Process
+ 109     1240933   8821043     140  1.43%  1.20%  1.31%   0 IP Input
+ 158      330142   1029384     320  0.71%  0.66%  0.70%   0 CDP Protocol
+ 201      118203    884201     133  0.39%  0.41%  0.44%   0 Spanning Tree`;
+
+const SHOW_ARP =
+`Protocol  Address          Age (min)  Hardware Addr   Type   Interface
+Internet  192.168.1.1            12   0050.56a1.0b3c  ARPA   Vlan1
+Internet  192.168.1.10           -    001b.0c4a.3f80  ARPA   Vlan1
+Internet  192.168.1.25           4    0023.5d8e.4a01  ARPA   Vlan10
+Internet  192.168.1.40          18    b827.eb6f.92c1  ARPA   Vlan10
+Internet  192.168.1.55           2    f018.98c4.55de  ARPA   Vlan20`;
+
+const SHOW_ETHERCHANNEL =
+`Flags:  D - down        P - bundled in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+-----------------------------------------------
+1      Po1(SU)         LACP      Te0/1(P)   Te0/2(P)`;
+
+const SHOW_LOG =
+`Syslog logging: enabled (0 messages dropped, 2 flushes, 0 overruns)
+    Console logging: level debugging, 142 messages logged
+    Buffer logging: level debugging, 142 messages logged
+
+Log Buffer (8192 bytes):
+*Mar  1 09:14:22.331: %LINK-3-UPDOWN: Interface Gi0/1, changed state to up
+*Mar  1 09:14:23.107: %LINEPROTO-5-UPDOWN: Line protocol on Gi0/1, up
+*Mar  1 09:31:08.992: %SYS-5-CONFIG_I: Configured from console by vty0
+*Mar  1 11:02:44.510: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch Te0/1`;
+
+const SHOW_DHCP =
+`Bindings from all pools not associated with VRF:
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address/
+                 User name
+192.168.10.21    0100.235d.8e4a.01       Jun 26 2026 04:11 AM    Automatic
+192.168.10.34    0100.5056.a10b.3c       Jun 26 2026 05:48 AM    Automatic
+192.168.20.12    01b8.27eb.6f92.c1       Jun 26 2026 02:33 AM    Automatic`;
+
+/* ---- command handling ---- */
+function handle(raw){
+  const cmd = raw.trim();
+  echoCmd(cmd);
+  if(cmd==='') return;
+  history.unshift(cmd); hIdx=-1;
+  cmdCount++;
+  const cc=document.getElementById('cmdcount');
+  if(cc) cc.textContent='\u00a0\u00a0cmd '+cmdCount;
+  const c = cmd.toLowerCase();
+  const tok = c.split(/\s+/);
+
+  // global
+  if(c==='?'){ showHelp(); return; }
+  if(c==='cls'||c==='clear'){ screen.innerHTML=''; return; }
+
+  // mode transitions
+  if(c==='enable'||c==='en'){
+    if(mode==='user'){ mode='priv'; refreshPrompt(); }
+    else out('% Already in privileged mode.','gray');
+    return;
+  }
+  if(c==='disable'){ if(mode!=='user'){ mode='user'; refreshPrompt(); } return; }
+  if(c==='exit'||c==='end'||c==='quit'){
+    if(mode==='config-if'){ mode = (c==='end')?'priv':'config'; curIf=''; }
+    else if(mode==='config'){ mode='priv'; }
+    else if(mode==='priv'){ mode='user'; }
+    else { out(''); }
+    refreshPrompt(); return;
+  }
+
+  // require privilege for config / show
+  if(c==='configure terminal'||c==='conf t'||c==='config t'||c==='configure'){
+    if(mode==='priv'){ mode='config'; refreshPrompt();
+      out('Enter configuration commands, one per line.  End with CNTL/Z.','gray'); }
+    else out('% Invalid input detected. Enter privileged mode first (enable).','err');
+    return;
+  }
+
+  if(mode==='config'||mode==='config-if'){
+    handleConfig(cmd,c,tok); return;
+  }
+
+  // show commands (user & priv)
+  if(tok[0]==='show'||tok[0]==='sh'){
+    const sub = c.replace(/^sh(ow)?\s+/,'');
+    if(sub.startsWith('version')||sub==='ver'){ out(SHOW_VER.replace('__HOST__',hostname)); return; }
+    if(sub.startsWith('ip int')){ out(SHOW_IP_INT_BRIEF); return; }
+    if(sub.startsWith('vlan')){ out(SHOW_VLAN); return; }
+    if(sub.startsWith('mac')){ out(SHOW_MAC); return; }
+    if(sub.startsWith('int') && sub.includes('status')){ out(SHOW_INT_STATUS); return; }
+    if(sub.match(/^int\w*\s+(gi|gig|g0|te|ten|f0|fa)/)){ out(SHOW_INT_GI1); return; }
+    if(sub.startsWith('int')){ out(SHOW_INT_STATUS); return; }
+    if(sub.startsWith('cdp')){ out(SHOW_CDP); return; }
+    if(sub.startsWith('span')){ out(SHOW_SPANNING); return; }
+    if(sub.startsWith('proc')){ out(SHOW_PROC_CPU); return; }
+    if(sub.startsWith('arp')){ out(SHOW_ARP); return; }
+    if(sub.startsWith('etherchannel')){ out(SHOW_ETHERCHANNEL); return; }
+    if(sub.startsWith('log')){ out(SHOW_LOG); return; }
+    if(sub.startsWith('ip dhcp')){ out(SHOW_DHCP); return; }
+    if(sub.startsWith('run')||sub.startsWith('start')){
+      if(mode!=='priv'){ out('% Invalid input detected (requires enable).','err'); return; }
+      out(SHOW_RUN.replace('__HOST__',hostname)); return;
+    }
+    if(sub.startsWith('clock')){ out(now()); return; }
+    out('% Incomplete / unknown show command. Try: show version | show vlan | show ip int brief','err');
+    return;
+  }
+
+  // ping
+  if(tok[0]==='ping'){ doPing(tok[1]||'192.168.1.1', onAsyncDone); return true; }
+
+  // traceroute
+  if(tok[0]==='traceroute'||tok[0]==='trace'){ doTrace(tok[1]||'8.8.8.8', onAsyncDone); return true; }
+
+  // write
+  if(c==='write'||c==='write memory'||c==='wr'||c==='copy run start'||c==='copy running-config startup-config'){
+    if(mode==='priv'){ out('Building configuration...'); setTimeout(()=>out('[OK]','ok'),350); }
+    else out('% Requires privileged mode (enable).','err');
+    return;
+  }
+  if(c==='reload'){ out('% Reload denied — this is a viewing simulator. Nice try. :)','amber'); return; }
+
+  out('% Invalid input detected at \'^\' marker.','err');
+}
+
+function handleConfig(cmd,c,tok){
+  if(tok[0]==='hostname' && tok[1]){
+    hostname = cmd.split(/\s+/)[1];
+    refreshPrompt(); return;
+  }
+  if(tok[0]==='interface'||tok[0]==='int'){
+    curIf = cmd.split(/\s+/).slice(1).join(' ')||'Gi0/1';
+    mode='config-if'; refreshPrompt(); return;
+  }
+  if(c.startsWith('ip default-gateway')){ out(''); return; }
+  if(c.startsWith('ip dhcp snooping')){ out(''); return; }
+  if(tok[0]==='vlan' && tok[1]){ out(''); return; }
+  if(c.startsWith('name ')){ out(''); return; }
+  if(c.startsWith('description')){ out(''); return; }
+  if(c.startsWith('ip address')){ out(''); return; }
+
+  // ---- interface-level (config-if) commands ----
+  const If = curIf||'Gi0/1';
+  if(c.startsWith('no shut')||c==='no shutdown'){
+    out('%LINK-3-UPDOWN: Interface '+If+', changed state to up','gray');
+    setTimeout(()=>out('%LINEPROTO-5-UPDOWN: Line protocol on Interface '+If+', changed state to up','gray'),120);
+    return;
+  }
+  if(c==='shutdown'){
+    out('%LINK-5-CHANGED: Interface '+If+', changed state to administratively down','gray');
+    setTimeout(()=>out('%LINEPROTO-5-UPDOWN: Line protocol on Interface '+If+', changed state to down','gray'),120);
+    return;
+  }
+  if(c.startsWith('switchport')) { out(''); return; }
+  if(c.startsWith('speed')||c.startsWith('duplex')){ out(''); return; }
+  if(c.startsWith('channel-group')){
+    out('Creating a port-channel interface Port-channel 1','gray'); return;
+  }
+  if(c.startsWith('spanning-tree portfast')){
+    out('%Warning: portfast should only be enabled on ports connected to a single','amber');
+    out('host. Connecting hubs, switches to this interface when portfast is enabled','amber');
+    out('can cause temporary bridging loops. Use with CAUTION','amber');
+    return;
+  }
+  if(c.startsWith('spanning-tree bpduguard')){ out(''); return; }
+  if(c.startsWith('storm-control')){ out(''); return; }
+  if(c.startsWith('mtu ')||c.startsWith('mls qos')){ out(''); return; }
+  if(c.startsWith('power inline')){ out(''); return; }
+  if(c.startsWith('load-interval')){ out(''); return; }
+  if(c.startsWith('ip dhcp snooping')){ out(''); return; }
+  if(c.startsWith('spanning-tree')){ out(''); return; }
+  out('% configured.','gray');
+}
+
+function doPing(target,done){
+  out('Type escape sequence to abort.');
+  out('Sending 5, 100-byte ICMP Echos to '+target+', timeout is 2 seconds:');
+  const reachable = !/^(10\.99|0\.0|255)/.test(target);
+  let line='';
+  let i=0;
+  busy=true;
+  const t=setInterval(()=>{
+    line += reachable ? '!' : '.';
+    i++;
+    if(i>=5){
+      clearInterval(t);
+      out(line);
+      if(reachable){
+        out('Success rate is 100 percent (5/5), round-trip min/avg/max = 1/2/4 ms','ok');
+      }else{
+        out('Success rate is 0 percent (0/5)','err');
+      }
+      busy=false;
+      if(done) done();
+    }
+  },180);
+}
+
+function doTrace(target,done){
+  out('Type escape sequence to abort.');
+  out('Tracing the route to '+target);
+  out('');
+  const hops = [
+    '192.168.1.1','10.21.4.1','203.0.113.9','72.14.236.18',target
+  ];
+  let h=0;
+  busy=true;
+  const t=setInterval(()=>{
+    const a=(Math.random()*6+1).toFixed(0);
+    const b=(Math.random()*8+2).toFixed(0);
+    const cc=(Math.random()*10+3).toFixed(0);
+    out('  '+(h+1)+'  '+hops[h]+'  '+a+' msec  '+b+' msec  '+cc+' msec');
+    h++;
+    if(h>=hops.length){
+      clearInterval(t);
+      busy=false;
+      if(done) done();
+    }
+  },420);
+}
+
+function now(){
+  const d=new Date();
+  return '*'+d.toTimeString().slice(0,8)+'.000 UTC '+d.toDateString();
+}
+
+function showHelp(){
+  out('Exec commands:','hdr');
+  out(`  enable / disable      모드 전환 (user ↔ privileged)
+  configure terminal    설정 모드 진입 (privileged에서)
+  show version          하드웨어/IOS 정보
+  show ip int brief     인터페이스 IP 요약
+  show interface status 포트 연결 상태
+  show interface gi0/1  인터페이스 상세 카운터
+  show vlan             VLAN 테이블
+  show mac address-table  MAC 학습 테이블
+  show arp              ARP 테이블
+  show cdp neighbors    인접 장비
+  show spanning-tree    STP 상태
+  show etherchannel summary  포트채널 상태
+  show processes cpu    CPU 사용률
+  show logging          시스템 로그
+  show running-config   현재 설정 (privileged)
+  ping <ip>             도달성 테스트
+  traceroute <ip>       경로 추적
+  hostname <name>       호스트명 변경 (config)
+  interface <if>        인터페이스 진입 (config)
+   switchport / speed / spanning-tree portfast / channel-group ... (config-if)
+  exit / end            모드 빠져나가기
+  clear                 화면 지우기`,'gray');
+}
+
+/* ---- input wiring ---- */
+inp.addEventListener('focus',()=>cursor.style.display='inline-block');
+inp.addEventListener('blur',()=>cursor.style.display='inline-block');
+
+let onAsyncDone = null;   // called by async commands (ping) when finished
+
+function submit(){
+  if(busy) return;
+  const v = inp.value;
+  inp.value='';
+  handle(v);
+}
+document.getElementById('enter').addEventListener('click',()=>{ stopAuto(); submit(); });
+inp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); stopAuto(); submit(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); if(hIdx<history.length-1){hIdx++; inp.value=history[hIdx];} }
+  else if(e.key==='ArrowDown'){ e.preventDefault(); if(hIdx>0){hIdx--; inp.value=history[hIdx];} else {hIdx=-1; inp.value='';} }
+});
+screen.addEventListener('click',()=>inp.focus());
+document.getElementById('inputline').addEventListener('click',()=>inp.focus());
+
+/* quick chips — tapping one pauses autoplay and runs that command */
+const CHIPS = [
+  ['▶/⏸','__TOGGLE__'],
+  ['enable','enable'],
+  ['show version','show version'],
+  ['show ip int brief','show ip int brief'],
+  ['int status','show interface status'],
+  ['show vlan','show vlan'],
+  ['mac table','show mac address-table'],
+  ['cdp neighbors','show cdp neighbors'],
+  ['spanning-tree','show spanning-tree'],
+  ['conf t','configure terminal'],
+  ['show run','show running-config'],
+  ['ping','ping 192.168.1.1'],
+  ['?','?'],
+];
+CHIPS.forEach(([label,cmd])=>{
+  const b=document.createElement('button');
+  b.className='chip'; b.textContent=label;
+  if(cmd==='__TOGGLE__'){
+    b.id='toggleChip';
+    b.addEventListener('click',()=>{ auto ? stopAuto() : startAuto(); });
+  }else{
+    b.addEventListener('click',()=>{ stopAuto(); inp.value=cmd; inp.focus(); submit(); });
+  }
+  chipsBar.appendChild(b);
+});
+
+/* =========================================================
+   AUTO-PLAY ENGINE — types random commands like a human
+   ========================================================= */
+let auto = false;
+let autoTimers = [];
+function aTimeout(fn,ms){ const id=setTimeout(fn,ms); autoTimers.push(id); return id; }
+function clearAutoTimers(){ autoTimers.forEach(clearTimeout); autoTimers=[]; }
+
+const toggleChip = ()=>document.getElementById('toggleChip');
+
+/* command pools per mode, so the random walk stays realistic */
+const POOL_USER = [
+  'enable','show version','show ip int brief','show interface status',
+  'show vlan','show mac address-table','show cdp neighbors',
+  'show arp','show interface gi0/1','ping 192.168.1.1','ping 8.8.8.8',
+  'show clock','?'
+];
+const POOL_PRIV = [
+  'show running-config','show ip int brief','show interface status',
+  'show vlan','show mac address-table','show cdp neighbors',
+  'show spanning-tree','show arp','show processes cpu','show logging',
+  'show etherchannel summary','show ip dhcp binding','show interface gi0/1',
+  'ping 192.168.1.1','ping 10.99.0.1','traceroute 8.8.8.8',
+  'configure terminal','show version','show clock','write memory'
+];
+const POOL_CONFIG = [
+  'hostname CORE-SW1','interface gi0/1','interface gi0/5','interface te0/1',
+  'interface range gi0/1 - 4','vlan 30','vlan 40','spanning-tree mode rapid-pvst',
+  'ip default-gateway 192.168.1.1','exit'
+];
+const POOL_CONFIF = [
+  'description uplink-to-core','switchport mode access','switchport access vlan 10',
+  'switchport mode trunk','switchport trunk allowed vlan 10,20,99',
+  'switchport trunk native vlan 99','switchport voice vlan 150',
+  'speed 1000','duplex full','spanning-tree portfast',
+  'spanning-tree bpduguard enable','storm-control broadcast level 20.00',
+  'channel-group 1 mode active','no shutdown','shutdown',
+  'mtu 9000','power inline auto','load-interval 30',
+  'ip dhcp snooping limit rate 15','exit'
+];
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+let stepsInMode = 0;   // gently force returns toward user mode over time
+
+function nextCommand(){
+  // bias: after wandering deep, sometimes climb back out
+  if(mode==='config-if'){ stepsInMode++; if(stepsInMode>4 && Math.random()<0.5) return 'exit'; return pick(POOL_CONFIF); }
+  if(mode==='config'){ stepsInMode++; if(stepsInMode>3 && Math.random()<0.45) return 'exit'; return pick(POOL_CONFIG); }
+  if(mode==='priv'){ return pick(POOL_PRIV); }
+  return pick(POOL_USER);
+}
+
+function typeCommand(cmd, done){
+  inp.value='';
+  let i=0;
+  function step(){
+    if(!auto) return;
+    inp.value = cmd.slice(0,i);
+    screen.scrollTop = screen.scrollHeight;
+    i++;
+    if(i<=cmd.length){
+      aTimeout(step, 38 + Math.random()*70);   // human-ish keystroke jitter
+    }else{
+      aTimeout(done, 360 + Math.random()*500);  // pause before Enter
+    }
+  }
+  step();
+}
+
+function autoLoop(){
+  if(!auto) return;
+  const cmd = nextCommand();
+  if(mode==='user'||mode==='priv') stepsInMode=0;
+  typeCommand(cmd, ()=>{
+    if(!auto) return;
+    const v = inp.value;
+    inp.value='';
+    onAsyncDone = ()=>{ onAsyncDone=null; if(auto) aTimeout(autoLoop, 900 + Math.random()*900); };
+    const isAsync = handle(v);   // returns true if it scheduled async output (ping)
+    if(!isAsync){
+      onAsyncDone = null;
+      aTimeout(autoLoop, 900 + Math.random()*1100);  // dwell so viewer can read output
+    }
+  });
+}
+
+function startAuto(){
+  if(auto || busy) { if(busy){ /* retry shortly */ setTimeout(startAuto,300);} return; }
+  auto = true;
+  inp.blur();
+  const t=toggleChip(); if(t){ t.textContent='⏸ 일시정지'; t.style.color='var(--amber)'; t.style.borderColor='var(--dim)'; }
+  aTimeout(autoLoop, 500);
+}
+function stopAuto(){
+  if(!auto) return;
+  auto = false;
+  clearAutoTimers();
+  onAsyncDone = null;
+  inp.value='';
+  const t=toggleChip(); if(t){ t.textContent='▶ 자동재생'; t.style.color=''; t.style.borderColor=''; }
+}
+
+/* ---- boot sequence ---- */
+const BOOT = [
+  ['Booting flash:c2960x-universalk9-mz.152-7.E3.bin...','gray'],
+  ['','out'],
+  ['Initializing flash...  done.','gray'],
+  ['POST: CPU MIC register Tests : Begin','gray'],
+  ['POST: CPU MIC register Tests : End, Status Passed','gray'],
+  ['POST: PortASIC Memory Tests : Begin','gray'],
+  ['POST: PortASIC Memory Tests : End, Status Passed','gray'],
+  ['POST: Inline Power Controller Tests : Passed','gray'],
+  ['','out'],
+  ['         Restricted Rights Legend','hdr'],
+  ['cisco WS-C2960X-24TS-L (APM86XXX) processor','out'],
+  ['24 Gigabit Ethernet interfaces','out'],
+  ['4 Ten Gigabit Ethernet interfaces','out'],
+  ['Base ethernet MAC Address: 00:1B:0C:4A:3F:80','out'],
+  ['','out'],
+  ['Press RETURN to get started!','amber'],
+  ['','out'],
+];
+busy=true;
+let bi=0;
+(function boot(){
+  if(bi<BOOT.length){
+    out(BOOT[bi][0],BOOT[bi][1]);
+    bi++;
+    setTimeout(boot, bi<9?120:200);
+  }else{
+    busy=false;
+    aTimeout(startAuto, 700);   // kick off auto-play after boot
+  }
+})();
+</script>
+</body>
+</html>
