@@ -87,8 +87,8 @@
     }
     .cat-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
     }
     .cat-btn {
       display: block; text-decoration: none;
@@ -100,6 +100,7 @@
     }
     .cat-btn:nth-child(1) { animation-delay: 0.1s; --c: var(--neon-cyan); }
     .cat-btn:nth-child(2) { animation-delay: 0.2s; --c: var(--neon-pink); }
+    .cat-btn:nth-child(3) { animation-delay: 0.3s; --c: var(--neon-yel); }
     @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
     .cat-btn:hover {
       transform: translateY(-6px) scale(1.03);
@@ -123,6 +124,9 @@
       display: inline-block; transition: opacity 0.2s, transform 0.2s;
     }
     .cat-btn:hover .cat-arrow { opacity: 1; transform: translateX(4px); }
+    @media (max-width: 480px) {
+      .cat-grid { grid-template-columns: 1fr; }
+    }
     footer {
       position: relative; z-index: 10; text-align: center;
       margin-top: 56px; font-family: 'DotGothic16', monospace;
@@ -150,6 +154,13 @@
         <div class="cat-name">디지털어항</div>
         <div class="cat-desc">그냥 켜놓고 감상하는 시뮬레이터 모음</div>
         <div class="cat-count">9 ITEMS</div>
+        <div class="cat-arrow">▶ ENTER</div>
+      </a>
+      <a class="cat-btn" href="learning.html">
+        <span class="cat-icon">📖</span>
+        <div class="cat-name">학습</div>
+        <div class="cat-desc">한자, 언어 등 공부하며 즐기는 콘텐츠 모음</div>
+        <div class="cat-count">1 ITEM</div>
         <div class="cat-arrow">▶ ENTER</div>
       </a>
     </div>
