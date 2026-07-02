@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>마검 텔레메트리 — SWORD TELEMETRY</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0e14;
+  --panel:#121724;
+  --panel2:#0e1320;
+  --line:#243049;
+  --ink:#c9d4e8;
+  --dim:#5d6b85;
+  --ember:#ff7a2f;
+  --arcane:#4fd8ff;
+  --blood:#ff3b57;
+  --soul:#b47aff;
+  --ok:#5dff9d;
+  --warn:#ffd24a;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Share Tech Mono',ui-monospace,monospace;
+  height:100dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  padding-top:var(--sat);
+  user-select:none;-webkit-user-select:none;
+}
+/* ── 상단 전투 씬 ── */
+#battleWrap{
+  position:relative;
+  flex:0 0 42dvh;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(#131a2e 0%, #1a1424 60%, #241318 100%);
+  overflow:hidden;
+}
+#battle{width:100%;height:100%;display:block}
+#hud{
+  position:absolute;top:8px;left:10px;right:10px;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  pointer-events:none;
+}
+#hud .title{
+  font-family:'Cinzel',serif;font-weight:900;font-size:14px;letter-spacing:2px;
+  color:var(--ember);text-shadow:0 0 12px rgba(255,122,47,.6);
+}
+#hud .sub{font-size:10px;color:var(--dim);letter-spacing:1px}
+#bossBar{
+  position:absolute;left:10%;right:10%;top:34px;height:8px;
+  background:#000a;border:1px solid var(--blood);border-radius:4px;
+  display:none;overflow:hidden;
+}
+#bossBar i{display:block;height:100%;background:linear-gradient(90deg,#ff3b57,#ff7a2f);width:100%}
+#bossName{
+  position:absolute;left:0;right:0;top:20px;text-align:center;
+  font-size:11px;color:var(--blood);letter-spacing:3px;display:none;
+  text-shadow:0 0 10px rgba(255,59,87,.8);
+}
+/* ── 계기판 ── */
+#dash{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:10px 10px calc(14px + var(--sab));
+}
+#dashHead{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:2px 4px 10px;
+}
+#dashHead .t{font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:3px;color:var(--arcane);text-shadow:0 0 10px rgba(79,216,255,.4)}
+#dashHead .s{font-size:10px;color:var(--dim)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;min-height:64px;
+  position:relative;overflow:hidden;
+}
+.card.wide{grid-column:span 2}
+.lbl{font-size:10px;color:var(--dim);letter-spacing:1px;display:flex;justify-content:space-between}
+.lbl .kr{color:var(--ink)}
+.val{font-size:18px;margin-top:3px;letter-spacing:.5px}
+.unit{font-size:10px;color:var(--dim);margin-left:2px}
+.bar{height:7px;background:#00000066;border-radius:4px;margin-top:6px;overflow:hidden;border:1px solid #0006}
+.bar i{display:block;height:100%;border-radius:4px;transition:width .35s ease;width:50%}
+.seg{display:flex;gap:2px;margin-top:7px}
+.seg b{flex:1;height:10px;border-radius:2px;background:#1c2333;transition:background .3s}
+.stars{margin-top:4px;font-size:13px;letter-spacing:2px;color:var(--warn);text-shadow:0 0 8px rgba(255,210,74,.5)}
+.needle{position:relative;height:10px;background:#00000066;border-radius:5px;margin-top:8px;border:1px solid #0006}
+.needle::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--dim)}
+.needle i{position:absolute;top:1px;bottom:1px;width:8px;border-radius:3px;background:var(--arcane);left:50%;transition:left .4s ease;box-shadow:0 0 8px var(--arcane)}
+.lamp{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px;background:var(--ok);box-shadow:0 0 8px currentColor}
+.blink{animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:.15}}
+.spark{margin-top:4px;height:26px;width:100%}
+.egoTxt{font-size:9px;color:var(--soul);margin-top:4px;min-height:12px;opacity:.85;font-style:italic}
+.c-ember{color:var(--ember)} .c-arcane{color:var(--arcane)} .c-blood{color:var(--blood)}
+.c-soul{color:var(--soul)} .c-ok{color:var(--ok)} .c-warn{color:var(--warn)}
+#flash{position:fixed;inset:0;background:radial-gradient(circle,rgba(79,216,255,.55),transparent 70%);opacity:0;pointer-events:none;transition:opacity .15s}
+</style>
+</head>
+<body>
+
+<div id="battleWrap">
+  <canvas id="battle"></canvas>
+  <div id="hud">
+    <div>
+      <div class="title">DRAGONREND</div>
+      <div class="sub">용살자의 대검 · GREATSWORD MK-Ⅶ</div>
+    </div>
+    <div class="sub" style="text-align:right" id="waveTxt">WAVE 1<br>필드: 잿빛 황무지</div>
+  </div>
+  <div id="bossName">— 심연군주 발가로스 —</div>
+  <div id="bossBar"><i id="bossHp"></i></div>
+</div>
+
+<div id="dash">
+  <div id="dashHead">
+    <span class="t">⚔ SWORD TELEMETRY</span>
+    <span class="s">21 SENSORS · <span class="lamp" style="background:var(--ok)"></span>LINK OK</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="flash"></div>
+
+<script>
+"use strict";
+/* ═══════════ 전투 씬 ═══════════ */
+const cv=document.getElementById('battle'),ctx=cv.getContext('2d');
+let W=0,H=0,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){
+  const r=cv.parentElement.getBoundingClientRect();
+  W=r.width;H=r.height;
+  cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize);resize();
+
+const S={ // 검 상태 (계기판과 공유)
+  dura:100, sharp:100, mana:62, temp:21.5, reso:88, fire:40,
+  vib:32, bal:0, blood:0, curse:8, souls:0, enh:12, crit:27.5,
+  aura:0, ego:14, grip:96, bless:180, kills:0, bossKills:0,
+  dps:0, aspd:1.12, maint:5, wave:1, dmgLog:[]
+};
+
+/* 몬스터 4종 (보스 1종 포함) */
+const MTYPES=[
+  {name:'슬라임',hp:30, w:26,h:20, col:'#5dff9d',speed:.45,score:1,kind:'slime'},
+  {name:'고블린',hp:55, w:20,h:30, col:'#ffb84a',speed:.7, score:2,kind:'gob'},
+  {name:'망령',  hp:80, w:24,h:34, col:'#b47aff',speed:.55,score:3,kind:'wraith'},
+  {name:'심연군주 발가로스',hp:900,w:64,h:64,col:'#ff3b57',speed:.22,score:25,kind:'boss'}
+];
+let mobs=[],parts=[],slashes=[],boss=null,spawnT=0;
+
+/* 사거리 규칙: 정지거리 < 발동거리 <= 히트거리 (역전 불가 = 데드락 원천 차단) */
+const STOP_NORM=52, STOP_BOSS=78, HIT_RANGE=110, TRIG_RANGE=110;
+let lastProgressT=0; // 마지막 유효 타격 시각 (워치독용)
+
+const hero={x:0,y:0,swing:0,swingMax:22,cool:0,step:0};
+
+function groundY(){return H*0.82}
+function spawnMob(forceBoss=false){
+  const isBoss=forceBoss;
+  const t=isBoss?MTYPES[3]:MTYPES[(Math.random()*3)|0];
+  const m={...t,maxHp:t.hp,x:W+30+Math.random()*40,y:groundY(),ph:Math.random()*6,hit:0};
+  if(isBoss){boss=m;bossUI(true);}
+  mobs.push(m);
+}
+function bossUI(on){
+  document.getElementById('bossBar').style.display=on?'block':'none';
+  document.getElementById('bossName').style.display=on?'block':'none';
+}
+
+function swing(){
+  if(hero.cool>0)return;
+  hero.swing=hero.swingMax;hero.cool=Math.max(8,26-S.aspd*10);
+  slashes.push({t:14,x:hero.x+34,y:hero.y-38});
+  // 검 상태 반영
+  S.sharp=Math.max(0,S.sharp-0.35);
+  S.dura=Math.max(0,S.dura-0.12);
+  S.grip=Math.max(40,S.grip-0.05);
+  S.temp=Math.min(240,S.temp+2.6);
+  S.vib=30+Math.random()*40;
+  S.maint=Math.min(100,S.maint+0.25);
+  S.aura=Math.min(100,S.aura+4);
+  // 타격 판정 (몬스터 몸통 왼쪽 끝 기준 — 덩치 큰 보스도 확실히 닿음)
+  let hitAny=false;
+  for(const m of mobs){
+    if((m.x-m.w/2)-hero.x<HIT_RANGE&&m.x>hero.x){
+      const crit=Math.random()*100<S.crit;
+      let dmg=(10+S.enh*1.6)*(S.sharp/100*.6+.5)*(crit?2.2:1);
+      m.hp-=dmg;m.hit=6;hitAny=true;
+      S.dmgLog.push({t:performance.now(),d:dmg});
+      lastProgressT=performance.now();
+      S.blood+=dmg*0.4;
+      S.mana=Math.min(100,S.mana+1.5);
+      burst(m.x,m.y-m.h/2,crit?'#ffd24a':m.col,crit?14:7);
+    }
+  }
+  if(hitAny&&S.aura>=100){ // 검기 해방
+    S.aura=0;
+    for(const m of mobs){m.hp-=120;m.hit=10;burst(m.x,m.y-m.h/2,'#4fd8ff',20);}
+    const f=document.getElementById('flash');
+    f.style.opacity=1;setTimeout(()=>f.style.opacity=0,120);
+    S.temp=Math.min(260,S.temp+30);
+    S.ego=Math.min(100,S.ego+3);
+  }
+}
+function burst(x,y,col,n){
+  for(let i=0;i<n;i++)parts.push({x,y,vx:(Math.random()-.5)*4,vy:-Math.random()*3.5,l:20+Math.random()*15,col});
+}
+function killMob(m){
+  S.kills++;S.souls+=m.score;S.curse=Math.min(100,S.curse+(m.kind==='wraith'?2.2:.4));
+  S.ego=Math.min(100,S.ego+.5);S.fire=Math.min(100,S.fire+1.2);
+  if(m.kind==='boss'){S.bossKills++;boss=null;bossUI(false);S.wave++;S.enh=Math.min(25,S.enh+1);
+    document.getElementById('waveTxt').innerHTML=`WAVE ${S.wave}<br>필드: 잿빛 황무지`;}
+  burst(m.x,m.y-m.h/2,m.col,16);
+}
+
+/* ── 드로잉 ── */
+function drawBG(t){
+  ctx.fillStyle='#0d1120';ctx.fillRect(0,0,W,H);
+  // 달
+  ctx.beginPath();ctx.arc(W*.8,H*.2,26,0,7);
+  ctx.fillStyle='#ffedd0';ctx.shadowColor='#ffcf8f';ctx.shadowBlur=30;ctx.fill();ctx.shadowBlur=0;
+  // 원경 산
+  ctx.fillStyle='#181f33';
+  ctx.beginPath();ctx.moveTo(0,H*.62);
+  for(let x=0;x<=W;x+=40)ctx.lineTo(x,H*.62-Math.abs(Math.sin(x*.013))*H*.16);
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+  // 지면
+  ctx.fillStyle='#1c1522';ctx.fillRect(0,groundY(),W,H-groundY());
+  ctx.strokeStyle='#3a2a3f';ctx.beginPath();ctx.moveTo(0,groundY());ctx.lineTo(W,groundY());ctx.stroke();
+  // 재(잿가루)
+  ctx.fillStyle='rgba(255,160,90,.35)';
+  for(let i=0;i<14;i++){
+    const x=(i*97+t*.02*(i%3+1))%W, y=(i*61+t*.01*(i%2+1))%H;
+    ctx.fillRect(x,y,2,2);
+  }
+}
+function drawHero(t){
+  const x=hero.x,y=hero.y,st=Math.sin(t*.008)*2;
+  ctx.save();ctx.translate(x,y);
+  // 다리
+  ctx.strokeStyle='#8ea2c8';ctx.lineWidth=4;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-4,-20);ctx.lineTo(-8,0);ctx.moveTo(4,-20);ctx.lineTo(9,0);ctx.stroke();
+  // 몸통(갑옷)
+  ctx.fillStyle='#33415f';ctx.strokeStyle='#5d78a8';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.roundRect(-9,-46+st,18,27,4);ctx.fill();ctx.stroke();
+  // 머리+투구
+  ctx.fillStyle='#4a5b82';ctx.beginPath();ctx.arc(0,-54+st,8,0,7);ctx.fill();
+  ctx.fillStyle='#ff7a2f';ctx.fillRect(-2,-64+st,3,8); // 투구 깃
+  // 양팔 + 대검 (스윙)
+  const p=hero.swing>0?1-hero.swing/hero.swingMax:0;
+  const ang=hero.swing>0? -2.4+p*3.4 : -2.1+Math.sin(t*.004)*.08;
+  ctx.save();ctx.translate(0,-42+st);ctx.rotate(ang);
+  // 팔 두 개
+  ctx.strokeStyle='#8ea2c8';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(14,2);ctx.moveTo(0,4);ctx.lineTo(14,4);ctx.stroke();
+  // 대검
+  ctx.translate(14,3);
+  ctx.fillStyle='#2b2b33';ctx.fillRect(-2,-3,7,6);          // 가드
+  ctx.fillStyle='#6b4a2f';ctx.fillRect(-10,-2,9,4);          // 자루
+  const grd=ctx.createLinearGradient(5,0,58,0);
+  grd.addColorStop(0,'#d7e3f5');grd.addColorStop(.55,'#9db4d8');grd.addColorStop(1,'#eef6ff');
+  ctx.fillStyle=grd;
+  ctx.beginPath();ctx.moveTo(5,-4.5);ctx.lineTo(50,-3);ctx.lineTo(58,0);ctx.lineTo(50,3);ctx.lineTo(5,4.5);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=S.aura>70?'#4fd8ff':'#ffffff22';ctx.lineWidth=1.4;
+  if(S.aura>70){ctx.shadowColor='#4fd8ff';ctx.shadowBlur=14;}
+  ctx.stroke();ctx.shadowBlur=0;
+  // 룬
+  ctx.fillStyle='rgba(79,216,255,.8)';
+  for(let i=0;i<3;i++)ctx.fillRect(14+i*10,-1,3,2);
+  ctx.restore();
+  ctx.restore();
+}
+function drawMob(m,t){
+  const bob=Math.sin(t*.006+m.ph)*3;
+  ctx.save();ctx.translate(m.x,m.y);
+  if(m.hit>0){ctx.filter='brightness(2)';m.hit--;}
+  if(m.kind==='slime'){
+    const sq=1+Math.sin(t*.01+m.ph)*.12;
+    ctx.fillStyle=m.col;ctx.globalAlpha=.9;
+    ctx.beginPath();ctx.ellipse(0,-m.h/2,m.w/2*sq,m.h/2/sq,0,0,7);ctx.fill();
+    ctx.globalAlpha=1;ctx.fillStyle='#0b0e14';
+    ctx.fillRect(-6,-m.h+7,3,3);ctx.fillRect(3,-m.h+7,3,3);
+  }else if(m.kind==='gob'){
+    ctx.fillStyle=m.col;
+    ctx.fillRect(-m.w/2,-m.h,m.w,m.h*.62);
+    ctx.beginPath();ctx.arc(0,-m.h,7,0,7);ctx.fill();
+    ctx.strokeStyle=m.col;ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(-m.w/2,-6);ctx.lineTo(-m.w/2-3,0);ctx.moveTo(m.w/2,-6);ctx.lineTo(m.w/2+3,0);ctx.stroke();
+    ctx.fillStyle='#0b0e14';ctx.fillRect(-4,-m.h-2,2,3);ctx.fillRect(2,-m.h-2,2,3);
+    ctx.strokeStyle='#9c6b3f';ctx.beginPath();ctx.moveTo(m.w/2,-m.h*.5);ctx.lineTo(m.w/2+10,-m.h*.8);ctx.stroke(); // 몽둥이
+  }else if(m.kind==='wraith'){
+    ctx.globalAlpha=.75;ctx.fillStyle=m.col;
+    ctx.beginPath();ctx.moveTo(0,-m.h+bob);
+    ctx.quadraticCurveTo(m.w/2,-m.h/2+bob,m.w/3,bob);
+    for(let i=2;i>=-2;i--)ctx.lineTo(i*m.w/6,(i%2?6:0)+bob);
+    ctx.quadraticCurveTo(-m.w/2,-m.h/2+bob,0,-m.h+bob);ctx.fill();
+    ctx.globalAlpha=1;ctx.fillStyle='#fff';
+    ctx.fillRect(-5,-m.h+10+bob,3,4);ctx.fillRect(3,-m.h+10+bob,3,4);
+  }else{ // boss: 심연 드래곤
+    const wb=Math.sin(t*.005+m.ph)*6;
+    ctx.fillStyle='#5c1220';
+    ctx.beginPath();ctx.ellipse(0,-30+wb*.3,32,24,0,0,7);ctx.fill(); // 몸
+    ctx.fillStyle=m.col; // 날개
+    ctx.beginPath();ctx.moveTo(-6,-44+wb*.3);ctx.lineTo(-38,-70+wb);ctx.lineTo(-14,-38+wb*.3);ctx.fill();
+    ctx.beginPath();ctx.moveTo(8,-44+wb*.3);ctx.lineTo(40,-72+wb);ctx.lineTo(16,-38+wb*.3);ctx.fill();
+    ctx.fillStyle='#7a1a2c';ctx.beginPath();ctx.arc(-30,-46+wb*.3,12,0,7);ctx.fill(); // 머리
+    ctx.fillStyle='#ffd24a';ctx.fillRect(-36,-50+wb*.3,4,3); // 눈
+    ctx.strokeStyle='#7a1a2c';ctx.lineWidth=6;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(28,-26);ctx.quadraticCurveTo(52,-20,58,-40+wb);ctx.stroke(); // 꼬리
+    // 발밑 오라
+    ctx.fillStyle='rgba(255,59,87,.15)';ctx.beginPath();ctx.ellipse(0,0,40,7,0,0,7);ctx.fill();
+  }
+  ctx.filter='none';
+  // 미니 HP바 (보스 제외)
+  if(m.kind!=='boss'){
+    ctx.fillStyle='#000a';ctx.fillRect(-14,-m.h-12,28,4);
+    ctx.fillStyle=m.col;ctx.fillRect(-14,-m.h-12,28*Math.max(0,m.hp/m.maxHp),4);
+  }
+  ctx.restore();
+}
+
+let last=0,running=true,frames=0;
+function loop(t){
+  if(!running){requestAnimationFrame(loop);return;}
+  const dt=Math.min(50,t-last);last=t;frames++;
+  hero.x=W*0.2;hero.y=groundY();
+  drawBG(t);
+
+  // 스폰
+  spawnT-=dt;
+  if(spawnT<=0&&!boss){
+    if(S.kills>0&&S.kills%10===0&&S.bossKills<Math.floor(S.kills/10)) spawnMob(true);
+    else if(mobs.length<4) spawnMob(false);
+    spawnT=900+Math.random()*900;
+  }
+  // 몬스터 이동/처리
+  for(const m of mobs){
+    const stop=hero.x+(m.kind==='boss'?STOP_BOSS:STOP_NORM);
+    if(m.x>stop){m.x-=m.speed*dt*.08;lastProgressT=t;} // 이동 중 = 정상 진행
+    else m.x=Math.min(m.x,stop); // 정지거리 초과 방지
+    drawMob(m,t);
+  }
+  // 자동 스윙 (몸통 왼쪽 끝 기준 — 히트 판정과 동일 기준)
+  hero.cool=Math.max(0,hero.cool-dt*.06);
+  if(mobs.some(m=>(m.x-m.w/2)-hero.x<TRIG_RANGE&&m.x>hero.x))swing();
+
+  // ── 워치독: 전원 정지 상태 + 4초간 타격 0 = 진짜 데드락일 때만 발동 ──
+  if(mobs.length>0){
+    if(lastProgressT===0)lastProgressT=t;
+    if(t-lastProgressT>4000){
+      // 가장 가까운 1마리만 사거리 경계 바로 안쪽으로 견인 (순간이동 최소화)
+      const near=mobs.reduce((a,b)=>a.x<b.x?a:b);
+      near.x=Math.min(near.x,hero.x+near.w/2+TRIG_RANGE-15);
+      hero.cool=0;hero.swing=0; // 쿨다운/스윙 상태 리셋
+      lastProgressT=t;
+    }
+  }else lastProgressT=t;
+  if(hero.swing>0)hero.swing-=dt*.09;
+  drawHero(t);
+
+  // 슬래시 이펙트
+  for(let i=slashes.length-1;i>=0;i--){
+    const s=slashes[i];s.t-=dt*.06;
+    if(s.t<=0){slashes.splice(i,1);continue;}
+    ctx.strokeStyle=`rgba(240,250,255,${s.t/14*.9})`;ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(s.x-20,s.y+10,42,-1.9+ (14-s.t)*.1,-0.3+(14-s.t)*.1);ctx.stroke();
+  }
+  // 파티클
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.l--;
+    if(p.l<=0){parts.splice(i,1);continue;}
+    ctx.fillStyle=p.col;ctx.globalAlpha=Math.min(1,p.l/15);
+    ctx.fillRect(p.x,p.y,3,3);ctx.globalAlpha=1;
+  }
+  // 사망 처리
+  for(let i=mobs.length-1;i>=0;i--)if(mobs[i].hp<=0){killMob(mobs[i]);mobs.splice(i,1);}
+  // 보스 HP UI
+  if(boss)document.getElementById('bossHp').style.width=Math.max(0,boss.hp/boss.maxHp*100)+'%';
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ═══════════ 21 계기판 ═══════════ */
+const G=[ // id, 한글, 영문, 타입, 강조색
+ ['dura','내구도','DURABILITY','bar','ember'],
+ ['sharp','예리도','SHARPNESS','seg','ok'],
+ ['mana','마력 충전','MANA CHARGE','bar','arcane'],
+ ['temp','검신 온도','BLADE TEMP','num','ember'],
+ ['reso','룬 공명율','RUNE RESONANCE','bar','arcane'],
+ ['fire','화염 속성','FIRE ELEMENT','bar','ember'],
+ ['vib','진동 주파수','VIBRATION','num','warn'],
+ ['bal','무게중심','BALANCE','needle','arcane'],
+ ['blood','흡혈 총량','LIFESTEAL','num','blood'],
+ ['curse','저주 오염도','CURSE','bar','blood'],
+ ['souls','포식한 영혼','SOULS DEVOURED','num','soul'],
+ ['enh','강화 단계','ENHANCE LV','stars','warn'],
+ ['crit','치명타 확률','CRIT RATE','num','warn'],
+ ['aura','검기 충전','SWORD AURA','bar','arcane'],
+ ['ego','자아 각성도','EGO AWAKENING','ego','soul'],
+ ['grip','그립 상태','GRIP INTEGRITY','bar','ok'],
+ ['bless','축복 잔여','BLESSING','num','ok'],
+ ['kills','처치 수','KILL COUNT','num','ember'],
+ ['dps','초당 피해량','DPS','num','blood'],
+ ['aspd','공격 속도','ATK SPEED','num','arcane'],
+ ['maint','정비 필요도','MAINTENANCE','bar','warn'],
+];
+const grid=document.getElementById('grid');
+const EL={};
+G.forEach(([id,kr,en,type,col],idx)=>{
+  const c=document.createElement('div');
+  c.className='card'+(type==='ego'||id==='sharp'?' wide':'');
+  let inner=`<div class="lbl"><span class="kr">${kr}</span><span>${String(idx+1).padStart(2,'0')} · ${en}</span></div>`;
+  if(type==='bar')inner+=`<div class="val c-${col}"><span data-v></span><span class="unit" data-u>%</span></div><div class="bar"><i data-b style="background:var(--${col});box-shadow:0 0 8px var(--${col})"></i></div>`;
+  if(type==='num')inner+=`<div class="val c-${col}"><span class="lamp" data-l style="background:var(--${col})"></span><span data-v></span><span class="unit" data-u></span></div>`;
+  if(type==='seg'){inner+=`<div class="val c-${col}" style="font-size:14px" data-v></div><div class="seg">`;for(let i=0;i<12;i++)inner+=`<b data-s${i}></b>`;inner+=`</div>`;}
+  if(type==='stars')inner+=`<div class="val c-${col}" data-v></div><div class="stars" data-st></div>`;
+  if(type==='needle')inner+=`<div class="val c-${col}" data-v></div><div class="needle"><i data-n></i></div>`;
+  if(type==='ego')inner+=`<div class="val c-${col}"><span data-v></span><span class="unit">%</span></div><div class="bar"><i data-b style="background:var(--soul);box-shadow:0 0 8px var(--soul)"></i></div><div class="egoTxt" data-e></div>`;
+  c.innerHTML=inner;grid.appendChild(c);
+  EL[id]={el:c,type};
+});
+
+const SHARP_COL=['#ff3b57','#ff7a2f','#ffd24a','#5dff9d','#4fd8ff','#ffffff'];
+const EGO_LINES=['…피 냄새가 좋군.','더 강한 적을 다오.','주인, 아직 멀었다.','내 이름을 불러라 — 드래곤렌드.','이 정도 사냥으로는 잠이 깨지 않는다.','불꽃이… 그립군.'];
+let egoIdx=0;
+
+function fmt(n,d=0){return n.toLocaleString('ko-KR',{maximumFractionDigits:d,minimumFractionDigits:d})}
+
+function tickState(dt){
+  // 자연 회복/변화
+  S.temp=Math.max(18,S.temp-dt*3);
+  S.mana=Math.min(100,S.mana+dt*1.2);
+  S.reso=85+Math.sin(performance.now()*.0011)*10+Math.random()*2;
+  S.vib=Math.max(5,S.vib-dt*8);
+  S.bal=Math.sin(performance.now()*.0007)*30+(Math.random()-.5)*6;
+  S.bless-=dt;if(S.bless<=0)S.bless=300; // 사제가 재축복
+  S.curse=Math.max(0,S.curse-dt*.15);
+  S.fire=Math.max(0,S.fire-dt*.3);
+  if(S.sharp<25&&Math.random()<dt*.2){S.sharp=Math.min(100,S.sharp+45);S.maint=Math.max(0,S.maint-30);} // 숫돌 사용
+  S.dura=Math.min(100,S.dura+dt*.05);
+  S.aspd=1.12+S.ego*.004;
+  S.crit=27.5+S.enh*.8;
+  // DPS (최근 3초)
+  const now=performance.now();
+  S.dmgLog=S.dmgLog.filter(x=>now-x.t<3000);
+  S.dps=S.dmgLog.reduce((a,x)=>a+x.d,0)/3;
+}
+
+function render(){
+  const q=(id,sel)=>EL[id].el.querySelector(sel);
+  const bar=(id,v,warnHigh)=>{q(id,'[data-v]').textContent=fmt(v,0);q(id,'[data-b]').style.width=Math.max(0,Math.min(100,v))+'%';};
+  bar('dura',S.dura);bar('mana',S.mana);bar('reso',S.reso);bar('fire',S.fire);
+  bar('curse',S.curse);bar('aura',S.aura);bar('grip',S.grip);bar('maint',S.maint);
+  // 예리도(세그먼트)
+  const lv=Math.min(5,Math.floor(S.sharp/17));
+  q('sharp','[data-v]').textContent=`${fmt(S.sharp,0)}% — ${['이빠짐','무딤','보통','예리','매우 예리','신검'][lv]}`;
+  for(let i=0;i<12;i++){
+    const on=i<Math.round(S.sharp/100*12);
+    EL.sharp.el.querySelector(`[data-s${i}]`).style.background=on?SHARP_COL[lv]:'#1c2333';
+    EL.sharp.el.querySelector(`[data-s${i}]`).style.boxShadow=on?`0 0 6px ${SHARP_COL[lv]}`:'none';
+  }
+  // 숫자형
+  const num=(id,v,u,d=0)=>{q(id,'[data-v]').textContent=fmt(v,d);q(id,'[data-u]').textContent=u;};
+  num('temp',S.temp,'°C',1);num('vib',S.vib,'Hz',1);num('blood',S.blood,'㎖');
+  num('souls',S.souls,'혼');num('crit',S.crit,'%',1);num('kills',S.kills,`체 (보스 ${S.bossKills})`);
+  num('dps',S.dps,'DMG/s',1);num('aspd',S.aspd,'회/s',2);
+  const mm=String(Math.floor(S.bless/60)).padStart(2,'0'),ss=String(Math.floor(S.bless%60)).padStart(2,'0');
+  q('bless','[data-v]').textContent=`${mm}:${ss}`;q('bless','[data-u]').textContent='남음';
+  // 경고 램프
+  const lampSet=(id,cond)=>{const l=q(id,'[data-l]');if(!l)return;l.classList.toggle('blink',cond);l.style.background=cond?'var(--blood)':'';};
+  lampSet('temp',S.temp>180);lampSet('vib',S.vib>60);lampSet('bless',S.bless<30);
+  // 강화 단계
+  q('enh','[data-v]').textContent=`+${S.enh}`;
+  q('enh','[data-st]').textContent='★'.repeat(Math.min(10,S.enh))+(S.enh>10?` ×${S.enh}`:'');
+  // 밸런스 니들
+  q('bal','[data-v]').textContent=(S.bal>0?'+':'')+fmt(S.bal,1)+' ㎜';
+  q('bal','[data-n]').style.left=`calc(50% + ${S.bal}% - 4px)`;
+  // 자아
+  q('ego','[data-v]').textContent=fmt(S.ego,0);
+  q('ego','[data-b]').style.width=S.ego+'%';
+}
+setInterval(()=>{if(!running)return;tickState(0.25);render();},250);
+setInterval(()=>{ // 검의 속삭임
+  if(!running)return;
+  const e=EL.ego.el.querySelector('[data-e]');
+  e.textContent=S.ego>10?`“${EGO_LINES[egoIdx++%EGO_LINES.length]}”`:'';
+},6000);
+
+/* 백그라운드 자동 일시정지 */
+document.addEventListener('visibilitychange',()=>{
+  running=!document.hidden;
+  if(running)last=performance.now();
+});
+</script>
+</body>
+</html>

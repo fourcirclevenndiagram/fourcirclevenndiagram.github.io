@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>NEON BREAKER — AI 자동 벽돌깨기</title>
+<style>
+  :root{
+    --bg:#04050e;
+    --panel:#0b0e22;
+    --cyan:#28f0ff;
+    --magenta:#ff3ec8;
+    --lime:#a4ff3e;
+    --amber:#ffb428;
+    --violet:#9d6bff;
+    --dim:#5a6390;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);}
+  body{
+    font-family:'Courier New',ui-monospace,monospace;
+    color:#dfe6ff;
+    display:flex;flex-direction:column;
+    height:100dvh;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+    user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  }
+  #hud{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 14px 6px;
+    font-size:12px;letter-spacing:1px;
+  }
+  #hud .box{display:flex;flex-direction:column;gap:1px;}
+  #hud .lab{font-size:9px;color:var(--dim);letter-spacing:2px;}
+  #hud .val{font-size:14px;font-weight:bold;}
+  #stageVal{color:var(--cyan);text-shadow:0 0 8px var(--cyan);}
+  #loopVal{color:var(--magenta);text-shadow:0 0 8px var(--magenta);}
+  #scoreVal{color:var(--lime);text-shadow:0 0 8px var(--lime);}
+  #wrap{flex:1;position:relative;min-height:0;}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  #fx{display:flex;gap:6px;padding:5px 14px 8px;min-height:30px;align-items:center;flex-wrap:wrap;}
+  .chip{
+    font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:10px;
+    border:1px solid;opacity:.95;
+  }
+  #speedBtn{
+    position:absolute;right:10px;bottom:10px;z-index:5;
+    font-family:inherit;font-size:11px;letter-spacing:1px;
+    background:rgba(11,14,34,.8);color:var(--cyan);
+    border:1px solid var(--cyan);border-radius:14px;padding:6px 12px;
+  }
+  #banner{
+    position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    pointer-events:none;opacity:0;transition:opacity .3s;z-index:4;text-align:center;
+  }
+  #banner.show{opacity:1;}
+  #bannerMain{font-size:26px;font-weight:bold;letter-spacing:4px;}
+  #bannerSub{font-size:12px;letter-spacing:2px;color:var(--dim);margin-top:8px;}
+  #pauseTag{
+    position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    font-size:10px;letter-spacing:2px;color:var(--amber);display:none;z-index:5;
+  }
+</style>
+</head>
+<body>
+  <div id="hud">
+    <div class="box"><span class="lab">STAGE</span><span class="val" id="stageVal">1 / 15</span></div>
+    <div class="box" style="text-align:center"><span class="lab">POWER LOOP</span><span class="val" id="loopVal">×1</span></div>
+    <div class="box" style="text-align:right"><span class="lab">SCORE</span><span class="val" id="scoreVal">0</span></div>
+  </div>
+  <div id="wrap">
+    <canvas id="cv"></canvas>
+    <div id="banner"><div id="bannerMain"></div><div id="bannerSub"></div></div>
+    <div id="pauseTag">⏸ PAUSED</div>
+    <button id="speedBtn">▶ ×1</button>
+  </div>
+  <div id="fx"></div>
+
+<script>
+(()=>{
+"use strict";
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const wrap=document.getElementById('wrap');
+const stageEl=document.getElementById('stageVal'), loopEl=document.getElementById('loopVal'), scoreEl=document.getElementById('scoreVal');
+const fxBar=document.getElementById('fx'), banner=document.getElementById('banner');
+const bMain=document.getElementById('bannerMain'), bSub=document.getElementById('bannerSub');
+const pauseTag=document.getElementById('pauseTag'), speedBtn=document.getElementById('speedBtn');
+
+let W=0,H=0,DPR=1;
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=wrap.clientWidth; H=wrap.clientHeight;
+  cv.width=W*DPR; cv.height=H*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  layoutStage(true);
+}
+addEventListener('resize',resize);
+
+/* ---------- 게임 상태 ---------- */
+const COLS=9;
+let stage=1, loop=1, score=0;
+let bricks=[], balls=[], items=[], lasers=[], parts=[], texts=[];
+let paddle={x:0,y:0,w:0,h:10,baseW:0};
+let paused=false, banT=0, phase='play'; // play | clear
+let speedMul=1; const speeds=[1,2,4];
+let time=0;
+
+/* ---------- 아이템 7종 정의 ---------- */
+const ITEMS=[
+ {id:'wide',  name:'확장',   col:'#28f0ff', dur:12},
+ {id:'multi', name:'멀티볼', col:'#ff3ec8', dur:0},
+ {id:'pierce',name:'관통',   col:'#a4ff3e', dur:10},
+ {id:'laser', name:'레이저', col:'#ffb428', dur:8},
+ {id:'slow',  name:'슬로우', col:'#9d6bff', dur:9},
+ {id:'fire',  name:'파이어', col:'#ff6a3e', dur:9},
+ {id:'bomb',  name:'폭탄',   col:'#ffe14d', dur:0},
+];
+const eff={wide:0,pierce:0,laser:0,slow:0,fire:0};
+
+/* ---------- 15개 스테이지 패턴 ---------- */
+/* 각 함수는 (r,c,rows)->hp(0=없음) */
+const R=10;
+const PAT=[
+ (r,c)=>r<6?1+((r/2)|0):0,                                        // 1 기본 줄
+ (r,c)=>(r+c)%2===0&&r<8?1+(r>3?1:0):0,                            // 2 체커
+ (r,c)=>{const m=(COLS-1)/2;return Math.abs(c-m)<=r&&r<7?1+(r%3?0:1):0;},   // 3 피라미드
+ (r,c)=>{const m=(COLS-1)/2,d=Math.abs(c-m)+Math.abs(r-4);return d<=4?(d<2?3:1):0;}, // 4 다이아
+ (r,c)=>r<8&&(c===(r%2?r%COLS:COLS-1-(r%COLS))||c===((r+3)%COLS))?2:(r<8&&r%2===0?1:0), // 5 지그재그
+ (r,c)=>c%2===0&&r<9?1+((c/3)|0):0,                                // 6 기둥
+ (r,c)=>{const m=(COLS-1)/2,x=Math.abs(c-m);
+   if(r===0&&(x===1||x===2))return 2;
+   if(r===1&&x<=3)return 2; if(r===2&&x<=3)return 1;
+   if(r===3&&x<=2)return 1; if(r===4&&x<=1)return 2; if(r===5&&x===0)return 3; return 0;}, // 7 하트
+ (r,c)=>{if(r>8)return 0;const k=(r*COLS+c*2+r*3)%7;return k<3?1+(k===0?2:0):0;},  // 8 나선풍
+ (r,c)=>(r===0||r===7||c===0||c===COLS-1)&&r<8?2:(r===3&&c>1&&c<COLS-2?3:0),       // 9 성벽
+ (r,c)=>{const m=(COLS-1)/2;return(Math.abs(c-m)===Math.abs(r-4)&&r<9)?3:(r<9&&(r+c)%3===0?1:0);}, // 10 X자
+ (r,c)=>{if(r>7)return 0;const w=Math.round(Math.sin((c/COLS)*Math.PI*2+r)*1.5+4);return r===w||r===w+1?2:(r<w?1:0);}, // 11 파도
+ (r,c)=>{const s=(r*7+c*13)%10;return r<9&&s<5?(s<2?3:1):0;},       // 12 랜덤 성운
+ (r,c)=>{const m=(COLS-1)/2;if(r<5&&Math.abs(c-m)<=r&&Math.abs(c-m)>=r-1)return 2;if(r>=5&&r<8&&Math.abs(c-m)<=1)return 3;return 0;}, // 13 화살표
+ (r,c)=>r<9&&((r%3===0&&c%2===0)||(r%3===1&&c%2===1))?2+(r>5?1:0):0, // 14 벌집
+ (r,c)=>r<3?4:(r<8?(c===0||c===COLS-1?3:(r%2?2:1)):0),             // 15 보스 성채
+];
+
+let brickW=0,brickH=0,gridTop=0,gridLeft=0;
+function layoutStage(keep){
+  const gap=3, side=8;
+  brickW=(W-side*2-gap*(COLS-1))/COLS;
+  brickH=Math.min(20,H*0.030);
+  gridTop=10; gridLeft=side;
+  paddle.baseW=Math.max(64,W*0.24);
+  paddle.h=10;
+  paddle.y=H-34;
+  if(!keep)return;
+  for(const b of bricks){
+    b.x=gridLeft+b.c*(brickW+gap); b.y=gridTop+b.r*(brickH+gap);
+    b.w=brickW; b.h=brickH;
+  }
+  paddle.x=Math.min(Math.max(paddle.x,paddle.w/2),W-paddle.w/2);
+}
+
+function buildStage(){
+  bricks.length=0; items.length=0; lasers.length=0;
+  const fn=PAT[(stage-1)%15], gap=3;
+  const hpBonus=loop-1;
+  for(let r=0;r<R;r++)for(let c=0;c<COLS;c++){
+    let hp=fn(r,c);
+    if(hp>0){
+      hp+=hpBonus;
+      bricks.push({r,c,hp,max:hp,
+        x:gridLeft+c*(brickW+gap), y:gridTop+r*(brickH+gap), w:brickW,h:brickH});
+    }
+  }
+  balls.length=0; spawnBall();
+  paddle.w=paddle.baseW*(eff.wide>0?1.55:1);
+  paddle.x=W/2;
+  stageEl.textContent=stage+' / 15';
+  loopEl.textContent='×'+loop;
+}
+
+function ballSpeed(){ return Math.min(H*0.0055*(1+ (loop-1)*0.06), H*0.009); }
+function spawnBall(){
+  const a=(-Math.PI/2)+(Math.random()*0.8-0.4);
+  const s=ballSpeed();
+  balls.push({x:W/2,y:paddle.y-30,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:Math.max(5,W*0.013),trail:[]});
+}
+
+/* ---------- AI 패들 ---------- */
+function predictX(b){
+  // 벽 반사 포함해 패들 높이 도달 x 예측
+  let x=b.x,y=b.y,vx=b.vx,vy=b.vy;
+  if(vy<=0)return b.x;
+  let steps=0;
+  while(y<paddle.y-b.r&&steps<600){
+    const t=(paddle.y-b.r-y)/vy;
+    let nx=x+vx*t;
+    // 반사 접기(fold)
+    const span=W-b.r*2;
+    let fx=(nx-b.r)%(span*2); if(fx<0)fx+=span*2;
+    if(fx>span)fx=span*2-fx;
+    return fx+b.r;
+  }
+  return x;
+}
+function brickCentroid(){
+  if(!bricks.length)return W/2;
+  let sx=0; for(const b of bricks)sx+=b.x+b.w/2;
+  return sx/bricks.length;
+}
+function aiMove(dt){
+  let target=W/2;
+  // 가장 위협적인(내려오는 중 가장 낮은) 공
+  let danger=null;
+  for(const b of balls){ if(b.vy>0&&(!danger||b.y>danger.y))danger=b; }
+  if(danger){
+    const px=predictX(danger);
+    // 벽돌 무게중심 쪽으로 튕기도록 오프셋 조준
+    const off=Math.max(-0.34,Math.min(0.34,(px-brickCentroid())/W))*paddle.w;
+    target=px+off;
+  }else{
+    // 공이 다 올라가는 중이면 아이템 회수
+    let best=null,bd=1e9;
+    for(const it of items){
+      const eta=(paddle.y-it.y)/it.vy;
+      if(eta<0)continue;
+      const d=Math.abs(it.x-paddle.x)+eta*40;
+      if(d<bd){bd=d;best=it;}
+    }
+    if(best)target=best.x;
+    else if(balls[0])target=balls[0].x;
+  }
+  const maxV=W*1.6*dt;
+  const d=target-paddle.x;
+  paddle.x+=Math.max(-maxV,Math.min(maxV,d*0.35+Math.sign(d)*Math.min(Math.abs(d),maxV)*0.5));
+  paddle.x=Math.min(Math.max(paddle.x,paddle.w/2+2),W-paddle.w/2-2);
+}
+
+/* ---------- 아이템 ---------- */
+function dropItem(x,y){
+  if(Math.random()>0.16)return;
+  const def=ITEMS[(Math.random()*ITEMS.length)|0];
+  items.push({def,x,y,vy:H*0.16,r:Math.max(9,W*0.024),rot:0});
+}
+function applyItem(def){
+  addText(def.name+'!',paddle.x,paddle.y-26,def.col);
+  score+=50;
+  switch(def.id){
+    case 'wide': eff.wide=def.dur; paddle.w=paddle.baseW*1.55; break;
+    case 'multi':{
+      const cur=[...balls];
+      for(const b of cur){
+        if(balls.length>=6)break;
+        for(let k=0;k<2&&balls.length<6;k++){
+          const a=Math.atan2(b.vy,b.vx)+(k?0.5:-0.5);
+          const s=Math.hypot(b.vx,b.vy);
+          balls.push({x:b.x,y:b.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:b.r,trail:[]});
+        }
+      }
+      break;}
+    case 'pierce': eff.pierce=def.dur; break;
+    case 'laser': eff.laser=def.dur; break;
+    case 'slow': eff.slow=def.dur; break;
+    case 'fire': eff.fire=def.dur; break;
+    case 'bomb':{
+      // 무작위 벽돌 지점 대폭발
+      if(bricks.length){
+        const t=bricks[(Math.random()*bricks.length)|0];
+        explode(t.x+t.w/2,t.y+t.h/2,Math.max(brickW*2.2,80),3+loop);
+      }
+      break;}
+  }
+}
+function explode(x,y,rad,dmg){
+  boom(x,y,'#ffe14d',26);
+  for(let i=bricks.length-1;i>=0;i--){
+    const b=bricks[i];
+    const cx=b.x+b.w/2,cy=b.y+b.h/2;
+    if(Math.hypot(cx-x,cy-y)<=rad){
+      b.hp-=dmg;
+      if(b.hp<=0){killBrick(i,false);}
+    }
+  }
+}
+
+/* ---------- 벽돌 ---------- */
+function brickColor(b){
+  const hues=['#28f0ff','#a4ff3e','#ffb428','#ff3ec8','#9d6bff','#ff6a3e'];
+  return hues[(b.max-1)%hues.length];
+}
+function killBrick(i,drop=true){
+  const b=bricks[i];
+  if(!b)return;
+  score+=10*loop;
+  boom(b.x+b.w/2,b.y+b.h/2,brickColor(b),8);
+  if(drop)dropItem(b.x+b.w/2,b.y+b.h/2);
+  bricks.splice(i,1);
+}
+function hitBrick(i,ball){
+  const b=bricks[i];
+  if(!b)return;
+  const dmg=(eff.fire>0?2:1)+((loop-1)>>1);
+  b.hp-=dmg;
+  const cx=b.x+b.w/2, cy=b.y+b.h/2;
+  if(b.hp<=0)killBrick(i);      // 맞은 벽돌부터 정리 (인덱스 유효할 때)
+  else score+=2;
+  if(eff.fire>0)explode(cx,cy,brickW*1.1,1); // 폭발은 저장한 좌표로 나중에
+}
+
+/* ---------- 파티클/텍스트 ---------- */
+function boom(x,y,col,n){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,s=30+Math.random()*140;
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:0.5+Math.random()*0.4,col,r:1+Math.random()*2.5});
+  }
+  if(parts.length>350)parts.splice(0,parts.length-350);
+}
+function addText(t,x,y,col){texts.push({t,x,y,col,l:1.1});}
+
+/* ---------- 업데이트 ---------- */
+function step(dt){
+  time+=dt;
+  for(const k in eff){if(eff[k]>0){eff[k]-=dt;if(eff[k]<=0){eff[k]=0;if(k==='wide')paddle.w=paddle.baseW;}}}
+  aiMove(dt);
+
+  // 레이저 발사
+  if(eff.laser>0&&(time%0.28)<dt){
+    lasers.push({x:paddle.x-paddle.w*0.35,y:paddle.y-6,vy:-H*0.9});
+    lasers.push({x:paddle.x+paddle.w*0.35,y:paddle.y-6,vy:-H*0.9});
+  }
+  for(let i=lasers.length-1;i>=0;i--){
+    const L=lasers[i]; L.y+=L.vy*dt;
+    let hit=false;
+    for(let j=bricks.length-1;j>=0;j--){
+      const b=bricks[j];
+      if(L.x>b.x&&L.x<b.x+b.w&&L.y>b.y&&L.y<b.y+b.h){hitBrick(j,null);hit=true;break;}
+    }
+    if(hit||L.y<-10)lasers.splice(i,1);
+  }
+
+  // 공
+  const smul=eff.slow>0?0.6:1;
+  for(let bi=balls.length-1;bi>=0;bi--){
+    const b=balls[bi];
+    b.x+=b.vx*smul*dt*60/1; b.y+=b.vy*smul*dt*60/1;
+    b.trail.push({x:b.x,y:b.y}); if(b.trail.length>10)b.trail.shift();
+    if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx);}
+    if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx);}
+    if(b.y<b.r){b.y=b.r;b.vy=Math.abs(b.vy);}
+    // 패들
+    if(b.vy>0&&b.y+b.r>=paddle.y&&b.y+b.r<=paddle.y+paddle.h+14&&
+       b.x>paddle.x-paddle.w/2-b.r&&b.x<paddle.x+paddle.w/2+b.r){
+      const rel=(b.x-paddle.x)/(paddle.w/2);
+      const s=ballSpeed();
+      b.vx=Math.sin(rel*1.05)*s;
+      b.vy=-Math.sqrt(Math.max(s*s-b.vx*b.vx,s*s*0.2));
+      b.y=paddle.y-b.r;
+    }
+    // 벽돌
+    for(let j=bricks.length-1;j>=0;j--){
+      const k=bricks[j];
+      if(b.x+b.r>k.x&&b.x-b.r<k.x+k.w&&b.y+b.r>k.y&&b.y-b.r<k.y+k.h){
+        if(eff.pierce<=0){
+          const ox=Math.min(b.x+b.r-k.x,k.x+k.w-(b.x-b.r));
+          const oy=Math.min(b.y+b.r-k.y,k.y+k.h-(b.y-b.r));
+          if(ox<oy)b.vx*=-1; else b.vy*=-1;
+        }
+        hitBrick(j,b);
+        break;
+      }
+    }
+    if(b.y>H+b.r*2){
+      balls.splice(bi,1);
+      if(balls.length===0){
+        addText('MISS',W/2,H*0.6,'#ff3e5e');
+        setTimeout(()=>{if(phase==='play')spawnBall();},400/speedMul);
+      }
+    }
+  }
+
+  // 아이템 낙하
+  for(let i=items.length-1;i>=0;i--){
+    const it=items[i];
+    it.y+=it.vy*dt; it.rot+=dt*3;
+    if(it.y+it.r>paddle.y&&it.y-it.r<paddle.y+paddle.h&&
+       it.x>paddle.x-paddle.w/2-it.r&&it.x<paddle.x+paddle.w/2+it.r){
+      applyItem(it.def); items.splice(i,1);
+    }else if(it.y>H+20)items.splice(i,1);
+  }
+
+  // 파티클/텍스트
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i]; p.l-=dt; if(p.l<=0){parts.splice(i,1);continue;}
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=200*dt;
+  }
+  for(let i=texts.length-1;i>=0;i--){
+    const t=texts[i]; t.l-=dt; t.y-=30*dt; if(t.l<=0)texts.splice(i,1);
+  }
+
+  // 스테이지 클리어
+  if(phase==='play'&&bricks.length===0){
+    phase='clear'; banT=1.6;
+    if(stage===15){
+      bMain.textContent='POWER UP!';
+      bMain.style.color='var(--magenta)'; bMain.style.textShadow='0 0 20px var(--magenta)';
+      bSub.textContent='LOOP '+(loop+1)+' — 벽돌 강화 · 스테이지 1로';
+      score+=1000*loop;
+    }else{
+      bMain.textContent='STAGE '+stage+' CLEAR';
+      bMain.style.color='var(--cyan)'; bMain.style.textShadow='0 0 20px var(--cyan)';
+      bSub.textContent='NEXT ▶ STAGE '+(stage+1);
+      score+=200*loop;
+    }
+    banner.classList.add('show');
+  }
+  if(phase==='clear'){
+    banT-=dt;
+    if(banT<=0){
+      banner.classList.remove('show');
+      if(stage===15){stage=1;loop++;}else stage++;
+      buildStage(); phase='play';
+    }
+  }
+  scoreEl.textContent=score.toLocaleString();
+}
+
+/* ---------- 렌더 ---------- */
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // 배경 그리드
+  ctx.strokeStyle='rgba(90,99,144,0.10)'; ctx.lineWidth=1;
+  const g=Math.max(34,W/10);
+  ctx.beginPath();
+  for(let x=g;x<W;x+=g){ctx.moveTo(x,0);ctx.lineTo(x,H);}
+  for(let y=g;y<H;y+=g){ctx.moveTo(0,y);ctx.lineTo(W,y);}
+  ctx.stroke();
+
+  // 벽돌
+  for(const b of bricks){
+    const col=brickColor(b);
+    const a=0.35+0.65*(b.hp/b.max);
+    ctx.globalAlpha=a;
+    ctx.fillStyle=col;
+    ctx.shadowColor=col; ctx.shadowBlur=6;
+    roundRect(b.x,b.y,b.w,b.h,3); ctx.fill();
+    ctx.shadowBlur=0;
+    if(b.hp>1){
+      ctx.globalAlpha=0.9; ctx.fillStyle='#04050e';
+      ctx.font='bold '+Math.min(11,b.h-6)+'px monospace';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(b.hp,b.x+b.w/2,b.y+b.h/2+0.5);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // 레이저
+  ctx.strokeStyle='#ffb428'; ctx.lineWidth=2.5; ctx.shadowColor='#ffb428'; ctx.shadowBlur=8;
+  for(const L of lasers){ctx.beginPath();ctx.moveTo(L.x,L.y);ctx.lineTo(L.x,L.y+12);ctx.stroke();}
+  ctx.shadowBlur=0;
+
+  // 아이템
+  for(const it of items){
+    ctx.save(); ctx.translate(it.x,it.y); ctx.rotate(Math.sin(it.rot)*0.3);
+    ctx.fillStyle=it.def.col; ctx.shadowColor=it.def.col; ctx.shadowBlur=10;
+    roundRect(-it.r,-it.r*0.72,it.r*2,it.r*1.44,5); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#04050e'; ctx.font='bold '+(it.r*0.72)+'px sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(it.def.name.slice(0,2),0,1);
+    ctx.restore();
+  }
+
+  // 공
+  for(const b of balls){
+    for(let i=0;i<b.trail.length;i++){
+      const t=b.trail[i];
+      ctx.globalAlpha=i/b.trail.length*0.35;
+      ctx.fillStyle=eff.fire>0?'#ff6a3e':'#28f0ff';
+      ctx.beginPath();ctx.arc(t.x,t.y,b.r*(i/b.trail.length),0,7);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    const col=eff.fire>0?'#ff6a3e':(eff.pierce>0?'#a4ff3e':'#e8fbff');
+    ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=14;
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,7);ctx.fill();
+    ctx.shadowBlur=0;
+  }
+
+  // 패들
+  ctx.fillStyle='#ff3ec8'; ctx.shadowColor='#ff3ec8'; ctx.shadowBlur=14;
+  roundRect(paddle.x-paddle.w/2,paddle.y,paddle.w,paddle.h,5); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(255,255,255,0.55)';
+  roundRect(paddle.x-paddle.w/2+4,paddle.y+2,paddle.w-8,2.5,1.5); ctx.fill();
+
+  // 파티클
+  for(const p of parts){
+    ctx.globalAlpha=Math.max(p.l,0);
+    ctx.fillStyle=p.col;
+    ctx.fillRect(p.x-p.r/2,p.y-p.r/2,p.r,p.r);
+  }
+  ctx.globalAlpha=1;
+
+  // 플로팅 텍스트
+  ctx.textAlign='center';
+  for(const t of texts){
+    ctx.globalAlpha=Math.min(t.l,1);
+    ctx.fillStyle=t.col; ctx.shadowColor=t.col; ctx.shadowBlur=8;
+    ctx.font='bold 14px monospace';
+    ctx.fillText(t.t,t.x,t.y);
+  }
+  ctx.globalAlpha=1; ctx.shadowBlur=0;
+}
+
+/* ---------- 활성 효과 칩 ---------- */
+let fxTick=0;
+function renderFx(dt){
+  fxTick-=dt; if(fxTick>0)return; fxTick=0.25;
+  let html='';
+  for(const d of ITEMS){
+    if(d.id in eff&&eff[d.id]>0){
+      html+=`<span class="chip" style="color:${d.col};border-color:${d.col}">${d.name} ${Math.ceil(eff[d.id])}s</span>`;
+    }
+  }
+  if(balls.length>1)html+=`<span class="chip" style="color:#ff3ec8;border-color:#ff3ec8">멀티볼 ×${balls.length}</span>`;
+  if(!html)html='<span class="chip" style="color:#5a6390;border-color:#2a2f4d">AI AUTO PLAY — 감상 모드</span>';
+  fxBar.innerHTML=html;
+}
+
+/* ---------- 루프 / 일시정지 ---------- */
+let last=0;
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(paused){last=ts;return;}
+  let dt=Math.min((ts-last)/1000,0.05); last=ts;
+  for(let i=0;i<speedMul;i++)step(dt);
+  renderFx(dt*speedMul);
+  draw();
+}
+document.addEventListener('visibilitychange',()=>{
+  paused=document.hidden;
+  pauseTag.style.display=paused?'block':'none';
+});
+speedBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  const i=(speeds.indexOf(speedMul)+1)%speeds.length;
+  speedMul=speeds[i];
+  speedBtn.textContent='▶ ×'+speedMul;
+});
+
+/* ---------- 시작 ---------- */
+resize();
+buildStage();
+addText('AI BREAKOUT START',W/2,H*0.55,'#28f0ff');
+requestAnimationFrame(ts=>{last=ts;frame(ts);});
+})();
+</script>
+</body>
+</html>

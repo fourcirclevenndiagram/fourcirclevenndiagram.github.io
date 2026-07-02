@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>포격 사분전 v1.2 — 감상용</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; overflow:hidden; background:#070a10; }
+  body {
+    font-family:'Courier New', monospace;
+    color:#cfe3ff;
+    display:flex; flex-direction:column;
+    height:100dvh;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+    user-select:none; -webkit-user-select:none;
+  }
+  #hud {
+    padding:8px 12px 6px;
+    flex:0 0 auto;
+  }
+  #title {
+    text-align:center;
+    font-size:13px; letter-spacing:4px;
+    color:#8fb8ff;
+    text-shadow:0 0 8px rgba(120,170,255,.6);
+    margin-bottom:7px;
+  }
+  #title small { color:#4a5f80; letter-spacing:2px; font-size:10px; }
+  #bars { display:flex; gap:5px; }
+  .bar {
+    flex:1; height:26px; position:relative;
+    background:#0d1320; border:1px solid #1c2740; border-radius:4px;
+    overflow:hidden;
+  }
+  .bar .fill {
+    position:absolute; left:0; top:0; bottom:0; width:0%;
+    transition:width .4s ease;
+    opacity:.85;
+  }
+  .bar .pct {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:bold;
+    text-shadow:0 0 4px rgba(0,0,0,.9);
+    z-index:2;
+  }
+  #stage { flex:1 1 auto; position:relative; min-height:0; }
+  canvas#game {
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    background:#0a0e16;
+    border:1px solid #1a2438;
+    border-radius:6px;
+    box-shadow:0 0 30px rgba(40,80,160,.15);
+  }
+  #ctrl {
+    flex:0 0 auto;
+    display:flex; gap:10px; justify-content:center;
+    padding:8px 0 10px;
+  }
+  .btn {
+    min-width:84px; padding:8px 14px;
+    background:#0d1320; border:1px solid #24365c; border-radius:6px;
+    color:#8fb8ff; font-family:inherit; font-size:13px; letter-spacing:1px;
+    text-align:center;
+  }
+  .btn:active { background:#16203a; }
+  #banner {
+    position:absolute; inset:0;
+    display:none; align-items:center; justify-content:center;
+    flex-direction:column; gap:8px;
+    background:rgba(5,8,14,.72);
+    z-index:10; border-radius:6px;
+  }
+  #banner .w1 { font-size:26px; font-weight:bold; letter-spacing:6px; }
+  #banner .w2 { font-size:12px; color:#7d94b8; letter-spacing:3px; }
+  #paused {
+    position:absolute; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(5,8,14,.6); z-index:9;
+    font-size:18px; letter-spacing:6px; color:#8fb8ff;
+    border-radius:6px;
+  }
+</style>
+</head>
+<body>
+  <div id="hud">
+    <div id="title">◈ 포격 사분전 ◈ <small>ARTILLERY QUADRANTS v1.2</small></div>
+    <div id="bars"></div>
+  </div>
+  <div id="stage">
+    <canvas id="game"></canvas>
+    <div id="banner"><div class="w1"></div><div class="w2">3초 후 재시작</div></div>
+    <div id="paused">⏸ PAUSED</div>
+  </div>
+  <div id="ctrl">
+    <div class="btn" id="btnSpeed">속도 ×1</div>
+    <div class="btn" id="btnPause">일시정지</div>
+    <div class="btn" id="btnReset">재시작</div>
+  </div>
+
+<script>
+(() => {
+  const G = 75;
+  const TEAMS = [
+    null,
+    { name:'CYAN',  c:'#00e5ff', dim:'#063a44' },
+    { name:'ROSE',  c:'#ff3d7f', dim:'#44101f' },
+    { name:'AMBER', c:'#ffc93d', dim:'#443410' },
+    { name:'LIME',  c:'#52ff7a', dim:'#12421f' },
+  ];
+  const NEUTRAL_CELL = '#10161f';
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const gridCv = document.createElement('canvas');
+  const gctx = gridCv.getContext('2d');
+
+  let cs = 6, W = 0, dpr = 1;
+
+  function resize() {
+    const stage = document.getElementById('stage');
+    const size = Math.min(stage.clientWidth - 8, stage.clientHeight - 8);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(150, size);
+    canvas.style.width = W + 'px';
+    canvas.style.height = W + 'px';
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(W * dpr);
+    cs = canvas.width / G;
+    gridCv.width = canvas.width;
+    gridCv.height = canvas.height;
+    repaintAll();
+  }
+
+  // ---------- state ----------
+  let cells, bases, towers, shells, booms, flashes;
+  let speed = 1, paused = false, over = false, elapsed = 0;
+
+  const BASE_POS = [ [9,9,1], [65,9,2], [9,65,3], [65,65,4] ];
+  const TOWER_POS = [
+    [37,37],
+    [37,14],[37,60],[14,37],[60,37],
+    [21,21],[53,21],[21,53],[53,53],
+    [37,26],[37,48],
+  ];
+
+  function idx(x,y){ return y*G+x; }
+  function rand(a,b){ return a + Math.random()*(b-a); }
+
+  function init() {
+    cells = new Uint8Array(G*G);
+    shells = []; booms = []; flashes = [];
+    over = false; elapsed = 0;
+    document.getElementById('banner').style.display = 'none';
+
+    bases = BASE_POS.map(([x,y,t]) => ({ x, y, team:t, cd:rand(0.3,1.0), angle:rand(0,6.28), hp:120, maxHp:120, hurt:0 }));
+    towers = TOWER_POS.map(([x,y]) => ({ x, y, team:0, cd:rand(0.5,1.5), angle:rand(0,6.28), spin:rand(0.6,1.4)*(Math.random()<.5?-1:1), flash:0 }));
+
+    // initial territory around bases
+    for (const b of bases) paintCircle(b.x, b.y, 4.2, b.team, true);
+    repaintAll();
+    updateBars(true);
+  }
+
+  // protected cells: radius 1.6 around each base never flips away
+  function protectedTeam(x,y) {
+    for (const b of bases) {
+      const dx=x-b.x, dy=y-b.y;
+      if (dx*dx+dy*dy <= 2.6) return b.team;
+    }
+    return 0;
+  }
+
+  function paintCell(x,y,team) {
+    if (x<0||y<0||x>=G||y>=G) return;
+    const p = protectedTeam(x,y);
+    if (p && p !== team) return;
+    if (cells[idx(x,y)] === team) return;
+    cells[idx(x,y)] = team;
+    drawCell(x,y);
+  }
+
+  function paintCircle(cx,cy,r,team,silent) {
+    const R = Math.ceil(r);
+    for (let y=cy-R; y<=cy+R; y++) for (let x=cx-R; x<=cx+R; x++) {
+      const dx=x-cx, dy=y-cy;
+      if (dx*dx+dy*dy <= r*r) paintCell(x,y,team);
+    }
+    if (!silent) {
+      // tower capture check
+      for (const t of towers) {
+        const dx=t.x-cx, dy=t.y-cy;
+        if (dx*dx+dy*dy <= (r+0.6)*(r+0.6) && t.team !== team) {
+          t.team = team; t.flash = 1; t.cd = rand(0.4,1.0);
+        }
+      }
+      // base damage check
+      const dmg = r >= 2.5 ? 10 : 7;
+      for (let i=bases.length-1; i>=0; i--) {
+        const b = bases[i];
+        if (b.team === team) continue;
+        const dx=b.x-cx, dy=b.y-cy;
+        if (dx*dx+dy*dy <= (r+1.6)*(r+1.6)) {
+          b.hp -= dmg; b.hurt = 1;
+          if (b.hp <= 0) destroyBase(i);
+        }
+      }
+    }
+  }
+
+  function destroyBase(i) {
+    const b = bases[i];
+    bases.splice(i,1); // remove first so protection lifts
+    // blast crater back to neutral
+    paintCircle(b.x, b.y, 4.5, 0, true);
+    for (let k=0;k<3;k++) booms.push({ x:b.x, y:b.y, t:-k*0.18, r:3.5+k*1.5, team:b.team });
+    flashes.push({ x:b.x, y:b.y, t:0, team:b.team });
+    if (!over && bases.length === 1 && elapsed > 5) declareWinner(bases[0].team);
+  }
+
+  function drawCell(x,y) {
+    const t = cells[idx(x,y)];
+    gctx.fillStyle = t ? TEAMS[t].dim : NEUTRAL_CELL;
+    gctx.fillRect(x*cs, y*cs, cs-0.6, cs-0.6);
+    if (t) {
+      gctx.fillStyle = TEAMS[t].c;
+      gctx.globalAlpha = 0.28;
+      gctx.fillRect(x*cs, y*cs, cs-0.6, cs-0.6);
+      gctx.globalAlpha = 1;
+    }
+  }
+
+  function repaintAll() {
+    if (!cells) return;
+    gctx.fillStyle = '#0a0e16';
+    gctx.fillRect(0,0,gridCv.width,gridCv.height);
+    for (let y=0;y<G;y++) for (let x=0;x<G;x++) drawCell(x,y);
+  }
+
+  // ---------- AI ----------
+  function pickTarget(sx,sy,team,range) {
+    let best=null, bestScore=-1;
+    for (let i=0;i<12;i++) {
+      const a = rand(0,Math.PI*2);
+      const d = rand(4,range);
+      const tx = Math.round(Math.min(G-1, Math.max(0, sx + Math.cos(a)*d)));
+      const ty = Math.round(Math.min(G-1, Math.max(0, sy + Math.sin(a)*d)));
+      const owner = cells[idx(tx,ty)];
+      let score = owner===team ? 0.1 : (owner===0 ? 1.0 : 1.35);
+      // tower magnet
+      for (const t of towers) {
+        if (t.team !== team) {
+          const dx=t.x-tx, dy=t.y-ty;
+          if (dx*dx+dy*dy <= 16) { score += 1.6; break; }
+        }
+      }
+      // enemy base magnet
+      for (const b of bases) {
+        if (b.team !== team) {
+          const dx=b.x-tx, dy=b.y-ty;
+          if (dx*dx+dy*dy <= 12) { score += 1.3; break; }
+        }
+      }
+      score += Math.random()*0.4;
+      if (score > bestScore) { bestScore = score; best = [tx,ty]; }
+    }
+    return best;
+  }
+
+  function fire(sx,sy,team,range,r) {
+    const tgt = pickTarget(sx,sy,team,range);
+    if (!tgt) return;
+    const dx = tgt[0]-sx, dy = tgt[1]-sy;
+    const dist = Math.hypot(dx,dy);
+    shells.push({
+      x0:sx, y0:sy, x1:tgt[0], y1:tgt[1],
+      t:0, dur: 0.5 + dist*0.028,
+      h: 6 + dist*0.5,
+      team, r,
+      ang: Math.atan2(dy,dx),
+      lx:sx, ly:sy,
+    });
+    flashes.push({ x:sx, y:sy, t:0, team });
+  }
+
+  // ---------- update ----------
+  function update(dt) {
+    elapsed += dt;
+
+    for (const b of bases) {
+      b.angle += dt*0.5;
+      if (b.hurt > 0) b.hurt -= dt*3;
+      b.cd -= dt;
+      if (b.cd <= 0) { fire(b.x, b.y, b.team, 34, 2.6); b.cd = rand(0.4,0.85); }
+    }
+    for (const t of towers) {
+      t.angle += t.spin * dt * (t.team ? 1.8 : 1);
+      if (t.flash > 0) t.flash -= dt*1.5;
+      if (t.team) {
+        t.cd -= dt;
+        if (t.cd <= 0) { fire(t.x, t.y, t.team, 22, 2.1); t.cd = rand(0.6,1.2); }
+      }
+    }
+
+    for (let i=shells.length-1; i>=0; i--) {
+      const s = shells[i];
+      s.t += dt;
+      // paint the ground path the shell passes over
+      const k = Math.min(1, s.t/s.dur);
+      const cx = s.x0 + (s.x1-s.x0)*k;
+      const cy = s.y0 + (s.y1-s.y0)*k;
+      const segLen = Math.hypot(cx-s.lx, cy-s.ly);
+      const steps = Math.max(1, Math.ceil(segLen/0.5));
+      for (let j=1; j<=steps; j++) {
+        const px2 = s.lx + (cx-s.lx)*j/steps;
+        const py2 = s.ly + (cy-s.ly)*j/steps;
+        paintCell(Math.round(px2), Math.round(py2), s.team);
+      }
+      s.lx = cx; s.ly = cy;
+      if (s.t >= s.dur) {
+        shells.splice(i,1);
+        paintCircle(s.x1, s.y1, s.r, s.team, false);
+        booms.push({ x:s.x1, y:s.y1, t:0, r:s.r, team:s.team });
+      }
+    }
+    for (let i=booms.length-1; i>=0; i--) { booms[i].t += dt*2.4; if (booms[i].t>=1) booms.splice(i,1); }
+    for (let i=flashes.length-1; i>=0; i--) { flashes[i].t += dt*5; if (flashes[i].t>=1) flashes.splice(i,1); }
+  }
+
+  // ---------- render ----------
+  function px(v){ return (v+0.5)*cs; }
+
+  function render(now) {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(gridCv,0,0);
+
+    // towers
+    for (const t of towers) {
+      const x=px(t.x), y=px(t.y), R=cs*2.1;
+      const col = t.team ? TEAMS[t.team].c : '#5a7396';
+      // hex pad
+      ctx.beginPath();
+      for (let i=0;i<6;i++){
+        const a = Math.PI/3*i + Math.PI/6;
+        const vx = x+Math.cos(a)*R, vy = y+Math.sin(a)*R;
+        i?ctx.lineTo(vx,vy):ctx.moveTo(vx,vy);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#0c1220';
+      ctx.fill();
+      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, cs*0.22);
+      ctx.shadowColor = col; ctx.shadowBlur = t.team ? 10 : 4;
+      ctx.stroke();
+      // rotating barrel
+      ctx.save();
+      ctx.translate(x,y); ctx.rotate(t.angle);
+      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.2, cs*0.3);
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(R*0.95,0); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0,0,R*0.32,0,6.29);
+      ctx.fillStyle = col; ctx.fill();
+      ctx.restore();
+      ctx.shadowBlur = 0;
+      if (t.flash > 0) {
+        ctx.beginPath(); ctx.arc(x,y,R*(1.4+(1-t.flash)),0,6.29);
+        ctx.strokeStyle = col; ctx.globalAlpha = Math.max(0,t.flash);
+        ctx.lineWidth = 2*dpr; ctx.stroke(); ctx.globalAlpha = 1;
+      }
+    }
+
+    // bases
+    for (const b of bases) {
+      const x=px(b.x), y=px(b.y), R=cs*2.6;
+      const col = TEAMS[b.team].c;
+      const pulse = 0.85 + 0.15*Math.sin(now/300 + b.team);
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.rotate(b.angle*0.3);
+      ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.4, cs*0.32);
+      ctx.shadowColor = col; ctx.shadowBlur = 14*pulse;
+      ctx.strokeRect(-R*0.8,-R*0.8,R*1.6,R*1.6);
+      ctx.rotate(Math.PI/4);
+      ctx.globalAlpha = 0.6;
+      ctx.strokeRect(-R*0.62,-R*0.62,R*1.24,R*1.24);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+      ctx.beginPath(); ctx.arc(x,y,R*0.34*pulse,0,6.29);
+      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 10;
+      ctx.fill(); ctx.shadowBlur = 0;
+      // HP ring
+      const hpk = Math.max(0, b.hp/b.maxHp);
+      ctx.beginPath();
+      ctx.arc(x,y,R*1.15,0,6.29);
+      ctx.strokeStyle = '#1a2438'; ctx.lineWidth = Math.max(1.5, cs*0.28);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x,y,R*1.15,-Math.PI/2,-Math.PI/2 + Math.PI*2*hpk);
+      ctx.strokeStyle = hpk > 0.35 ? col : '#ff4040';
+      ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 6;
+      ctx.stroke(); ctx.shadowBlur = 0;
+      // hit flash
+      if (b.hurt > 0) {
+        ctx.beginPath(); ctx.arc(x,y,R*1.3,0,6.29);
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = b.hurt*0.25;
+        ctx.fill(); ctx.globalAlpha = 1;
+      }
+    }
+
+    // muzzle flashes
+    for (const f of flashes) {
+      ctx.beginPath();
+      ctx.arc(px(f.x), px(f.y), cs*(1+f.t*2), 0, 6.29);
+      ctx.strokeStyle = TEAMS[f.team].c;
+      ctx.globalAlpha = 1-f.t;
+      ctx.lineWidth = 1.5*dpr;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // shells
+    for (const s of shells) {
+      const k = s.t/s.dur;
+      const cx = s.x0 + (s.x1-s.x0)*k;
+      const cy = s.y0 + (s.y1-s.y0)*k - Math.sin(Math.PI*k)*s.h*0.14;
+      const col = TEAMS[s.team].c;
+      // trail
+      ctx.beginPath();
+      const tk = Math.max(0, k-0.12);
+      const tx = s.x0 + (s.x1-s.x0)*tk;
+      const ty = s.y0 + (s.y1-s.y0)*tk - Math.sin(Math.PI*tk)*s.h*0.14;
+      ctx.moveTo(px(tx),px(ty)); ctx.lineTo(px(cx),px(cy));
+      ctx.strokeStyle = col; ctx.globalAlpha = 0.4; ctx.lineWidth = 1.5*dpr;
+      ctx.stroke(); ctx.globalAlpha = 1;
+      // head
+      ctx.beginPath();
+      ctx.arc(px(cx), px(cy), Math.max(2, cs*0.42), 0, 6.29);
+      ctx.fillStyle = col;
+      ctx.shadowColor = col; ctx.shadowBlur = 8;
+      ctx.fill(); ctx.shadowBlur = 0;
+      // target reticle
+      ctx.beginPath();
+      ctx.arc(px(s.x1), px(s.y1), cs*s.r*(0.5+0.5*k), 0, 6.29);
+      ctx.strokeStyle = col; ctx.globalAlpha = 0.25;
+      ctx.lineWidth = 1*dpr;
+      ctx.stroke(); ctx.globalAlpha = 1;
+    }
+
+    // explosions
+    for (const b of booms) {
+      const col = TEAMS[b.team].c;
+      ctx.beginPath();
+      ctx.arc(px(b.x), px(b.y), cs*b.r*(0.4+b.t*1.1), 0, 6.29);
+      ctx.strokeStyle = col;
+      ctx.globalAlpha = (1-b.t)*0.9;
+      ctx.lineWidth = Math.max(1.5, cs*0.4*(1-b.t))*1;
+      ctx.shadowColor = col; ctx.shadowBlur = 12*(1-b.t);
+      ctx.stroke();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    }
+  }
+
+  // ---------- HUD ----------
+  const barsEl = document.getElementById('bars');
+  const barFills = [], barPcts = [];
+  for (let t=1;t<=4;t++) {
+    const d = document.createElement('div'); d.className='bar';
+    const f = document.createElement('div'); f.className='fill';
+    f.style.background = TEAMS[t].c;
+    const p = document.createElement('div'); p.className='pct';
+    p.style.color = TEAMS[t].c;
+    d.appendChild(f); d.appendChild(p); barsEl.appendChild(d);
+    barFills.push(f); barPcts.push(p);
+  }
+
+  let barTimer = 0;
+  function updateBars(force) {
+    const counts = [0,0,0,0,0];
+    for (let i=0;i<cells.length;i++) counts[cells[i]]++;
+    const total = G*G;
+    const alive = new Set(bases.map(b => b.team));
+    for (let t=1;t<=4;t++) {
+      const pct = counts[t]/total*100;
+      barFills[t-1].style.width = pct.toFixed(1)+'%';
+      barPcts[t-1].textContent = (alive.has(t) ? '' : '✕ ') + pct.toFixed(1)+'%';
+      barFills[t-1].parentElement.style.opacity = alive.has(t) ? '1' : '0.35';
+      if (!over && pct >= 60 && elapsed > 5) declareWinner(t);
+    }
+  }
+
+  function declareWinner(t) {
+    over = true;
+    const b = document.getElementById('banner');
+    b.querySelector('.w1').textContent = TEAMS[t].name + ' 승리!';
+    b.querySelector('.w1').style.color = TEAMS[t].c;
+    b.querySelector('.w1').style.textShadow = '0 0 16px '+TEAMS[t].c;
+    b.style.display = 'flex';
+    setTimeout(() => { if (over) init(); }, 3000);
+  }
+
+  // ---------- loop ----------
+  let last = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    let dt = Math.min(0.05, (now-last)/1000);
+    last = now;
+    if (!paused && !over) {
+      for (let i=0;i<speed;i++) update(dt);
+      barTimer += dt;
+      if (barTimer > 0.5) { barTimer = 0; updateBars(); }
+    }
+    render(now);
+  }
+
+  // ---------- controls ----------
+  const btnSpeed = document.getElementById('btnSpeed');
+  const btnPause = document.getElementById('btnPause');
+  const pausedEl = document.getElementById('paused');
+  btnSpeed.addEventListener('click', () => {
+    speed = speed===1?2:speed===2?4:1;
+    btnSpeed.textContent = '속도 ×'+speed;
+  });
+  function setPaused(p) {
+    paused = p;
+    btnPause.textContent = paused ? '재개' : '일시정지';
+    pausedEl.style.display = paused ? 'flex' : 'none';
+  }
+  btnPause.addEventListener('click', () => setPaused(!paused));
+  document.getElementById('btnReset').addEventListener('click', () => init());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) setPaused(true);
+  });
+
+  window.addEventListener('resize', resize);
+  init();
+  resize();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

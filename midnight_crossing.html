@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>심야 교차로 · Midnight Crossing</title>
+<link href="https://fonts.googleapis.com/css2?family=Song+Myung&family=IBM+Plex+Sans+KR:wght@300;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0b0e1a; --ink:#c9cfe4; --dim:#5c6480; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--bg);
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    font-family:'IBM Plex Sans KR',sans-serif}
+  #stage{position:fixed;inset:0;width:100%;height:100dvh;display:block;touch-action:manipulation}
+  .hud{position:fixed;left:0;right:0;display:flex;justify-content:space-between;
+    align-items:flex-start;pointer-events:none;
+    padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 16px)
+            0 calc(env(safe-area-inset-left,0px) + 16px)}
+  .title{font-family:'Song Myung',serif;color:var(--ink);font-size:19px;letter-spacing:.14em;
+    text-shadow:0 0 18px rgba(255,180,84,.25)}
+  .title small{display:block;font-family:'IBM Plex Sans KR',sans-serif;font-weight:300;
+    font-size:9.5px;letter-spacing:.34em;color:var(--dim);margin-top:4px}
+  .mode{font-size:10px;font-weight:300;letter-spacing:.2em;color:var(--dim);
+    text-align:right;line-height:1.7;margin-top:4px}
+  .foot{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
+    display:flex;justify-content:space-between;pointer-events:none;
+    padding:0 calc(env(safe-area-inset-right,0px) + 16px) 0 calc(env(safe-area-inset-left,0px) + 16px);
+    font-size:10.5px;font-weight:300;letter-spacing:.14em;color:var(--dim)}
+  #hint{transition:opacity 1.2s}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div class="hud">
+  <div class="title">심야 교차로<small>MIDNIGHT CROSSING</small></div>
+  <div class="mode">간선 6×6 · 교차로 36곳<br>연동 신호 · 추적 카메라</div>
+</div>
+<div class="foot">
+  <span id="count"></span>
+  <span id="hint">화면을 탭하면 근처에 차가 합류합니다</span>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const cv = document.getElementById('stage');
+const cx = cv.getContext('2d');
+const $count = document.getElementById('count');
+const $hint  = document.getElementById('hint');
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const SCALE = 3;                    // 맵 규모: 화면의 가로 3배 × 세로 3배
+let W=0, H=0, WW=0, WH=0, DPR=1;
+let roadW=56, M=90, cwW=10, stopOff=0, boxSpan=0;
+let VX=[], HY=[];
+let lanes=[], cars=[], windows=[], blocks=[], inters=[];
+let occ = [];
+
+/* ─── 신호 체계 (교차로별 독립 제어기 + 연동 오프셋) ─── */
+const G=5.6, Y=1.5, AR=1.7;
+const HALF=G+Y+AR, CYCLE=HALF*2;
+let simT = 0;
+const SIGCOL = {g:'#3ddc84', y:'#ffc23e', r:'#ff5a5a'};
+
+function interState(inter, axis){
+  const t = ((simT - inter.offset) % CYCLE + CYCLE) % CYCLE;
+  const local = axis==='v' ? t : (t + HALF) % CYCLE;
+  if(local < G)   return 'g';
+  if(local < G+Y) return 'y';
+  return 'r';
+}
+
+/* ─── 카메라 ─── */
+const cam = {x:0, y:0};
+let focus = null, focusT = 0;
+function carXY(car){
+  const c = pCoord(car.lane, car.p);
+  return car.lane.axis==='v' ? [car.lane.c, c] : [c, car.lane.c];
+}
+function pickFocus(){
+  if(!cars.length) return;
+  focus = cars[Math.floor(Math.random()*cars.length)];
+  focusT = 0;
+}
+function updateCam(dt){
+  focusT += dt;
+  if(!focus || focusT > 24) pickFocus();
+  if(!focus) return;
+  const [fx,fy] = carXY(focus);
+  const tx = Math.max(0, Math.min(WW-W, fx - W/2));
+  const ty = Math.max(0, Math.min(WH-H, fy - H/2));
+  const k = 1 - Math.exp(-(REDUCED?0.5:0.9)*dt);
+  cam.x += (tx-cam.x)*k;
+  cam.y += (ty-cam.y)*k;
+}
+
+/* ─── 레이아웃 ─── */
+function layout(){
+  DPR = Math.min(devicePixelRatio||1, 2);
+  W = innerWidth; H = innerHeight;
+  WW = W*SCALE; WH = H*SCALE;
+  cv.width = W*DPR; cv.height = H*DPR;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  cx.setTransform(DPR,0,0,DPR,0,0);
+
+  roadW = Math.max(44, Math.min(74, Math.min(W,H)*0.145));
+  cwW   = Math.max(9, roadW*0.18);
+  stopOff = roadW/2 + cwW + 5;
+  boxSpan = 2*stopOff;
+
+  VX=[]; HY=[];
+  for(let k=0;k<SCALE;k++){
+    VX.push((k+0.30)*W, (k+0.70)*W);
+    HY.push((k+0.33)*H, (k+0.63)*H);
+  }
+
+  buildInters();
+  buildLanes();
+  buildBlocks();
+  seedCars();
+  pickFocus();
+  if(focus){ const [fx,fy]=carXY(focus);
+    cam.x=Math.max(0,Math.min(WW-W,fx-W/2)); cam.y=Math.max(0,Math.min(WH-H,fy-H/2)); }
+}
+
+function buildInters(){
+  inters=[]; let id=0;
+  for(let r=0;r<HY.length;r++)
+    for(let c=0;c<VX.length;c++)
+      inters.push({id:id++, x:VX[c], y:HY[r], offset: c*2.2 + r*2.7});
+  occ = inters.map(()=>({v:false,h:false}));
+}
+
+function toP(lane, coord){ return lane.dir>0 ? coord+M : lane.len-(coord+M); }
+function pCoord(lane, p){ return (lane.dir>0 ? p : lane.len-p) - M; }
+
+function buildLanes(){
+  lanes = [];
+  const off = roadW/4;
+  for(const vx of VX){
+    for(const dir of [1,-1]){
+      const lane = {axis:'v', c: vx - dir*off, dir, len: WH + 2*M, stops:[]};
+      lane.stops = inters.filter(it=>Math.abs(it.x-vx)<1)
+        .map(it=>({p: toP(lane, it.y - dir*stopOff), inter: it}));
+      lanes.push(lane);
+    }
+  }
+  for(const hy of HY){
+    for(const dir of [1,-1]){
+      const lane = {axis:'h', c: hy + dir*off, dir, len: WW + 2*M, stops:[]};
+      lane.stops = inters.filter(it=>Math.abs(it.y-hy)<1)
+        .map(it=>({p: toP(lane, it.x - dir*stopOff), inter: it}));
+      lanes.push(lane);
+    }
+  }
+}
+
+/* ─── 도시 블록 + 창문 ─── */
+function buildBlocks(){
+  blocks=[]; windows=[];
+  const xs=[-20, ...VX, WW+20], ys=[-20, ...HY, WH+20];
+  const gap = roadW/2 + 10;
+  for(let i=0;i<xs.length-1;i++) for(let j=0;j<ys.length-1;j++){
+    const x0=xs[i]+(i===0?0:gap), x1=xs[i+1]-(i===xs.length-2?0:gap);
+    const y0=ys[j]+(j===0?0:gap), y1=ys[j+1]-(j===ys.length-2?0:gap);
+    if(x1-x0<30||y1-y0<30) continue;
+    blocks.push({x:x0,y:y0,w:x1-x0,h:y1-y0});
+    const n = Math.floor((x1-x0)*(y1-y0)/4200);
+    for(let k=0;k<n;k++){
+      windows.push({
+        x: x0+8+Math.random()*(x1-x0-16),
+        y: y0+8+Math.random()*(y1-y0-16),
+        warm: Math.random()<0.62,
+        a: 0.12+Math.random()*0.5,
+        tw: Math.random()*6.28, ts: 0.3+Math.random()*0.8
+      });
+    }
+  }
+}
+
+/* ─── 차량 ─── */
+const PALETTE=['#e8e6df','#aab3c5','#4f9cff','#ff6b6b','#ffd166','#7bd88f','#c792ea','#f78c6c','#8ecae6','#666e80'];
+function makeCar(lane, p){
+  const u = roadW;
+  return {
+    lane, p, v: 0,
+    maxV: u*(1.15+Math.random()*0.65) * (REDUCED?0.5:1),
+    len: u*0.36 + Math.random()*u*0.10,
+    w:   u*0.20 + Math.random()*u*0.04,
+    col: PALETTE[Math.floor(Math.random()*PALETTE.length)]
+  };
+}
+function seedCars(){
+  cars=[];
+  for(const lane of lanes){
+    const n = Math.max(3, Math.round(lane.len/(roadW*7)) + Math.floor(Math.random()*2));
+    for(let i=0;i<n;i++)
+      cars.push(makeCar(lane, (lane.len/n)*i + Math.random()*lane.len/n*0.5));
+  }
+}
+function addCarNearCam(){
+  if(cars.length>=360) return;
+  const vis = lanes.filter(l => l.axis==='v'
+    ? (l.c > cam.x-10 && l.c < cam.x+W+10)
+    : (l.c > cam.y-10 && l.c < cam.y+H+10));
+  for(let t=0;t<14;t++){
+    const lane = vis[Math.floor(Math.random()*vis.length)];
+    if(!lane) return;
+    const coord = (lane.axis==='v' ? cam.y : cam.x) + Math.random()*(lane.axis==='v'?H:W);
+    const p = toP(lane, coord);
+    const ok = cars.every(c => c.lane!==lane ||
+      Math.min((c.p-p+lane.len)%lane.len,(p-c.p+lane.len)%lane.len) > roadW*0.9);
+    if(ok){ cars.push(makeCar(lane,p)); break; }
+  }
+}
+
+/* ─── 교차로 점유 (안전 인터록) ─── */
+function updateOccupancy(){
+  for(const o of occ){ o.v=false; o.h=false; }
+  const hb = roadW/2 + 4;
+  for(const car of cars){
+    const lane = car.lane;
+    const f = pCoord(lane, car.p);
+    const rear = f - lane.dir*car.len;
+    const lo = Math.min(f,rear), hi = Math.max(f,rear);
+    for(const st of lane.stops){
+      const cc = lane.axis==='v' ? st.inter.y : st.inter.x;
+      if(hi > cc-hb && lo < cc+hb) occ[st.inter.id][lane.axis] = true;
+    }
+  }
+}
+
+/* ─── 주행 로직 ─── */
+function step(dt){
+  simT += dt;
+  updateOccupancy();
+
+  const BRAKE = roadW*3.2, ACC = roadW*1.15, GAPMIN = roadW*0.16;
+  const inside = boxSpan + 8;
+
+  const byLane = new Map();
+  for(const c of cars){
+    if(!byLane.has(c.lane)) byLane.set(c.lane,[]);
+    byLane.get(c.lane).push(c);
+  }
+  for(const [lane, list] of byLane){
+    list.sort((a,b)=>a.p-b.p);
+    const L = lane.len;
+    const cross = lane.axis==='v' ? 'h' : 'v';
+
+    for(let i=0;i<list.length;i++){
+      const car = list[i];
+
+      let gapRaw = Infinity;
+      if(list.length>1){
+        const lead = list[(i+1)%list.length];
+        gapRaw = (lead.p - lead.len - car.p + 2*L) % L;
+      }
+      let dObs = gapRaw - GAPMIN;
+
+      for(const stp of lane.stops){
+        const d = (stp.p - car.p + L) % L;
+        if(d > L - inside - car.len) continue;
+
+        const stt = interState(stp.inter, lane.axis);
+        if(stt === 'g'){
+          if(occ[stp.inter.id][cross] && d < boxSpan*1.4){
+            dObs = Math.min(dObs, d); continue;
+          }
+          const need = d + boxSpan + car.len + GAPMIN*2;
+          if(gapRaw < need) dObs = Math.min(dObs, d);
+        }
+        else if(stt === 'y'){
+          const brakeDist = car.v*car.v/(2*BRAKE);
+          if(d + 2 < brakeDist) continue;
+          dObs = Math.min(dObs, d);
+        }
+        else dObs = Math.min(dObs, d);
+      }
+
+      const vAllow = Math.sqrt(2*BRAKE*Math.max(0,dObs));
+      const target = Math.min(car.maxV, vAllow);
+      car.v = car.v < target
+        ? Math.min(target, car.v + ACC*dt)
+        : Math.max(target, car.v - BRAKE*1.6*dt);
+      car.p = (car.p + car.v*dt) % L;
+    }
+  }
+  updateCam(dt);
+}
+
+/* ─── 그리기 ─── */
+function draw(){
+  const bg = cx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0b0e1a'); bg.addColorStop(1,'#0d1020');
+  cx.fillStyle = bg; cx.fillRect(0,0,W,H);
+
+  const cl = cam.x-40, cr = cam.x+W+40, ct = cam.y-40, cb = cam.y+H+40;
+  cx.save();
+  cx.translate(-cam.x, -cam.y);
+
+  /* 블록 + 창문 (뷰포트 컬링) */
+  cx.fillStyle = '#101322';
+  for(const b of blocks){
+    if(b.x+b.w<cl||b.x>cr||b.y+b.h<ct||b.y>cb) continue;
+    rr(b.x,b.y,b.w,b.h,7); cx.fill();
+  }
+  for(const wn of windows){
+    if(wn.x<cl||wn.x>cr||wn.y<ct||wn.y>cb) continue;
+    const tw = 0.75 + 0.25*Math.sin(simT*wn.ts + wn.tw);
+    cx.globalAlpha = wn.a*tw;
+    cx.fillStyle = wn.warm ? '#ffcf87' : '#9fb8ff';
+    cx.fillRect(wn.x, wn.y, 2.4, 3.2);
+  }
+  cx.globalAlpha = 1;
+
+  /* 도로면 */
+  cx.fillStyle = '#151824';
+  for(const vx of VX) if(vx+roadW/2>cl && vx-roadW/2<cr)
+    cx.fillRect(vx-roadW/2, ct, roadW, cb-ct);
+  for(const hy of HY) if(hy+roadW/2>ct && hy-roadW/2<cb)
+    cx.fillRect(cl, hy-roadW/2, cr-cl, roadW);
+
+  /* 중앙선 (교차로 구간 제외) */
+  cx.strokeStyle = 'rgba(255,180,84,.34)'; cx.lineWidth = 1.4;
+  for(const vx of VX){
+    if(vx+roadW/2<cl || vx-roadW/2>cr) continue;
+    for(const dx of [-1.8,1.8]){
+      cx.beginPath();
+      for(const [a,b] of spans(HY, WH)){
+        if(b<ct||a>cb) continue;
+        cx.moveTo(vx+dx, Math.max(a,ct)); cx.lineTo(vx+dx, Math.min(b,cb));
+      }
+      cx.stroke();
+    }
+  }
+  for(const hy of HY){
+    if(hy+roadW/2<ct || hy-roadW/2>cb) continue;
+    for(const dy of [-1.8,1.8]){
+      cx.beginPath();
+      for(const [a,b] of spans(VX, WW)){
+        if(b<cl||a>cr) continue;
+        cx.moveTo(Math.max(a,cl), hy+dy); cx.lineTo(Math.min(b,cr), hy+dy);
+      }
+      cx.stroke();
+    }
+  }
+
+  /* 교차로: 횡단보도 · 가로등 · 정지선 · 신호등 헤드 */
+  const visInt = inters.filter(it => it.x>cl-roadW*2 && it.x<cr+roadW*2 && it.y>ct-roadW*2 && it.y<cb+roadW*2);
+  cx.fillStyle = 'rgba(220,228,246,.14)';
+  for(const it of visInt) zebra(it.x, it.y);
+  for(const it of visInt){
+    const g = cx.createRadialGradient(it.x,it.y,4, it.x,it.y, roadW*1.5);
+    g.addColorStop(0,'rgba(255,180,84,.13)'); g.addColorStop(1,'rgba(255,180,84,0)');
+    cx.fillStyle = g;
+    cx.fillRect(it.x-roadW*1.5, it.y-roadW*1.5, roadW*3, roadW*3);
+  }
+  const visSet = new Set(visInt.map(it=>it.id));
+  for(const lane of lanes){
+    for(const stp of lane.stops){
+      if(!visSet.has(stp.inter.id)) continue;
+      const col = SIGCOL[interState(stp.inter, lane.axis)];
+      cx.strokeStyle = col; cx.lineWidth = 3;
+      cx.shadowColor = col; cx.shadowBlur = 8;
+      const c = pCoord(lane, stp.p);
+      cx.beginPath();
+      if(lane.axis==='v'){ cx.moveTo(lane.c-roadW/4+2, c); cx.lineTo(lane.c+roadW/4-2, c); }
+      else               { cx.moveTo(c, lane.c-roadW/4+2); cx.lineTo(c, lane.c+roadW/4-2); }
+      cx.stroke();
+    }
+  }
+  cx.shadowBlur = 0;
+  for(const it of visInt){
+    signalHead(it.x + roadW/2 + 5, it.y - roadW/2 - 27, interState(it,'v'), false);
+    signalHead(it.x - roadW/2 - 27, it.y + roadW/2 + 5, interState(it,'h'), true);
+  }
+
+  /* 차량 */
+  for(const car of cars){
+    const [x,y] = carXY(car);
+    if(x<cl-roadW*2||x>cr+roadW*2||y<ct-roadW*2||y>cb+roadW*2) continue;
+    const lane = car.lane;
+    const ang = lane.axis==='v'
+      ? (lane.dir>0 ? Math.PI/2 : -Math.PI/2)
+      : (lane.dir>0 ? 0 : Math.PI);
+    cx.save(); cx.translate(x,y); cx.rotate(ang);
+    const beam = cx.createLinearGradient(0,0, car.len*1.7,0);
+    beam.addColorStop(0,'rgba(255,244,214,.16)'); beam.addColorStop(1,'rgba(255,244,214,0)');
+    cx.fillStyle = beam;
+    cx.beginPath();
+    cx.moveTo(-2,-car.w*0.4); cx.lineTo(car.len*1.7,-car.w*1.1);
+    cx.lineTo(car.len*1.7, car.w*1.1); cx.lineTo(-2, car.w*0.4); cx.fill();
+    cx.fillStyle = car.col;
+    rr(-car.len, -car.w/2, car.len, car.w, car.w*0.32); cx.fill();
+    cx.fillStyle = 'rgba(10,12,22,.45)';
+    rr(-car.len*0.72, -car.w*0.32, car.len*0.44, car.w*0.64, car.w*0.2); cx.fill();
+    cx.fillStyle = '#fff7dd';
+    cx.fillRect(-2.2, -car.w*0.36, 2.2, car.w*0.2);
+    cx.fillRect(-2.2,  car.w*0.16, 2.2, car.w*0.2);
+    const braking = car.v < car.maxV*0.6;
+    cx.fillStyle = braking ? '#ff2d2d' : '#a03434';
+    if(braking){ cx.shadowColor='#ff2d2d'; cx.shadowBlur=6; }
+    cx.fillRect(-car.len, -car.w*0.38, 2, car.w*0.22);
+    cx.fillRect(-car.len,  car.w*0.16, 2, car.w*0.22);
+    cx.shadowBlur = 0;
+    /* 추적 대상 표시 */
+    if(car===focus){
+      cx.strokeStyle = 'rgba(255,180,84,.55)'; cx.lineWidth = 1.2;
+      const r = car.len*0.9 + 4 + Math.sin(simT*3)*1.5;
+      cx.beginPath(); cx.arc(-car.len/2, 0, r, 0, 6.283); cx.stroke();
+    }
+    cx.restore();
+  }
+
+  cx.restore();
+  drawMinimap();
+}
+
+/* ─── 미니맵 ─── */
+function drawMinimap(){
+  const mmH = 108, s = mmH/WH, mmW = WW*s;
+  const mx = W - mmW - 12, my = H - mmH - 46;
+  cx.fillStyle = 'rgba(8,10,18,.72)';
+  rr(mx-5, my-5, mmW+10, mmH+10, 7); cx.fill();
+  cx.strokeStyle = 'rgba(92,100,128,.35)'; cx.lineWidth = 1;
+  rr(mx-5, my-5, mmW+10, mmH+10, 7); cx.stroke();
+
+  cx.strokeStyle = 'rgba(120,130,160,.5)'; cx.lineWidth = 1;
+  cx.beginPath();
+  for(const vx of VX){ cx.moveTo(mx+vx*s, my); cx.lineTo(mx+vx*s, my+mmH); }
+  for(const hy of HY){ cx.moveTo(mx, my+hy*s); cx.lineTo(mx+mmW, my+hy*s); }
+  cx.stroke();
+
+  if(focus){
+    const [fx,fy] = carXY(focus);
+    cx.fillStyle = '#ffb454';
+    cx.beginPath(); cx.arc(mx+fx*s, my+fy*s, 2.2+Math.sin(simT*3)*0.6, 0, 6.283); cx.fill();
+  }
+  cx.strokeStyle = 'rgba(255,180,84,.8)'; cx.lineWidth = 1.2;
+  cx.strokeRect(mx+cam.x*s, my+cam.y*s, W*s, H*s);
+}
+
+function signalHead(x, y, state, horiz){
+  const order = ['r','y','g'], dotR = 2.1, pitch = 6.6;
+  cx.fillStyle = 'rgba(7,9,16,.92)';
+  if(horiz) rr(x-3, y-3, pitch*2+6+dotR*2, dotR*2+6, 4);
+  else      rr(x-3, y-3, dotR*2+6, pitch*2+6+dotR*2, 4);
+  cx.fill();
+  order.forEach((s,i)=>{
+    const dx = horiz ? i*pitch : 0, dy = horiz ? 0 : i*pitch;
+    const on = s===state;
+    cx.fillStyle = on ? SIGCOL[s] : 'rgba(255,255,255,.07)';
+    if(on){ cx.shadowColor = SIGCOL[s]; cx.shadowBlur = 7; }
+    cx.beginPath();
+    cx.arc(x+dotR+dx, y+dotR+dy, dotR, 0, 6.283);
+    cx.fill();
+    cx.shadowBlur = 0;
+  });
+}
+
+function rr(x,y,w,h,r){
+  cx.beginPath();
+  cx.moveTo(x+r,y);
+  cx.arcTo(x+w,y,x+w,y+h,r); cx.arcTo(x+w,y+h,x,y+h,r);
+  cx.arcTo(x,y+h,x,y,r); cx.arcTo(x,y,x+w,y,r);
+  cx.closePath();
+}
+function spans(cuts, total){
+  const segs=[]; let prev=0;
+  for(const c of cuts){ segs.push([prev, c-roadW/2]); prev = c+roadW/2; }
+  segs.push([prev, total]);
+  return segs;
+}
+function zebra(vx, hy){
+  const n = Math.floor(roadW/8), s = roadW/n;
+  for(let k=0;k<n;k++){
+    const o = -roadW/2 + s*k + s*0.18, w = s*0.55;
+    cx.fillRect(vx+o, hy-roadW/2-cwW-3, w, cwW);
+    cx.fillRect(vx+o, hy+roadW/2+3,     w, cwW);
+    cx.fillRect(vx-roadW/2-cwW-3, hy+o, cwW, w);
+    cx.fillRect(vx+roadW/2+3,     hy+o, cwW, w);
+  }
+}
+
+/* ─── 루프 ─── */
+let last=0, running=true, raf=0;
+function loop(ts){
+  if(!running) return;
+  const dt = Math.min(0.05, (ts-last)/1000 || 0.016);
+  last = ts;
+  step(dt);
+  draw();
+  $count.textContent = `차량 ${cars.length}대 · 주기 ${CYCLE.toFixed(1)}s`;
+  raf = requestAnimationFrame(loop);
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ running=false; cancelAnimationFrame(raf); }
+  else { running=true; last=performance.now(); raf=requestAnimationFrame(loop); }
+});
+addEventListener('resize', layout);
+cv.addEventListener('pointerdown', ()=>{ addCarNearCam(); });
+setTimeout(()=>{ $hint.style.opacity=0; }, 7000);
+
+layout();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
