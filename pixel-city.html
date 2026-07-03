@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0d13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PIXEL CITY — 99×99 도시 성장</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  height:100dvh;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%,#0e1420 0%,#090c12 55%,#06090e 100%);
+  color:#dfe6ee;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo',sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+}
+header{padding:calc(env(safe-area-inset-top) + 12px) 14px 4px;text-align:center}
+h1{
+  font-size:15px;font-weight:800;letter-spacing:.34em;padding-left:.34em;
+  background:linear-gradient(90deg,#ffd06a,#ff8fb5 52%,#7fb7ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 14px rgba(255,190,120,.18));
+}
+.sub{font-size:9.5px;color:#75808f;letter-spacing:.14em;margin-top:3px}
+#statRow{display:flex;justify-content:center;gap:5px;margin-top:9px;flex-wrap:wrap}
+.chip{
+  font:600 10.5px ui-monospace,Menlo,Consolas,monospace;
+  background:#131924;border:1px solid #222c3b;border-radius:20px;
+  padding:4px 9px;color:#a5b1c0;white-space:nowrap;
+}
+.chip b{color:#eef2f7;font-weight:700}
+#phase{border-color:currentColor;font-weight:800}
+#wrap{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;padding:8px}
+canvas{
+  image-rendering:pixelated;border-radius:10px;touch-action:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,.05),0 10px 44px rgba(0,0,0,.55),0 0 70px rgba(90,140,255,.08);
+  background:#0c1017;
+}
+#vig{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(78% 78% at 50% 47%,transparent 56%,rgba(4,6,10,.5) 100%)}
+#toasts{position:absolute;left:0;right:0;bottom:10px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:4}
+.toast{
+  font:600 11.5px -apple-system,'Apple SD Gothic Neo',sans-serif;
+  background:rgba(15,20,30,.93);border:1px solid #2a3547;color:#e8edf4;
+  padding:7px 15px;border-radius:20px;box-shadow:0 4px 18px rgba(0,0,0,.45);
+  animation:tin .28s ease;
+}
+.toast.out{opacity:0;transform:translateY(6px);transition:.32s}
+@keyframes tin{from{opacity:0;transform:translateY(9px)}}
+footer{
+  display:flex;justify-content:center;align-items:center;gap:8px;
+  padding:8px 12px calc(env(safe-area-inset-bottom) + 12px);
+}
+button{
+  font:700 13px -apple-system,'Apple SD Gothic Neo',sans-serif;color:#cfd8e3;
+  background:#141b28;border:1px solid #273242;border-radius:12px;
+  padding:9px 13px;cursor:pointer;min-width:44px;
+}
+button:active{transform:scale(.95)}
+#speeds{display:flex;background:#0f1520;border:1px solid #273242;border-radius:12px;overflow:hidden}
+#speeds button{border:0;border-radius:0;background:transparent;min-width:0;padding:9px 11px;font:700 12px ui-monospace,monospace;color:#8b98a9}
+#speeds button.on{background:#2a3550;color:#ffd06a}
+#legend{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:5;
+  background:rgba(13,17,25,.97);border:1px solid #2a3547;border-radius:16px;
+  padding:13px 17px;display:grid;grid-template-columns:repeat(3,auto);gap:7px 15px;
+  box-shadow:0 8px 30px rgba(0,0,0,.5);
+}
+.li{display:flex;align-items:center;gap:6px;font:600 10.5px -apple-system,'Apple SD Gothic Neo',sans-serif;color:#c6d0dc;white-space:nowrap}
+.sw{width:11px;height:11px;border-radius:3px;flex:none}
+.hidden{display:none!important}
+#done{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:6;
+  background:rgba(5,8,13,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.doneCard{
+  background:#121826;border:1px solid #2c3852;border-radius:18px;
+  padding:24px 30px;text-align:center;box-shadow:0 12px 50px rgba(0,0,0,.6);
+}
+.doneTitle{font-size:17px;font-weight:800;margin-bottom:10px}
+#doneStats{font:600 12px ui-monospace,monospace;color:#9fb0c4;line-height:1.8;margin-bottom:16px}
+#btnNew{background:#2a3550;border-color:#3a4a6e;color:#ffd06a;font-weight:800}
+</style>
+</head>
+<body>
+<header>
+  <h1>PIXEL CITY</h1>
+  <div class="sub">99×99 자동 발전 도시 시뮬레이션</div>
+  <div id="statRow">
+    <span class="chip" id="phase">개척지</span>
+    <span class="chip">Day <b id="stDay">1</b></span>
+    <span class="chip">인구 <b id="stPop">0</b></span>
+    <span class="chip">건물 <b id="stBld">0</b></span>
+    <span class="chip">개발 <b id="stFill">0%</b></span>
+  </div>
+</header>
+
+<div id="wrap">
+  <canvas id="cv"></canvas>
+  <div id="vig"></div>
+  <div id="toasts"></div>
+
+  <div id="legend" class="hidden">
+    <div class="li"><span class="sw" style="background:#50585f"></span>도로</div>
+    <div class="li"><span class="sw" style="background:#9f9a8e"></span>광장</div>
+    <div class="li"><span class="sw" style="background:#63b57f"></span>주거</div>
+    <div class="li"><span class="sw" style="background:#4f9fe8"></span>상업</div>
+    <div class="li"><span class="sw" style="background:#8b79ef"></span>업무</div>
+    <div class="li"><span class="sw" style="background:#e0893f"></span>공업</div>
+    <div class="li"><span class="sw" style="background:#ee6fae"></span>고층</div>
+    <div class="li"><span class="sw" style="background:#e7c84e"></span>시장</div>
+    <div class="li"><span class="sw" style="background:#3ad47f"></span>공원</div>
+    <div class="li"><span class="sw" style="background:#45cfd8"></span>학교</div>
+    <div class="li"><span class="sw" style="background:#eef0f2"></span>병원</div>
+    <div class="li"><span class="sw" style="background:#e25555"></span>발전소</div>
+    <div class="li">⛲ 분수대</div>
+    <div class="li">🗼 기념탑</div>
+    <div class="li">🗽 동상</div>
+  </div>
+
+  <div id="done" class="hidden">
+    <div class="doneCard">
+      <div class="doneTitle">🏙️ 도시 완성!</div>
+      <div id="doneStats"></div>
+      <button id="btnNew">새 도시 개척하기</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <button id="btnPlay">⏸</button>
+  <div id="speeds">
+    <button data-s="1" class="on">1×</button>
+    <button data-s="2">2×</button>
+    <button data-s="4">4×</button>
+    <button data-s="8">8×</button>
+  </div>
+  <button id="btnLegend">🎨</button>
+  <button id="btnReset">↺</button>
+</footer>
+
+<script>
+'use strict';
+/* ============ 상수 ============ */
+const N = 99, C = 49;
+const T = {E:0, ROAD:1, RES:2, COM:3, OFF:4, IND:5, TOW:6, MKT:7,
+           PARK:8, SCH:9, HOS:10, PWR:11, FNT:12, MON:13, STA:14, PLZ:15};
+const BTYPES = [T.RES, T.COM, T.OFF, T.IND, T.TOW, T.MKT];
+const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
+
+const PAL = {
+  land:[17,21,30], land2:[20,26,36], bush:[19,33,26],
+  road:[80,88,97], roadM:[96,105,115], dash:[128,138,150],
+  plaza:[159,154,142],
+};
+const BCOL = {
+  2:[99,181,127], 3:[79,159,232], 4:[139,121,239], 5:[224,137,63],
+  6:[238,111,174], 7:[231,200,78], 8:[58,212,127], 9:[69,207,216],
+  10:[238,240,242], 11:[226,85,85],
+};
+const POPB = {2:13, 3:7, 4:11, 5:9, 6:58, 7:6};
+const PHASES = [[0,'개척지','#8b949e'],[30,'마을','#6bd08b'],[150,'소도시','#59c7de'],
+                [500,'도시','#7d8bf0'],[1200,'대도시','#e08fd0'],[2600,'메트로폴리스','#ffd06a']];
+const SC_MS = [140, 420, 850, 1400, 2100, 3000, 4100, 5300];
+const STY = [T.FNT, T.MON, T.STA];
+const SCNM = {12:'⛲ 분수대', 13:'🗼 기념탑', 14:'🗽 동상'};
+const FACSEQ = [T.PARK, T.SCH, T.PARK, T.HOS, T.PARK, T.PWR];
+const CARC = ['#ffe08a', '#9ad7ff', '#ffb3d1', '#c4f0a2'];
+const GRID_MS = [60, 220, 550, 1100];
+const GRID_OFF = [12, 24, 36, 46];
+
+/* ============ 상태 ============ */
+const grid = new Uint8Array(N*N);
+const lvl  = new Uint8Array(N*N);
+const meta = new Uint8Array(N*N);
+let distPref = new Uint8Array(81);
+let roadList = [], bldList = [], heads = [], sculpts = [], cars = [], flashes = [], ripples = [];
+let tickN = 0, lastGrowth = 0, builtCount = 0, nonEmpty = 0;
+let nextFac = 42, fIdx = 0, sIdx = 0, phaseIdx = 0, gIdx = 0;
+let simDone = false, playing = true, wasPlaying = true, speed = 1, acc = 0;
+let endgame = false, egOrder = null, egPtr = 0, egPassPlaced = 0, egEmptyPasses = 0;
+let blockRoad = new Uint8Array(81), coveredBlocks = 0;
+let paveQ = [];
+
+/* ============ DOM ============ */
+const cv = document.getElementById('cv');
+const wrapEl = document.getElementById('wrap');
+const toastBox = document.getElementById('toasts');
+const phaseEl = document.getElementById('phase');
+const stDay = document.getElementById('stDay'), stPop = document.getElementById('stPop');
+const stBld = document.getElementById('stBld'), stFill = document.getElementById('stFill');
+const btnPlay = document.getElementById('btnPlay');
+const legendEl = document.getElementById('legend');
+const doneEl = document.getElementById('done');
+const doneStats = document.getElementById('doneStats');
+const ctx = cv.getContext('2d');
+const base = document.createElement('canvas');
+let bctx = null, cell = 0;
+
+/* ============ 유틸 ============ */
+function inB(x,y){ return x>=0 && y>=0 && x<N && y<N; }
+function h2(x,y){
+  let n = (x*374761393 + y*668265263) | 0;
+  n = ((n ^ (n>>>13)) * 1274126177) | 0;
+  n = n ^ (n>>>16);
+  return (n>>>0) / 4294967295;
+}
+function shade(c,f){
+  return [Math.max(0,Math.min(255,c[0]*f))|0, Math.max(0,Math.min(255,c[1]*f))|0, Math.max(0,Math.min(255,c[2]*f))|0];
+}
+function lite(c,a){
+  return [c[0]+(255-c[0])*a|0, c[1]+(255-c[1])*a|0, c[2]+(255-c[2])*a|0];
+}
+function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+function isRoad(x,y){ return inB(x,y) && grid[y*N+x] === T.ROAD; }
+function roadNb(x,y){
+  let n=0; for(const d of DIRS) if(isRoad(x+d[0], y+d[1])) n++;
+  return n;
+}
+function bldNb(x,y){
+  let n=0;
+  for(const d of DIRS){
+    const nx=x+d[0], ny=y+d[1];
+    if(inB(nx,ny)){ const g=grid[ny*N+nx]; if(g>=2 && g<=11) n++; }
+  }
+  return n;
+}
+function densNb(x,y){
+  let n=0;
+  for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+    if(!dx && !dy) continue;
+    const nx=x+dx, ny=y+dy;
+    if(inB(nx,ny) && grid[ny*N+nx] !== T.E) n++;
+  }
+  return n;
+}
+/* 가장자리 녹지 페이드: 지도 외곽은 일부만 건축 가능 */
+const EB_P = [0.10, 0.30, 0.55, 0.80];
+function buildOK(x,y){
+  const eb = Math.min(x, y, N-1-x, N-1-y);
+  if(eb >= 4) return true;
+  return h2(x*13+7, y*17+3) < EB_P[eb];
+}
+function flash(x,y){
+  flashes.push({x, y, t0: performance.now()});
+  if(flashes.length > 500) flashes.splice(0, flashes.length-500);
+}
+function sampleBld(){
+  while(bldList.length){
+    const k = (Math.random()*bldList.length)|0, i = bldList[k];
+    const g = grid[i];
+    if(g >= 2 && g <= 7) return i;
+    bldList[k] = bldList[bldList.length-1];
+    bldList.pop();
+  }
+  return -1;
+}
+
+/* ============ 셀 렌더 ============ */
+function drawCell(x,y){
+  if(!bctx || !cell) return;
+  const i = y*N+x, t = grid[i], px = x*cell, py = y*cell;
+  const j = 1 + (h2(x,y)*2-1)*0.07;
+  let c;
+  if(t === T.E){
+    c = h2(x*7+3, y*11+5) < 0.10 ? PAL.bush : (h2(x+31, y+17) < 0.5 ? PAL.land : PAL.land2);
+    bctx.fillStyle = css(shade(c,j));
+    bctx.fillRect(px,py,cell,cell);
+    return;
+  }
+  if(t === T.ROAD){
+    const M = meta[i] & 1;
+    bctx.fillStyle = css(shade(M ? PAL.roadM : PAL.road, j));
+    bctx.fillRect(px,py,cell,cell);
+    if(cell >= 7 && M && ((x+y) % 2 === 0)){
+      bctx.fillStyle = css(PAL.dash);
+      const dsz = Math.max(1, cell/6|0);
+      bctx.fillRect(px+(cell-dsz>>1), py+(cell-dsz>>1), dsz, dsz);
+    }
+    return;
+  }
+  if(t === T.PLZ){
+    bctx.fillStyle = css(shade(PAL.plaza, j));
+    bctx.fillRect(px,py,cell,cell);
+    return;
+  }
+  if(t >= T.FNT && t <= T.STA){
+    bctx.fillStyle = css(shade(PAL.plaza, 0.93*j));
+    bctx.fillRect(px,py,cell,cell);
+    return;
+  }
+  /* 건물 & 시설 — 색상 표현 */
+  c = shade(lite(BCOL[t], lvl[i]*0.11), j);
+  bctx.fillStyle = css(c);
+  bctx.fillRect(px,py,cell,cell);
+  if(cell >= 6){
+    const e = Math.max(1, cell/7|0);
+    if(t === T.PARK){
+      bctx.fillStyle = css(shade(BCOL[t], 0.6));
+      for(let k=0; k<2; k++){
+        const tx = px + 1 + (h2(x*5+k, y*9+k) * (cell-2-e) | 0);
+        const ty = py + 1 + (h2(x*3+k*7, y*13+k) * (cell-2-e) | 0);
+        bctx.fillRect(tx, ty, e, e);
+      }
+    } else {
+      bctx.fillStyle = css(lite(c, 0.22));
+      bctx.fillRect(px, py, cell, e);
+      bctx.fillRect(px, py, e, cell);
+      bctx.fillStyle = css(shade(c, 0.68));
+      bctx.fillRect(px, py+cell-e, cell, e);
+      bctx.fillRect(px+cell-e, py, e, cell);
+    }
+  }
+}
+function redrawAll(){
+  if(!bctx) return;
+  for(let y=0; y<N; y++) for(let x=0; x<N; x++) drawCell(x,y);
+}
+
+/* ============ 배치 로직 ============ */
+function setRoad(x,y,major){
+  const i = y*N+x;
+  grid[i] = T.ROAD;
+  if(major) meta[i] |= 1;
+  roadList.push(i);
+  nonEmpty++;
+  lastGrowth = tickN;
+  const b = ((y/11)|0)*9 + ((x/11)|0);
+  if(!blockRoad[b]){ blockRoad[b] = 1; coveredBlocks++; }
+  drawCell(x,y);
+  flash(x,y);
+}
+function baseW(t,d){
+  switch(t){
+    case T.RES: return 0.34 + d*0.008;
+    case T.COM: return Math.max(0.06, 1-d/50) * 0.8;
+    case T.OFF: return Math.max(0, 1-d/28) * 1.0;
+    case T.TOW: return Math.max(0, 1-d/15) * 1.9;
+    case T.MKT: return (d>5 && d<42) ? 0.30 : 0.07;
+    case T.IND: return d>34 ? Math.min(0.9, (d-34)*0.05) : 0.01;
+  }
+  return 0.1;
+}
+function initDistricts(){
+  distPref = new Uint8Array(81);
+  for(let cy=0; cy<9; cy++) for(let cx=0; cx<9; cx++){
+    const d = Math.hypot(cx*11+5-C, cy*11+5-C);
+    let tot = 0; const ws = [];
+    for(const t of BTYPES){ const w = baseW(t,d); ws.push(w); tot += w; }
+    let r = Math.random()*tot, pick = T.RES;
+    for(let k=0; k<BTYPES.length; k++){ r -= ws[k]; if(r <= 0){ pick = BTYPES[k]; break; } }
+    distPref[cy*9+cx] = pick;
+  }
+}
+function chooseType(x,y){
+  /* 이웃 전파: 인접 건물 타입을 이어받아 색 덩어리 형성 */
+  if(Math.random() < 0.38){
+    const nb = [];
+    for(const d of DIRS){
+      const nx = x+d[0], ny = y+d[1];
+      if(inB(nx,ny)){ const g = grid[ny*N+nx]; if(g >= 2 && g <= 7) nb.push(g); }
+    }
+    if(nb.length) return nb[(Math.random()*nb.length)|0];
+  }
+  const d = Math.hypot(x-C, y-C);
+  const pref = distPref[((y/11)|0)*9 + ((x/11)|0)];
+  let tot = 0; const ws = [];
+  for(const t of BTYPES){
+    let w = baseW(t,d);
+    if(t === pref) w *= 2.8;
+    ws.push(w); tot += w;
+  }
+  let r = Math.random()*tot;
+  for(let k=0; k<BTYPES.length; k++){ r -= ws[k]; if(r <= 0) return BTYPES[k]; }
+  return T.RES;
+}
+function placeBuilding(x,y){
+  const t = chooseType(x,y), i = y*N+x;
+  grid[i] = t; lvl[i] = 0;
+  bldList.push(i);
+  builtCount++; nonEmpty++;
+  lastGrowth = tickN;
+  drawCell(x,y);
+  flash(x,y);
+}
+function setFac(x,y,t){
+  const i = y*N+x;
+  grid[i] = t;
+  nonEmpty++;
+  lastGrowth = tickN;
+  drawCell(x,y);
+  flash(x,y);
+}
+function placeFacility(t){
+  if(!roadList.length) return false;
+  for(let k=0; k<80; k++){
+    const ri = roadList[(Math.random()*roadList.length)|0];
+    const x = ri%N, y = (ri/N)|0;
+    const d = DIRS[(Math.random()*4)|0];
+    const tx = x+d[0], ty = y+d[1];
+    if(!inB(tx,ty) || grid[ty*N+tx] !== T.E || !buildOK(tx,ty)) continue;
+    if(t === T.PWR && Math.hypot(tx-C, ty-C) < 26 && k < 60) continue;
+    setFac(tx,ty,t);
+    if(t === T.PARK){
+      const opts = [[1,0,0,1,1,1],[-1,0,0,1,-1,1],[1,0,0,-1,1,-1],[-1,0,0,-1,-1,-1]];
+      for(const o of opts){
+        const cs = [[tx+o[0],ty+o[1]],[tx+o[2],ty+o[3]],[tx+o[4],ty+o[5]]];
+        let ok = true;
+        for(const cxy of cs) if(!inB(cxy[0],cxy[1]) || grid[cxy[1]*N+cxy[0]] !== T.E){ ok = false; break; }
+        if(ok){ for(const cxy of cs) setFac(cxy[0], cxy[1], T.PARK); break; }
+      }
+    }
+    if(t === T.SCH) toast('🏫 학교 개교!');
+    if(t === T.HOS) toast('🏥 병원 건설!');
+    if(t === T.PWR) toast('⚡ 발전소 가동!');
+    return true;
+  }
+  return false;
+}
+function tryPlaceSculpt(t){
+  if(!roadList.length) return false;
+  for(let k=0; k<260; k++){
+    const ri = roadList[(Math.random()*roadList.length)|0];
+    const x = ri%N, y = (ri/N)|0;
+    const d = DIRS[(Math.random()*4)|0];
+    const tx = x+d[0], ty = y+d[1];
+    if(!inB(tx,ty) || grid[ty*N+tx] !== T.E) continue;
+    if(tx < 2 || ty < 2 || tx > N-3 || ty > N-3) continue;
+    let e = 0;
+    for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+      if(!dx && !dy) continue;
+      if(grid[(ty+dy)*N + tx+dx] === T.E) e++;
+    }
+    if(e < 6) continue;
+    let far = true;
+    for(const s of sculpts) if(Math.hypot(s.x-tx, s.y-ty) < 11){ far = false; break; }
+    if(!far) continue;
+    grid[ty*N+tx] = t;
+    nonEmpty++;
+    drawCell(tx,ty); flash(tx,ty);
+    for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+      if(!dx && !dy) continue;
+      const nx = tx+dx, ny = ty+dy;
+      if(grid[ny*N+nx] === T.E){
+        grid[ny*N+nx] = T.PLZ;
+        nonEmpty++;
+        drawCell(nx,ny); flash(nx,ny);
+      }
+    }
+    sculpts.push({x:tx, y:ty, type:t, born: performance.now()});
+    lastGrowth = tickN;
+    toast(SCNM[t] + ' 완공!');
+    return true;
+  }
+  /* 2차: 재개발 — 건물을 밀어내고 광장 조성 */
+  for(let k = 0; k < 400; k++){
+    const ri = roadList[(Math.random()*roadList.length)|0];
+    const x = ri%N, y = (ri/N)|0;
+    const d = DIRS[(Math.random()*4)|0];
+    const tx = x+d[0], ty = y+d[1];
+    if(tx < 2 || ty < 2 || tx > N-3 || ty > N-3) continue;
+    const g0 = grid[ty*N+tx];
+    if(!(g0 === T.E || (g0 >= 2 && g0 <= 7))) continue;
+    let conv = 0;
+    for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+      if(!dx && !dy) continue;
+      const g = grid[(ty+dy)*N + tx+dx];
+      if(g === T.E || (g >= 2 && g <= 7)) conv++;
+    }
+    if(conv < 7) continue;
+    let far = true;
+    for(const s of sculpts) if(Math.hypot(s.x-tx, s.y-ty) < 11){ far = false; break; }
+    if(!far) continue;
+    for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+      const nx = tx+dx, ny = ty+dy, ni = ny*N+nx;
+      const g = grid[ni];
+      if(!dx && !dy){
+        if(g >= 2 && g <= 7) builtCount--;
+        else if(g === T.E) nonEmpty++;
+        grid[ni] = t;
+      } else {
+        if(g >= 2 && g <= 7){ builtCount--; grid[ni] = T.PLZ; }
+        else if(g === T.E){ nonEmpty++; grid[ni] = T.PLZ; }
+        else continue;
+      }
+      lvl[ni] = 0;
+      drawCell(nx,ny); flash(nx,ny);
+    }
+    sculpts.push({x:tx, y:ty, type:t, born: performance.now()});
+    lastGrowth = tickN;
+    toast(SCNM[t] + ' 완공!');
+    return true;
+  }
+  return false;
+}
+
+/* ============ 도로 성장 ============ */
+function canRoad(nx,ny,dx,dy){
+  if(!inB(nx,ny)) return false;
+  if(grid[ny*N+nx] !== T.E) return false;
+  const sx = -dy, sy = dx;
+  if(isRoad(nx+sx, ny+sy) || isRoad(nx-sx, ny-sy)) return false;
+  return true;
+}
+function stepHead(h){
+  if(Math.random() > 0.55) return;
+  const nx = h.x+h.dx, ny = h.y+h.dy;
+  if(!inB(nx,ny)){ h.dead = 1; return; }
+  const g = grid[ny*N+nx];
+  if(g !== T.E){ h.dead = 1; return; }
+  const sx = -h.dy, sy = h.dx;
+  if(isRoad(nx+sx, ny+sy) || isRoad(nx-sx, ny-sy)){ h.dead = 1; return; }
+  setRoad(nx, ny, h.major);
+  h.x = nx; h.y = ny;
+  if(--h.life <= 0) h.dead = 1;
+  const bp = (h.major ? 0.06 : 0.075) * (roadList.length > 2550 ? 0.3 : 1);
+  if(heads.length < 46 && Math.random() < bp){
+    const s = Math.random() < 0.5 ? 1 : -1;
+    const bdx = sx*s, bdy = sy*s;
+    if(canRoad(h.x+bdx, h.y+bdy, bdx, bdy))
+      heads.push({x:h.x, y:h.y, dx:bdx, dy:bdy, major:false, life: 10 + ((Math.random()*30)|0)});
+  }
+  if(!h.major && Math.random() < 0.04){
+    const s = Math.random() < 0.5 ? 1 : -1;
+    h.dx = sx*s; h.dy = sy*s;
+  }
+}
+
+/* ============ 틱 ============ */
+function doTick(){
+  if(simDone) return;
+  tickN++;
+  for(const h of heads) stepHead(h);
+  if(heads.length && heads.some(h => h.dead)) heads = heads.filter(h => !h.dead);
+
+  if(tickN % 25 === 0 && heads.length < 8 && roadList.length > 4 &&
+     (roadList.length < 2250 || coveredBlocks < 81)){
+    let added = 0;
+    for(let k = 0; k < 90 && added < 1; k++){
+      const ri = roadList[(Math.random()*roadList.length)|0];
+      const x = ri%N, y = (ri/N)|0;
+      /* 프론티어 판정: 5x5 이웃에 빈 땅 10칸 이상일 때만 새 길 */
+      let e = 0;
+      for(let dy=-2; dy<=2; dy++) for(let dx=-2; dx<=2; dx++){
+        const nx = x+dx, ny = y+dy;
+        if(inB(nx,ny) && grid[ny*N+nx] === T.E) e++;
+      }
+      if(e < 10) continue;
+      const o = (Math.random()*4)|0;
+      for(let dd = 0; dd < 4; dd++){
+        const d = DIRS[(o+dd)&3];
+        if(canRoad(x+d[0], y+d[1], d[0], d[1])){
+          heads.push({x, y, dx:d[0], dy:d[1], major:false, life: 10 + ((Math.random()*30)|0)});
+          added++; break;
+        }
+      }
+    }
+  }
+
+  /* 간선 도로: 마일스톤마다 대로 4개를 중심→바깥 순서로 포장 큐에 적재 */
+  if(gIdx < GRID_MS.length && builtCount >= GRID_MS[gIdx]){
+    const off = GRID_OFF[gIdx]; gIdx++;
+    const lines = [[C+off, true], [C-off, true], [C+off, false], [C-off, false]];
+    for(const ln of lines){
+      const cells = [];
+      for(let s = 0; s < N; s++){
+        const x = ln[1] ? ln[0] : s, y = ln[1] ? s : ln[0];
+        cells.push([x, y, Math.abs(s - C)]);
+      }
+      cells.sort((a,b) => a[2] - b[2]);
+      for(const c of cells) paveQ.push([c[0], c[1]]);
+    }
+    toast('🛣️ 간선도로 개통!');
+  }
+  /* 포장 큐 처리: 틱당 몇 칸씩 진행 */
+  for(let k = 0; k < 6 && paveQ.length; ){
+    const c = paveQ.shift();
+    if(grid[c[1]*N + c[0]] === T.E){ setRoad(c[0], c[1], true); k++; }
+  }
+
+  const at = 1 + ((roadList.length/95)|0);
+  for(let a=0; a<at; a++){
+    if(!roadList.length) break;
+    const ri = roadList[(Math.random()*roadList.length)|0];
+    const x = ri%N, y = (ri/N)|0;
+    const d = DIRS[(Math.random()*4)|0];
+    const tx = x+d[0], ty = y+d[1];
+    if(!inB(tx,ty) || grid[ty*N+tx] !== T.E || !buildOK(tx,ty)) continue;
+    placeBuilding(tx,ty);
+  }
+
+  const inf = 1 + ((bldList.length/600)|0);
+  for(let a=0; a<inf; a++){
+    const bi = sampleBld();
+    if(bi < 0) break;
+    const x = bi%N, y = (bi/N)|0;
+    const d = DIRS[(Math.random()*4)|0];
+    const tx = x+d[0], ty = y+d[1];
+    if(!inB(tx,ty) || grid[ty*N+tx] !== T.E || !buildOK(tx,ty)) continue;
+    if(bldNb(tx,ty) >= 2) placeBuilding(tx,ty);
+  }
+
+  for(let a=0; a<3; a++){
+    const bi = sampleBld();
+    if(bi < 0) break;
+    if(lvl[bi] < 2 && densNb(bi%N, (bi/N)|0) >= 5 && Math.random() < 0.4){
+      lvl[bi]++;
+      drawCell(bi%N, (bi/N)|0);
+    }
+  }
+
+  if(builtCount >= nextFac){
+    if(placeFacility(FACSEQ[fIdx % FACSEQ.length])){
+      fIdx++;
+      nextFac = builtCount + 40 + ((Math.random()*20)|0);
+    } else nextFac = builtCount + 12;
+  }
+
+  if(sIdx < SC_MS.length && builtCount >= SC_MS[sIdx]){
+    if(tryPlaceSculpt(STY[sIdx % 3])) sIdx++;
+  }
+
+  while(phaseIdx < PHASES.length-1 && builtCount >= PHASES[phaseIdx+1][0]){
+    phaseIdx++;
+    applyPhase(true);
+  }
+
+  /* 엔드게임: 남은 틈 메우기 */
+  if(!endgame && (nonEmpty/(N*N) > 0.84 || tickN - lastGrowth > 180)){
+    endgame = true;
+    egOrder = new Uint16Array(N*N);
+    for(let i = 0; i < N*N; i++) egOrder[i] = i;
+    for(let i = N*N-1; i > 0; i--){
+      const j = (Math.random()*(i+1))|0;
+      const tmp = egOrder[i]; egOrder[i] = egOrder[j]; egOrder[j] = tmp;
+    }
+  }
+  if(endgame && !simDone){
+    let budget = 200, placed = 0;
+    while(budget-- > 0 && placed < 4){
+      const i = egOrder[egPtr];
+      egPtr++;
+      if(egPtr >= N*N){
+        egPtr = 0;
+        if(egPassPlaced === 0) egEmptyPasses++; else egEmptyPasses = 0;
+        egPassPlaced = 0;
+      }
+      if(grid[i] !== T.E) continue;
+      const x = i%N, y = (i/N)|0;
+      if(!buildOK(x,y)) continue;
+      if(roadNb(x,y) > 0 || bldNb(x,y) >= 2 || (heads.length === 0 && densNb(x,y) >= 4)){
+        placeBuilding(x,y);
+        placed++; egPassPlaced++;
+      }
+    }
+    if(egEmptyPasses >= 2 && heads.length === 0){ simDone = true; showDone(); }
+  }
+
+  if(!simDone && tickN - lastGrowth > 900){
+    simDone = true;
+    showDone();
+  }
+}
+
+/* ============ 부스트 (탭) ============ */
+function boost(gx,gy){
+  let placed = 0;
+  for(let k=0; k<200 && placed<8; k++){
+    const x = gx + ((Math.random()*17)|0) - 8;
+    const y = gy + ((Math.random()*17)|0) - 8;
+    if(!inB(x,y) || grid[y*N+x] !== T.E || !buildOK(x,y)) continue;
+    if(roadNb(x,y) > 0 || bldNb(x,y) >= 2){ placeBuilding(x,y); placed++; }
+  }
+  if(heads.length < 40){
+    for(let k=0; k<50; k++){
+      const x = gx + ((Math.random()*17)|0) - 8;
+      const y = gy + ((Math.random()*17)|0) - 8;
+      if(!inB(x,y) || grid[y*N+x] !== T.ROAD) continue;
+      const d = DIRS[(Math.random()*4)|0];
+      if(canRoad(x+d[0], y+d[1], d[0], d[1])){
+        heads.push({x, y, dx:d[0], dy:d[1], major:false, life: 8 + ((Math.random()*20)|0)});
+        break;
+      }
+    }
+  }
+}
+
+/* ============ UI ============ */
+function toast(msg){
+  const d = document.createElement('div');
+  d.className = 'toast';
+  d.textContent = msg;
+  toastBox.appendChild(d);
+  setTimeout(() => {
+    d.classList.add('out');
+    setTimeout(() => d.remove(), 350);
+  }, 2300);
+  while(toastBox.children.length > 3) toastBox.firstChild.remove();
+}
+function applyPhase(showT){
+  const p = PHASES[phaseIdx];
+  phaseEl.textContent = p[1];
+  phaseEl.style.color = p[2];
+  if(showT) toast('🏙️ ' + p[1] + ' 단계 도달!');
+}
+function updateStats(){
+  let pop = 0;
+  for(const i of bldList){
+    const g = grid[i];
+    if(g < 2 || g > 7) continue;
+    pop += (POPB[g] || 0) * (1 + lvl[i]*0.45);
+  }
+  stPop.textContent = (pop|0).toLocaleString();
+  stBld.textContent = builtCount.toLocaleString();
+  stDay.textContent = 1 + ((tickN/12)|0);
+  stFill.textContent = Math.round(nonEmpty/(N*N)*100) + '%';
+}
+function showDone(){
+  updateStats();
+  doneStats.innerHTML = 'Day ' + (1+((tickN/12)|0)) + ' · 인구 ' + stPop.textContent +
+    '<br>건물 ' + builtCount.toLocaleString() + ' · 개발률 ' + Math.round(nonEmpty/(N*N)*100) + '%';
+  doneEl.classList.remove('hidden');
+}
+function setPlaying(p){
+  playing = p;
+  btnPlay.textContent = p ? '⏸' : '▶';
+}
+
+/* ============ 초기화 ============ */
+function init(){
+  grid.fill(0); lvl.fill(0); meta.fill(0);
+  roadList = []; bldList = []; heads = []; sculpts = [];
+  cars = []; flashes = []; ripples = [];
+  tickN = 0; lastGrowth = 0; builtCount = 0; nonEmpty = 0;
+  nextFac = 42; fIdx = 0; sIdx = 0; phaseIdx = 0; gIdx = 0;
+  simDone = false; acc = 0;
+  endgame = false; egOrder = null; egPtr = 0; egPassPlaced = 0; egEmptyPasses = 0;
+  blockRoad.fill(0); coveredBlocks = 0; paveQ = [];
+  initDistricts();
+  setRoad(C, C, true);
+  for(const d of DIRS) heads.push({x:C, y:C, dx:d[0], dy:d[1], major:true, life:70});
+  redrawAll();
+  applyPhase(false);
+  updateStats();
+  doneEl.classList.add('hidden');
+}
+
+/* ============ 캔버스 사이즈 ============ */
+function fit(){
+  const w = (wrapEl.clientWidth || 360) - 8;
+  const h = (wrapEl.clientHeight || 360) - 8;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const size = Math.max(120, Math.min(w, h));
+  cell = Math.max(2, Math.floor(size * dpr / N));
+  const dev = cell * N;
+  cv.width = dev; cv.height = dev;
+  base.width = dev; base.height = dev;
+  const cssSize = dev / dpr;
+  cv.style.width = cssSize + 'px';
+  cv.style.height = cssSize + 'px';
+  bctx = base.getContext('2d');
+  redrawAll();
+}
+
+/* ============ 프레임 렌더 ============ */
+function circle(x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,6.2832); }
+
+function drawSculpts(ts){
+  if(!cell) return;
+  for(const s of sculpts){
+    const cx = (s.x+0.5)*cell, cy = (s.y+0.5)*cell;
+    if(s.type === T.FNT){
+      const R = cell*1.15;
+      ctx.fillStyle = 'rgb(120,116,106)';
+      circle(cx,cy,R); ctx.fill();
+      ctx.fillStyle = '#2e7fd6';
+      circle(cx,cy,R*0.82); ctx.fill();
+      ctx.fillStyle = '#5db2f4';
+      circle(cx,cy,R*0.5); ctx.fill();
+      const r = ((ts - s.born) % 1100) / 1100;
+      ctx.strokeStyle = 'rgba(230,246,255,' + ((1-r)*0.8).toFixed(2) + ')';
+      ctx.lineWidth = Math.max(1, cell*0.15);
+      circle(cx, cy, Math.max(0.5, r*R*0.85)); ctx.stroke();
+      const bob = Math.sin(ts/260) * cell*0.08;
+      ctx.fillStyle = '#eaf7ff';
+      ctx.fillRect(cx-cell*0.09, cy-cell*0.34+bob, cell*0.18, cell*0.3);
+    } else if(s.type === T.MON){
+      const u = cell/4;
+      const glow = 0.5 + 0.5*Math.sin(ts/420 + s.x);
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,214,106,' + (0.35 + glow*0.35).toFixed(2) + ')';
+      ctx.shadowBlur = cell * (0.6 + glow*0.5);
+      ctx.fillStyle = '#5a6068';
+      ctx.fillRect(cx-2.2*u, cy+1.2*u, 4.4*u, 1.5*u);
+      ctx.fillStyle = '#d9b04c';
+      ctx.fillRect(cx-u, cy-4.6*u, 2*u, 6*u);
+      ctx.fillStyle = '#f2d488';
+      ctx.fillRect(cx-u, cy-4.6*u, u, 6*u);
+      ctx.fillStyle = '#ffe9a8';
+      ctx.fillRect(cx-0.6*u, cy-5.5*u, 1.2*u, 1*u);
+      ctx.restore();
+      const a = 0.35 + 0.65*Math.abs(Math.sin(ts/300 + s.y));
+      ctx.fillStyle = 'rgba(255,244,200,' + a.toFixed(2) + ')';
+      ctx.fillRect(cx-0.25*u, cy-6.3*u, 0.5*u, 0.5*u);
+    } else {
+      const u = cell/4;
+      ctx.fillStyle = '#565e66';
+      ctx.fillRect(cx-2*u, cy+0.6*u, 4*u, 1.7*u);
+      ctx.fillStyle = '#79cdb0';
+      ctx.fillRect(cx-0.9*u, cy-2.2*u, 1.8*u, 2.8*u);
+      ctx.fillRect(cx-1.6*u, cy-2.0*u, 0.7*u, 0.7*u);
+      ctx.fillRect(cx+0.9*u, cy-2.9*u, 0.7*u, 1.3*u);
+      ctx.fillStyle = '#a9e6d0';
+      ctx.fillRect(cx-0.6*u, cy-3.4*u, 1.2*u, 1.1*u);
+      const p = ((ts/2800) + s.y*0.13) % 1;
+      if(p < 0.35){
+        ctx.fillStyle = 'rgba(240,255,250,' + ((0.35-p)*0.9).toFixed(2) + ')';
+        ctx.fillRect(cx-0.9*u + p/0.35*1.6*u, cy-3.4*u, 0.35*u, 4*u);
+      }
+    }
+  }
+}
+
+function updCars(ts,dt){
+  if(cell < 3 || !roadList.length) return;
+  const tgt = Math.min(26, (roadList.length/40)|0);
+  while(cars.length < tgt){
+    const ri = roadList[(Math.random()*roadList.length)|0];
+    const x = ri%N, y = (ri/N)|0;
+    cars.push({x, y, px:x, py:y, t:0, sp: 2.6 + Math.random()*1.8,
+               col: CARC[(Math.random()*CARC.length)|0]});
+  }
+  const move = playing && !document.hidden;
+  for(const c of cars){
+    if(move) c.t += dt/1000 * c.sp;
+    while(c.t >= 1){
+      c.t -= 1;
+      const opts = [];
+      for(const d of DIRS){
+        const nx = c.x+d[0], ny = c.y+d[1];
+        if(!isRoad(nx,ny)) continue;
+        const back = (nx === c.px && ny === c.py);
+        const straight = (nx - c.x === c.x - c.px && ny - c.y === c.y - c.py);
+        opts.push([nx, ny, back ? 0.15 : (straight ? 3 : 1)]);
+      }
+      if(!opts.length){ c.t = 0; break; }
+      let tot = 0;
+      for(const o of opts) tot += o[2];
+      let r = Math.random()*tot, pick = opts[0];
+      for(const o of opts){ r -= o[2]; if(r <= 0){ pick = o; break; } }
+      c.px = c.x; c.py = c.y;
+      c.x = pick[0]; c.y = pick[1];
+    }
+    const f = Math.min(1, c.t);
+    const ix = c.px + (c.x - c.px)*f;
+    const iy = c.py + (c.y - c.py)*f;
+    const s = Math.max(2, (cell*0.42)|0);
+    ctx.fillStyle = c.col;
+    ctx.fillRect(((ix+0.5)*cell - s/2)|0, ((iy+0.5)*cell - s/2)|0, s, s);
+  }
+}
+
+function render(ts, dt){
+  if(!cell) return;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(base, 0, 0);
+  /* 신축 반짝임 */
+  for(let i = flashes.length-1; i >= 0; i--){
+    const f = flashes[i];
+    const p = (ts - f.t0) / 420;
+    if(p >= 1){ flashes.splice(i,1); continue; }
+    ctx.globalAlpha = (1-p) * 0.85;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(f.x*cell, f.y*cell, cell, cell);
+  }
+  ctx.globalAlpha = 1;
+  updCars(ts, dt);
+  drawSculpts(ts);
+  /* 탭 리플 */
+  for(let i = ripples.length-1; i >= 0; i--){
+    const r = ripples[i];
+    const p = (ts - r.t0) / 650;
+    if(p >= 1){ ripples.splice(i,1); continue; }
+    ctx.strokeStyle = 'rgba(170,200,255,' + ((1-p)*0.55).toFixed(2) + ')';
+    ctx.lineWidth = Math.max(1, cell*0.25);
+    circle((r.gx+0.5)*cell, (r.gy+0.5)*cell, p*cell*9 + cell*0.5);
+    ctx.stroke();
+  }
+}
+
+/* ============ 메인 루프 ============ */
+let last = 0, statAcc = 0;
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(!last) last = ts;
+  const dt = Math.min(60, ts - last);
+  last = ts;
+  if(playing && !simDone){
+    acc += dt;
+    const step = 1000 / (12.5 * speed);
+    let n = 0;
+    while(acc >= step && n < 64){ doTick(); acc -= step; n++; }
+  }
+  statAcc += dt;
+  if(statAcc > 400){ statAcc = 0; updateStats(); }
+  render(ts, dt);
+}
+
+/* ============ 이벤트 ============ */
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  const gx = Math.floor((e.clientX - r.left) / r.width * N);
+  const gy = Math.floor((e.clientY - r.top) / r.height * N);
+  if(gx < 0 || gy < 0 || gx >= N || gy >= N) return;
+  ripples.push({gx, gy, t0: performance.now()});
+  if(!simDone && playing) boost(gx, gy);
+});
+cv.addEventListener('contextmenu', e => e.preventDefault());
+
+btnPlay.addEventListener('click', () => setPlaying(!playing));
+document.getElementById('btnReset').addEventListener('click', () => {
+  init();
+  toast('🌱 새 도시 시작!');
+});
+document.getElementById('btnLegend').addEventListener('click', () => {
+  legendEl.classList.toggle('hidden');
+});
+document.getElementById('btnNew').addEventListener('click', () => {
+  init();
+  toast('🌱 새 도시 시작!');
+});
+document.querySelectorAll('#speeds button').forEach(b => {
+  b.addEventListener('click', () => {
+    speed = +b.dataset.s;
+    document.querySelectorAll('#speeds button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ wasPlaying = playing; setPlaying(false); }
+  else if(wasPlaying) setPlaying(true);
+});
+window.addEventListener('resize', fit);
+window.addEventListener('orientationchange', () => setTimeout(fit, 250));
+
+/* ============ 시작 ============ */
+init();
+fit();
+requestAnimationFrame(frame);
+setTimeout(() => toast('👆 화면을 탭하면 그 지역 개발이 촉진돼요'), 800);
+
+/* 테스트 훅 */
+window.SIM = {
+  init, tick: doTick, grid: () => grid, lvl: () => lvl, meta: () => meta,
+  sculpts: () => sculpts,
+  stats: () => ({tick: tickN, roads: roadList.length, built: builtCount,
+                 sculpts: sculpts.length, heads: heads.length,
+                 nonEmpty, fill: Math.round(nonEmpty/(N*N)*100), done: simDone})
+};
+</script>
+</body>
+</html>
