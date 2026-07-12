@@ -1,0 +1,1685 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#070b14">
+  <title>사색 영토전 RTS</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b14;
+      --panel: #0c1322;
+      --panel-2: #111b2e;
+      --line: rgba(255,255,255,.09);
+      --muted: #93a4bf;
+      --text: #f5f8ff;
+      --red: #ff4d5e;
+      --blue: #3d8bff;
+      --yellow: #ffd43b;
+      --green: #35d07f;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; width: 100%; min-height: 100%; background: var(--bg); }
+    body {
+      min-height: 100dvh;
+      overflow-x: hidden;
+      color: var(--text);
+      font-family: ui-rounded, "SF Pro Rounded", "Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(61,139,255,.15), transparent 38%),
+        linear-gradient(180deg, #08101d 0%, #070b14 68%);
+    }
+    button { font: inherit; }
+    button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+    .app {
+      width: min(100%, 820px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: max(12px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto auto minmax(280px, 1fr) auto auto;
+      gap: 9px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand { min-width: 0; }
+    .eyebrow {
+      margin: 0 0 2px;
+      color: #70819d;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(18px, 4.7vw, 27px);
+      line-height: 1.02;
+      letter-spacing: -.04em;
+    }
+    .match-state {
+      flex: 0 0 auto;
+      min-width: 102px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(12,19,34,.82);
+      box-shadow: 0 8px 30px rgba(0,0,0,.2);
+      text-align: right;
+    }
+    .clock { display: block; font-size: 16px; font-weight: 950; font-variant-numeric: tabular-nums; }
+    .leader { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; font-weight: 750; }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 6px;
+    }
+    .team-card {
+      position: relative;
+      min-width: 0;
+      padding: 7px 7px 6px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(17,27,46,.94), rgba(10,17,30,.94));
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: opacity .2s, transform .16s, border-color .2s;
+    }
+    .team-card:active { transform: scale(.97); }
+    .team-card.focused { border-color: var(--team); box-shadow: 0 0 0 1px color-mix(in srgb, var(--team) 42%, transparent); }
+    .team-card.ultimate { border-color: var(--team); animation: ultimate-card-pulse .62s steps(2,end) infinite; }
+    .team-card.dimmed { opacity: .42; }
+    .team-card.eliminated { filter: grayscale(.8); opacity: .42; }
+    .team-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--team);
+    }
+    .team-head { display: flex; align-items: center; gap: 5px; min-width: 0; }
+    .dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--team); box-shadow: 0 0 9px var(--team); }
+    .team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 900; }
+    .crown { margin-left: auto; color: #fff2a8; font-size: 10px; visibility: hidden; }
+    .team-card.leading .crown { visibility: visible; }
+    .territory { margin-top: 5px; font-size: clamp(16px,4.2vw,22px); font-weight: 950; line-height: 1; font-variant-numeric: tabular-nums; }
+    .mini-stats { margin-top: 5px; display: flex; justify-content: space-between; gap: 3px; color: var(--muted); font-size: 9px; font-weight: 750; }
+    .hq-bar { height: 3px; margin-top: 5px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.09); }
+    .hq-fill { height: 100%; width: 100%; border-radius: inherit; background: var(--team); transition: width .25s; }
+    .siege-bar { height: 2px; margin-top: 2px; overflow: hidden; border-radius: 99px; background: rgba(255,118,59,.09); opacity: .28; transition: opacity .2s; }
+    .siege-fill { height: 100%; width: 0; background: #ff763b; box-shadow: 0 0 7px #ff763b; transition: width .22s linear; }
+    .team-card.sieged .siege-bar { opacity: 1; }
+    .ult-meta { display: flex; justify-content: space-between; margin-top: 4px; color: #7185a5; font-size: 8px; font-weight: 900; letter-spacing: .02em; }
+    .ult-bar { height: 4px; margin-top: 2px; overflow: hidden; border-radius: 1px; background: rgba(255,255,255,.08); }
+    .ult-fill { height: 100%; width: 0; background: var(--team); box-shadow: 0 0 8px var(--team); transition: width .22s linear; }
+    .team-card.ultimate .ult-fill { animation: ultimate-bar-flash .3s steps(2,end) infinite; }
+    @keyframes ultimate-card-pulse { 50% { box-shadow: 0 0 18px color-mix(in srgb, var(--team) 68%, transparent); } }
+    @keyframes ultimate-bar-flash { 50% { filter: brightness(2.4); } }
+
+    .battle-wrap {
+      position: relative;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px;
+      background: #09111e;
+      box-shadow: 0 22px 70px rgba(0,0,0,.38), inset 0 0 0 1px rgba(255,255,255,.02);
+      isolation: isolate;
+    }
+    .battle-wrap::after {
+      content: "";
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 0 38px rgba(0,0,0,.28);
+    }
+    #game {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 280px;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .event-toast {
+      pointer-events: none;
+      position: absolute;
+      z-index: 3;
+      top: 9px;
+      left: 50%;
+      max-width: calc(100% - 24px);
+      transform: translateX(-50%);
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 99px;
+      background: rgba(4,8,15,.8);
+      backdrop-filter: blur(8px);
+      color: #e8efff;
+      font-size: 10px;
+      font-weight: 850;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      transition: opacity .2s, transform .2s;
+    }
+    .event-toast.show { opacity: 1; transform: translateX(-50%) translateY(1px); }
+    .ultimate-scene {
+      pointer-events: none;
+      position: absolute;
+      z-index: 8;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 34%;
+      min-height: 108px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-50%) scaleY(.08);
+      border-top: 4px solid var(--ult-color, #fff);
+      border-bottom: 4px solid var(--ult-color, #fff);
+      background: #030711;
+      box-shadow: 0 0 0 2px #030711, 0 0 30px var(--ult-color, #fff);
+      transition: opacity .12s steps(2,end), transform .16s steps(3,end);
+    }
+    .ultimate-scene.show { opacity: 1; transform: translateY(-50%) scaleY(1); }
+    .ultimate-scene::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(180deg, transparent 0 4px, rgba(0,0,0,.22) 4px 6px);
+      mix-blend-mode: multiply;
+    }
+    .ultimate-scene::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      background:
+        radial-gradient(circle at 24% 50%, color-mix(in srgb, var(--ult-color, #fff) 26%, transparent), transparent 42%),
+        repeating-linear-gradient(112deg, transparent 0 18px, color-mix(in srgb, var(--ult-color, #fff) 7%, transparent) 18px 20px);
+      animation: ultAsciiSweep .32s steps(4,end) infinite;
+    }
+    @keyframes ultAsciiSweep { to { transform: translateX(20px); } }
+    .ultimate-ascii {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: 1%;
+      width: 98%;
+      max-height: 100%;
+      margin: 0;
+      transform: translateY(-50%) scaleX(1.35);
+      transform-origin: left center;
+      overflow: hidden;
+      color: var(--ult-color, #fff);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: clamp(5.2px, 1.12vw, 8.5px);
+      font-weight: 900;
+      line-height: .9;
+      letter-spacing: -.06em;
+      white-space: pre;
+      text-align: left;
+      text-shadow: 0 0 7px var(--ult-color, #fff), 1px 1px 0 #000;
+      filter: brightness(1.55) contrast(1.14);
+      animation: ultAsciiJolt .18s steps(2,end) infinite;
+    }
+    @keyframes ultAsciiJolt {
+      0%,100% { translate: 0 0; }
+      50% { translate: 1px -1px; }
+    }
+    .ultimate-copy {
+      position: absolute;
+      z-index: 3;
+      top: 50%;
+      left: 49%;
+      width: 49%;
+      transform: translateY(-50%);
+      text-align: left;
+      text-shadow: none;
+    }
+    .ultimate-copy span { display: block; width: max-content; padding: 3px 5px; background: rgba(3,7,17,.94); box-shadow: 0 0 0 4px rgba(3,7,17,.94), 0 0 12px #030711; color: #d5def1; font-size: clamp(8px,1.7vw,12px); font-weight: 950; letter-spacing: .15em; }
+    .ultimate-copy b { display: block; width: max-content; max-width: 100%; margin-top: 9px; padding: 2px 6px 4px; background: rgba(3,7,17,.94); box-shadow: 0 0 0 5px rgba(3,7,17,.94), 0 0 14px #030711; color: var(--ult-color, #fff); font-size: clamp(21px,5.3vw,42px); line-height: .95; font-weight: 1000; letter-spacing: -.06em; }
+    .ultimate-copy em { position: relative; display: inline-block; max-width: 100%; margin-top: 8px; padding: 4px 8px; overflow: hidden; background: var(--ult-color, #fff); box-shadow: 0 0 0 5px rgba(3,7,17,.94), 0 0 16px rgba(3,7,17,.96); color: #07101a; font-family: system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif; font-size: clamp(8px,1.5vw,12px); line-height: 1.15; font-style: normal; font-weight: 900; letter-spacing: 0; white-space: nowrap; text-overflow: clip; text-shadow: none !important; }
+    .inspect {
+      pointer-events: none;
+      position: absolute;
+      z-index: 4;
+      left: 10px;
+      bottom: 10px;
+      max-width: calc(100% - 20px);
+      padding: 7px 9px;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 10px;
+      background: rgba(4,8,15,.84);
+      color: #dfe8fa;
+      font-size: 10px;
+      font-weight: 800;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .18s, transform .18s;
+    }
+    .inspect.show { opacity: 1; transform: none; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1.12fr 1.55fr .95fr .7fr;
+      gap: 7px;
+    }
+    .control-btn, .speed-group, .icon-btn {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #142039, #0d1729);
+      color: #edf3ff;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 7px 20px rgba(0,0,0,.17);
+    }
+    .control-btn:active, .icon-btn:active, .speed-group button:active { transform: translateY(1px); }
+    .control-btn.primary { border-color: rgba(61,139,255,.35); background: linear-gradient(180deg, #17315c, #102345); }
+    .speed-group { display: grid; grid-template-columns: repeat(3,1fr); padding: 3px; }
+    .speed-group button {
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #7587a4;
+      font-size: 11px;
+      font-weight: 950;
+      cursor: pointer;
+    }
+    .speed-group button.active { background: #2a416b; color: #fff; box-shadow: 0 2px 9px rgba(0,0,0,.25); }
+    .icon-btn { font-size: 17px; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-height: 18px;
+      color: #71819c;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .shape { display: inline-block; width: 8px; height: 8px; border: 1px solid #b9c5d8; }
+    .shape.inf { border-radius: 50%; background: #7d8ba2; }
+    .shape.arc { width: 0; height: 0; border: 4px solid transparent; border-bottom: 7px solid #7d8ba2; border-top: 0; }
+    .shape.cav { transform: rotate(45deg); background: #7d8ba2; }
+    .shape.pio { background: #7d8ba2; box-shadow: inset 0 0 0 2px #172033; }
+    .shape.sie { width: 10px; height: 7px; border-radius: 1px; background: #7d8ba2; box-shadow: inset 3px 0 0 #172033; }
+    .shape.tow { width: 9px; height: 9px; border-radius: 2px; transform: rotate(45deg); }
+
+    dialog {
+      width: min(92vw, 430px);
+      max-height: 92vh;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      padding: 0;
+      background: #0d1728;
+      color: var(--text);
+      box-shadow: 0 30px 100px rgba(0,0,0,.6);
+    }
+    dialog::backdrop { background: rgba(2,5,10,.78); backdrop-filter: blur(4px); }
+    .modal-body { padding: 22px; }
+    .modal-kicker { margin: 0 0 5px; color: #7285a4; font-size: 10px; font-weight: 900; letter-spacing: .13em; }
+    .modal-body h2 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
+    .modal-body p { color: #a5b3c9; font-size: 13px; line-height: 1.6; }
+    .help-list { display: grid; gap: 9px; margin: 15px 0 19px; }
+    .help-item { display: grid; grid-template-columns: 61px 1fr; gap: 10px; padding: 10px; border-radius: 12px; background: #111f35; }
+    .help-item b { color: #f1f5ff; font-size: 12px; }
+    .help-item span { color: #93a4bf; font-size: 11px; line-height: 1.45; }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .modal-actions button { min-height: 45px; border: 0; border-radius: 11px; background: #213657; color: white; font-weight: 900; cursor: pointer; }
+    .modal-actions button.accent { background: #2f74df; }
+    .result-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; margin: 16px 0 19px; }
+    .result-cell { padding: 8px 3px; border-radius: 10px; background: #111f35; text-align: center; }
+    .result-cell b { display: block; font-size: 12px; }
+    .result-cell span { display: block; margin-top: 4px; color: #8fa1bd; font-size: 10px; }
+
+    @media (max-width: 430px) {
+      .app { padding-left: 8px; padding-right: 8px; gap: 7px; }
+      .match-state { min-width: 92px; padding: 7px 8px; }
+      .team-card { padding-left: 6px; padding-right: 5px; }
+      .team-name { font-size: 10px; }
+      .mini-stats { font-size: 8px; }
+      .controls { grid-template-columns: 1.05fr 1.55fr .9fr .66fr; gap: 5px; }
+      .control-btn, .speed-group, .icon-btn { font-size: 11px; }
+      .legend { gap: 8px; }
+    }
+    @media (max-height: 690px) {
+      .app { grid-template-rows: auto auto minmax(245px,1fr) auto; }
+      .legend { display: none; }
+      .territory { font-size: 15px; }
+      .team-card { padding-top: 5px; padding-bottom: 5px; }
+      .mini-stats { margin-top: 3px; }
+      .hq-bar { margin-top: 3px; }
+    }
+    @media (min-width: 700px) and (min-height: 760px) {
+      .app { padding-left: 20px; padding-right: 20px; gap: 11px; }
+      .team-card { padding: 10px 12px; }
+      .mini-stats { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <p class="eyebrow">80 × 80 AUTO BATTLE</p>
+        <h1>사색 영토전 <span style="color:#6f83a4;font-weight:750">RTS</span></h1>
+      </div>
+      <div class="match-state" aria-live="polite">
+        <span class="clock" id="clock">00:00 / 천하통일</span>
+        <span class="leader" id="leader">전투 준비 중</span>
+      </div>
+    </header>
+
+    <section class="scoreboard" id="scoreboard" aria-label="팀 현황"></section>
+
+    <main class="battle-wrap" id="battleWrap">
+      <canvas id="game" aria-label="80 곱하기 80 격자 위에서 네 팀이 자동 전투 중인 전장"></canvas>
+      <div class="ultimate-scene" id="ultimateScene" aria-hidden="true">
+        <pre class="ultimate-ascii" id="ultimateAscii" aria-hidden="true"></pre>
+        <div class="ultimate-copy">
+          <span id="ultimateKicker">빨강팀 필살기 발동</span>
+          <b id="ultimateTitle">홍련 폭주</b>
+          <em id="ultimateEffect">15초간 공격력·공격속도 폭증</em>
+        </div>
+      </div>
+      <div class="event-toast" id="toast" role="status"></div>
+      <div class="inspect" id="inspect"></div>
+    </main>
+
+    <section class="controls" aria-label="전투 조작">
+      <button class="control-btn primary" id="pauseBtn" type="button">⏸ 일시정지</button>
+      <div class="speed-group" role="group" aria-label="전투 속도">
+        <button type="button" data-speed="1" class="active">1×</button>
+        <button type="button" data-speed="2">2×</button>
+        <button type="button" data-speed="4">4×</button>
+      </div>
+      <button class="control-btn" id="restartBtn" type="button">↻ 새 경기</button>
+      <button class="icon-btn" id="helpBtn" type="button" aria-label="게임 설명">?</button>
+    </section>
+
+    <footer class="legend" aria-label="병종 범례">
+      <span><i class="shape inf"></i>보병·점령</span>
+      <span><i class="shape arc"></i>궁병·원거리</span>
+      <span><i class="shape cav"></i>기병·기동</span>
+      <span><i class="shape pio"></i>개척병·영토확장</span>
+      <span><i class="shape sie"></i>공성병·본진파괴</span>
+      <span><i class="shape tow"></i>타워·지원사격</span>
+    </footer>
+  </div>
+
+  <dialog id="helpDialog">
+    <div class="modal-body">
+      <p class="modal-kicker">전장 안내</p>
+      <h2>네 팀은 전부 AI입니다</h2>
+      <p>제한시간 없이 본진에서 병력을 생산해 영토를 넓히고, 마지막 한 팀이 남을 때까지 싸웁니다.</p>
+      <div class="help-list">
+        <div class="help-item"><b>● 보병</b><span>튼튼한 체력과 안정적인 점령력으로 전선을 밀어냅니다.</span></div>
+        <div class="help-item"><b>▲ 궁병</b><span>뒤에서 화살을 쏘지만 체력과 점령력은 낮습니다.</span></div>
+        <div class="help-item"><b>◆ 기병</b><span>빠르게 우회하고 적 궁병을 우선 추격합니다.</span></div>
+        <div class="help-item"><b>■ 개척병</b><span>전투력은 약하지만 지나간 경로를 넓게 칠하며 영토를 빠르게 확장합니다.</span></div>
+        <div class="help-item"><b>▰ 공성병</b><span>7분부터 추가 편성되며 적 본진을 최우선으로 노리고 큰 피해를 줍니다.</span></div>
+        <div class="help-item"><b>⏱ 대전환</b><span>6분과 8분에 전투와 본진 피해가 단계적으로 강해져 결전을 재촉합니다.</span></div>
+        <div class="help-item"><b>◆ 타워</b><span>보유 타워 1개마다 적 본진에 주는 피해가 8%씩, 최대 96% 증가합니다.</span></div>
+        <div class="help-item"><b>◉ 포위도</b><span>적이 본진 주변을 장악하면 방어력이 낮아지고 75%부터 생산이 중단됩니다.</span></div>
+        <div class="help-item"><b style="color:#ff4d5e">⚡ 빨강</b><span>홍련 폭주 — 공격력과 공격속도가 크게 상승합니다.</span></div>
+        <div class="help-item"><b style="color:#3d8bff">⚡ 파랑</b><span>푸른 전격 — 기동력과 타워 지원사격이 크게 강화됩니다.</span></div>
+        <div class="help-item"><b style="color:#ffd43b">⚡ 노랑</b><span>황금 진군 — 전군의 내구도가 크게 오르고 생산속도가 소폭 상승합니다.</span></div>
+        <div class="help-item"><b style="color:#35d07f">⚡ 초록</b><span>비취 개척 — 이동·점령력이 폭증하고 받는 피해가 소폭 줄어듭니다.</span></div>
+        <div class="help-item"><b>◇ 중립타워</b><span>체력이 0이 된 뒤 가까이 있는 병력이 확보합니다. 점령되면 약한 탄환을 꾸준히 발사합니다.</span></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="helpClose">닫기</button>
+        <button type="button" class="accent" id="helpStart">전투 보기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="resultDialog">
+    <div class="modal-body">
+      <p class="modal-kicker">천하통일</p>
+      <h2 id="resultTitle">빨강팀 승리!</h2>
+      <p id="resultReason">모든 적 본진을 함락시켰습니다.</p>
+      <div class="result-grid" id="resultGrid"></div>
+      <div class="modal-actions">
+        <button type="button" id="resultClose">전장 보기</button>
+        <button type="button" class="accent" id="resultRestart">새 경기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+  (() => {
+    'use strict';
+
+    const MAP = 80;
+    const CELLS = MAP * MAP;
+    const NEUTRAL = 255;
+    const FIXED_DT = 1 / 30;
+    const ULTIMATE_DURATION = 15;
+    const ULTIMATE_CUTSCENE_MS = 2000;
+    const WAR_PHASE_ONE = 360;
+    const SIEGE_DEPLOY_TIME = 420;
+    const WAR_PHASE_TWO = 480;
+    const MAX_SIEGE_UNITS = 7;
+    const ULTIMATE_NAMES = ['홍련 폭주','푸른 전격','황금 진군','비취 개척'];
+    const ULTIMATE_EFFECTS = ['공격 1.65× · 공속 1.5×','기동 1.8× · 타워 4×','방어 1.9× · 생산 1.1×','점령 3× · 개척 1.8× · 방어 1.5×'];
+    const ULTIMATE_PROFILES = [
+      { move:1.2, damage:1.65, attackSpeed:1.5, capture:1.1, production:1.1, towerDamage:1.25, towerSpeed:1.25, projectileSpeed:1.15, pioneerMove:1, defense:1 },
+      { move:1.8, damage:1.4, attackSpeed:1.3, capture:1.15, production:1.2, towerDamage:2, towerSpeed:2, projectileSpeed:1.5, pioneerMove:1, defense:1 },
+      { move:1.1, damage:1.05, attackSpeed:1.05, capture:1.05, production:1.1, towerDamage:1.05, towerSpeed:1.05, projectileSpeed:1.05, pioneerMove:1, defense:1.9 },
+      { move:1.35, damage:1.3, attackSpeed:1.25, capture:3, production:1.25, towerDamage:1.15, towerSpeed:1.15, projectileSpeed:1.05, pioneerMove:1.8, defense:1.5 }
+    ];
+    const MAX_UNITS_PER_TEAM = 54;
+    const BUCKET_SIZE = 4;
+    const BUCKET_COLS = Math.ceil(MAP / BUCKET_SIZE);
+    const UNIT_DEFS = {
+      infantry: { name:'보병', hp:48, speed:2.05, damage:7, range:1.05, cooldown:.76, capture:1.5, radius:.38, vision:5.8 },
+      archer:   { name:'궁병', hp:29, speed:1.72, damage:5, range:5.35, cooldown:1.05, capture:.62, radius:.34, vision:7.5 },
+      cavalry:  { name:'기병', hp:57, speed:3.02, damage:10, range:1.18, cooldown:1.08, capture:1.0, radius:.46, vision:8.4 },
+      pioneer:  { name:'개척병', hp:34, speed:2.34, damage:3, range:.9, cooldown:1.18, capture:3.6, radius:.39, vision:5.2 },
+      siege:    { name:'공성병', hp:82, speed:1.38, damage:5, range:1.28, cooldown:1.7, capture:1.2, radius:.56, vision:6.3, hqBonus:2.4 }
+    };
+    const TEAM_DATA = [
+      { name:'빨강', color:'#ff4d5e', territoryColor:'#5c1c2b', x:7, y:7 },
+      { name:'파랑', color:'#3d8bff', territoryColor:'#17396f', x:73, y:7 },
+      { name:'노랑', color:'#ffd43b', territoryColor:'#64531a', x:7, y:73 },
+      { name:'초록', color:'#35d07f', territoryColor:'#174d38', x:73, y:73 }
+    ];
+    const TOWER_POINTS = [
+      [40,40], [18,18], [62,18], [18,62], [62,62],
+      [40,15], [40,65], [15,40], [65,40],
+      [28,28], [52,28], [28,52], [52,52],
+      [28,14], [52,14], [28,66], [52,66],
+      [14,28], [66,28], [14,52], [66,52],
+      [40,28], [40,52]
+    ];
+
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d', { alpha:false });
+    const battleWrap = document.getElementById('battleWrap');
+    const scoreboard = document.getElementById('scoreboard');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const helpBtn = document.getElementById('helpBtn');
+    const helpDialog = document.getElementById('helpDialog');
+    const resultDialog = document.getElementById('resultDialog');
+    const toastEl = document.getElementById('toast');
+    const inspectEl = document.getElementById('inspect');
+    const clockEl = document.getElementById('clock');
+    const leaderEl = document.getElementById('leader');
+    const ultimateSceneEl = document.getElementById('ultimateScene');
+    const ultimateAsciiEl = document.getElementById('ultimateAscii');
+    const ultimateKickerEl = document.getElementById('ultimateKicker');
+    const ultimateTitleEl = document.getElementById('ultimateTitle');
+    const ultimateEffectEl = document.getElementById('ultimateEffect');
+
+    const territoryCanvas = document.createElement('canvas');
+    territoryCanvas.width = territoryCanvas.height = MAP;
+    const territoryCtx = territoryCanvas.getContext('2d');
+    const territoryImage = territoryCtx.createImageData(MAP, MAP);
+    const terrainShade = new Uint8Array(CELLS);
+    const buckets = Array.from({length:BUCKET_COLS * BUCKET_COLS}, () => []);
+
+    let owner = new Uint8Array(CELLS);
+    let control = new Float32Array(CELLS);
+    let challenger = new Uint8Array(CELLS);
+    let claimProgress = new Float32Array(CELLS);
+    let teams = [];
+    let units = [];
+    let towers = [];
+    let projectiles = [];
+    let effects = [];
+    let nextUnitId = 1;
+    let unitUpdateCursor = 0;
+    let simTime = 0;
+    let realLast = performance.now();
+    let accumulator = 0;
+    let speed = 1;
+    let paused = false;
+    let ended = false;
+    let territoryDirty = true;
+    let territoryTimer = 0;
+    let aiTimer = 0;
+    let statsTimer = 0;
+    let uiTimer = 0;
+    let toastTimer = 0;
+    let inspectTimer = 0;
+    let selectedTeam = -1;
+    let ultimateSceneTeam = -1;
+    let ultimateSceneEndsAt = 0;
+    let ultimateSceneNextAt = 0;
+    let ultimateSceneQueue = [];
+    let ultimateTriggerCooldown = 0;
+    let warStage = 0;
+    let siegePhaseAnnounced = false;
+    let attackDirection = 1;
+    let attackOrder = [0,1,3,2];
+    let currentSeed = (Date.now() ^ 0x9e3779b9) >>> 0;
+    let rng = mulberry32(currentSeed);
+    let board = { x:0, y:0, size:1, scale:1, dpr:1 };
+
+    function mulberry32(seed) {
+      return function() {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
+    const dist2 = (a,b,c,d) => { const x=a-c, y=b-d; return x*x+y*y; };
+    const cellIndex = (x,y) => (clamp(y|0,0,MAP-1) * MAP + clamp(x|0,0,MAP-1));
+    const teamName = id => id === NEUTRAL || id < 0 ? '중립' : `${teams[id].name}팀`;
+    const teamColor = id => id === NEUTRAL || id < 0 ? '#8792a6' : teams[id].color;
+
+    function initScoreboard() {
+      scoreboard.innerHTML = TEAM_DATA.map((t,i) => `
+        <button class="team-card" data-team="${i}" type="button" style="--team:${t.color}" aria-label="${t.name}팀 강조">
+          <div class="team-head"><i class="dot"></i><span class="team-name">${t.name}팀</span><span class="crown">♛</span></div>
+          <div class="territory">0.0%</div>
+          <div class="mini-stats"><span class="unit-stat">병력 0</span><span class="tower-stat">타워 0</span></div>
+          <div class="hq-bar"><div class="hq-fill"></div></div>
+          <div class="siege-bar" aria-label="본진 포위도"><div class="siege-fill"></div></div>
+          <div class="ult-meta"><span>⚡ 필살기</span><span class="ult-stat">0%</span></div>
+          <div class="ult-bar"><div class="ult-fill"></div></div>
+        </button>`).join('');
+      scoreboard.querySelectorAll('.team-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = +card.dataset.team;
+          selectedTeam = selectedTeam === id ? -1 : id;
+          updateUI(true);
+        });
+      });
+    }
+
+    function makeTerrain() {
+      for (let y=0;y<MAP;y++) for (let x=0;x<MAP;x++) {
+        const wave = Math.sin(x*.31) + Math.cos(y*.27) + Math.sin((x+y)*.12);
+        terrainShade[y*MAP+x] = clamp(14 + wave*3 + rng()*5, 7, 26);
+      }
+    }
+
+    function resetGame(newSeed=true) {
+      if (newSeed) currentSeed = (Date.now() ^ ((Math.random()*0xffffffff)>>>0)) >>> 0;
+      rng = mulberry32(currentSeed);
+      owner.fill(NEUTRAL); control.fill(0); challenger.fill(NEUTRAL); claimProgress.fill(0);
+      units = []; projectiles = []; effects = []; towers = []; teams = [];
+      nextUnitId = 1; unitUpdateCursor = 0; simTime = 0; accumulator = 0; aiTimer = 0; territoryTimer = 0; statsTimer = 0; uiTimer = 0;
+      warStage = 0; siegePhaseAnnounced = false;
+      attackDirection = rng()<.5?1:3;
+      paused = false; ended = false; selectedTeam = -1;
+      resetUltimateCutscene();
+      makeTerrain();
+
+      const cornerSlots=TEAM_DATA.map(team=>({x:team.x,y:team.y}));
+      for(let i=cornerSlots.length-1;i>0;i--){
+        const j=Math.floor(rng()*(i+1));
+        [cornerSlots[i],cornerSlots[j]]=[cornerSlots[j],cornerSlots[i]];
+      }
+
+      TEAM_DATA.forEach((base,id) => {
+        const spawn=cornerSlots[id];
+        const hq = { kind:'hq', team:id, x:spawn.x, y:spawn.y, hp:720, maxHp:720, radius:1.7, alive:true, flash:0, siege:0, siegeLocked:false };
+        teams.push({ ...base, x:spawn.x, y:spawn.y, id, hq, alive:true, production:.25 + rng()*.35, territory:0, unitCount:0, towerCount:0, score:0, kills:0, ultimateGauge:0, ultimateActive:0 });
+        paintStartTerritory(id, spawn.x, spawn.y);
+      });
+      attackOrder=teams.slice().sort((a,b)=>Math.atan2(a.y-40,a.x-40)-Math.atan2(b.y-40,b.x-40)).map(team=>team.id);
+
+      TOWER_POINTS.forEach((point,id) => {
+        const jitter = id === 0 ? [0,0] : [(rng()-.5)*2.8, (rng()-.5)*2.8];
+        towers.push({
+          kind:'tower', id, x:point[0]+jitter[0], y:point[1]+jitter[1], owner:NEUTRAL,
+          hp:118, maxHp:118, radius:1.05, fireCd:1+rng(), angle:rng()*Math.PI*2,
+          invuln:0, disabled:0, lastAttacker:NEUTRAL, flash:0
+        });
+      });
+
+      for (let team=0; team<4; team++) {
+        for (let i=0;i<9;i++) spawnUnit(team,'infantry',true);
+        for (let i=0;i<5;i++) spawnUnit(team,'archer',true);
+        for (let i=0;i<3;i++) spawnUnit(team,'cavalry',true);
+        for (let i=0;i<3;i++) spawnUnit(team,'pioneer',true);
+      }
+      recalcStats();
+      territoryDirty = true;
+      setPaused(false);
+      if (resultDialog.open) resultDialog.close();
+      showToast('⚔ 네 팀의 자동 전투가 시작됐습니다');
+      assignGoals();
+      updateUI(true);
+    }
+
+    function paintStartTerritory(team,cx,cy) {
+      for (let y=Math.floor(cy-8); y<=Math.ceil(cy+8); y++) for (let x=Math.floor(cx-8); x<=Math.ceil(cx+8); x++) {
+        if (x<0||y<0||x>=MAP||y>=MAP) continue;
+        const d = Math.hypot(x+.5-cx, y+.5-cy);
+        if (d <= 7.25 + rng()*.65) {
+          const idx=y*MAP+x; owner[idx]=team; control[idx]=100;
+        }
+      }
+    }
+
+    function spawnUnit(teamId,type,initial=false) {
+      const team = teams[teamId];
+      if (!team || !team.alive) return;
+      const def = UNIT_DEFS[type];
+      const angle = rng()*Math.PI*2;
+      const radius = initial ? 1.8+rng()*4.2 : 2.0+rng()*1.7;
+      const spawnX=clamp(team.x+Math.cos(angle)*radius,1,MAP-1);
+      const spawnY=clamp(team.y+Math.sin(angle)*radius,1,MAP-1);
+      units.push({
+        kind:'unit', id:nextUnitId++, team:teamId, type,
+        x:spawnX, y:spawnY, px:spawnX, py:spawnY, lastClaimX:spawnX, lastClaimY:spawnY,
+        hp:def.hp, maxHp:def.hp, attackCd:rng()*.7,
+        target:null, targetKind:'', goalX:40, goalY:40, aiJitter:rng()*100,
+        retarget:0, dead:false, facing:angle, stuck:0, lastMoveX:spawnX, lastMoveY:spawnY
+      });
+    }
+
+    function rebuildBuckets() {
+      for (const b of buckets) b.length=0;
+      for (const u of units) {
+        if (u.dead) continue;
+        const bx=clamp((u.x/BUCKET_SIZE)|0,0,BUCKET_COLS-1);
+        const by=clamp((u.y/BUCKET_SIZE)|0,0,BUCKET_COLS-1);
+        buckets[by*BUCKET_COLS+bx].push(u);
+      }
+    }
+
+    function scanNearby(x,y,range,callback) {
+      const minX=clamp(((x-range)/BUCKET_SIZE)|0,0,BUCKET_COLS-1);
+      const maxX=clamp(((x+range)/BUCKET_SIZE)|0,0,BUCKET_COLS-1);
+      const minY=clamp(((y-range)/BUCKET_SIZE)|0,0,BUCKET_COLS-1);
+      const maxY=clamp(((y+range)/BUCKET_SIZE)|0,0,BUCKET_COLS-1);
+      for (let by=minY;by<=maxY;by++) for(let bx=minX;bx<=maxX;bx++) {
+        const bucket=buckets[by*BUCKET_COLS+bx];
+        for (let i=0;i<bucket.length;i++) callback(bucket[i]);
+      }
+    }
+
+    function nearestEnemy(teamId,x,y,range,preferArcher=false) {
+      let best=null, bestScore=range*range;
+      scanNearby(x,y,range,u => {
+        if (u.dead || u.team===teamId) return;
+        const d=dist2(x,y,u.x,u.y);
+        const score=d*(preferArcher && u.type==='archer' ? .55 : 1);
+        if (score<bestScore) { best=u; bestScore=score; }
+      });
+      return best;
+    }
+
+    function countNearbyTeam(x,y,range) {
+      const strengths=[0,0,0,0];
+      scanNearby(x,y,range,u => {
+        if (u.dead || dist2(x,y,u.x,u.y)>range*range) return;
+        strengths[u.team] += UNIT_DEFS[u.type].capture;
+      });
+      return strengths;
+    }
+
+    function warProfile(){
+      if(simTime>=WAR_PHASE_TWO)return {stage:2,attack:1.7,hq:2.5,move:1.12};
+      if(simTime>=WAR_PHASE_ONE)return {stage:1,attack:1.35,hq:1.5,move:1.05};
+      return {stage:0,attack:1,hq:1,move:1};
+    }
+
+    function updateWarPhase(){
+      const stage=warProfile().stage;
+      if(stage>warStage){
+        warStage=stage;
+        showToast(stage===1?'⚔ 6분 대전환 — 공격과 본진 피해가 상승합니다':'🔥 8분 최종결전 — 전군 화력과 본진 피해가 폭증합니다');
+        for(const team of teams)if(team.alive)for(let i=0;i<6;i++)effects.push({type:'burst',x:team.hq.x+(rng()-.5)*5,y:team.hq.y+(rng()-.5)*5,t:.5+rng()*.5,max:1,color:team.color,size:.7+rng()});
+      }
+      if(!siegePhaseAnnounced&&simTime>=SIEGE_DEPLOY_TIME){
+        siegePhaseAnnounced=true;
+        for(const team of teams)if(team.alive)team.production=0;
+        showToast('▰ 7분 공성전 — 모든 팀이 공성병 편성을 시작합니다');
+      }
+    }
+
+    function updateHQSieges(dt){
+      for(const team of teams){
+        const hq=team.hq;
+        if(!team.alive||!hq.alive)continue;
+        const strengths=countNearbyTeam(hq.x,hq.y,7.8);
+        const defenders=strengths[team.id];
+        const attackers=strengths.reduce((sum,value,id)=>sum+(id===team.id?0:value),0);
+        const pressure=attackers-defenders*.55;
+        if(pressure>.4)hq.siege=clamp(hq.siege+dt*(1.25+pressure*.16),0,100);
+        else hq.siege=clamp(hq.siege-dt*(attackers>0?.9:2.4),0,100);
+        if(!hq.siegeLocked&&hq.siege>=75){
+          hq.siegeLocked=true;
+          showToast(`⛔ ${team.name}팀 본진 포위 — 병력 생산 중단`);
+        }else if(hq.siegeLocked&&hq.siege<=58){
+          hq.siegeLocked=false;
+          showToast(`✓ ${team.name}팀 본진 포위 해제 — 생산 재개`);
+        }
+      }
+    }
+
+    function assignGoals() {
+      rebuildBuckets();
+      const assigned = towers.map(() => [0,0,0,0]);
+      for (const team of teams) {
+        if (!team.alive && !units.some(u=>!u.dead&&u.team===team.id)) continue;
+        const threat = nearestEnemy(team.id,team.hq.x,team.hq.y,10);
+        const activeEnemyHQ = teams.filter(t=>t.id!==team.id&&t.alive);
+        const ringIndex=attackOrder.indexOf(team.id);
+        const preferredEnemyId=attackOrder[(ringIndex+attackDirection)%4];
+        const teamUnits = units.filter(u=>!u.dead&&u.team===team.id);
+        teamUnits.forEach((u,index) => {
+          const def=UNIT_DEFS[u.type];
+          if(u.type==='siege'&&activeEnemyHQ.length){
+            let bestHQ=activeEnemyHQ[0],best=Infinity;
+            for(const enemy of activeEnemyHQ){
+              const focus=enemy.id===preferredEnemyId?-24:0;
+              const wobble=((u.id*11+enemy.id*17+(currentSeed&255))%13)*.3;
+              const d=dist2(u.x,u.y,enemy.hq.x,enemy.hq.y)+focus+wobble;
+              if(d<best){best=d;bestHQ=enemy;}
+            }
+            u.target=bestHQ.hq;u.targetKind='hq';
+            const flank=((u.id&1)*2-1)*1.5;
+            u.goalX=clamp(bestHQ.hq.x+flank,1,79);u.goalY=clamp(bestHQ.hq.y-flank*.25,1,79);return;
+          }
+          const localEnemy=nearestEnemy(u.team,u.x,u.y,def.vision,u.type==='cavalry');
+          const localEnemyDistance=localEnemy?dist2(u.x,u.y,localEnemy.x,localEnemy.y):Infinity;
+          if (localEnemy && (u.type==='pioneer'?localEnemyDistance<8:(localEnemyDistance<30 || u.type==='cavalry'))) {
+            u.target=localEnemy; u.targetKind='unit'; u.goalX=localEnemy.x; u.goalY=localEnemy.y; return;
+          }
+          if (threat && index%3!==0) {
+            u.target=threat; u.targetKind='unit'; u.goalX=threat.x; u.goalY=threat.y; return;
+          }
+
+          const assaultModulo=simTime>=WAR_PHASE_TWO?2:simTime>=WAR_PHASE_ONE?3:6;
+          const assaultHQ = u.type!=='pioneer' && simTime>95 && ((u.id+team.id*7)%assaultModulo===0 || towers.filter(t=>t.owner!==team.id).length<4);
+          if (assaultHQ && activeEnemyHQ.length) {
+            let bestHQ=activeEnemyHQ[0], best=Infinity;
+            for (const enemy of activeEnemyHQ) {
+              const focus=enemy.id===preferredEnemyId?-24:0;
+              const wobble=((u.id*7+enemy.id*19+(currentSeed&255))%13)*.3;
+              const d=dist2(u.x,u.y,enemy.hq.x,enemy.hq.y)+focus+wobble;
+              if (d<best) { best=d; bestHQ=enemy; }
+            }
+            u.target=bestHQ.hq; u.targetKind='hq';
+            const flank=(u.type==='cavalry'?5:2.1)*(((u.id&1)*2)-1);
+            u.goalX=clamp(bestHQ.hq.x+flank,1,79); u.goalY=clamp(bestHQ.hq.y-flank*.35,1,79); return;
+          }
+
+          let bestTower=null, bestScore=Infinity;
+          for (const tower of towers) {
+            if (tower.owner===team.id && tower.hp>0) continue;
+            const d=Math.sqrt(dist2(u.x,u.y,tower.x,tower.y));
+            const prior=tower.owner===NEUTRAL ? -7 : -2;
+            const disabledBonus=tower.hp<=0 ? -5 : 0;
+            const congestion=assigned[tower.id][team.id]*3.2;
+            const wobble=((u.id*17+tower.id*11)%19)*.18;
+            const score=d+prior+disabledBonus+congestion+wobble;
+            if(score<bestScore){bestScore=score;bestTower=tower;}
+          }
+          if (bestTower) {
+            assigned[bestTower.id][team.id]++;
+            u.target=bestTower; u.targetKind='tower';
+            const angle=(u.id*.93+team.id*1.7)%6.28;
+            const spread=u.type==='archer'?4.4:u.type==='pioneer'?2.3:1.7;
+            u.goalX=bestTower.x+Math.cos(angle)*spread; u.goalY=bestTower.y+Math.sin(angle)*spread;
+          } else if (activeEnemyHQ.length) {
+            const enemy=activeEnemyHQ.find(candidate=>candidate.id===preferredEnemyId)||activeEnemyHQ[(u.id+(currentSeed&255))%activeEnemyHQ.length];
+            u.target=enemy.hq; u.targetKind='hq'; u.goalX=enemy.hq.x; u.goalY=enemy.hq.y;
+          } else {
+            u.target=null; u.targetKind=''; u.goalX=40+(rng()-.5)*10; u.goalY=40+(rng()-.5)*10;
+          }
+        });
+      }
+    }
+
+    function validTarget(u) {
+      const t=u.target;
+      if (!t) return false;
+      if (u.targetKind==='unit') return !t.dead && t.team!==u.team;
+      if (u.targetKind==='tower') return t.owner!==u.team || t.hp<=0;
+      if (u.targetKind==='hq') return t.alive && t.team!==u.team;
+      return false;
+    }
+
+    function updateUnit(u,dt) {
+      if (u.dead) return;
+      const def=UNIT_DEFS[u.type];
+      u.attackCd=Math.max(0,u.attackCd-dt);
+      u.retarget-=dt;
+      u.px=u.x; u.py=u.y;
+      if (!validTarget(u)) { u.target=null; u.targetKind=''; }
+
+      if ((!u.target || u.retarget<=0) && u.type!=='siege') {
+        const enemy=nearestEnemy(u.team,u.x,u.y,def.vision,u.type==='cavalry');
+        if (enemy) { u.target=enemy; u.targetKind='unit'; }
+        u.retarget=.35+rng()*.35;
+      }
+
+      let tx=u.goalX, ty=u.goalY, targetRadius=0, targetDistance=Infinity;
+      if (u.target) {
+        targetRadius=u.target.radius||.35;
+        targetDistance=Math.hypot(u.target.x-u.x,u.target.y-u.y)||.001;
+        if (u.targetKind==='unit') {
+          tx=u.target.x;ty=u.target.y;
+        } else {
+          const goalDistance=Math.hypot(u.goalX-u.x,u.goalY-u.y);
+          if(goalDistance<.72&&targetDistance>def.range+targetRadius){tx=u.target.x;ty=u.target.y;}
+        }
+      }
+      let dx=tx-u.x, dy=ty-u.y;
+      let distance=Math.hypot(dx,dy)||.001;
+      const attackRange=def.range+targetRadius;
+      let moveX=0, moveY=0;
+
+      if (u.type==='archer' && u.targetKind==='unit' && targetDistance<2.4) {
+        moveX=-dx/distance; moveY=-dy/distance;
+        if (u.attackCd<=0) attack(u,u.target,u.targetKind);
+      } else if (u.target && targetDistance<=attackRange) {
+        if (u.attackCd<=0) attack(u,u.target,u.targetKind);
+      } else {
+        moveX=dx/distance; moveY=dy/distance;
+      }
+
+      if (u.type==='archer' && u.targetKind==='unit' && targetDistance>def.range*.75 && targetDistance<def.range*1.12) {
+        const orbit=((u.id&1)?1:-1)*.38;
+        const ox=-moveY*orbit, oy=moveX*orbit;
+        moveX=moveX*.18+ox; moveY=moveY*.18+oy;
+      }
+
+      let sepX=0,sepY=0,sepN=0;
+      scanNearby(u.x,u.y,1.05,other=>{
+        if(other===u||other.dead)return;
+        const sx=u.x-other.x, sy=u.y-other.y, d2=sx*sx+sy*sy;
+        if(d2>.001&&d2<1.05){const inv=1/d2;sepX+=sx*inv;sepY+=sy*inv;sepN++;}
+      });
+      if(sepN){moveX+=sepX/sepN*.17;moveY+=sepY/sepN*.17;}
+      const len=Math.hypot(moveX,moveY);
+      if(len>.001 && !(u.target&&targetDistance<=attackRange)) {
+        moveX/=len;moveY/=len;
+        const territoryOwner=owner[cellIndex(u.x,u.y)];
+        const terrainFactor=territoryOwner===u.team?1.06:territoryOwner===NEUTRAL?.98:.92;
+        const ultimateProfile=activeUltimateProfile(u.team);
+        const ultimateMove=ultimateProfile?ultimateProfile.move*(u.type==='pioneer'?ultimateProfile.pioneerMove:1):1;
+        const pace=def.speed*terrainFactor*ultimateMove*warProfile().move;
+        u.x=clamp(u.x+moveX*pace*dt,.55,MAP-.55);
+        u.y=clamp(u.y+moveY*pace*dt,.55,MAP-.55);
+        u.facing=Math.atan2(moveY,moveX);
+      }
+
+      if (dist2(u.x,u.y,u.lastMoveX,u.lastMoveY)<.03) u.stuck+=dt; else {u.stuck=0;u.lastMoveX=u.x;u.lastMoveY=u.y;}
+      if(u.stuck>1.2){u.goalX=clamp(u.goalX+(rng()-.5)*5,1,79);u.goalY=clamp(u.goalY+(rng()-.5)*5,1,79);u.stuck=0;}
+    }
+
+    function attack(attacker,target,targetKind) {
+      const def=UNIT_DEFS[attacker.type];
+      const ultimateProfile=activeUltimateProfile(attacker.team);
+      const siegeBonus=attacker.type==='siege'?(targetKind==='hq'?def.hqBonus:targetKind==='tower'?1.45:.62):1;
+      const damage=def.damage*(ultimateProfile?ultimateProfile.damage:1)*warProfile().attack*siegeBonus;
+      attacker.attackCd=def.cooldown*(.88+rng()*.24)/(ultimateProfile?ultimateProfile.attackSpeed:1);
+      if (attacker.type==='archer') {
+        if(projectiles.length<480) projectiles.push({
+          kind:'arrow', team:attacker.team, x:attacker.x, y:attacker.y, px:attacker.x, py:attacker.y,
+          tx:target.x,ty:target.y,target,targetKind,speed:9.2*(ultimateProfile?ultimateProfile.projectileSpeed:1),damage,life:1.5,color:teams[attacker.team].color
+        });
+      } else {
+        damageTarget(target,targetKind,damage,attacker.team);
+        impact(target.x,target.y,teams[attacker.team].color,attacker.type==='cavalry'?.42:.32);
+      }
+    }
+
+    function damageTarget(target,kind,damage,teamId) {
+      if (kind==='unit') {
+        if(target.dead||target.team===teamId)return;
+        const defenseProfile=activeUltimateProfile(target.team);
+        target.hp-=damage/(defenseProfile?defenseProfile.defense:1);
+        if(target.hp<=0){target.dead=true;teams[teamId].kills++;addUltimateGauge(teamId,2.2);impact(target.x,target.y,'#ffffff',.6);}
+      } else if (kind==='tower') {
+        if(target.hp<=0||target.invuln>0||target.owner===teamId)return;
+        const defenseProfile=target.owner!==NEUTRAL?activeUltimateProfile(target.owner):null;
+        target.hp-=damage*.82/(defenseProfile?defenseProfile.defense:1);target.lastAttacker=teamId;target.flash=.11;
+        if(target.hp<=0&&target.disabled<=0){target.hp=0;target.disabled=1.05;target.owner=NEUTRAL;showToast(`타워 ${target.id+1}이 무력화됐습니다`);}
+      } else if (kind==='hq') {
+        if(!target.alive||target.team===teamId)return;
+        const attacker=teams[teamId];
+        const towerBonus=1+Math.min(attacker.towerCount,12)*.08;
+        const siegeVulnerability=1+target.siege*.008;
+        const defenseProfile=activeUltimateProfile(target.team);
+        target.hp-=damage*.68*warProfile().hq*towerBonus*siegeVulnerability/(defenseProfile?defenseProfile.defense:1);target.flash=.13;
+        if(target.hp<=0) destroyHQ(target,teamId);
+      }
+    }
+
+    function destroyHQ(hq,byTeam) {
+      hq.hp=0;hq.alive=false;teams[hq.team].alive=false;
+      teams[hq.team].ultimateGauge=0;teams[hq.team].ultimateActive=0;
+      showToast(`☠ ${teams[byTeam].name}팀이 ${teams[hq.team].name} 본진을 함락!`);
+      for(const u of units)if(u.team===hq.team)u.dead=true;
+      for(const p of projectiles)if(p.team===hq.team)p.life=0;
+      for(const tower of towers)if(tower.owner===hq.team){
+        tower.owner=NEUTRAL;tower.hp=Math.max(42,tower.hp*.7);tower.invuln=.55;tower.fireCd=1;
+      }
+      for(let i=0;i<18;i++) effects.push({type:'burst',x:hq.x,y:hq.y,t:.8+rng()*.8,max:1.6,color:teams[hq.team].color,size:1+rng()*2.5});
+      const alive=teams.filter(t=>t.alive);
+      if(alive.length===1) endGame(alive[0],`${alive[0].name}팀이 모든 적 본진을 함락시켜 천하통일했습니다.`);
+    }
+
+    function updateProjectiles(dt) {
+      for (let i=projectiles.length-1;i>=0;i--) {
+        const p=projectiles[i];
+        if(p.life<=0||!teams[p.team].alive){projectiles.splice(i,1);continue;}
+        p.life-=dt;p.px=p.x;p.py=p.y;
+        if(p.target && ((p.targetKind==='unit'&&!p.target.dead)||(p.targetKind==='hq'&&p.target.alive)||(p.targetKind==='tower'))){p.tx=p.target.x;p.ty=p.target.y;}
+        const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy)||.001;
+        const travel=p.speed*dt;
+        if(d<=travel+.2){
+          if(p.target) damageTarget(p.target,p.targetKind,p.damage,p.team);
+          impact(p.tx,p.ty,p.color,p.kind==='towerShot'?.42:.26);
+          projectiles.splice(i,1);
+          if(ended)return;
+          continue;
+        }
+        p.x+=dx/d*travel;p.y+=dy/d*travel;
+        if(p.life<=0||p.x<0||p.y<0||p.x>MAP||p.y>MAP)projectiles.splice(i,1);
+      }
+    }
+
+    function updateTowers(dt) {
+      for (const tower of towers) {
+        tower.invuln=Math.max(0,tower.invuln-dt);tower.flash=Math.max(0,tower.flash-dt);
+        if(tower.hp<=0){
+          tower.disabled=Math.max(0,tower.disabled-dt);
+          if(tower.disabled<=0){
+            const presence=countNearbyTeam(tower.x,tower.y,2.7);
+            let winner=-1,best=.4,tied=false;
+            for(let t=0;t<4;t++){
+              if(presence[t]>best+.001){best=presence[t];winner=t;tied=false;}
+              else if(presence[t]>.4&&Math.abs(presence[t]-best)<=.001){tied=true;}
+            }
+            if(tied&&tower.lastAttacker!==NEUTRAL&&Math.abs(presence[tower.lastAttacker]-best)<=.001)winner=tower.lastAttacker;
+            else if(tied)winner=-1;
+            if(winner>=0){
+              tower.owner=winner;tower.hp=62;tower.invuln=1.15;tower.fireCd=.8;tower.lastAttacker=winner;
+              addUltimateGauge(winner,10);
+              showToast(`◆ ${teams[winner].name}팀이 타워 ${tower.id+1} 점령`);
+              for(let j=0;j<8;j++)impact(tower.x+(rng()-.5)*1.5,tower.y+(rng()-.5)*1.5,teams[winner].color,.35);
+            }
+          }
+          continue;
+        }
+        if(tower.owner!==NEUTRAL){
+          tower.fireCd-=dt;
+          const enemy=nearestEnemy(tower.owner,tower.x,tower.y,7.6);
+          if(enemy){
+            tower.angle=Math.atan2(enemy.y-tower.y,enemy.x-tower.x);
+            if(tower.fireCd<=0&&projectiles.length<480){
+              const ultimateProfile=activeUltimateProfile(tower.owner);
+              tower.fireCd=(1.38+rng()*.18)/(ultimateProfile?ultimateProfile.towerSpeed:1);
+              projectiles.push({kind:'towerShot',team:tower.owner,x:tower.x+Math.cos(tower.angle)*.8,y:tower.y+Math.sin(tower.angle)*.8,px:tower.x,py:tower.y,tx:enemy.x,ty:enemy.y,target:enemy,targetKind:'unit',speed:8.4*(ultimateProfile?ultimateProfile.projectileSpeed:1),damage:3.7*(ultimateProfile?ultimateProfile.towerDamage:1),life:1.5,color:teams[tower.owner].color});
+            }
+          } else if(tower.hp<tower.maxHp){tower.hp=Math.min(tower.maxHp,tower.hp+1.45*dt);}
+        }
+      }
+    }
+
+    function hasSupply(team,x,y) {
+      for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++)if(owner[cellIndex(x+ox,y+oy)]===team)return true;
+      const hq=teams[team].hq;if(dist2(x,y,hq.x,hq.y)<34)return true;
+      for(const tower of towers)if(tower.owner===team&&tower.hp>0&&dist2(x,y,tower.x,tower.y)<20)return true;
+      return false;
+    }
+
+    function claimCell(team,x,y,power) {
+      if(x<0||y<0||x>=MAP||y>=MAP)return;
+      const idx=(y|0)*MAP+(x|0);
+      if(owner[idx]===team){control[idx]=Math.min(100,control[idx]+power*.7);return;}
+      if(!hasSupply(team,x,y))return;
+      if(challenger[idx]!==team){challenger[idx]=team;claimProgress[idx]*=.25;}
+      claimProgress[idx]+=power;
+      const threshold=owner[idx]===NEUTRAL?10.5:21.5;
+      if(claimProgress[idx]>=threshold){
+        const previousOwner=owner[idx];
+        owner[idx]=team;control[idx]=38;challenger[idx]=NEUTRAL;claimProgress[idx]=0;territoryDirty=true;
+        addUltimateGauge(team,previousOwner===NEUTRAL ? .035 : .12);
+      }
+    }
+
+    function stampUnitTerritory(u,x,y) {
+      const d=UNIT_DEFS[u.type],cx=x|0,cy=y|0,isPioneer=u.type==='pioneer';
+      const ultimateProfile=activeUltimateProfile(u.team);
+      const ultimateBoost=ultimateProfile?ultimateProfile.capture:1;
+      const currentOwner=owner[cellIndex(cx,cy)];
+      const centerPower=(currentOwner===NEUTRAL?(isPioneer?14.5:10.8):d.capture*(isPioneer?2.65:1.18))*ultimateBoost;
+      claimCell(u.team,cx,cy,centerPower);
+      if(u.type==='archer')return;
+      const sidePower=d.capture*(isPioneer ? .72 : .28)*ultimateBoost;
+      claimCell(u.team,cx+1,cy,sidePower);claimCell(u.team,cx-1,cy,sidePower);
+      claimCell(u.team,cx,cy+1,sidePower);claimCell(u.team,cx,cy-1,sidePower);
+      if(isPioneer){
+        const diagonalPower=d.capture*.42*ultimateBoost;
+        claimCell(u.team,cx+1,cy+1,diagonalPower);claimCell(u.team,cx-1,cy+1,diagonalPower);
+        claimCell(u.team,cx+1,cy-1,diagonalPower);claimCell(u.team,cx-1,cy-1,diagonalPower);
+      }
+    }
+
+    function stampTerritory() {
+      for(let i=0;i<CELLS;i++)if(claimProgress[i]>0)claimProgress[i]*=.965;
+      for(const u of units){
+        if(u.dead)continue;
+        const startX=Number.isFinite(u.lastClaimX)?u.lastClaimX:u.x;
+        const startY=Number.isFinite(u.lastClaimY)?u.lastClaimY:u.y;
+        const dx=u.x-startX,dy=u.y-startY,distance=Math.hypot(dx,dy);
+        const steps=Math.max(1,Math.ceil(distance/.38));
+        for(let step=1;step<=steps;step++){
+          const t=step/steps;
+          stampUnitTerritory(u,startX+dx*t,startY+dy*t);
+        }
+        u.lastClaimX=u.x;u.lastClaimY=u.y;
+      }
+      for(const team of teams){
+        if(!team.alive)continue;
+        for(let oy=-2;oy<=2;oy++)for(let ox=-2;ox<=2;ox++)if(ox*ox+oy*oy<=6)claimCell(team.id,(team.hq.x|0)+ox,(team.hq.y|0)+oy,2.8);
+      }
+      for(const tower of towers)if(tower.owner!==NEUTRAL&&tower.hp>0){
+        for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++)claimCell(tower.owner,(tower.x|0)+ox,(tower.y|0)+oy,1.7);
+      }
+    }
+
+    function production(dt) {
+      for(const team of teams){
+        if(!team.alive)continue;
+        if(team.hq.siegeLocked){team.production=Math.min(team.production,.35);continue;}
+        team.production-=dt;
+        if(team.production<=0){
+          const count=units.reduce((n,u)=>n+(!u.dead&&u.team===team.id),0);
+          const siegeCount=units.reduce((n,u)=>n+(!u.dead&&u.team===team.id&&u.type==='siege'),0);
+          const siegePhase=simTime>=SIEGE_DEPLOY_TIME;
+          const unitCap=MAX_UNITS_PER_TEAM+(siegePhase?MAX_SIEGE_UNITS:0);
+          if(count<unitCap){
+            if(siegePhase&&siegeCount<MAX_SIEGE_UNITS)spawnUnit(team.id,'siege');
+            else{
+              const roll=Math.floor(rng()*20);
+              spawnUnit(team.id,roll<8?'infantry':roll<13?'archer':roll<17?'cavalry':'pioneer');
+            }
+          }
+          const late=simTime>240?.78:1;
+          const ultimateProfile=activeUltimateProfile(team.id);
+          team.production=(1.72+rng()*.28)*late/(ultimateProfile?ultimateProfile.production:1);
+        }
+      }
+    }
+
+    function impact(x,y,color,size=.3){
+      if(effects.length>220)return;
+      effects.push({type:'ring',x,y,t:.24,max:.24,color,size});
+    }
+
+    function updateEffects(dt){
+      for(let i=effects.length-1;i>=0;i--){effects[i].t-=dt;if(effects[i].t<=0)effects.splice(i,1);}
+    }
+
+    function activeUltimateProfile(teamId){
+      const team=teams[teamId];
+      return team&&team.ultimateActive>0?ULTIMATE_PROFILES[teamId]:null;
+    }
+
+    function addUltimateGauge(teamId,amount){
+      const team=teams[teamId];
+      if(!team||!team.alive||team.ultimateActive>0)return;
+      team.ultimateGauge=Math.min(100,team.ultimateGauge+amount);
+    }
+
+    function triggerUltimate(team){
+      if(!team.alive||team.ultimateActive>0)return;
+      team.ultimateGauge=0;
+      team.ultimateActive=ULTIMATE_DURATION;
+      enqueueUltimateCutscene(team.id);
+      showToast(`⚡ ${team.name}팀 필살기 — ${ULTIMATE_NAMES[team.id]}!`);
+      for(let i=0;i<16;i++)effects.push({type:'burst',x:team.hq.x+(rng()-.5)*7,y:team.hq.y+(rng()-.5)*7,t:.45+rng()*.5,max:.95,color:team.color,size:.5+rng()*1.3});
+    }
+
+    function updateTeamUltimates(dt){
+      ultimateTriggerCooldown=Math.max(0,ultimateTriggerCooldown-dt);
+      const aliveTeams=teams.filter(team=>team.alive);
+      const leaderScore=aliveTeams.reduce((best,team)=>Math.max(best,team.score),1);
+      for(const team of teams){
+        if(!team.alive)continue;
+        if(team.ultimateActive>0){
+          const before=team.ultimateActive;
+          team.ultimateActive=Math.max(0,team.ultimateActive-dt);
+          if(before>0&&team.ultimateActive===0)showToast(`${team.name}팀 필살기 효과 종료`);
+        }else{
+          const scoreDeficit=clamp((leaderScore-team.score)/leaderScore,0,.3);
+          const comebackBoost=1+scoreDeficit*.6;
+          team.ultimateGauge=Math.min(100,team.ultimateGauge+dt*1.05*comebackBoost);
+        }
+      }
+      if(ultimateTriggerCooldown<=0){
+        const ready=teams.filter(team=>team.alive&&team.ultimateActive<=0&&team.ultimateGauge>=100).sort((a,b)=>a.score-b.score);
+        if(ready.length){triggerUltimate(ready[0]);ultimateTriggerCooldown=8;}
+      }
+    }
+
+    const ULTIMATE_ASCII_ART = [
+      [
+        "       )  (       /\\       )  (             ",
+        "    (  (   )     /  \\   (  (   )            ",
+        "     )  ) (     /_/\\_\\   )  ) (             ",
+        "        .-=================-.                  ",
+        "       /   __    /\\    __   \\                 ",
+        "      |   /##\\  /  \\  /##\\   |                ",
+        "      |  |####|/ /\\ \\|####|  |                ",
+        "       \\ |_<>_| /  \\ |_<>_| /                 ",
+        "         /==\\   .--.   /==\\                   ",
+        "     ___/|[]|\\_/|##|\\_/|[]|\\___                ",
+        "    /____|__|   |##|   |__|____\\               ",
+        "        /  \\====|##|====/  \\                   ",
+        "  <====/____\\===|##|===/____\\==========>       ",
+        "      /_/  \\_\\  ||  /_/  \\_\\                  ",
+        "          ___\\__||__/___                        ",
+        "     *  (     \\_||_/     )  *                  "
+      ],
+      [
+        "       /\\_         .         _/\\               ",
+        "   ___/   \\__/\\_________/\\__/   \\___           ",
+        "  /   _      /  _     _  \\      _   \\          ",
+        " /___/ \\____|  (o)   (o)  |____/ \\___\\         ",
+        "|            \\    ^    /             |         ",
+        "|    /\\    .--\\_______/--.    /\\     |         ",
+        " \\__/  \\__/  /| /\\/\\ |\\  \\__/  \\___/          ",
+        "      /\\    / |/    \\| \\    /\\                 ",
+        "  ___/  \\__/  / /\\ \\  \\__/  \\___              ",
+        " /___   ___  /_/  \\_\\  ___   ___\\              ",
+        "    /\\_/   \\___/\\___/\\/   \\_/\\                 ",
+        " __/   \\__/   /  \\   \\__/   \\__               ",
+        "/__ /\\____/\\_/ /\\ \\_/\\____/\\ __\\              ",
+        "   V          V  V          V                  ",
+        "  /\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\              ",
+        "     --==>==>==>     ==<==<==--                "
+      ],
+      [
+        "        |\\>>>       |\\>>>       |\\>>>          ",
+        "        ||          ||          ||             ",
+        "    .---||---.  .---||---.  .---||---.         ",
+        "    |  [##]  |  |  [##]  |  |  [##]  |        ",
+        "    |   /\\   |  |   /\\   |  |   /\\   |        ",
+        "    |  /__\\  |  |  /__\\  |  |  /__\\  |        ",
+        "    '---||---'  '---||---'  '---||---'         ",
+        "       /||\\        /||\\        /||\\           ",
+        "      /_||_\\      /_||_\\      /_||_\\          ",
+        "       /  \\        /  \\        /  \\            ",
+        "   ___/ /\\ \\______/ /\\ \\______/ /\\ \\___        ",
+        "  /___|/  \\|______|/  \\|______|/  \\|___\\       ",
+        "      /|  |\\      /|  |\\      /|  |\\           ",
+        "     /_|__|_\\    /_|__|_\\    /_|__|_\\          ",
+        "  ========================================>     ",
+        "      .      .       .       .      .          "
+      ],
+      [
+        "                  .      *                     ",
+        "            _.-^^^^^^^^^^^-._                  ",
+        "        _.-'  *  .  |  .  * '-._              ",
+        "      .'   .    \\ | /    .     '.             ",
+        "     /  *   \\ .--***--. /   *    \\            ",
+        "    /_.---*--\\***|***/--*---._\\               ",
+        "       '\\  \\__\\**|**/__/  /'                   ",
+        "    .----\\____\\*|*/____/----.                  ",
+        "   / *  .      \\|/      .  * \\                 ",
+        "              __|__                            ",
+        "          ___/#####\\___                       ",
+        "      ___/####/|\\####\\___                    ",
+        "  ___/______/ | \\______\\___                  ",
+        "      \\______/|\\______/                       ",
+        "  _/\\/\\______/|\\______/\\/\\_                  ",
+        " /____________|______________\\                "
+      ]
+    ];
+
+    const ULTIMATE_ASCII_MOTIFS = [
+      [
+        [" ( ) ","( ^ )"," \\|/ "],
+        ["  /\\  "," /^^\\ ","/____\\"],
+        ["<==[##]==>"],
+        [" * ","/^\\"," | "]
+      ],
+      [
+        ["/\\.",".//.","Z__//","\\\\/Z"],
+        ["--o--"," /|\\ "],
+        ["Z__//","  \\\\Z"],
+        [">>>>>>>"]
+      ],
+      [
+        ["|\\>>>>","||"],
+        ["/[]\\","\\__/"],
+        [" /\\ "," || ","_||_"],
+        ["====>"]
+      ],
+      [
+        [" .*. ","*<+>*"," .|. "],
+        ["/\\/\\","  |  ","_/ \\_"],
+        ["(.)","/|\\"],
+        ["_/\\_","  \\__"]
+      ]
+    ];
+
+    const ULTIMATE_ASCII_FIELD_CHARS = ["^*()/.+","Z/\\_-.o","|>[]=-+#","*+./\\_o:"];
+    const ULTIMATE_ASCII_RAILS = ["<==^==>*", "/\\/\\__//Z", "|>>>===>", "_/\\/\\_+*"];
+
+    function stampAscii(grid,shape,startX,startY){
+      for(let y=0;y<shape.length;y++){
+        const row=shape[y];
+        for(let x=0;x<row.length;x++){
+          const gx=startX+x,gy=startY+y,ch=row[x];
+          if(ch!==' '&&gy>=0&&gy<grid.length&&gx>=0&&gx<grid[0].length)grid[gy][gx]=ch;
+        }
+      }
+    }
+
+    function composeUltimateAscii(teamId,artLines,phase){
+      const width=108,height=24;
+      const grid=Array.from({length:height},()=>Array(width).fill(' '));
+      const chars=ULTIMATE_ASCII_FIELD_CHARS[teamId];
+      for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const hash=(x*17+y*29+phase*7+teamId*11)%37;
+        if(hash<4)grid[y][x]=chars[(x*3+y+phase)%chars.length];
+        else if((x+y*5+phase*3)%31===0)grid[y][x]='.';
+      }
+      const rail=ULTIMATE_ASCII_RAILS[teamId];
+      for(const y of [1,22])for(let x=0;x<width;x++)grid[y][x]=rail[(x+phase*2)%rail.length];
+      const positions=[
+        [3,0],[27,0],[52,0],[78,0],[97,2],
+        [55,3],[76,4],[96,5],[59,7],[84,8],[99,10],
+        [54,12],[77,13],[97,14],[58,17],[82,18],[99,19],
+        [5,20],[31,21],[57,21],[83,21]
+      ];
+      const motifs=ULTIMATE_ASCII_MOTIFS[teamId];
+      positions.forEach((point,index)=>{
+        const shape=motifs[(index+phase)%motifs.length];
+        const drift=((phase+index)%3)-1;
+        stampAscii(grid,shape,point[0]+drift,point[1]);
+      });
+      stampAscii(grid,artLines,2,4);
+      return grid.map(row=>row.join('')).join("\n");
+    }
+
+    function buildUltimateAscii(teamId,frame){
+      const phase=frame%8;
+      const lines=ULTIMATE_ASCII_ART[teamId].slice();
+      if(teamId===0){
+        const flames=[
+          "   (  )   ^   (   )    ^   (  )   *          ",
+          " ^   (  (   )   )   (   )    ^      (        ",
+          "  )   ^   (  )    ^    (  (   )   )          ",
+          " *  (   )    ^   (   )     ^    (   )        "
+        ];
+        lines[0]=flames[phase%4];
+        lines[15]=phase%2
+          ? "  ^  (  *   \\_||_/   *  )  ^               "
+          : " *  )   ^    \\_||_/    ^   (  *             ";
+        if(phase%2)lines[12]=lines[12].replace("==========>","============>");
+      }else if(teamId===1){
+        const bolts=[
+          " /\\/\\       /\\/\\/\\        /\\/\\             ",
+          "    \\\\__//      \\\\__//       \\\\__//        ",
+          " \\/\\/\\/\\/\\    \\/\\/\\/\\/\\    \\/\\/\\          ",
+          "  __//     __//      __//      __//           "
+        ];
+        lines[0]=bolts[phase%4];
+        lines[3]=lines[3].replace("(o)   (o)",phase%2?"(O)   (O)":"(o)   (o)");
+        lines[14]=bolts[(phase+2)%4];
+        if(phase%2)for(let i=5;i<13;i+=2)lines[i]=" "+lines[i];
+      }else if(teamId===2){
+        lines[0]=phase%2
+          ? "         |\\>>>>      |\\>>>>      |\\>>>>       "
+          : "        |\\>>>       |\\>>>       |\\>>>          ";
+        lines[9]=phase%2
+          ? "        \\  /        /  \\        \\  /            "
+          : "       /  \\        \\  /        /  \\             ";
+        lines[13]=phase%2
+          ? "      /_|__|_\\    /_|__|_\\    /_|__|_\\         "
+          : "     \\_|__|_/    \\_|__|_/    \\_|__|_/          ";
+        if(phase%2)for(let i=1;i<15;i++)lines[i]=" "+lines[i];
+      }else{
+        const leaves=[
+          "       *       .       +       .       *       ",
+          "   .       +       *       .       +           ",
+          "      +        .       *       +        .      ",
+          "  *       .        +       *        .          "
+        ];
+        lines[0]=leaves[phase%4];
+        const sway=phase<4?1:0;
+        for(let i=1;i<=8;i++)if((i+phase)%3===0)lines[i]=" ".repeat(sway)+lines[i];
+        lines[14]=phase%2
+          ? " _/\\/\\________/|\\________/\\/\\_                 "
+          : "  _/\\/\\______/|\\______/\\/\\_                  ";
+        lines[15]=phase%2
+          ? "/______________|_______________\\              "
+          : " /____________|______________\\                ";
+      }
+      return composeUltimateAscii(teamId,lines,phase);
+    }
+
+    function resetUltimateCutscene(){
+      ultimateSceneTeam=-1;ultimateSceneEndsAt=0;ultimateSceneNextAt=0;ultimateSceneQueue=[];
+      ultimateTriggerCooldown=0;
+      ultimateSceneEl.classList.remove('show');ultimateSceneEl.setAttribute('aria-hidden','true');
+      ultimateAsciiEl.textContent='';ultimateAsciiEl.style.opacity='1';
+    }
+
+    function enqueueUltimateCutscene(teamId){
+      if(ultimateSceneTeam<0&&ultimateSceneQueue.length===0)startUltimateCutscene(teamId);
+      else ultimateSceneQueue.push(teamId);
+    }
+
+    function startUltimateCutscene(teamId){
+      const team=teams[teamId];if(!team)return;
+      ultimateSceneTeam=teamId;ultimateSceneEndsAt=performance.now()+ULTIMATE_CUTSCENE_MS;ultimateSceneNextAt=0;
+      ultimateSceneEl.style.setProperty('--ult-color',team.color);
+      ultimateKickerEl.textContent=team.name+'팀 필살기 발동';
+      ultimateTitleEl.textContent=ULTIMATE_NAMES[teamId];
+      ultimateEffectEl.textContent='15초 · '+ULTIMATE_EFFECTS[teamId];
+      ultimateAsciiEl.textContent=buildUltimateAscii(teamId,0);
+      ultimateSceneEl.setAttribute('aria-hidden','false');
+      ultimateSceneEl.classList.add('show');
+    }
+
+    function drawUltimateCutscene(now){
+      if(ultimateSceneTeam<0)return;
+      const team=teams[ultimateSceneTeam];if(!team)return;
+      const elapsed=ULTIMATE_CUTSCENE_MS-(ultimateSceneEndsAt-now);
+      const frame=Math.max(0,Math.floor(elapsed/105));
+      ultimateAsciiEl.textContent=buildUltimateAscii(team.id,frame);
+      ultimateAsciiEl.style.opacity='1';
+    }
+
+    function updateUltimateCutscene(now){
+      if(ultimateSceneTeam>=0){
+        drawUltimateCutscene(now);
+        if(now>=ultimateSceneEndsAt){
+          ultimateSceneEl.classList.remove('show');ultimateSceneEl.setAttribute('aria-hidden','true');
+          ultimateSceneTeam=-1;ultimateSceneNextAt=now+150;
+        }
+      }else if(ultimateSceneQueue.length&&now>=ultimateSceneNextAt){
+        startUltimateCutscene(ultimateSceneQueue.shift());
+      }
+    }
+
+    function simulationStep(dt) {
+      if(ended)return;
+      simTime+=dt;territoryTimer+=dt;aiTimer+=dt;statsTimer+=dt;uiTimer+=dt;
+      updateWarPhase();
+      rebuildBuckets();
+      updateHQSieges(dt);
+      updateTeamUltimates(dt);
+      production(dt);
+      const unitTotal=units.length;
+      for(let i=0;i<unitTotal;i++){
+        updateUnit(units[(i+unitUpdateCursor)%unitTotal],dt);
+        if(ended)return;
+      }
+      if(unitTotal)unitUpdateCursor=(unitUpdateCursor+1)%unitTotal;
+      rebuildBuckets();
+      updateTowers(dt);updateProjectiles(dt);
+      if(ended)return;
+      updateEffects(dt);
+      for(const team of teams)team.hq.flash=Math.max(0,team.hq.flash-dt);
+      if(territoryTimer>=.16){territoryTimer=0;stampTerritory();}
+      if(aiTimer>=.62){aiTimer=0;assignGoals();}
+      if(statsTimer>=.8){statsTimer=0;units=units.filter(u=>!u.dead);recalcStats();}
+      if(uiTimer>=.25){uiTimer=0;updateUI();}
+    }
+
+    function recalcStats() {
+      const counts=[0,0,0,0];
+      for(let i=0;i<CELLS;i++)if(owner[i]!==NEUTRAL)counts[owner[i]]++;
+      const unitCounts=[0,0,0,0];for(const u of units)if(!u.dead)unitCounts[u.team]++;
+      const towerCounts=[0,0,0,0];for(const t of towers)if(t.owner!==NEUTRAL&&t.hp>0)towerCounts[t.owner]++;
+      teams.forEach((t,i)=>{
+        t.territory=counts[i];t.unitCount=unitCounts[i];t.towerCount=towerCounts[i];
+        t.score=counts[i]+towerCounts[i]*85+(t.hq.hp/t.hq.maxHp)*240+unitCounts[i]*3;
+      });
+    }
+
+    function endGame(winner,reason) {
+      if(ended)return;ended=true;paused=true;setPaused(true);
+      resetUltimateCutscene();
+      recalcStats();
+      document.getElementById('resultTitle').textContent=`${winner.name}팀 승리!`;
+      document.getElementById('resultTitle').style.color=winner.color;
+      document.getElementById('resultReason').textContent=reason;
+      document.getElementById('resultGrid').innerHTML=[...teams].sort((a,b)=>b.score-a.score).map(t=>`<div class="result-cell" style="border-top:2px solid ${t.color}"><b>${t.name}</b><span>${(t.territory/CELLS*100).toFixed(1)}% · ◆${t.towerCount}</span></div>`).join('');
+      if(!resultDialog.open)resultDialog.showModal();
+    }
+
+    function setPaused(value) {
+      paused=value;
+      pauseBtn.textContent=paused?'▶ 계속하기':'⏸ 일시정지';
+      pauseBtn.classList.toggle('primary',!paused);
+    }
+
+    function showToast(text) {
+      toastEl.textContent=text;toastTimer=2.4;toastEl.classList.add('show');
+    }
+
+    function formatTime(seconds){const s=Math.max(0,Math.floor(seconds));return `${String((s/60)|0).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+
+    function updateUI(force=false) {
+      if(!teams.length)return;
+      const activeTeams=teams.filter(t=>t.alive),sorted=(activeTeams.length?activeTeams:[...teams]).sort((a,b)=>b.score-a.score), leader=sorted[0];
+      const phase=warProfile().stage;
+      clockEl.textContent=`${formatTime(simTime)} / ${phase===2?'최종결전':phase===1?'대전환':'천하통일'}`;
+      leaderEl.textContent=`${phase?'전군 화력 '+(phase===2?'폭증':'상승')+' · ':''}${leader.name}팀 선두 · 타워 ${leader.towerCount}`;
+      const cards=scoreboard.querySelectorAll('.team-card');
+      teams.forEach((team,i)=>{
+        const card=cards[i];if(!card)return;
+        const siegeCount=units.reduce((n,u)=>n+(!u.dead&&u.team===team.id&&u.type==='siege'),0);
+        card.querySelector('.territory').textContent=`${(team.territory/CELLS*100).toFixed(1)}%`;
+        card.querySelector('.unit-stat').textContent=`병력 ${team.unitCount}${siegeCount?' · ▰'+siegeCount:''}`;
+        card.querySelector('.tower-stat').textContent=`타워 ${team.towerCount}`;
+        card.querySelector('.hq-fill').style.width=`${clamp(team.hq.hp/team.hq.maxHp*100,0,100)}%`;
+        card.querySelector('.siege-fill').style.width=`${team.hq.siege}%`;
+        const ultimateActive=team.ultimateActive>0;
+        card.querySelector('.ult-stat').textContent=ultimateActive?`${Math.ceil(team.ultimateActive)}초`:`${Math.floor(team.ultimateGauge)}%`;
+        card.querySelector('.ult-fill').style.width=`${ultimateActive?team.ultimateActive/ULTIMATE_DURATION*100:team.ultimateGauge}%`;
+        card.classList.toggle('ultimate',ultimateActive);
+        card.classList.toggle('sieged',team.hq.siege>4);
+        card.classList.toggle('leading',team.id===leader.id);
+        card.classList.toggle('eliminated',!team.alive);
+        card.classList.toggle('focused',selectedTeam===team.id);
+        card.classList.toggle('dimmed',selectedTeam>=0&&selectedTeam!==team.id);
+      });
+      if(force)territoryDirty=true;
+    }
+
+    function updateTerritoryTexture() {
+      const data=territoryImage.data;
+      for(let i=0;i<CELLS;i++){
+        let r,g,b;const o=owner[i],shade=terrainShade[i];
+        if(o===NEUTRAL){r=7+shade*.22;g=14+shade*.35;b=25+shade*.55;}
+        else {
+          const hex=teams[o].territoryColor.slice(1);r=parseInt(hex.slice(0,2),16);g=parseInt(hex.slice(2,4),16);b=parseInt(hex.slice(4,6),16);
+          const vary=(shade-14)*.32;r+=vary;g+=vary;b+=vary;
+        }
+        const j=i*4;data[j]=r;data[j+1]=g;data[j+2]=b;data[j+3]=255;
+      }
+      territoryCtx.putImageData(territoryImage,0,0);territoryDirty=false;
+    }
+
+    function resizeCanvas() {
+      const rect=battleWrap.getBoundingClientRect();
+      const dpr=Math.min(window.devicePixelRatio||1,2);
+      const width=Math.max(1,Math.floor(rect.width*dpr));const height=Math.max(1,Math.floor(rect.height*dpr));
+      if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
+      const size=Math.min(width,height);board={x:(width-size)/2,y:(height-size)/2,size,scale:size/MAP,dpr};
+    }
+
+    function worldToCanvas(x,y){return [board.x+x*board.scale,board.y+y*board.scale];}
+
+    function render() {
+      if(territoryDirty)updateTerritoryTexture();
+      const w=canvas.width,h=canvas.height,s=board.scale;
+      ctx.fillStyle='#07101c';ctx.fillRect(0,0,w,h);
+      ctx.imageSmoothingEnabled=false;ctx.drawImage(territoryCanvas,board.x,board.y,board.size,board.size);
+
+      ctx.save();ctx.translate(board.x,board.y);
+      if(s>=5){ctx.strokeStyle='rgba(194,214,246,.035)';ctx.lineWidth=1;ctx.beginPath();for(let i=1;i<MAP;i++){const p=Math.round(i*s)+.5;ctx.moveTo(p,0);ctx.lineTo(p,board.size);ctx.moveTo(0,p);ctx.lineTo(board.size,p);}ctx.stroke();}
+      ctx.strokeStyle='rgba(210,226,255,.115)';ctx.lineWidth=Math.max(1,board.dpr*.55);ctx.beginPath();for(let i=5;i<MAP;i+=5){const p=Math.round(i*s)+.5;ctx.moveTo(p,0);ctx.lineTo(p,board.size);ctx.moveTo(0,p);ctx.lineTo(board.size,p);}ctx.stroke();ctx.restore();
+
+      for(const team of teams)drawHQ(team.hq);
+      for(const tower of towers)drawTower(tower);
+      for(const u of units)if(!u.dead)drawUnit(u);
+      for(const p of projectiles)drawProjectile(p);
+      for(const e of effects)drawEffect(e);
+
+      ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=1.5*board.dpr;ctx.strokeRect(board.x+.5,board.y+.5,board.size-1,board.size-1);
+      if(toastTimer>0){toastTimer-=1/60;if(toastTimer<=0)toastEl.classList.remove('show');}
+      if(inspectTimer>0){inspectTimer-=1/60;if(inspectTimer<=0)inspectEl.classList.remove('show');}
+      updateUltimateCutscene(performance.now());
+    }
+
+    function drawHQ(hq) {
+      const [x,y]=worldToCanvas(hq.x,hq.y), s=board.scale, color=teams[hq.team].color;
+      ctx.save();ctx.globalAlpha=selectedTeam>=0&&selectedTeam!==hq.team ? .35:1;
+      if(!hq.alive)ctx.globalAlpha*=.28;
+      ctx.shadowColor=color;ctx.shadowBlur=hq.alive?s*1.8:0;
+      ctx.fillStyle=hq.flash>0?'#ffffff':color;ctx.strokeStyle='rgba(4,8,16,.9)';ctx.lineWidth=Math.max(1.5,s*.18);
+      const size=s*1.72;ctx.beginPath();ctx.rect(x-size,y-size*.75,size*2,size*1.5);ctx.fill();ctx.stroke();
+      ctx.shadowBlur=0;ctx.fillStyle='#09111f';
+      const notch=size*.32;for(let i=-1;i<=1;i++)ctx.fillRect(x+i*size*.68-notch*.5,y-size*.77,notch,notch*.62);
+      ctx.fillRect(x-size*.25,y+size*.25,size*.5,size*.52);
+      drawHealthBar(x,y-size*1.18,size*2.15,hq.hp/hq.maxHp,color,true);
+      if(hq.alive&&hq.siege>1){
+        ctx.strokeStyle='#ff763b';ctx.lineWidth=Math.max(1.5,s*.18);ctx.shadowColor='#ff763b';ctx.shadowBlur=s*.8;
+        ctx.beginPath();ctx.arc(x,y,size*1.38,-Math.PI/2,-Math.PI/2+Math.PI*2*(hq.siege/100));ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function polygon(x,y,r,sides,rot) {ctx.beginPath();for(let i=0;i<sides;i++){const a=rot+i*Math.PI*2/sides,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();}
+
+    function drawTower(t) {
+      const [x,y]=worldToCanvas(t.x,t.y),s=board.scale,color=teamColor(t.owner);
+      ctx.save();ctx.globalAlpha=selectedTeam>=0&&t.owner!==NEUTRAL&&selectedTeam!==t.owner ? .35:1;
+      ctx.translate(x,y);ctx.strokeStyle=t.flash>0?'#fff':color;ctx.lineWidth=Math.max(1.3,s*.16);ctx.fillStyle=t.hp<=0?'#242d3c':t.owner===NEUTRAL?'#4e596b':'#101a2a';
+      polygon(0,0,s*1.04,6,Math.PI/6);ctx.fill();ctx.stroke();
+      if(t.hp>0){
+        ctx.rotate(t.angle);ctx.fillStyle=color;ctx.fillRect(0,-s*.14,s*.95,s*.28);ctx.strokeStyle='#09111d';ctx.lineWidth=Math.max(1,s*.08);ctx.strokeRect(0,-s*.14,s*.95,s*.28);
+        ctx.rotate(-t.angle);ctx.fillStyle=color;ctx.beginPath();ctx.arc(0,0,s*.43,0,Math.PI*2);ctx.fill();
+      } else {
+        ctx.strokeStyle='#9ba7ba';ctx.beginPath();ctx.moveTo(-s*.45,-s*.45);ctx.lineTo(s*.45,s*.45);ctx.moveTo(s*.45,-s*.45);ctx.lineTo(-s*.45,s*.45);ctx.stroke();
+        if(t.disabled>0){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.arc(0,0,s*1.28,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-t.disabled/1.05));ctx.stroke();}
+      }
+      ctx.restore();
+      drawHealthBar(x,y-s*1.34,s*2.05,t.hp/t.maxHp,color,false);
+    }
+
+    function drawUnit(u) {
+      const [x,y]=worldToCanvas(u.x,u.y),s=board.scale,def=UNIT_DEFS[u.type],color=teams[u.team].color;
+      const alpha=selectedTeam>=0&&selectedTeam!==u.team ? .25:1;
+      ctx.save();ctx.globalAlpha=alpha;ctx.translate(x,y);ctx.rotate(u.facing);ctx.fillStyle=color;ctx.strokeStyle=u.team===2?'#5a4800':'#07101c';ctx.lineWidth=Math.max(1,s*.11);
+      if(teams[u.team].ultimateActive>0){ctx.shadowColor=color;ctx.shadowBlur=s*.95;ctx.strokeStyle='#ffffff';ctx.lineWidth=Math.max(1.3,s*.16);}
+      const r=s*def.radius;
+      if(u.type==='infantry'){ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);}
+      else if(u.type==='archer'){ctx.beginPath();ctx.moveTo(r*1.45,0);ctx.lineTo(-r*.85,-r);ctx.lineTo(-r*.85,r);ctx.closePath();}
+      else if(u.type==='cavalry'){ctx.beginPath();ctx.moveTo(r*1.25,0);ctx.lineTo(0,-r*.8);ctx.lineTo(-r*1.25,0);ctx.lineTo(0,r*.8);ctx.closePath();}
+      else if(u.type==='pioneer'){ctx.beginPath();ctx.rect(-r,-r,r*2,r*2);}
+      else {ctx.beginPath();ctx.rect(-r*1.35,-r*.65,r*2.5,r*1.3);ctx.moveTo(r*1.15,-r*.42);ctx.lineTo(r*1.7,0);ctx.lineTo(r*1.15,r*.42);ctx.closePath();}
+      ctx.fill();ctx.stroke();
+      if(u.type==='siege'){ctx.fillStyle='#07101c';ctx.beginPath();ctx.arc(-r*.72,r*.72,r*.27,0,Math.PI*2);ctx.arc(r*.62,r*.72,r*.27,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+      if(u.hp/u.maxHp<.58)drawHealthBar(x,y-r-s*.22,s*.72,u.hp/u.maxHp,color,false);
+    }
+
+    function drawHealthBar(x,y,width,ratio,color,strong) {
+      ratio=clamp(ratio,0,1);const h=Math.max(strong?3.1:2,board.scale*(strong ? .25 : .15));
+      ctx.fillStyle='rgba(3,7,14,.72)';ctx.fillRect(x-width/2,y-h/2,width,h);
+      ctx.fillStyle=color;ctx.fillRect(x-width/2,y-h/2,width*ratio,h);
+    }
+
+    function drawProjectile(p) {
+      const [x,y]=worldToCanvas(p.x,p.y),[px,py]=worldToCanvas(p.px,p.py);
+      ctx.save();ctx.strokeStyle=p.color;ctx.lineWidth=Math.max(1.2,board.scale*(p.kind==='towerShot'?.17:.1));ctx.shadowColor=p.color;ctx.shadowBlur=board.scale*.55;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(x,y);ctx.stroke();
+      if(p.kind==='towerShot'){ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,Math.max(1.4,board.scale*.16),0,Math.PI*2);ctx.fill();}ctx.restore();
+    }
+
+    function drawEffect(e) {
+      const [x,y]=worldToCanvas(e.x,e.y),progress=1-e.t/e.max;
+      ctx.save();ctx.globalAlpha=(1-progress)*.75;ctx.strokeStyle=e.color;ctx.fillStyle=e.color;
+      if(e.type==='burst'){const r=board.scale*(e.size||1)*progress;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
+      else {ctx.lineWidth=Math.max(1,board.scale*.1);ctx.beginPath();ctx.arc(x,y,board.scale*e.size*(.45+progress),0,Math.PI*2);ctx.stroke();}ctx.restore();
+    }
+
+    function loop(now) {
+      const realDt=Math.min(.1,(now-realLast)/1000);realLast=now;
+      if(!paused){
+        accumulator+=realDt*speed;let steps=0;
+        while(accumulator>=FIXED_DT&&steps<12){simulationStep(FIXED_DT);accumulator-=FIXED_DT;steps++;}
+        if(steps===12)accumulator=0;
+      }
+      render();requestAnimationFrame(loop);
+    }
+
+    function inspectAt(clientX,clientY) {
+      const rect=canvas.getBoundingClientRect(),dpr=board.dpr;
+      const px=(clientX-rect.left)*dpr,py=(clientY-rect.top)*dpr;
+      const wx=(px-board.x)/board.scale,wy=(py-board.y)/board.scale;
+      if(wx<0||wy<0||wx>MAP||wy>MAP)return;
+      let best=null,bestD=9;
+      for(const t of towers){const d=dist2(wx,wy,t.x,t.y);if(d<bestD){best=t;bestD=d;}}
+      for(const team of teams){const d=dist2(wx,wy,team.hq.x,team.hq.y);if(d<bestD){best=team.hq;bestD=d;}}
+      if(best){
+        const text=best.kind==='tower'
+          ? `타워 ${best.id+1} · ${teamName(best.owner)} · 체력 ${Math.ceil(best.hp)}/${best.maxHp}`
+          : `${teams[best.team].name} 본진 · ${best.alive?'가동 중':'함락'} · 체력 ${Math.ceil(best.hp)}/${best.maxHp} · 포위 ${Math.ceil(best.siege||0)}%${best.siegeLocked?' · 생산 중단':''}`;
+        inspectEl.textContent=text;inspectEl.classList.add('show');inspectTimer=3;
+      } else {
+        const o=owner[cellIndex(wx,wy)];inspectEl.textContent=`격자 ${wx|0}, ${wy|0} · ${teamName(o)} 영토`;inspectEl.classList.add('show');inspectTimer=2;
+      }
+    }
+
+    pauseBtn.addEventListener('click',()=>{if(ended)return;setPaused(!paused);});
+    restartBtn.addEventListener('click',()=>resetGame(true));
+    document.querySelectorAll('[data-speed]').forEach(btn=>btn.addEventListener('click',()=>{
+      speed=+btn.dataset.speed;document.querySelectorAll('[data-speed]').forEach(b=>b.classList.toggle('active',b===btn));
+      showToast(`전투 속도 ${speed}배`);
+    }));
+    helpBtn.addEventListener('click',()=>helpDialog.showModal());
+    document.getElementById('helpClose').addEventListener('click',()=>helpDialog.close());
+    document.getElementById('helpStart').addEventListener('click',()=>helpDialog.close());
+    document.getElementById('resultClose').addEventListener('click',()=>resultDialog.close());
+    document.getElementById('resultRestart').addEventListener('click',()=>resetGame(true));
+    canvas.addEventListener('pointerup',e=>inspectAt(e.clientX,e.clientY));
+    window.addEventListener('resize',resizeCanvas,{passive:true});
+    if('ResizeObserver' in window)new ResizeObserver(resizeCanvas).observe(battleWrap);
+    document.addEventListener('keydown',e=>{
+      if(e.code==='Space'){e.preventDefault();if(!ended)setPaused(!paused);}
+      if(['Digit1','Digit2','Digit4'].includes(e.code)){const value=+e.code.slice(-1);document.querySelector(`[data-speed="${value}"]`)?.click();}
+      if(e.key.toLowerCase()==='r')resetGame(true);
+    });
+    document.addEventListener('visibilitychange',()=>{realLast=performance.now();accumulator=0;});
+
+    initScoreboard();resetGame(false);resizeCanvas();requestAnimationFrame(loop);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1515 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#020705" />
+  <title>nightshift.c — AUTO TETRIS</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020705;
+      --panel: #06100c;
+      --panel-2: #081710;
+      --line: #153d2b;
+      --green: #81ff9f;
+      --green-2: #35d86b;
+      --dim: #34734d;
+      --amber: #ffc857;
+      --red: #ff5e6c;
+      --cyan: #55e7ff;
+      --text: #b9ffd0;
+      --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #010403;
+      color: var(--text);
+      font-family: var(--mono);
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    body {
+      min-height: 100svh;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(26, 92, 55, .14), transparent 52%),
+        linear-gradient(180deg, #020806 0%, #010403 100%);
+    }
+
+    body::before {
+      position: fixed;
+      z-index: 40;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,.017) 0,
+        rgba(255,255,255,.017) 1px,
+        rgba(0,0,0,.06) 1px,
+        rgba(0,0,0,.06) 4px
+      );
+      mix-blend-mode: screen;
+    }
+
+    body::after {
+      position: fixed;
+      z-index: 41;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      box-shadow: inset 0 0 90px rgba(0,0,0,.9), inset 0 0 12px rgba(55,255,120,.08);
+      animation: crt-flicker 7s infinite steps(1);
+    }
+
+    @keyframes crt-flicker {
+      0%, 94%, 96%, 100% { opacity: 1; }
+      95% { opacity: .82; }
+    }
+
+    #app {
+      width: 100%;
+      height: 100svh;
+      height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .terminal {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid rgba(66, 189, 112, .28);
+      background: rgba(2, 9, 6, .94);
+      box-shadow: 0 0 45px rgba(33, 190, 90, .08);
+    }
+
+    .terminal-bar {
+      position: relative;
+      z-index: 5;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 39px;
+      padding: 0 11px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #0a1912, #06100c);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .traffic { display: flex; gap: 6px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; opacity: .88; box-shadow: 0 0 8px currentColor; }
+    .dot.red { color: #ff6c78; background: currentColor; }
+    .dot.amber { color: #ffc75a; background: currentColor; }
+    .dot.green { color: #5cff84; background: currentColor; }
+
+    .window-title {
+      min-width: 0;
+      overflow: hidden;
+      color: #7fba91;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 77px;
+      justify-content: flex-end;
+      color: var(--green);
+    }
+
+    .speed-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 43px;
+      min-height: 27px;
+      padding: 0 6px;
+      border: 1px solid #276e43;
+      border-radius: 2px;
+      background: #07170e;
+      color: #a5ffba;
+      font: inherit;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      cursor: pointer;
+      text-shadow: 0 0 8px rgba(91,255,133,.45);
+      transition: border-color .14s ease, background .14s ease, color .14s ease;
+    }
+
+    .speed-button:hover, .speed-button:focus-visible {
+      border-color: #75ef96;
+      outline: 0;
+      background: #103721;
+      color: #d6ffe0;
+    }
+
+    .speed-button:active { transform: translateY(1px); }
+    .speed-button small { color: #4e9b66; font-size: .82em; font-weight: 700; }
+
+    .phase-led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: led 1.2s infinite;
+    }
+
+    @keyframes led { 50% { opacity: .28; } }
+
+    .screen {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      visibility: hidden;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(5px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    }
+
+    .panel.active {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .prompt-row {
+      flex: 0 0 auto;
+      min-height: 33px;
+      padding: 9px 12px 7px;
+      border-bottom: 1px solid rgba(29, 93, 57, .55);
+      background: rgba(5, 18, 12, .72);
+      color: #9dfab6;
+      font-size: clamp(9px, 2.5vw, 12px);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user { color: var(--cyan); }
+    .path { color: var(--amber); }
+    .command { color: #e1ffe8; }
+    .muted { color: var(--dim); }
+
+    .editor-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      height: 29px;
+      padding: 0 12px;
+      border-bottom: 1px solid rgba(26, 74, 48, .6);
+      color: #5fa578;
+      background: #050d09;
+      font-size: 9px;
+      letter-spacing: .05em;
+    }
+
+    .editor-head strong { color: #b8ffc8; font-weight: 600; }
+
+    .code-viewport {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      padding: 8px 0 26px;
+      background:
+        linear-gradient(90deg, rgba(46, 143, 83, .035) 1px, transparent 1px) 0 0 / 32px 100%,
+        rgba(0, 4, 2, .28);
+      scrollbar-width: none;
+    }
+
+    .code-viewport::-webkit-scrollbar { display: none; }
+
+    #typedCode {
+      display: block;
+      min-height: 100%;
+      margin: 0;
+      color: #b6efc5;
+      font-family: var(--mono);
+      font-size: clamp(8px, 2.18vw, 11.5px);
+      line-height: 1.42;
+      text-shadow: 0 0 8px rgba(105,255,145,.17);
+      tab-size: 2;
+    }
+
+    .code-line { display: block; min-height: 1.42em; padding-right: 8px; white-space: pre; }
+    .line-no {
+      display: inline-block;
+      width: 4.2em;
+      padding-right: 1em;
+      color: #28553a;
+      text-align: right;
+      user-select: none;
+    }
+    .src { color: #b7eec5; }
+    .tok-kw { color: #71e8ff; }
+    .tok-num { color: #ffc76b; }
+    .tok-str { color: #ffd795; }
+    .tok-comment { color: #4e9466; font-style: italic; }
+    .tok-pp { color: #d98dff; }
+    .tok-type { color: #70f0a0; }
+
+    .caret {
+      display: inline-block;
+      width: .62em;
+      height: 1.08em;
+      margin-left: 1px;
+      vertical-align: -.16em;
+      background: #8cffaa;
+      box-shadow: 0 0 8px rgba(125,255,155,.65);
+      animation: blink .7s steps(1) infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .editor-status {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      z-index: 2;
+      justify-content: space-between;
+      height: 22px;
+      padding: 4px 10px 0;
+      background: #173d28;
+      color: #baffca;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    .compile-output {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      margin: 0;
+      padding: 15px 13px;
+      color: #a9eebb;
+      font-family: var(--mono);
+      font-size: clamp(9px, 2.55vw, 13px);
+      line-height: 1.75;
+      white-space: pre-wrap;
+      text-shadow: 0 0 8px rgba(92,255,137,.13);
+    }
+
+    .compile-output .ok { color: var(--green); }
+    .compile-output .info { color: var(--cyan); }
+    .compile-output .warn { color: var(--amber); }
+
+    #gamePanel { background: radial-gradient(circle at 50% 44%, rgba(22, 80, 48, .17), transparent 55%); }
+
+    .game-stage {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 8px 4px;
+      overflow: hidden;
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: auto minmax(84px, 120px);
+      align-items: start;
+      gap: clamp(7px, 3vw, 19px);
+      max-width: 100%;
+      transform: translateY(-1px);
+    }
+
+    .board-column { min-width: 0; }
+
+    .game-display {
+      margin: 0;
+      color: #42855a;
+      font-family: var(--mono);
+      font-size: clamp(9px, 2.65vw, 14px);
+      font-weight: 700;
+      line-height: 1.02;
+      letter-spacing: 0;
+      white-space: pre;
+      text-shadow: 0 0 7px rgba(89,255,135,.18);
+    }
+
+    .board-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 6px;
+      color: #3f8c5b;
+      font-size: clamp(7px, 1.8vw, 9px);
+      letter-spacing: .06em;
+      white-space: nowrap;
+    }
+
+    .board-caption b { color: #82e9a0; font-weight: 500; }
+
+    .hud {
+      min-width: 0;
+      padding-top: 1px;
+      color: #70b988;
+      font-size: clamp(7.5px, 2.15vw, 10px);
+      line-height: 1.25;
+    }
+
+    .hud-block {
+      margin-bottom: 8px;
+      padding: 6px 7px;
+      border: 1px solid #17442c;
+      background: rgba(5, 19, 12, .72);
+      box-shadow: inset 0 0 12px rgba(24, 119, 60, .08);
+    }
+
+    .hud-label {
+      margin-bottom: 2px;
+      color: #3f8155;
+      font-size: .86em;
+      letter-spacing: .12em;
+    }
+
+    .hud-value {
+      color: #c3ffd1;
+      font-size: 1.36em;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-shadow: 0 0 8px rgba(90,255,130,.25);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 4px;
+    }
+
+    .stat small { display: block; color: #3d7c51; font-size: .75em; letter-spacing: .09em; }
+    .stat strong { display: block; margin-top: 1px; color: #aef9bf; font-size: 1.05em; }
+
+    .piece-name {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 19px;
+      height: 19px;
+      margin: 1px 2px 0 0;
+      border: 1px solid currentColor;
+      font-size: 10px;
+      font-weight: 800;
+      text-shadow: 0 0 8px currentColor;
+    }
+
+    .ai-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; }
+    .ai-row span:last-child { color: #aefbc0; }
+    .meter { height: 3px; margin-top: 5px; overflow: hidden; background: #102d1e; }
+    .meter > i { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #4af47b, #ffca57, #ff5e6c); transition: width .2s; }
+
+    .t0 { color: #55e7ff; }
+    .t1 { color: #ffe05f; }
+    .t2 { color: #d783ff; }
+    .t3 { color: #63f08b; }
+    .t4 { color: #ff6574; }
+    .t5 { color: #638cff; }
+    .t6 { color: #ff9d50; }
+    .solid { text-shadow: 0 0 9px currentColor; }
+    .ghost { color: #24573a; text-shadow: none; }
+    .flash { color: #effff3; text-shadow: 0 0 13px white; }
+
+    .game-over-stamp {
+      position: absolute;
+      z-index: 6;
+      top: 50%;
+      left: 50%;
+      visibility: hidden;
+      padding: 9px 13px;
+      border: 2px solid var(--red);
+      background: rgba(9, 3, 4, .92);
+      color: #ff8690;
+      font-size: clamp(12px, 4vw, 20px);
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-align: center;
+      text-shadow: 0 0 10px #ff5261;
+      transform: translate(-50%, -50%) rotate(-2deg) scale(1.2);
+      opacity: 0;
+    }
+
+    .game-over-stamp.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translate(-50%, -50%) rotate(-2deg) scale(1);
+      transition: opacity .12s, transform .2s cubic-bezier(.2,.8,.2,1);
+    }
+
+    #yawnPanel {
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: radial-gradient(circle at center, rgba(46, 132, 73, .13), transparent 58%);
+      text-align: center;
+    }
+
+    .exit-line {
+      position: absolute;
+      top: 13px;
+      left: 13px;
+      color: #567b62;
+      font-size: clamp(8px, 2vw, 10px);
+    }
+
+    .ascii-wrap { transform: translateY(-8px); }
+
+    .ascii-art {
+      min-width: 21ch;
+      min-height: 15em;
+      margin: 0 auto;
+      color: #9dffb5;
+      font-family: var(--mono);
+      font-size: clamp(10px, 3.05vw, 15px);
+      font-weight: 600;
+      line-height: 1.12;
+      text-align: left;
+      white-space: pre;
+      text-shadow: 0 0 10px rgba(94,255,131,.25);
+    }
+
+    .yawn-copy {
+      margin-top: 6px;
+      color: #7bc28e;
+      font-size: clamp(9px, 2.5vw, 12px);
+      letter-spacing: .06em;
+    }
+
+    .yawn-copy strong { display: block; margin-bottom: 4px; color: #d2ffdc; font-size: 1.15em; }
+
+    .countdown {
+      margin-top: 10px;
+      color: #376e49;
+      font-size: 9px;
+    }
+
+    .terminal-footer {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex: 0 0 27px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 10px;
+      border-top: 1px solid #133824;
+      background: #040b07;
+      color: #356b48;
+      font-size: 8px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .footer-state { color: #68d786; }
+
+    .scan-sweep {
+      position: absolute;
+      z-index: 30;
+      top: -18%;
+      right: 0;
+      left: 0;
+      height: 17%;
+      pointer-events: none;
+      background: linear-gradient(180deg, transparent, rgba(95, 255, 142, .035), transparent);
+      animation: sweep 8s linear infinite;
+    }
+
+    @keyframes sweep { to { transform: translateY(700%); } }
+
+    .clear-flash {
+      position: absolute;
+      z-index: 25;
+      inset: 0;
+      pointer-events: none;
+      background: rgba(120,255,160,.08);
+      opacity: 0;
+    }
+
+    .clear-flash.go { animation: clear-screen .38s ease-out; }
+    @keyframes clear-screen { 20% { opacity: 1; } 100% { opacity: 0; } }
+
+    @media (min-width: 740px) {
+      #app { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+      .terminal { max-width: 980px; max-height: 920px; margin: auto; border-radius: 8px; }
+      .game-layout { grid-template-columns: auto 150px; }
+    }
+
+    @media (max-height: 600px) {
+      .terminal-bar { min-height: 31px; }
+      .terminal-footer { display: none; }
+      .prompt-row { min-height: 27px; padding-top: 6px; padding-bottom: 5px; }
+      .game-stage { padding-top: 2px; }
+      .game-display { font-size: min(2.15vh, 11px); }
+      .hud { font-size: min(1.75vh, 8.5px); }
+      .hud-block { margin-bottom: 4px; padding: 3px 5px; }
+      .ascii-art { font-size: min(2.55vh, 12px); }
+      .ascii-wrap { transform: none; }
+    }
+
+    @media (max-width: 340px) {
+      .terminal-bar { gap: 6px; padding-inline: 8px; }
+      .window-title { text-align: left; }
+      .phase-badge { min-width: 62px; }
+      .speed-button { min-width: 38px; padding-inline: 4px; }
+      .game-layout { grid-template-columns: auto 80px; gap: 5px; }
+      .hud-block { padding: 4px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::after, .scan-sweep, .phase-led { animation: none; }
+      .panel { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <section class="terminal" aria-label="자동으로 반복 재생되는 C 언어 테트리스 터미널">
+      <header class="terminal-bar">
+        <div class="traffic" aria-hidden="true">
+          <i class="dot red"></i><i class="dot amber"></i><i class="dot green"></i>
+        </div>
+        <div class="window-title">nightshift@devbox — ~/src/tetris.c — 80×24</div>
+        <div class="phase-badge"><i class="phase-led"></i><span id="phaseLabel">CODING</span></div>
+        <button id="speedButton" class="speed-button" type="button" aria-label="현재 재생 속도 1배. 누르면 2배로 바뀝니다." title="재생 속도 변경">
+          <small>SPD</small><span id="speedValue">×1</span>
+        </button>
+      </header>
+
+      <div class="screen">
+        <div class="scan-sweep"></div>
+        <div id="clearFlash" class="clear-flash"></div>
+
+        <section id="codePanel" class="panel active" aria-label="C 언어 코드 타이핑">
+          <div class="prompt-row"><span class="user">nightshift@devbox</span>:<span class="path">~/src</span>$ <span class="command">vim tetris.c</span></div>
+          <div class="editor-head"><strong>tetris.c</strong><span>C17 · ncurses · UTF-8</span></div>
+          <div id="codeViewport" class="code-viewport">
+            <code id="typedCode"></code>
+            <div class="editor-status"><span id="editorMode">-- INSERT --</span><span id="cursorStatus">1:1 · 0%</span></div>
+          </div>
+        </section>
+
+        <section id="compilePanel" class="panel" aria-label="컴파일 과정">
+          <pre id="compileOutput" class="compile-output"></pre>
+        </section>
+
+        <section id="gamePanel" class="panel" aria-label="자동 플레이 테트리스">
+          <div class="prompt-row"><span class="user">nightshift@devbox</span>:<span class="path">~/src</span>$ <span class="command">./tetris --autoplay --render=ascii</span></div>
+          <div class="game-stage">
+            <div class="game-layout">
+              <div class="board-column">
+                <pre id="gameDisplay" class="game-display" aria-label="테트리스 게임판"></pre>
+                <div class="board-caption"><span>ENGINE <b>C17/NCURSES</b></span><span>MODE <b>AUTO</b></span></div>
+              </div>
+              <aside class="hud" aria-label="게임 점수와 인공지능 상태">
+                <div class="hud-block">
+                  <div class="hud-label">SCORE</div>
+                  <div id="score" class="hud-value">0000000</div>
+                </div>
+                <div class="hud-block stats-grid">
+                  <div class="stat"><small>LINES</small><strong id="lines">0</strong></div>
+                  <div class="stat"><small>LEVEL</small><strong id="level">1</strong></div>
+                  <div class="stat"><small>PIECES</small><strong id="pieces">0</strong></div>
+                  <div class="stat"><small>COMBO</small><strong id="combo">—</strong></div>
+                </div>
+                <div class="hud-block">
+                  <div class="hud-label">HOLD / NEXT</div>
+                  <div id="holdNext"></div>
+                </div>
+                <div class="hud-block">
+                  <div class="hud-label">AI SEARCH</div>
+                  <div class="ai-row"><span>NODES</span><span id="nodes">0</span></div>
+                  <div class="ai-row"><span>FATIGUE</span><span id="fatigue">0%</span></div>
+                  <div class="meter"><i id="fatigueMeter"></i></div>
+                </div>
+              </aside>
+              <div id="gameOverStamp" class="game-over-stamp">GAME OVER</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="yawnPanel" class="panel" aria-label="하품하는 프로그래머 아스키 아트">
+          <div class="exit-line">[ process exited with code 1 · stack overflowed ]</div>
+          <div class="ascii-wrap">
+            <pre id="asciiArt" class="ascii-art"></pre>
+            <div class="yawn-copy"><strong id="yawnTitle">하아아아암……</strong><span id="yawnSubtitle">새벽 4시 37분. 버그보다 먼저 사람이 뻗었다.</span></div>
+            <div id="countdown" class="countdown">rebooting in 5.0s</div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="terminal-footer">
+        <span id="footerHint">ESC NORMAL · :W SAVE · :Q QUIT</span>
+        <span>LOOP <b id="loopCount">01</b></span>
+        <span class="footer-state" id="footerState">● WRITING SOURCE</span>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const C_SOURCE = String.raw`// tetris.c — ncurses auto-play build
+#define _POSIX_C_SOURCE 199309L
+#include <ncurses.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define BOARD_W 10
+#define BOARD_H 20
+#define PREVIEW 5
+#define ROTATIONS 4
+
+enum Tetromino { I, O, T, S, Z, J, L, PIECE_COUNT };
+
+typedef struct {
+    int type, rot, x, y;
+} Piece;
+
+typedef struct {
+    int x, rot, landing_y;
+    double value;
+} Move;
+
+typedef struct {
+    int height[BOARD_W];
+    int holes, bumpiness, aggregate, max_height;
+} Features;
+
+static int board[BOARD_H][BOARD_W];
+static int bag[PIECE_COUNT], bag_at = PIECE_COUNT;
+static int next_queue[PREVIEW];
+static int score, lines, level = 1, combo = -1;
+static int hold = -1, can_hold = 1;
+
+/* Four 4x4 rotations, packed from the top-left bit. */
+static const uint16_t SHAPE[PIECE_COUNT][ROTATIONS] = {
+    { 0x0F00, 0x2222, 0x00F0, 0x4444 }, /* I */
+    { 0x0660, 0x0660, 0x0660, 0x0660 }, /* O */
+    { 0x4E00, 0x4640, 0x0E40, 0x4C40 }, /* T */
+    { 0x6C00, 0x4620, 0x06C0, 0x8C40 }, /* S */
+    { 0xC600, 0x2640, 0x0C60, 0x4C80 }, /* Z */
+    { 0x8E00, 0x6440, 0x0E20, 0x44C0 }, /* J */
+    { 0x2E00, 0x4460, 0x0E80, 0xC440 }  /* L */
+};
+
+static const char *NAME = "IOTSZJL";
+
+static void sleep_ms(long ms) {
+    struct timespec ts = { ms / 1000, (ms % 1000) * 1000000L };
+    nanosleep(&ts, NULL);
+}
+
+static int cell(int type, int rot, int px, int py) {
+    int bit = 15 - (py * 4 + px);
+    return (SHAPE[type][rot & 3] >> bit) & 1u;
+}
+
+static void shuffle_bag(void) {
+    for (int i = 0; i < PIECE_COUNT; ++i) bag[i] = i;
+    for (int i = PIECE_COUNT - 1; i > 0; --i) {
+        int j = rand() % (i + 1);
+        int tmp = bag[i]; bag[i] = bag[j]; bag[j] = tmp;
+    }
+    bag_at = 0;
+}
+
+static int pop_bag(void) {
+    if (bag_at >= PIECE_COUNT) shuffle_bag();
+    return bag[bag_at++];
+}
+
+static int collide(int b[BOARD_H][BOARD_W], Piece p) {
+    for (int py = 0; py < 4; ++py) for (int px = 0; px < 4; ++px) {
+        if (!cell(p.type, p.rot, px, py)) continue;
+        int x = p.x + px, y = p.y + py;
+        if (x < 0 || x >= BOARD_W || y >= BOARD_H) return 1;
+        if (y >= 0 && b[y][x]) return 1;
+    }
+    return 0;
+}
+
+static int landing_y(int b[BOARD_H][BOARD_W], Piece p) {
+    while (!collide(b, (Piece){p.type, p.rot, p.x, p.y + 1})) ++p.y;
+    return p.y;
+}
+
+static int stamp(int b[BOARD_H][BOARD_W], Piece p) {
+    int topped_out = 0;
+    for (int py = 0; py < 4; ++py) for (int px = 0; px < 4; ++px) {
+        if (!cell(p.type, p.rot, px, py)) continue;
+        int x = p.x + px, y = p.y + py;
+        if (y < 0) topped_out = 1;
+        else b[y][x] = p.type + 1;
+    }
+    return topped_out;
+}
+
+static int clear_lines(int b[BOARD_H][BOARD_W]) {
+    int cleared = 0;
+    for (int y = BOARD_H - 1; y >= 0; --y) {
+        int full = 1;
+        for (int x = 0; x < BOARD_W; ++x) full &= b[y][x] != 0;
+        if (!full) continue;
+        ++cleared;
+        memmove(&b[1][0], &b[0][0], sizeof(int) * BOARD_W * y);
+        memset(&b[0][0], 0, sizeof(int) * BOARD_W);
+        ++y;
+    }
+    return cleared;
+}
+
+static Features features(int b[BOARD_H][BOARD_W]) {
+    Features f = {{0}, 0, 0, 0, 0};
+    for (int x = 0; x < BOARD_W; ++x) {
+        int seen = 0;
+        for (int y = 0; y < BOARD_H; ++y) {
+            if (b[y][x]) {
+                if (!seen) f.height[x] = BOARD_H - y;
+                seen = 1;
+            } else if (seen) ++f.holes;
+        }
+        f.aggregate += f.height[x];
+        if (f.height[x] > f.max_height) f.max_height = f.height[x];
+        if (x) f.bumpiness += abs(f.height[x] - f.height[x - 1]);
+    }
+    return f;
+}
+
+static double evaluate(int b[BOARD_H][BOARD_W], int cleared) {
+    Features f = features(b);
+    return cleared * 1.55 - f.aggregate * 0.46 - f.holes * 0.92
+         - f.bumpiness * 0.28 - f.max_height * 0.18;
+}
+
+static Move plan_move(int type) {
+    Move best = {0, 0, 0, -1e30};
+    for (int rot = 0; rot < ROTATIONS; ++rot) {
+        for (int x = -2; x < BOARD_W; ++x) {
+            Piece p = {type, rot, x, -3};
+            if (collide(board, p)) continue;
+            p.y = landing_y(board, p);
+            int sim[BOARD_H][BOARD_W];
+            memcpy(sim, board, sizeof sim);
+            if (stamp(sim, p)) continue;
+            int cleared = clear_lines(sim);
+            double value = evaluate(sim, cleared);
+            if (value > best.value) best = (Move){x, rot, p.y, value};
+        }
+    }
+    return best;
+}
+
+static void draw_piece_preview(int row, int type) {
+    mvprintw(row, 28, "[%c]", type < 0 ? '-' : NAME[type]);
+}
+
+static void draw(Piece active) {
+    erase();
+    mvprintw(0, 2, "tetris.c  ::  AUTOPILOT / C17");
+    mvprintw(1, 2, "+--------------------+");
+    for (int y = 0; y < BOARD_H; ++y) {
+        mvprintw(y + 2, 2, "|");
+        for (int x = 0; x < BOARD_W; ++x) {
+            int value = board[y][x];
+            int active_here = 0;
+            for (int py = 0; py < 4; ++py) for (int px = 0; px < 4; ++px)
+                if (cell(active.type, active.rot, px, py) &&
+                    active.x + px == x && active.y + py == y) active_here = active.type + 1;
+            value = active_here ? active_here : value;
+            if (value) attron(COLOR_PAIR(value));
+            addstr(value ? "[]" : "  ");
+            if (value) attroff(COLOR_PAIR(value));
+        }
+        addstr("|");
+    }
+    mvprintw(22, 2, "+--------------------+");
+    mvprintw(3, 28, "SCORE  %07d", score);
+    mvprintw(5, 28, "LINES  %d", lines);
+    mvprintw(6, 28, "LEVEL  %d", level);
+    mvprintw(8, 28, "HOLD"); draw_piece_preview(9, hold);
+    mvprintw(11, 28, "NEXT");
+    for (int i = 0; i < 3; ++i) draw_piece_preview(12 + i, next_queue[i]);
+    mvprintw(17, 28, "AI  heuristic-v2");
+    refresh();
+}
+
+static void init_queue(void) {
+    for (int i = 0; i < PREVIEW; ++i) next_queue[i] = pop_bag();
+}
+
+static int take_next(void) {
+    int p = next_queue[0];
+    memmove(next_queue, next_queue + 1, sizeof(int) * (PREVIEW - 1));
+    next_queue[PREVIEW - 1] = pop_bag();
+    return p;
+}
+
+static void score_clear(int count) {
+    static const int table[] = {0, 100, 300, 500, 800};
+    if (count) {
+        ++combo;
+        score += table[count] * level + combo * 50;
+        lines += count;
+        level = 1 + lines / 10;
+    } else combo = -1;
+}
+
+static void yawn(void) {
+    erase();
+    mvprintw(3, 8,  "       .------.       z");
+    mvprintw(4, 8,  "     .'  -  -  '.    z");
+    mvprintw(5, 8,  "    /      ^     \\  Z");
+    mvprintw(6, 8,  "   |     .---.    |");
+    mvprintw(7, 8,  "   |    (_____)   |");
+    mvprintw(8, 8,  "    \\           /");
+    mvprintw(9, 8,  "     '._     _.'");
+    mvprintw(10, 8, "        |___|");
+    mvprintw(12, 8, "     H A A A A M . . .");
+    refresh();
+    sleep_ms(5000);
+}
+
+int main(void) {
+    srand((unsigned)time(NULL));
+    initscr(); cbreak(); noecho(); curs_set(0); nodelay(stdscr, TRUE);
+    start_color();
+    for (int i = 1; i <= 7; ++i) init_pair(i, i, COLOR_BLACK);
+    init_queue();
+
+    for (;;) {
+        int type = take_next();
+        Piece p = { type, 0, 3, -3 };
+        Move move = plan_move(type);
+        if (move.value < -1e20 || collide(board, p)) break;
+
+        while (p.rot != move.rot) { p.rot = (p.rot + 1) & 3; draw(p); sleep_ms(45); }
+        while (p.x != move.x) { p.x += p.x < move.x ? 1 : -1; draw(p); sleep_ms(38); }
+        while (!collide(board, (Piece){p.type,p.rot,p.x,p.y+1})) {
+            ++p.y; draw(p); sleep_ms(24);
+        }
+        if (stamp(board, p)) break;
+        score_clear(clear_lines(board));
+        can_hold = 1;
+    }
+
+    mvprintw(10, 8, "*** G A M E  O V E R ***"); refresh();
+    sleep_ms(900); yawn(); endwin();
+    return 0;
+}`;
+
+    const panels = {
+      code: document.getElementById("codePanel"),
+      compile: document.getElementById("compilePanel"),
+      game: document.getElementById("gamePanel"),
+      yawn: document.getElementById("yawnPanel")
+    };
+    const phaseLabel = document.getElementById("phaseLabel");
+    const footerState = document.getElementById("footerState");
+    const footerHint = document.getElementById("footerHint");
+    const clearFlash = document.getElementById("clearFlash");
+    const typedCode = document.getElementById("typedCode");
+    const codeViewport = document.getElementById("codeViewport");
+    const cursorStatus = document.getElementById("cursorStatus");
+    const editorMode = document.getElementById("editorMode");
+    const compileOutput = document.getElementById("compileOutput");
+    const gameDisplay = document.getElementById("gameDisplay");
+    const gameOverStamp = document.getElementById("gameOverStamp");
+    const asciiArt = document.getElementById("asciiArt");
+    const countdown = document.getElementById("countdown");
+    const loopCount = document.getElementById("loopCount");
+    const speedButton = document.getElementById("speedButton");
+    const speedValue = document.getElementById("speedValue");
+
+    const scoreEl = document.getElementById("score");
+    const linesEl = document.getElementById("lines");
+    const levelEl = document.getElementById("level");
+    const piecesEl = document.getElementById("pieces");
+    const comboEl = document.getElementById("combo");
+    const holdNextEl = document.getElementById("holdNext");
+    const nodesEl = document.getElementById("nodes");
+    const fatigueEl = document.getElementById("fatigue");
+    const fatigueMeter = document.getElementById("fatigueMeter");
+
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const SPEEDS = [1, 2, 4, 8];
+    let playbackSpeed = 1;
+    const wait = ms => sleep(Math.max(1, Math.round(ms / playbackSpeed)));
+
+    function setPlaybackSpeed(next) {
+      playbackSpeed = next;
+      speedValue.textContent = `×${next}`;
+      const upcoming = SPEEDS[(SPEEDS.indexOf(next) + 1) % SPEEDS.length];
+      speedButton.setAttribute("aria-label", `현재 재생 속도 ${next}배. 누르면 ${upcoming}배로 바뀝니다.`);
+      speedButton.title = `재생 속도 ×${next} · 탭해서 ×${upcoming}`;
+    }
+
+    speedButton.addEventListener("click", () => {
+      setPlaybackSpeed(SPEEDS[(SPEEDS.indexOf(playbackSpeed) + 1) % SPEEDS.length]);
+    });
+    const esc = value => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]);
+    const KEYWORDS = new Set(["auto","break","case","char","const","continue","default","do","double","else","enum","extern","float","for","goto","if","inline","int","long","register","restrict","return","short","signed","sizeof","static","struct","switch","typedef","union","unsigned","void","volatile","while"]);
+    const TYPES = new Set(["Piece","Move","Features","uint16_t","NULL"]);
+
+    function highlightLine(raw) {
+      let html = "", i = 0;
+      while (i < raw.length) {
+        if (raw[i] === "/" && raw[i + 1] === "/") {
+          html += `<span class="tok-comment">${esc(raw.slice(i))}</span>`;
+          break;
+        }
+        if (raw[i] === "/" && raw[i + 1] === "*") {
+          const end = raw.indexOf("*/", i + 2);
+          const stop = end < 0 ? raw.length : end + 2;
+          html += `<span class="tok-comment">${esc(raw.slice(i, stop))}</span>`;
+          i = stop;
+          continue;
+        }
+        if ((raw[i] === "#") && raw.slice(0, i).trim() === "") {
+          html += `<span class="tok-pp">${esc(raw.slice(i))}</span>`;
+          break;
+        }
+        if (raw[i] === "\"" || raw[i] === "'") {
+          const q = raw[i]; let j = i + 1;
+          while (j < raw.length) { if (raw[j] === q && raw[j - 1] !== "\\") { ++j; break; } ++j; }
+          html += `<span class="tok-str">${esc(raw.slice(i, j))}</span>`;
+          i = j; continue;
+        }
+        if (/[A-Za-z_]/.test(raw[i])) {
+          let j = i + 1; while (j < raw.length && /[A-Za-z0-9_]/.test(raw[j])) ++j;
+          const word = raw.slice(i, j);
+          const cls = KEYWORDS.has(word) ? "tok-kw" : TYPES.has(word) ? "tok-type" : "";
+          html += cls ? `<span class="${cls}">${word}</span>` : word;
+          i = j; continue;
+        }
+        if (/\d/.test(raw[i])) {
+          let j = i + 1; while (j < raw.length && /[\d.xXa-fA-F]/.test(raw[j])) ++j;
+          html += `<span class="tok-num">${esc(raw.slice(i, j))}</span>`;
+          i = j; continue;
+        }
+        html += esc(raw[i++]);
+      }
+      return html;
+    }
+
+    function setPanel(name, label, state, hint) {
+      Object.entries(panels).forEach(([key, el]) => el.classList.toggle("active", key === name));
+      phaseLabel.textContent = label;
+      footerState.textContent = `● ${state}`;
+      footerHint.textContent = hint;
+    }
+
+    function startTypingRenderer() {
+      typedCode.replaceChildren();
+      let lineNumber = 1;
+      let column = 1;
+      let currentRaw = "";
+      let textNode;
+      let source;
+      let caret;
+
+      function makeLine() {
+        const line = document.createElement("span");
+        const number = document.createElement("span");
+        source = document.createElement("span");
+        textNode = document.createTextNode("");
+        caret = document.createElement("i");
+        line.className = "code-line";
+        number.className = "line-no";
+        source.className = "src";
+        caret.className = "caret";
+        number.textContent = String(lineNumber).padStart(3, " ");
+        source.append(textNode, caret);
+        line.append(number, source);
+        typedCode.append(line);
+      }
+
+      makeLine();
+      return {
+        push(character, index) {
+          if (character === "\n") {
+            caret.remove();
+            source.innerHTML = highlightLine(currentRaw);
+            ++lineNumber;
+            column = 1;
+            currentRaw = "";
+            makeLine();
+          } else {
+            currentRaw += character;
+            textNode.data = currentRaw;
+            ++column;
+          }
+          const pct = Math.floor((index + 1) / C_SOURCE.length * 100);
+          cursorStatus.textContent = `${lineNumber}:${column} · ${pct}%`;
+          if (character === "\n" || index % 12 === 0) codeViewport.scrollTop = codeViewport.scrollHeight;
+        },
+        finish() {
+          caret.remove();
+          source.innerHTML = highlightLine(currentRaw);
+        }
+      };
+    }
+
+    async function typingPhase() {
+      setPanel("code", "CODING", "WRITING SOURCE", "ESC NORMAL · :W SAVE · :Q QUIT");
+      editorMode.textContent = "-- INSERT --";
+      const renderer = startTypingRenderer();
+      await wait(460);
+      for (let at = 0; at < C_SOURCE.length; ++at) {
+        const character = C_SOURCE[at];
+        renderer.push(character, at);
+        let pause = character === "\n" ? 86 : /[{}]/.test(character) ? 72 : /[;,.()]/.test(character) ? 30 : /\s/.test(character) ? 13 : 18;
+        await wait(pause);
+      }
+      renderer.finish();
+      editorMode.textContent = '"tetris.c" 221L written';
+      await wait(520);
+    }
+
+    async function compilePhase() {
+      setPanel("compile", "BUILD", "COMPILING C17", "GCC 14.1 · -O2 · -WALL · LNCURSES");
+      compileOutput.innerHTML = "";
+      const rows = [
+        ['<span class="user">nightshift@devbox</span>:<span class="path">~/src</span>$ <span class="command">gcc -std=c17 -O2 -Wall tetris.c -lncurses -o tetris</span>', 260],
+        ['<span class="info">[1/4]</span> preprocessing  tetris.c', 280],
+        ['<span class="info">[2/4]</span> compiling      collision · rotation · 7-bag', 320],
+        ['<span class="info">[3/4]</span> optimizing     board heuristic (O2)', 310],
+        ['<span class="info">[4/4]</span> linking        libncurses.so', 330],
+        ['<span class="ok">✓ build succeeded</span>  31.8 KiB · 0 errors · 0 warnings', 410],
+        ['', 170],
+        ['<span class="user">nightshift@devbox</span>:<span class="path">~/src</span>$ <span class="command">./tetris --autoplay --render=ascii</span><i class="caret"></i>', 650]
+      ];
+      for (const [line, delay] of rows) {
+        compileOutput.innerHTML += line + "\n";
+        await wait(delay);
+      }
+    }
+
+    const W = 10, H = 20;
+    const PIECE_NAMES = ["I", "O", "T", "S", "Z", "J", "L"];
+    const SHAPES = [
+      [
+        ["....","IIII","....","...."], ["..I.","..I.","..I.","..I."],
+        ["....","....","IIII","...."], [".I..",".I..",".I..",".I.."]
+      ],
+      [
+        [".OO.",".OO.","....","...."], [".OO.",".OO.","....","...."],
+        [".OO.",".OO.","....","...."], [".OO.",".OO.","....","...."]
+      ],
+      [
+        [".T..","TTT.","....","...."], [".T..",".TT.",".T..","...."],
+        ["....","TTT.",".T..","...."], [".T..","TT..",".T..","...."]
+      ],
+      [
+        [".SS.","SS..","....","...."], ["S...","SS..",".S..","...."],
+        ["....",".SS.","SS..","...."], [".S..",".SS.","..S.","...."]
+      ],
+      [
+        ["ZZ..",".ZZ.","....","...."], ["..Z.",".ZZ.",".Z..","...."],
+        ["....","ZZ..",".ZZ.","...."], [".Z..","ZZ..","Z...","...."]
+      ],
+      [
+        ["J...","JJJ.","....","...."], [".JJ.",".J..",".J..","...."],
+        ["....","JJJ.","..J.","...."], [".J..",".J..","JJ..","...."]
+      ],
+      [
+        ["..L.","LLL.","....","...."], [".L..",".L..",".LL.","...."],
+        ["....","LLL.","L...","...."], ["LL..",".L..",".L..","...."]
+      ]
+    ];
+
+    function cells(type, rot) {
+      const result = [];
+      SHAPES[type][rot & 3].forEach((row, y) => [...row].forEach((c, x) => { if (c !== ".") result.push([x, y]); }));
+      return result;
+    }
+
+    function freshGame() {
+      return {
+        board: Array.from({length: H}, () => Array(W).fill(-1)),
+        bag: [], queue: [], hold: null, active: null,
+        score: 0, lines: 0, level: 1, pieces: 0, combo: -1,
+        searched: 0, fatigue: 0, flashRows: []
+      };
+    }
+
+    let game = freshGame();
+
+    function shuffledBag() {
+      const b = [0,1,2,3,4,5,6];
+      for (let i = b.length - 1; i; --i) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+      return b;
+    }
+
+    function fillQueue(g) {
+      while (g.queue.length < 7) {
+        if (!g.bag.length) g.bag = shuffledBag();
+        g.queue.push(g.bag.shift());
+      }
+    }
+
+    function collides(board, type, rot, x, y) {
+      return cells(type, rot).some(([px, py]) => {
+        const bx = x + px, by = y + py;
+        return bx < 0 || bx >= W || by >= H || (by >= 0 && board[by][bx] >= 0);
+      });
+    }
+
+    function dropY(board, type, rot, x, start = -3) {
+      let y = start;
+      if (collides(board, type, rot, x, y)) return null;
+      while (!collides(board, type, rot, x, y + 1)) ++y;
+      return y;
+    }
+
+    function placeClone(board, type, rot, x, y) {
+      const copy = board.map(row => row.slice());
+      for (const [px, py] of cells(type, rot)) {
+        const by = y + py, bx = x + px;
+        if (by < 0) return null;
+        copy[by][bx] = type;
+      }
+      let cleared = 0;
+      for (let row = H - 1; row >= 0; --row) {
+        if (copy[row].every(v => v >= 0)) {
+          copy.splice(row, 1); copy.unshift(Array(W).fill(-1)); ++cleared; ++row;
+        }
+      }
+      return {board: copy, cleared};
+    }
+
+    function metrics(board) {
+      const heights = Array(W).fill(0);
+      let holes = 0, aggregate = 0, bumpiness = 0, wells = 0, blocksAboveHoles = 0;
+      for (let x = 0; x < W; ++x) {
+        let found = false, localHoles = 0;
+        for (let y = 0; y < H; ++y) {
+          if (board[y][x] >= 0) {
+            if (!found) heights[x] = H - y;
+            found = true;
+            blocksAboveHoles += localHoles;
+          } else if (found) { ++holes; ++localHoles; }
+        }
+        aggregate += heights[x];
+        if (x) bumpiness += Math.abs(heights[x] - heights[x - 1]);
+      }
+      for (let x = 0; x < W; ++x) {
+        const left = x === 0 ? H : heights[x - 1];
+        const right = x === W - 1 ? H : heights[x + 1];
+        wells += Math.max(0, Math.min(left, right) - heights[x]);
+      }
+      return {heights, holes, aggregate, bumpiness, wells, blocksAboveHoles, max: Math.max(...heights)};
+    }
+
+    function allPlacements(g, type) {
+      const found = [];
+      const seen = new Set();
+      for (let rot = 0; rot < 4; ++rot) for (let x = -2; x < W; ++x) {
+        const y = dropY(g.board, type, rot, x);
+        if (y === null) continue;
+        const key = `${rot}:${x}:${y}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const sim = placeClone(g.board, type, rot, x, y);
+        if (!sim) continue;
+        const m = metrics(sim.board);
+        let value = sim.cleared * 1.62 - m.aggregate * .47 - m.holes * .93 - m.bumpiness * .27 - m.wells * .08 - m.max * .19 - m.blocksAboveHoles * .04;
+        found.push({x, y, rot, value, cleared: sim.cleared, metrics: m});
+      }
+      g.searched = found.length;
+      return found;
+    }
+
+    function choosePlan(g, type) {
+      const options = allPlacements(g, type);
+      if (!options.length) return null;
+      g.fatigue = Math.max(0, Math.min(1, (g.pieces - 26) / 47));
+      options.forEach(p => p.noisy = p.value + (Math.random() - .5) * g.fatigue * 11);
+      options.sort((a, b) => b.noisy - a.noisy);
+      if (g.pieces < 30) return options[0];
+      if (g.pieces < 47) return options[Math.floor(Math.random() * Math.min(options.length, 1 + Math.floor(g.fatigue * 6)))];
+      if (g.pieces < 63) {
+        const start = Math.floor(options.length * .18 * g.fatigue);
+        return options[Math.min(options.length - 1, start + Math.floor(Math.random() * Math.max(1, Math.floor(options.length * .25))))];
+      }
+      const worst = options.slice().sort((a, b) => (b.metrics.max + b.metrics.holes * 1.8) - (a.metrics.max + a.metrics.holes * 1.8));
+      const badPool = Math.max(1, Math.floor(worst.length * .22));
+      return worst[Math.floor(Math.random() * badPool)];
+    }
+
+    function pieceChip(type) {
+      return type === null || type === undefined ? '<span class="piece-name muted">–</span>' : `<span class="piece-name t${type}">${PIECE_NAMES[type]}</span>`;
+    }
+
+    function renderGame() {
+      const view = game.board.map(row => row.slice());
+      const ghosts = new Set();
+      if (game.active) {
+        const a = game.active;
+        const gy = dropY(game.board, a.type, a.rot, a.x, a.y);
+        if (gy !== null) for (const [px, py] of cells(a.type, a.rot)) {
+          const x = a.x + px, y = gy + py;
+          if (y >= 0 && y < H) ghosts.add(`${x},${y}`);
+        }
+        for (const [px, py] of cells(a.type, a.rot)) {
+          const x = a.x + px, y = a.y + py;
+          if (y >= 0 && y < H && x >= 0 && x < W) view[y][x] = a.type + 10;
+        }
+      }
+      const top = `<span class="muted">┌${"─".repeat(W * 2)}┐</span>`;
+      const bottom = `<span class="muted">└${"─".repeat(W * 2)}┘</span>`;
+      const rows = view.map((row, y) => {
+        const body = row.map((v, x) => {
+          if (v >= 10) return `<span class="t${v - 10} solid">██</span>`;
+          if (v >= 0) return `<span class="t${v} solid">██</span>`;
+          if (ghosts.has(`${x},${y}`)) return '<span class="ghost">░░</span>';
+          return "  ";
+        }).join("");
+        const cls = game.flashRows.includes(y) ? " flash" : "";
+        return `<span class="muted">│</span><span class="${cls}">${body}</span><span class="muted">│</span>`;
+      });
+      gameDisplay.innerHTML = [top, ...rows, bottom].join("\n");
+      scoreEl.textContent = String(game.score).padStart(7, "0");
+      linesEl.textContent = game.lines;
+      levelEl.textContent = game.level;
+      piecesEl.textContent = game.pieces;
+      comboEl.textContent = game.combo > 0 ? `×${game.combo + 1}` : "—";
+      holdNextEl.innerHTML = pieceChip(game.hold) + '<span class="muted"> / </span>' + game.queue.slice(0, 3).map(pieceChip).join("");
+      nodesEl.textContent = String(game.searched * (1 + Math.min(4, game.level))).padStart(3, "0");
+      const fatigue = Math.round(game.fatigue * 100);
+      fatigueEl.textContent = `${fatigue}%`;
+      fatigueMeter.style.width = `${fatigue}%`;
+    }
+
+    function scoreClear(count) {
+      const table = [0, 100, 300, 500, 800];
+      if (count) {
+        game.combo++;
+        game.score += table[count] * game.level + Math.max(0, game.combo) * 50;
+        game.lines += count;
+        game.level = 1 + Math.floor(game.lines / 10);
+      } else game.combo = -1;
+    }
+
+    async function lockActive() {
+      const a = game.active;
+      let topped = false;
+      for (const [px, py] of cells(a.type, a.rot)) {
+        const x = a.x + px, y = a.y + py;
+        if (y < 0) topped = true;
+        else game.board[y][x] = a.type;
+      }
+      game.active = null;
+      game.pieces++;
+      const full = [];
+      for (let y = 0; y < H; ++y) if (game.board[y].every(v => v >= 0)) full.push(y);
+      if (full.length) {
+        game.flashRows = full;
+        renderGame();
+        await wait(130);
+        for (let i = full.length - 1; i >= 0; --i) game.board.splice(full[i], 1);
+        while (game.board.length < H) game.board.unshift(Array(W).fill(-1));
+        game.flashRows = [];
+      }
+      scoreClear(full.length);
+      renderGame();
+      return topped;
+    }
+
+    async function animateMove(plan) {
+      const a = game.active;
+      while (a.rot !== plan.rot) {
+        const nextRot = (a.rot + 1) & 3;
+        if (!collides(game.board, a.type, nextRot, a.x, a.y)) a.rot = nextRot;
+        else a.rot = plan.rot;
+        renderGame(); await wait(Math.max(28, 58 - game.level * 2));
+      }
+      while (a.x !== plan.x) {
+        const nx = a.x + (a.x < plan.x ? 1 : -1);
+        if (!collides(game.board, a.type, a.rot, nx, a.y)) a.x = nx; else break;
+        renderGame(); await wait(Math.max(24, 48 - game.level * 2));
+      }
+      while (!collides(game.board, a.type, a.rot, a.x, a.y + 1)) {
+        a.y++;
+        renderGame();
+        await wait(Math.max(15, 31 - game.level * 2));
+      }
+    }
+
+    function maybeHold(type, currentPlan) {
+      if (game.pieces > 55 || game.fatigue > .55) return {type, plan: currentPlan};
+      fillQueue(game);
+      const candidateType = game.hold === null ? game.queue[0] : game.hold;
+      const candidateOptions = allPlacements(game, candidateType);
+      candidateOptions.sort((a,b) => b.value - a.value);
+      const candidate = candidateOptions[0];
+      if (!candidate || !currentPlan || candidate.value < currentPlan.value + 1.15 || Math.random() > .32) {
+        return {type, plan: currentPlan};
+      }
+      if (game.hold === null) {
+        game.hold = type;
+        type = game.queue.shift();
+        fillQueue(game);
+      } else {
+        [game.hold, type] = [type, game.hold];
+      }
+      return {type, plan: choosePlan(game, type)};
+    }
+
+    async function gamePhase() {
+      setPanel("game", "RUNNING", "AUTOPILOT ACTIVE", "AI HEURISTIC-V2 · 7-BAG · GHOST · HOLD");
+      gameOverStamp.classList.remove("show");
+      game = freshGame();
+      fillQueue(game);
+      renderGame();
+      await wait(380);
+      let topped = false;
+      while (!topped) {
+        fillQueue(game);
+        let type = game.queue.shift();
+        fillQueue(game);
+        let plan = choosePlan(game, type);
+        ({type, plan} = maybeHold(type, plan));
+        if (!plan || collides(game.board, type, 0, 3, -3)) break;
+        game.active = {type, rot: 0, x: 3, y: -3};
+        renderGame();
+        await wait(50);
+        await animateMove(plan);
+        topped = await lockActive();
+        await wait(Math.max(28, 70 - game.level * 3));
+      }
+      game.active = null;
+      renderGame();
+      gameOverStamp.classList.add("show");
+      footerState.textContent = "● PROCESS HALTED";
+      phaseLabel.textContent = "GAME OVER";
+      await wait(1180);
+    }
+
+    const YAWN_FRAMES = [
+String.raw`       .------.
+     .'  _  _  '.
+    /   (o)(o)   \
+   |      /       |
+   |     ___      |
+    \           /
+     '._     _.'
+        |___|
+      __/| |\__
+     /   | |   \
+    /____|_|____\
+       /  |  \
+      /__/ \__\ `,
+String.raw`       .------.
+     .'  -  -  '.
+    /     __     \
+   |      /       |
+   |    .---.     |
+    \  (_____)  /
+     '._     _.'
+        |___|
+      __/| |\__
+     /   | |   \
+    /____|_|____\
+       /  |  \
+      /__/ \__\ `,
+String.raw`       .------.          z
+     .'  -  -  '.        z
+    /      ^     \      Z
+   |    .-----.   |
+   |   /       \  |
+    \  \_____/  /
+     '._     _.'
+        |___|
+      __/| |\__
+     /   | |   \
+    /____|_|____\
+       /  |  \
+      /__/ \__\ `,
+String.raw`       .------.       z z
+     .'  -  -  '.   z Z
+    /      ^     \
+   |   .-------.  |
+   |  (         ) |
+    \  '-------' /
+     '._     _.'
+        |___|
+      __/| |\__
+     /   | |   \
+    /____|_|____\
+       /  |  \
+      /__/ \__\ `
+    ];
+
+    async function yawnPhase() {
+      setPanel("yawn", "SLEEPY", "PROGRAMMER AFK", "PID 404 · CAFFEINE 0% · SLEEP DEBT 99% ");
+      let elapsed = 0;
+      let frame = 0;
+      while (elapsed < 5000) {
+        asciiArt.textContent = YAWN_FRAMES[Math.min(YAWN_FRAMES.length - 1, frame % YAWN_FRAMES.length)];
+        const left = Math.max(0, 5 - elapsed / 1000);
+        countdown.textContent = `rebooting in ${left.toFixed(1)}s`;
+        frame++;
+        const frameDelay = Math.min(430, 5000 - elapsed);
+        await wait(frameDelay);
+        elapsed += frameDelay;
+      }
+      countdown.textContent = "rebooting now...";
+      clearFlash.classList.remove("go");
+      void clearFlash.offsetWidth;
+      clearFlash.classList.add("go");
+      await wait(360);
+    }
+
+    async function runForever() {
+      let loop = 1;
+      for (;;) {
+        loopCount.textContent = String(loop).padStart(2, "0");
+        await typingPhase();
+        await compilePhase();
+        await gamePhase();
+        await yawnPhase();
+        ++loop;
+      }
+    }
+
+    runForever();
+  })();
+  </script>
+</body>
+</html>

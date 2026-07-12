@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#131024">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>HSK 아케이드 · 汉语大挑战</title>
+<style>
+:root{
+  --bg:#131024; --panel:#221b42; --panel2:#2b2356; --edge:#0a0718; --line:#453a80;
+  --ink:#f4eddc; --dim:#9d92c9;
+  --red:#e8433f; --red2:#b92f2f; --gold:#ffd14a; --jade:#3ad39c; --cyan:#5fd0ff; --pink:#ff8fa0; --bad:#ff5c6c;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  background:#0d0a1c radial-gradient(130% 90% at 50% 0%, #261d4e 0%, #131024 55%, #0d0a1c 100%);
+  color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  overscroll-behavior:none;
+}
+button{font:inherit;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;color:inherit;background:none;border:none;}
+.hide{display:none !important;}
+
+#stage{height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;position:relative;padding-top:env(safe-area-inset-top);}
+#scanlines{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.45;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 2px, transparent 2px 4px);}
+
+.screen{display:none;flex:1;min-height:0;flex-direction:column;}
+.screen.on{display:flex;}
+
+canvas.mas{image-rendering:pixelated;image-rendering:crisp-edges;}
+#mas-start{width:128px;height:128px;}
+#mas-quiz{width:76px;height:76px;}
+#mas-res{width:104px;height:104px;}
+
+/* ---------- pixel chunky elements ---------- */
+.px{border:3px solid var(--edge);box-shadow:0 0 0 3px var(--line), 0 8px 0 0 rgba(0,0,0,.35);border-radius:6px;}
+.btn{display:block;width:100%;background:var(--panel2);color:var(--ink);
+  border:3px solid var(--edge);box-shadow:0 0 0 2px #4a4088, 0 5px 0 1px var(--edge);
+  border-radius:6px;padding:13px 14px;font-weight:800;font-size:16px;letter-spacing:1px;}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 2px #4a4088, 0 2px 0 1px var(--edge);}
+.btn.gold{background:linear-gradient(180deg,#ffd94f,#f2a93b);color:#3a2405;
+  box-shadow:0 0 0 2px #8a5a17, 0 5px 0 1px var(--edge);}
+.btn.gold:active{box-shadow:0 0 0 2px #8a5a17, 0 2px 0 1px var(--edge);}
+.btn .cnt{font-size:12px;opacity:.75;margin-left:6px;font-weight:700;}
+
+/* ---------- start screen ---------- */
+#startInner{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;flex-direction:column;justify-content:space-evenly;align-items:center;
+  text-align:center;padding:20px 22px calc(24px + env(safe-area-inset-bottom));gap:14px;}
+#logo{font-size:56px;font-weight:900;letter-spacing:6px;line-height:.9;color:var(--gold);
+  text-shadow:0 4px 0 #8a2b1f, 0 8px 0 #0a0718, 0 0 26px rgba(255,209,74,.35);}
+#logo span{display:block;font-size:26px;letter-spacing:10px;margin-top:12px;color:var(--red);
+  text-shadow:0 3px 0 #5c130f, 0 6px 0 #0a0718;}
+#subT{margin-top:12px;font-size:13px;color:var(--dim);font-weight:700;letter-spacing:1px;}
+#modeBox{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px;}
+#pressT{color:var(--cyan);font-weight:800;font-size:13px;letter-spacing:2px;}
+#ruleT{font-size:12px;color:var(--dim);line-height:1.7;margin-top:2px;}
+@keyframes blink{50%{opacity:.15}}
+.blinky{animation:blink 1.2s steps(2) infinite;}
+
+/* ---------- HUD ---------- */
+#hud{display:flex;align-items:center;gap:8px;padding:10px 12px 8px;font-size:12px;}
+#sndBtn,#quitBtn{background:var(--panel);border:2px solid var(--line);border-radius:4px;padding:4px 8px;font-size:13px;line-height:1;}
+#scoreWrap{position:relative;background:#0a0718;border:2px solid var(--line);border-radius:4px;padding:5px 8px;color:var(--dim);font-weight:800;letter-spacing:1px;}
+#score{color:var(--gold);font-variant-numeric:tabular-nums;margin-left:4px;}
+#comboBox{background:#0a0718;border:2px solid #6b3f13;border-radius:4px;padding:5px 8px;color:var(--gold);font-weight:900;}
+#qnum{margin-left:auto;color:var(--dim);font-weight:800;font-variant-numeric:tabular-nums;}
+.float{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-weight:900;font-size:14px;
+  animation:rise .9s ease forwards;pointer-events:none;white-space:nowrap;}
+.float.g{color:var(--gold);} .float.b{color:var(--bad);}
+@keyframes rise{to{transform:translate(-50%,-28px);opacity:0;}}
+#pbar{height:8px;background:#0a0718;border-top:2px solid #060412;border-bottom:2px solid #060412;}
+#pfill{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold));transition:width .3s;}
+
+/* ---------- quiz body ---------- */
+#qbody{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 14px calc(28px + env(safe-area-inset-bottom));}
+#mrow{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+@keyframes bob{50%{transform:translateY(-4px)}}
+#mwrap{animation:bob 2.4s ease-in-out infinite;flex:0 0 auto;line-height:0;}
+@keyframes jumpy{0%{transform:translateY(0)}30%{transform:translateY(-14px) scale(1.06)}60%{transform:translateY(2px)}100%{transform:translateY(0)}}
+.jump{animation:jumpy .5s ease;}
+@keyframes shakey{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.shake{animation:shakey .4s ease;}
+#bubble{position:relative;background:#0d0a1f;border:3px solid var(--line);color:var(--gold);
+  padding:9px 13px;border-radius:8px;font-weight:800;font-size:14px;letter-spacing:1px;}
+#bubble::before{content:"";position:absolute;left:-13px;top:50%;margin-top:-7px;border:7px solid transparent;border-right-color:var(--line);}
+
+#card{position:relative;background:var(--panel);border-radius:6px;padding:20px 14px 16px;margin-top:18px;}
+#lvBadge{position:absolute;top:-14px;right:10px;padding:5px 11px;font-weight:900;font-size:12px;letter-spacing:1px;
+  border:3px solid var(--edge);border-radius:4px;}
+#lvBadge.l4{background:var(--jade);color:#06281a;box-shadow:0 0 12px rgba(58,211,156,.45);}
+#lvBadge.l5{background:var(--red);color:#fff;box-shadow:0 0 12px rgba(232,67,63,.5);}
+#typeChip{position:absolute;top:-14px;left:10px;padding:5px 11px;font-weight:900;font-size:12px;letter-spacing:1px;
+  border:3px solid var(--edge);border-radius:4px;background:#0a0718;color:var(--cyan);}
+#qtext{font-size:15px;color:#cfc6ec;font-weight:700;line-height:1.55;margin-bottom:12px;}
+#wbox{background:#181233;border:2px dashed #4a4088;border-radius:6px;padding:12px;text-align:center;margin-bottom:14px;}
+#wtext{font-size:24px;font-weight:800;color:#fff;line-height:1.55;display:block;word-break:keep-all;}
+#wtext.small{font-size:17px;text-align:left;}
+#ttsBtn{margin-top:9px;font-size:12px;font-weight:800;background:#0a0718;color:var(--cyan);
+  border:2px solid #35547e;border-radius:4px;padding:5px 11px;letter-spacing:1px;}
+#ttsBtn:active{transform:translateY(2px);}
+
+#choices{display:flex;flex-direction:column;gap:10px;}
+.choice{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:var(--panel2);border:3px solid var(--edge);box-shadow:0 0 0 2px #4a4088, 0 5px 0 1px var(--edge);
+  color:var(--ink);padding:12px;border-radius:6px;font-size:16px;line-height:1.45;font-weight:600;}
+.choice:active{transform:translateY(3px);box-shadow:0 0 0 2px #4a4088, 0 2px 0 1px var(--edge);}
+.choice:disabled{transform:none;}
+.choice .key{flex:0 0 auto;min-width:27px;height:27px;display:grid;place-items:center;
+  background:#0a0718;color:var(--gold);border-radius:4px;font-weight:900;font-size:13px;padding:0 4px;}
+.choice .ct{flex:1;word-break:keep-all;}
+.choice.ok{background:#1c5a3d;box-shadow:0 0 0 2px var(--jade), 0 5px 0 1px var(--edge);}
+.choice.ok .key{color:var(--jade);}
+.choice.no{background:#69202c;box-shadow:0 0 0 2px var(--bad), 0 5px 0 1px var(--edge);}
+.choice.no .key{color:var(--bad);}
+.choice.dim{opacity:.4;}
+
+#feedback{margin-top:16px;animation:pop .25s ease;}
+@keyframes pop{from{transform:translateY(8px);opacity:0}}
+#fbBanner{font-size:21px;font-weight:900;letter-spacing:2px;}
+#fbBanner.g{color:var(--jade);text-shadow:0 0 14px rgba(58,211,156,.5);}
+#fbBanner.b{color:var(--bad);text-shadow:0 0 14px rgba(255,92,108,.4);}
+#fbAns{margin-top:6px;font-size:14px;font-weight:800;color:var(--gold);}
+#fbExp{background:#181233;border-left:4px solid var(--gold);padding:11px 12px;border-radius:4px;margin-top:10px;}
+#fbExp b{display:block;font-size:12px;letter-spacing:2px;color:var(--gold);margin-bottom:5px;}
+#expText{font-size:14.5px;line-height:1.65;color:#e6def0;word-break:keep-all;}
+#nextBtn{margin-top:14px;}
+
+/* ---------- result ---------- */
+#resInner{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:26px 18px calc(28px + env(safe-area-inset-bottom));gap:14px;}
+#resTitle{font-size:14px;letter-spacing:4px;color:var(--dim);font-weight:900;}
+#rankL{font-size:76px;font-weight:900;line-height:1;display:block;}
+.rk-S{color:var(--gold);text-shadow:0 0 26px rgba(255,209,74,.6), 0 5px 0 #6b4a08;}
+.rk-A{color:var(--jade);text-shadow:0 0 22px rgba(58,211,156,.55), 0 5px 0 #0f4d35;}
+.rk-B{color:var(--cyan);text-shadow:0 0 22px rgba(95,208,255,.5), 0 5px 0 #123f57;}
+.rk-C{color:#ffb04a;text-shadow:0 0 18px rgba(255,176,74,.45), 0 5px 0 #5c3a0d;}
+.rk-D{color:var(--dim);text-shadow:0 5px 0 #262040;}
+#rankMsg{font-size:14px;font-weight:800;color:var(--ink);line-height:1.6;}
+#resGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:340px;}
+.rcell{background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:9px 6px;}
+.rcell small{display:block;font-size:11px;color:var(--dim);font-weight:800;letter-spacing:1px;margin-bottom:3px;}
+.rcell b{font-size:16px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums;}
+#wrongBox{width:100%;max-width:340px;text-align:left;}
+#wrongTitle{font-size:13px;font-weight:900;letter-spacing:1px;color:var(--pink);margin-bottom:8px;}
+#wrongList{list-style:none;display:flex;flex-direction:column;gap:8px;}
+#wrongList li{background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:9px 10px;font-size:13px;line-height:1.55;}
+.wlv{display:inline-block;font-size:10px;font-weight:900;padding:2px 6px;border-radius:3px;margin-right:6px;vertical-align:1px;}
+.wlv.l4{background:var(--jade);color:#06281a;} .wlv.l5{background:var(--red);color:#fff;}
+.wq{font-weight:800;color:#fff;word-break:keep-all;}
+.wa{display:block;margin-top:3px;color:var(--dim);font-size:12px;}
+.wa em{font-style:normal;color:var(--jade);font-weight:800;}
+#resBtns{width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;}
+
+/* ---------- modal ---------- */
+#modal{position:fixed;inset:0;background:rgba(6,4,18,.72);display:grid;place-items:center;z-index:100;padding:20px;}
+.mbox{background:var(--panel);padding:20px 16px 16px;width:min(86vw,320px);text-align:center;}
+#mtext{font-size:15px;font-weight:800;line-height:1.6;margin-bottom:16px;}
+.mbtns{display:flex;gap:10px;}
+.mbtns .btn{padding:11px 8px;font-size:14px;}
+
+@media (max-height:700px){
+  #logo{font-size:44px;} #logo span{font-size:21px;}
+  #mas-start{width:104px;height:104px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important;}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="scanlines"></div>
+
+  <!-- START -->
+  <section id="scr-start" class="screen on">
+    <div id="startInner">
+      <div>
+        <canvas id="mas-start" class="mas"></canvas>
+        <h1 id="logo">HSK<span>아케이드</span></h1>
+        <p id="subT">🏮 汉语大挑战 · HSK 4~5급 실전 150제 🏮</p>
+      </div>
+      <div id="modeBox">
+        <p id="pressT" class="blinky">▼ 도전 모드를 골라줘 ▼</p>
+        <button class="btn gold mode" data-mode="all">전체 도전<span class="cnt" id="cnt-all"></span></button>
+        <button class="btn mode" data-mode="4">HSK 4급만<span class="cnt" id="cnt-4"></span></button>
+        <button class="btn mode" data-mode="5">HSK 5급만<span class="cnt" id="cnt-5"></span></button>
+        <p id="ruleT">보기를 고르면 즉시 정답 · 해설 공개!<br>연속 정답 COMBO로 보너스 점수 🔥</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="scr-quiz" class="screen">
+    <header id="hud">
+      <button id="sndBtn" aria-label="sound">🔊</button>
+      <div id="scoreWrap">SCORE<b id="score">000000</b></div>
+      <div id="comboBox" class="hide">⚡<b id="combo">0</b></div>
+      <div id="qnum">1/150</div>
+      <button id="quitBtn" aria-label="quit">■ 그만</button>
+    </header>
+    <div id="pbar"><i id="pfill"></i></div>
+    <main id="qbody">
+      <div id="mrow">
+        <div id="mwrap"><canvas id="mas-quiz" class="mas"></canvas></div>
+        <div id="bubble">你好! 준비됐어?</div>
+      </div>
+      <div id="card" class="px">
+        <span id="typeChip">어휘</span>
+        <span id="lvBadge" class="l4">HSK 4급</span>
+        <p id="qtext"></p>
+        <div id="wbox">
+          <span id="wtext"></span>
+          <button id="ttsBtn">▶ 发音 듣기</button>
+        </div>
+        <div id="choices"></div>
+        <div id="feedback" class="hide">
+          <div id="fbBanner"></div>
+          <div id="fbAns"></div>
+          <div id="fbExp"><b>💡 해설</b><p id="expText"></p></div>
+          <button id="nextBtn" class="btn gold">다음 문제 ▶</button>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- RESULT -->
+  <section id="scr-result" class="screen">
+    <div id="resInner">
+      <p id="resTitle">— RESULT —</p>
+      <canvas id="mas-res" class="mas"></canvas>
+      <span id="rankL" class="rk-S">S</span>
+      <p id="rankMsg"></p>
+      <div id="resGrid">
+        <div class="rcell"><small>SCORE</small><b id="resScore">0</b></div>
+        <div class="rcell"><small>정답률</small><b id="resAcc">-</b></div>
+        <div class="rcell"><small>최대 콤보</small><b id="resCombo">-</b></div>
+        <div class="rcell"><small>걸린 시간</small><b id="resTime">-</b></div>
+        <div class="rcell"><small>HSK 4급</small><b id="res4">-</b></div>
+        <div class="rcell"><small>HSK 5급</small><b id="res5">-</b></div>
+      </div>
+      <div id="wrongBox">
+        <p id="wrongTitle"></p>
+        <ul id="wrongList"></ul>
+      </div>
+      <div id="resBtns">
+        <button id="againBtn" class="btn gold">다시 도전 ▶</button>
+        <button id="homeBtn" class="btn">처음으로</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL -->
+  <div id="modal" class="hide">
+    <div class="mbox px">
+      <p id="mtext">여기서 멈추고<br>지금까지의 결과를 볼까?</p>
+      <div class="mbtns">
+        <button id="mNo" class="btn">계속 풀기</button>
+        <button id="mYes" class="btn gold">결과 보기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ pixel mascot (중국풍 판다) ============ */
+var PALETTE={K:"#1d1d24",W:"#f8f3e7",R:"#e8433f",r:"#b92f2f",Y:"#ffd14a",P:"#ff9aa3",B:"#8fd8ff"};
+var BASE_MAP=[
+"...........YY...........",
+"...........YY...........",
+".........RRRRRR.........",
+"........RRRRRRRr........",
+".......RRRRRRRRrr.......",
+"......RRRRRRRRRrrr......",
+"...KKKYYYYYYYYYYYYKKK...",
+"..KKKWWWWWWWWWWWWWWKKK..",
+"..KKWWWWWWWWWWWWWWWWKK..",
+"....WWWKKKWWWWKKKWWW....",
+"....WWKKWKWWWWKWKKWW....",
+"....WWKKKKWWWWKKKKWW....",
+"....PPWKKWWKKWWKKWPP....",
+"....WWWWWWKWWKWWWWWW....",
+"....WWWWWWWKKWWWWWWW....",
+".....WWWWWWWWWWWWWW.....",
+".......RRRYYYYRRR.......",
+"....KKRRRRRRRRRRRrKK....",
+"....KKRRRRRYYRRRRrKK....",
+"....KKRRRRRRRRRRRrKK....",
+"......RRRRRYYRRRRr......",
+"......YYYYYYYYYYYY......",
+".......KKK....KKK.......",
+".......KKK....KKK......."
+];
+var MOODS={
+ idle:[],
+ blink:[[10,8,"K"],[10,15,"K"]],
+ happy:[[10,8,"K"],[10,15,"K"],[9,8,"W"],[10,7,"W"],[10,9,"W"],[9,15,"W"],[10,14,"W"],[10,16,"W"],[13,11,"K"],[13,12,"K"],[14,11,"R"],[14,12,"R"]],
+ sad:[[10,8,"K"],[10,15,"K"],[11,8,"W"],[11,15,"W"],[12,9,"B"],[12,14,"B"],[13,10,"W"],[13,13,"W"],[13,11,"K"],[13,12,"K"],[14,11,"W"],[14,12,"W"],[14,10,"K"],[14,13,"K"]]
+};
+function paintMascot(cv,mood){
+  var S=8, g=cv.getContext("2d");
+  cv.width=24*S; cv.height=24*S;
+  g.clearRect(0,0,cv.width,cv.height);
+  var grid=BASE_MAP.map(function(r){return r.split("");});
+  (MOODS[mood]||[]).forEach(function(o){grid[o[0]][o[1]]=o[2];});
+  for(var y=0;y<24;y++)for(var x=0;x<24;x++){
+    var ch=grid[y][x]; if(ch==="."||!PALETTE[ch])continue;
+    g.fillStyle=PALETTE[ch]; g.fillRect(x*S,y*S,S,S);
+  }
+}
+/* ============ helpers ============ */
+function shuffled(a){var r=a.slice();for(var i=r.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=r[i];r[i]=r[j];r[j]=t;}return r;}
+function calcGain(streak){return 100+Math.min(streak,10)*10;}
+function rankOf(acc){return acc>=0.95?"S":acc>=0.85?"A":acc>=0.7?"B":acc>=0.5?"C":"D";}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function fmtTime(ms){var s=Math.floor(ms/1000);return Math.floor(s/60)+"분 "+String(s%60).padStart(2,"0")+"초";}
+/* ============ sound (WebAudio) ============ */
+var AC=null, muted=false;
+function ac(){
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){AC=null;}}
+  if(AC&&AC.state==="suspended"){try{AC.resume();}catch(e){}}
+  return AC;
+}
+function tone(f,d,type,vol,t0){
+  var a=ac(); if(!a||muted)return;
+  try{
+    var o=a.createOscillator(), g=a.createGain();
+    o.type=type||"square"; o.frequency.value=f;
+    var t=a.currentTime+(t0||0);
+    g.gain.setValueAtTime(vol||0.12,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+d);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t+d+0.02);
+  }catch(e){}
+}
+function sClick(){tone(520,0.06,"square",0.07);}
+function sOk(){tone(660,0.09,"square",0.11);tone(990,0.12,"square",0.11,0.09);}
+function sCombo(){tone(523,0.08,"square",0.11);tone(659,0.08,"square",0.11,0.08);tone(784,0.1,"square",0.11,0.16);tone(1047,0.14,"square",0.11,0.24);}
+function sNo(){tone(220,0.12,"sawtooth",0.09);tone(150,0.2,"sawtooth",0.09,0.1);}
+function sEnd(){[523,659,784,1047].forEach(function(f,i){tone(f,0.12,"triangle",0.11,i*0.12);});}
+function speak(txt){
+  try{
+    if(!("speechSynthesis" in window))return;
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(String(txt).replace(/___/g," "));
+    u.lang="zh-CN"; u.rate=0.85;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+/* ============ QUESTIONS (150) ============ */
+var QUESTIONS=[
+/* ---- A. HSK4 어휘 (30) ---- */
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"打折",c:["할인하다","계산하다","포장하다","환불하다"],a:0,e:"打折(dǎzhé) = 할인하다. 예) 这件衣服打八折。(이 옷은 20% 할인이다.) ※八折 = 정가의 80% 가격"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"抱歉",c:["미안해하다","감사하다","축하하다","부러워하다"],a:0,e:"抱歉(bàoqiàn) = 미안해하다, 죄송합니다. 예) 很抱歉,我来晚了。(늦어서 정말 죄송해요.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"毕业",c:["졸업하다","입학하다","유학하다","퇴근하다"],a:0,e:"毕业(bìyè) = 졸업하다. 이합사라서 목적어를 바로 뒤에 못 붙이고 「大学毕业 / 从大学毕业」처럼 쓴다."},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"出差",c:["출장 가다","이사하다","출발하다","퇴근하다"],a:0,e:"出差(chūchāi) = 출장 가다. 예) 他去上海出差了。(그는 상하이로 출장 갔다.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"堵车",c:["차가 막히다","주차하다","세차하다","차를 빌리다"],a:0,e:"堵车(dǔchē) = 길이 막히다. 예) 路上堵车,我迟到了。(길이 막혀서 지각했다.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"放弃",c:["포기하다","연기하다","완성하다","방학하다"],a:0,e:"放弃(fàngqì) = 포기하다. 예) 别放弃,再试一次!(포기하지 말고 한 번 더 해 봐!)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"鼓励",c:["격려하다","비판하다","거절하다","명령하다"],a:0,e:"鼓励(gǔlì) = 격려하다. 예) 老师鼓励我们多说汉语。(선생님은 우리에게 중국어를 많이 말하라고 격려하신다.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"后悔",c:["후회하다","오해하다","기대하다","걱정하다"],a:0,e:"后悔(hòuhuǐ) = 후회하다. 예) 我后悔没听你的话。(네 말을 안 들은 걸 후회해.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"拒绝",c:["거절하다","수락하다","신청하다","약속하다"],a:0,e:"拒绝(jùjué) = 거절하다. 예) 他拒绝了我的邀请。 반의어는 接受(받아들이다)."},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"浪费",c:["낭비하다","절약하다","저축하다","(돈을) 벌다"],a:0,e:"浪费(làngfèi) = 낭비하다. 예) 别浪费时间。(시간 낭비하지 마.) 반의어는 节约(절약하다)."},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"麻烦",c:["번거롭다","편리하다","간단하다","한가하다"],a:0,e:"麻烦(máfan) = 번거롭다, 귀찮다. 부탁할 때 「麻烦你…(수고스럽지만 …해 주세요)」로도 자주 쓴다."},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"免费",c:["무료이다","할인하다","유료이다","환불하다"],a:0,e:"免费(miǎnfèi) = 무료이다. 예) 这个博物馆免费参观。(이 박물관은 무료 관람이다.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"耐心",c:["인내심","자신감","호기심","책임감"],a:0,e:"耐心(nàixīn) = 인내심, 참을성. 예) 他对孩子很有耐心。 ※자신감=信心, 호기심=好奇心"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"排队",c:["줄을 서다","자리를 맡다","표를 사다","길을 묻다"],a:0,e:"排队(páiduì) = 줄을 서다. 예) 很多人在排队买票。(많은 사람이 줄 서서 표를 사고 있다.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"骗",c:["속이다","훔치다","숨기다","잃어버리다"],a:0,e:"骗(piàn) = 속이다. 예) 你别骗我!(날 속이지 마!) 骗子 = 사기꾼"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"缺点",c:["단점","장점","특징","요점"],a:0,e:"缺点(quēdiǎn) = 단점, 결점. 반의어 优点(yōudiǎn) = 장점."},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"商量",c:["상의하다","명령하다","보고하다","계산하다"],a:0,e:"商量(shāngliang) = 상의하다, 의논하다. 예) 这件事我得跟家人商量一下。"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"剩",c:["남다","부족하다","사라지다","늘어나다"],a:0,e:"剩(shèng) = 남다. 예) 冰箱里只剩两个鸡蛋了。(냉장고에 계란 두 개만 남았다.) 剩下 = 남아 있다"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"失败",c:["실패하다","성공하다","포기하다","도전하다"],a:0,e:"失败(shībài) = 실패하다. 반의어 成功(chénggōng). 속담: 失败是成功之母。(실패는 성공의 어머니)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"顺利",c:["순조롭다","복잡하다","위험하다","곤란하다"],a:0,e:"顺利(shùnlì) = 순조롭다. 예) 祝你考试顺利!(시험 잘 봐!)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"提醒",c:["(잊지 않게) 일깨워 주다","잊어버리다","물어보다","대답하다"],a:0,e:"提醒(tíxǐng) = 일깨우다, 상기시키다. 예) 到时间请提醒我一下。(시간 되면 알려 줘.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"推迟",c:["연기하다","앞당기다","취소하다","서두르다"],a:0,e:"推迟(tuīchí) = (시간을) 미루다, 연기하다. 예) 会议推迟到下周。 앞당기다 = 提前"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"误会",c:["오해하다","이해하다","후회하다","회의하다"],a:0,e:"误会(wùhuì) = 오해(하다). 예) 你别误会,我不是那个意思。(오해하지 마, 그런 뜻이 아니야.)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"羡慕",c:["부러워하다","질투하다","존경하다","무시하다"],a:0,e:"羡慕(xiànmù) = 부러워하다(긍정적 뉘앙스). 예) 真羡慕你会说三种语言。 ※질투하다 = 嫉妒(jídù)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"修理",c:["수리하다","청소하다","설치하다","정리하다"],a:0,e:"修理(xiūlǐ) = 수리하다, 고치다. 예) 我的电脑坏了,得拿去修理。"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"邀请",c:["초대하다","방문하다","요구하다","환영하다"],a:0,e:"邀请(yāoqǐng) = 초대하다, 초청하다. 예) 谢谢你邀请我参加晚会。"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"原谅",c:["용서하다","사과하다","감사하다","오해하다"],a:0,e:"原谅(yuánliàng) = 용서하다. 예) 请原谅我的错误。 ※사과하다 = 道歉(dàoqiàn)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"赚",c:["(돈을) 벌다","(돈을) 쓰다","(돈을) 빌리다","(돈을) 모으다"],a:0,e:"赚(zhuàn) = (돈을) 벌다. 예) 赚钱不容易。(돈 벌기 쉽지 않다.) 반의어 赔(péi) = 손해 보다"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"仔细",c:["꼼꼼하다","덜렁대다","게으르다","성급하다"],a:0,e:"仔细(zǐxì) = 꼼꼼하다, 자세하다. 예) 请仔细看题。(문제를 꼼꼼히 보세요.) 반의어 粗心(cūxīn)"},
+{lv:4,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"及时",c:["제때에","가끔씩","천천히","나중에"],a:0,e:"及时(jíshí) = 제때에, 시기적절하게. 예) 幸好及时发现了问题。(다행히 제때 문제를 발견했다.)"},
+/* ---- B. HSK4 어법 (25) ---- */
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"他游泳游___非常好。",c:["得","的","地","了"],a:0,e:"동사 뒤에서 정도를 나타내는 정도보어 앞에는 구조조사 得(de)를 쓴다. 他游泳游得非常好。(그는 수영을 아주 잘한다.)"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"她正在认真___准备考试。",c:["地","得","的","着"],a:0,e:"부사어(형용사)가 동사를 꾸밀 때는 地(de). 认真地准备 = 열심히 준비하다. ※的=명사 수식, 得=보어 연결"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"这是我昨天买___那本书。",c:["的","得","地","了"],a:0,e:"명사를 수식하는 관형어 뒤에는 的(de). 我买的书 = 내가 산 책."},
+{lv:4,t:"어법",q:"다음 중 어순이 올바른 문장은?",c:["我把作业做完了。","我做完把作业了。","我把做完作业了。","把我作业做完了。"],a:0,e:"把자문 어순: 주어 + 把 + 목적어 + 동사 + 기타성분. → 我把作业做完了。(나는 숙제를 다 했다.)"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"我的自行车___人骑走了。",c:["被","把","从","向"],a:0,e:"피동을 나타내는 被자문: 주어(대상) + 被 + 행위자 + 동사 + 기타성분. 我的自行车被人骑走了。(내 자전거를 누가 타고 가 버렸다.)"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"这部电影真不错,我想___看一遍。",c:["再","又","才","却"],a:0,e:"再: 아직 일어나지 않은(미래의) 반복. 再看一遍 = 한 번 더 보다. 이미 일어난 반복에는 又를 쓴다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"他昨天来过,今天___来了。",c:["又","再","就","还是"],a:0,e:"又: 이미 발생한 동작의 반복(과거). 今天又来了 = 오늘 또 왔다. ※미래의 반복은 再"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"电影八点开始,他七点半___到了。",c:["就","才","再","又"],a:0,e:"就: 생각보다 이르거나 빠름을 강조. 七点半就到了 = 7시 반에 벌써 도착했다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"电影八点开始,他八点半___到。",c:["才","就","再","也"],a:0,e:"才: 생각보다 늦음을 강조. 八点半才到 = 8시 반에야 (겨우) 도착했다. ※才 뒤에는 보통 了를 붙이지 않는다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"作业太多了,今天晚上我写不___。",c:["完","懂","见","开"],a:0,e:"가능보어 부정형 「写不完」 = 다 쓸 수 없다. 完은 동작이 끝까지 완료됨을 나타내는 결과보어다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"老师说得太快,我没听___。",c:["懂","完","见","住"],a:0,e:"听懂 = 듣고 이해하다 → 没听懂 = 못 알아들었다. ※听见/听到는 「소리가 들렸는지」, 听懂은 「내용을 이해했는지」."},
+{lv:4,t:"어법",q:"밖에 있는 친구에게 방 안에서 말하고 있다. 빈칸에 들어갈 말은?",w:"外面冷,快进___吧!",c:["来","去","上","下"],a:0,e:"말하는 사람이 안에 있으므로, 화자 쪽으로 다가오는 방향보어 来를 쓴다. 进来 = 들어오다 / 进去 = (밖에서 안으로) 들어가다"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 양사로 알맞은 것은?",w:"我昨天买了一___裤子。",c:["条","件","张","双"],a:0,e:"바지·치마·강·길처럼 가늘고 긴 것에는 양사 条(tiáo). 一条裤子 = 바지 한 벌. ※件은 상의·옷·일"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 양사로 알맞은 것은?",w:"妈妈给我买了一___新鞋。",c:["双","条","张","支"],a:0,e:"쌍을 이루는 것(신발·양말·젓가락)에는 双(shuāng). 一双鞋 = 신발 한 켤레."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 양사로 알맞은 것은?",w:"昨天夜里下了一___大雨。",c:["场","件","张","座"],a:0,e:"비·눈·시합·공연 등에는 양사 场(cháng). 一场大雨 = 한바탕 큰 비."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"他___下课就去图书馆看书。",c:["一","刚","才","再"],a:0,e:"一A就B: A하자마자 곧 B하다. 一下课就去图书馆 = 수업이 끝나자마자 도서관에 간다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"冬天到了,天气越来越___了。",c:["冷","很冷","非常冷","冷极"],a:0,e:"越来越 + 형용사: 점점 ~해지다. 이때 형용사 앞에 很·非常 같은 정도부사를 함께 쓸 수 없다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"除了小王___,我们都去过长城。",c:["以外","以来","之间","左右"],a:0,e:"除了A以外,都B: A를 제외하고 모두 B하다. 除了小王以外 = 샤오왕만 빼고."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"她不但会说英语,___会说法语。",c:["而且","但是","所以","或者"],a:0,e:"不但A,而且B: A일 뿐만 아니라 B이기도 하다(점층). 뒤에 还/也가 같이 오는 경우도 많다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"只有努力学习,___能取得好成绩。",c:["才","就","都","却"],a:0,e:"只有A,才B: 오직 A해야만 비로소 B하다(유일 조건). 只要…就(충분 조건)와 짝을 구별할 것!"},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"只要你认真准备,___一定能通过考试。",c:["就","才","再","却"],a:0,e:"只要A,就B: A하기만 하면 B하다(충분 조건). 열심히 준비하기만 하면 꼭 합격할 수 있다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"___价格有点儿贵,但是质量非常好。",c:["虽然","因为","如果","既然"],a:0,e:"虽然A,但是B: 비록 A하지만 B하다(양보·전환). 값은 좀 비싸지만 품질이 아주 좋다."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"这个字太难了,___老师都不认识。",c:["连","对","把","被"],a:0,e:"连A都/也B: A조차도 B하다(극단 예시 강조). 连老师都不认识 = 선생님조차 모른다."},
+{lv:4,t:"어법",q:"다음 중 올바른 문장은?",c:["我想跟他见面。","我想见面他。","我想见面跟他。","我想他见面。"],a:0,e:"见面은 「见(동사)+面(목적어)」 구조의 이합사라 뒤에 목적어를 둘 수 없다. 사람을 나타낼 때는 跟/和 + 사람 + 见面."},
+{lv:4,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"你___什么时候来中国的?",c:["是","在","从","被"],a:0,e:"是…的 강조구문: 이미 일어난 일의 시간·장소·방식을 강조. 你是什么时候来中国的? = 너 언제 중국에 온 거야?"},
+/* ---- C. HSK4 유의어/반의어 (10) ---- */
+{lv:4,t:"어휘",q:"「复杂」의 반의어로 알맞은 것은?",w:"复杂",c:["简单","容易","方便","清楚"],a:0,e:"复杂(복잡하다) ↔ 简单(간단하다). 容易(쉽다)의 반의어는 难(어렵다)이다."},
+{lv:4,t:"어휘",q:"「危险」의 반의어로 알맞은 것은?",w:"危险",c:["安全","放心","顺利","健康"],a:0,e:"危险(위험하다) ↔ 安全(안전하다). 예) 注意安全!(안전에 주의하세요!)"},
+{lv:4,t:"어휘",q:"「失败」의 반의어로 알맞은 것은?",w:"失败",c:["成功","结束","努力","发展"],a:0,e:"失败(실패하다) ↔ 成功(성공하다)."},
+{lv:4,t:"어휘",q:"「增加」의 반의어로 알맞은 것은?",w:"增加",c:["减少","降低","缩短","减肥"],a:0,e:"增加(늘리다) ↔ 减少(줄이다). 降低(낮추다)는 提高(높이다)와 짝이다."},
+{lv:4,t:"어휘",q:"「节约」의 반의어로 알맞은 것은?",w:"节约",c:["浪费","免费","花钱","购物"],a:0,e:"节约(절약하다) ↔ 浪费(낭비하다). 예) 节约用水 = 물을 아껴 쓰다"},
+{lv:4,t:"어휘",q:"「马上」과 뜻이 가장 가까운 것은?",w:"马上",c:["立刻","已经","常常","慢慢"],a:0,e:"马上 ≈ 立刻 = 곧, 즉시. 예) 我马上就到。= 我立刻就到。(금방 도착해.)"},
+{lv:4,t:"어휘",q:"부사 「特别」와 뜻이 가장 가까운 것은?",w:"特别",c:["非常","普通","一般","平时"],a:0,e:"부사 特别 ≈ 非常 = 아주, 매우. 예) 今天特别热 = 今天非常热"},
+{lv:4,t:"어휘",q:"「美丽」와 뜻이 가장 가까운 것은?",w:"美丽",c:["漂亮","干净","可爱","年轻"],a:0,e:"美丽 ≈ 漂亮 = 아름답다, 예쁘다. 美丽는 좀 더 문어적인 느낌."},
+{lv:4,t:"어휘",q:"「著名」과 뜻이 가장 가까운 것은?",w:"著名",c:["有名","优秀","流行","热闹"],a:0,e:"著名 ≈ 有名 = 유명하다. 예) 著名的作家 = 有名的作家(유명한 작가)"},
+{lv:4,t:"어휘",q:"「输」의 반의어로 알맞은 것은?",w:"输",c:["赢","得","成","过"],a:0,e:"输(shū, 지다) ↔ 赢(yíng, 이기다). 예) 这场比赛我们赢了!(이번 경기 우리가 이겼어!)"},
+/* ---- D. HSK4 독해 (10) ---- */
+{lv:4,t:"독해",q:"샤오리(小李)가 사과한 이유는?",w:"小李对小张说:“真不好意思,我把你的书忘在家里了,明天一定带来。”",c:["친구의 책을 안 가져와서","친구의 책을 잃어버려서","약속 시간에 늦어서","친구의 책을 찢어서"],a:0,e:"把你的书忘在家里了 = 네 책을 깜빡하고 집에 두고 왔다. 잃어버린 것(丢)이 아니라 두고 온 것(忘)이다."},
+{lv:4,t:"독해",q:"이 문장에서 알 수 있는 것은?",w:"这家餐厅的菜又好吃又便宜,所以总是有很多人排队。",c:["이 식당은 인기가 많다","이 식당은 곧 문을 닫는다","음식 값이 비싸다","종업원이 불친절하다"],a:0,e:"又A又B = A하기도 하고 B하기도 하다. 맛있고 저렴해서 늘 많은 사람이 줄을 선다 → 인기가 많다."},
+{lv:4,t:"독해",q:"화자가 하려는 일은?",w:"天气预报说明天有大雨,我们把运动会推迟到下星期吧。",c:["운동회를 다음 주로 미루기","운동회를 취소하기","내일 소풍 가기","우산 사러 가기"],a:0,e:"推迟到下星期 = 다음 주로 연기하다. 取消(취소하다)와 구별할 것."},
+{lv:4,t:"독해",q:"이 말의 뜻으로 알맞은 것은?",w:"别看他年龄小,画儿画得比大人还好。",c:["그는 어리지만 그림을 아주 잘 그린다","그는 나이가 많은 편이다","어른들이 그림을 더 잘 그린다","그는 그림에 관심이 없다"],a:0,e:"别看A,B = A라고 얕보지 마라, 사실은 B다. 比大人还好 = 어른보다도 더 잘 그린다."},
+{lv:4,t:"독해",q:"왕 매니저(王经理)는 지금 무엇을 하고 있나?",w:"“喂,您好!请问王经理在吗?” “他正在开会,您一个小时以后再打来吧。”",c:["회의를 하고 있다","전화를 받고 있다","출장을 가 있다","이미 퇴근했다"],a:0,e:"正在开会 = 지금 회의 중이다. 正在 + 동사 = ~하는 중이다(진행)."},
+{lv:4,t:"독해",q:"화자는 지금 무엇을 하고 있나?",w:"这条裙子样子不错,就是有点儿贵,能便宜一点儿吗?",c:["값을 깎으려 한다","환불하려 한다","치마를 교환하려 한다","옷을 수선하려 한다"],a:0,e:"能便宜一点儿吗? = 좀 싸게 해 줄 수 있나요?(흥정) 就是 = 다만, 단지."},
+{lv:4,t:"독해",q:"화자는 결국 무엇을 타고 가기로 했나?",w:"我本来打算坐飞机去,后来觉得坐高铁更方便,就改变主意了。",c:["고속철도","비행기","버스","배"],a:0,e:"本来…后来… = 원래는 ~였는데 나중에는 ~. 改变主意 = 생각을 바꾸다 → 고속철(高铁)로 결정했다."},
+{lv:4,t:"독해",q:"화자가 말하려는 것은?",w:"小心点儿,地上很滑,昨天就有人在这儿摔倒了。",c:["바닥이 미끄러우니 조심해라","길을 알려 달라","어제 일을 축하한다","도와줘서 고맙다"],a:0,e:"滑 = 미끄럽다, 摔倒 = 넘어지다. 어제 넘어진 사람도 있으니 조심하라는 주의의 말."},
+{lv:4,t:"독해",q:"화자의 기분으로 알맞은 것은?",w:"你怎么才来?我们等了你半天,电影都开始十分钟了!",c:["불만스럽다","기쁘다","부럽다","감동했다"],a:0,e:"怎么才来? = 왜 이제야 와? 才가 「늦음」에 대한 불만을 나타낸다. 半天 = 한참 동안."},
+{lv:4,t:"독해",q:"이 글의 내용과 일치하는 것은?",w:"这次考试小明得了满分,老师在全班同学面前表扬了他。",c:["샤오밍은 시험에서 만점을 받았다","샤오밍은 시험에 떨어졌다","선생님이 샤오밍을 혼냈다","샤오밍은 시험에 결석했다"],a:0,e:"满分 = 만점, 表扬 = 칭찬하다(↔批评 비판하다). 반 친구들 앞에서 칭찬을 받았다."},
+/* ---- E. HSK5 어휘 (30) ---- */
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"熬夜",c:["밤을 새다","늦잠을 자다","일찍 자다","꿈을 꾸다"],a:0,e:"熬夜(áoyè) = 밤새다, 밤을 새우다. 예) 为了写报告,他熬了一夜。(보고서 때문에 밤을 꼬박 새웠다.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"抱怨",c:["불평하다","칭찬하다","사과하다","포옹하다"],a:0,e:"抱怨(bàoyuàn) = 원망하다, 불평하다. 예) 他总是抱怨工作太多。 ※抱(안다)가 들어 있지만 「포옹」과는 무관!"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"避免",c:["피하다","참가하다","허락하다","준비하다"],a:0,e:"避免(bìmiǎn) = (나쁜 일을) 피하다, 면하다. 예) 避免浪费 / 避免同样的错误"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"辞职",c:["사직하다","취직하다","승진하다","지각하다"],a:0,e:"辞职(cízhí) = 직장을 그만두다, 사직하다. 예) 他上个月辞职了。 ※취직하다 = 找到工作/就业"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"吃亏",c:["손해를 보다","이득을 보다","배가 부르다","입맛이 없다"],a:0,e:"吃亏(chīkuī) = 손해를 보다. 예) 不懂法律容易吃亏。 ※吃가 들어가지만 「먹다」와는 무관한 관용 표현."},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"出色",c:["뛰어나다","평범하다","창백하다","화려하다"],a:0,e:"出色(chūsè) = 뛰어나다, 훌륭하다. 예) 他的表现非常出色。(그의 활약은 매우 뛰어났다.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"促进",c:["촉진하다","방해하다","금지하다","감소시키다"],a:0,e:"促进(cùjìn) = 촉진하다, 촉진시키다. 예) 运动能促进健康。(운동은 건강을 촉진한다.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"耽误",c:["(시간을 끌어) 그르치다","서두르다","도와주다","기억하다"],a:0,e:"耽误(dānwu) = 시간을 지체해 일을 그르치다, 지장을 주다. 예) 别耽误时间了,快走吧。/ 耽误学习"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"独特",c:["독특하다","평범하다","외롭다","흔하다"],a:0,e:"独特(dútè) = 독특하다. 예) 这家店的设计很独特。 ※외롭다 = 孤独(gūdú)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"发愁",c:["걱정하다","화를 내다","자랑하다","출발하다"],a:0,e:"发愁(fāchóu) = 근심하다, 걱정하다. 예) 他正为找工作发愁呢。(그는 취직 걱정을 하고 있다.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"改善",c:["개선하다","악화시키다","개업하다","반성하다"],a:0,e:"改善(gǎishàn) = 개선하다. 예) 改善生活 / 改善关系(관계를 개선하다)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"干脆",c:["(말·행동이) 시원시원하다","우유부단하다","건조하다","바삭바삭하다"],a:0,e:"干脆(gāncuì) = 시원스럽다, 명쾌하다. 부사로는 「아예, 차라리」. 예) 他回答得很干脆。/ 干脆别去了。"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"感激",c:["깊이 감사하다","자극하다","후회하다","감동시키다"],a:0,e:"感激(gǎnjī) = (마음 깊이) 감사하다, 감격하다. 예) 非常感激你的帮助。 ※자극하다 = 刺激(cìjī)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"果然",c:["과연·역시나","뜻밖에도","만약에","오히려"],a:0,e:"果然(guǒrán) = 과연, 생각했던 대로. 예) 天气预报说有雨,下午果然下了。 ※「뜻밖에도」는 居然/竟然"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"珍惜",c:["소중히 여기다","낭비하다","잊어버리다","포기하다"],a:0,e:"珍惜(zhēnxī) = 소중히 여기다, 아끼다. 예) 珍惜时间 / 珍惜这次机会(이 기회를 소중히 하다)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"慌张",c:["당황하다","침착하다","과장하다","거짓말하다"],a:0,e:"慌张(huāngzhāng) = 당황하다, 허둥대다. 예) 别慌张,慢慢说。 반의어는 冷静·镇静(침착하다)."},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"恢复",c:["회복하다","반복하다","후회하다","대답하다"],a:0,e:"恢复(huīfù) = 회복하다. 예) 他的身体已经恢复了。 ※반복하다 = 重复, 답장하다 = 回复(huífù) 발음 주의!"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"淘气",c:["장난이 심하다","얌전하다","부지런하다","겁이 많다"],a:0,e:"淘气(táoqì) = (아이가) 장난꾸러기다, 짓궂다. 예) 这孩子太淘气了。(이 아이는 정말 개구쟁이야.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"尽量",c:["가능한 한·되도록","마음껏","반드시","겨우"],a:0,e:"尽量(jǐnliàng) = 가능한 한, 되도록. 예) 我会尽量早点儿来。 ※마음껏 = 尽情(jìnqíng)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"竟然",c:["뜻밖에도","당연히","과연","여전히"],a:0,e:"竟然(jìngrán) = 뜻밖에도, 놀랍게도(= 居然). 예) 他竟然把这件事忘了。(그가 이 일을 잊다니!)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"夸",c:["칭찬하다","비웃다","꾸짖다","무시하다"],a:0,e:"夸(kuā) = 칭찬하다(= 夸奖). 예) 老师夸他进步很大。 ※夸张(kuāzhāng) = 과장하다"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"浪漫",c:["낭만적이다","사치스럽다","게으르다","산만하다"],a:0,e:"浪漫(làngmàn) = 낭만적이다, 로맨틱하다. 예) 一个浪漫的夜晚(낭만적인 밤)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"利用",c:["이용하다·활용하다","절약하다","교환하다","수리하다"],a:0,e:"利用(lìyòng) = 이용하다, 활용하다. 예) 利用周末时间学汉语。(주말 시간을 활용해 중국어를 공부하다.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"佩服",c:["감탄하다·탄복하다","복종하다","착용하다","질투하다"],a:0,e:"佩服(pèifú) = 탄복하다, 존경스럽다. 예) 我真佩服你的勇气。(네 용기에 정말 감탄했어.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"谦虚",c:["겸손하다","거만하다","허약하다","소심하다"],a:0,e:"谦虚(qiānxū) = 겸손하다. 반의어 骄傲(jiāo'ào) = 거만하다. 예) 他很谦虚,从不夸自己。"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"悄悄",c:["살며시·몰래","시끄럽게","천천히","급하게"],a:0,e:"悄悄(qiāoqiāo) = 조용히, 살그머니, 몰래. 예) 他悄悄地走了出去。(그는 살며시 걸어 나갔다.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"缺乏",c:["부족하다·결핍되다","넘쳐나다","피곤하다","벌을 받다"],a:0,e:"缺乏(quēfá) = 결핍되다, 모자라다. 예) 缺乏经验(경험이 부족하다) / 缺乏自信"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"舍不得",c:["아쉬워서 ~하지 못하다","기꺼이 ~하다","참을 수 없다","어쩔 수 없다"],a:0,e:"舍不得(shěbude) = 아까워서/아쉬워서 차마 ~하지 못하다. 예) 真舍不得离开你们。 반의어 舍得"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"熟练",c:["능숙하다","서투르다","(과일이) 익다","연습하다"],a:0,e:"熟练(shúliàn) = 능숙하다, 숙련되다. 예) 他能熟练地使用电脑。(그는 컴퓨터를 능숙하게 다룬다.)"},
+{lv:5,t:"어휘",q:"다음 단어의 뜻으로 알맞은 것은?",w:"犹豫",c:["망설이다","결단하다","한가롭다","우울하다"],a:0,e:"犹豫(yóuyù) = 주저하다, 망설이다. 예) 别犹豫了,快决定吧!(망설이지 말고 얼른 결정해!)"},
+/* ---- F. HSK5 어법/유의어 구별 (25) ---- */
+{lv:5,t:"어법",q:"다음 중 「忽然」의 쓰임이 잘못된 문장은?",c:["这件事发生得很忽然。","他忽然站了起来。","忽然,门开了。","天忽然黑了。"],a:0,e:"忽然은 부사로만 쓰여 很의 수식을 받을 수 없다. 「발생이 갑작스러웠다」처럼 형용사가 필요할 땐 突然을 써서 发生得很突然이라고 해야 한다."},
+{lv:5,t:"어법",q:"다음 중 「往往」의 쓰임이 잘못된 문장은?",c:["明天你往往来找我吧。","周末他往往在家看书。","冬天这里往往下大雪。","他下班后往往先去健身房。"],a:0,e:"往往은 과거 경험에서 나온 규칙성을 나타내므로 미래의 희망·명령에는 쓸 수 없다. 이때는 常常/经常을 쓴다. (明天你常来找我吧 등)"},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"你___去不去?快点儿决定!",c:["到底","终于","毕竟","总算"],a:0,e:"到底: 의문문에서 「도대체」로 캐물을 때. 你到底去不去? = 너 도대체 갈 거야 말 거야? ※终于는 의문문에 안 쓴다."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"经过三年的努力,他___考上了理想的大学。",c:["终于","到底","难道","居然"],a:0,e:"终于 = 마침내, 드디어(오랜 과정 끝의 결과). 3년의 노력 「끝에」 붙었으므로 终于가 어울린다."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"___你提醒我,不然我就把这件事忘了。",c:["幸亏","难怪","否则","宁可"],a:0,e:"幸亏A,不然/否则B: 다행히 A했기에 망정이지, 아니었으면 B했을 것이다. 幸亏 = 다행히."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"___他今天这么高兴,原来他升职了。",c:["难怪","幸亏","千万","反正"],a:0,e:"难怪A,原来B: 어쩐지 A하더라니, 알고 보니 B였다. 升职 = 승진하다."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"过马路的时候___要注意安全。",c:["千万","万一","一万","必然"],a:0,e:"千万 = 제발, 부디, 절대로(간곡한 당부). 예) 千万别忘了。(절대 잊지 마.)"},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"___遇到危险,就按这个红色按钮。",c:["万一","千万","反正","幸亏"],a:0,e:"万一 = 만일, 만에 하나(바람직하지 않은 일의 가정). 당부의 千万과 헷갈리기 쉬우니 주의!"},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"他平时学习很努力,这次成绩___不太理想。",c:["却","就","才","更"],a:0,e:"却 = 오히려, 그런데(예상 밖의 전환). 부사라서 주어 뒤·술어 앞에 온다. ※접속사 但是는 문장 맨 앞."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"___你已经决定了,我就不再说什么了。",c:["既然","虽然","即使","不管"],a:0,e:"既然A,就B: 기왕 A인 이상 B하겠다. 이미 정해진 사실을 전제로 결론을 이끈다."},
+{lv:5,t:"어법",q:"두 빈칸에 들어갈 말로 알맞은 것은?",w:"___明天下大雨,我们___要按时出发。",c:["即使 / 也","因为 / 所以","虽然 / 但是","只有 / 才"],a:0,e:"即使A,也B: 설령 A하더라도 B하다(가정+양보). 아직 일어나지 않은 일이므로 사실을 인정하는 虽然은 쓸 수 없다."},
+{lv:5,t:"어법",q:"두 빈칸에 들어갈 말로 알맞은 것은?",w:"___遇到什么困难,他___不放弃。",c:["无论 / 都","既然 / 就","不但 / 而且","因为 / 所以"],a:0,e:"无论 + 의문형식(什么/谁/怎么…), 都…: ~에 관계없이 모두. 어떤 어려움을 만나도 포기하지 않는다."},
+{lv:5,t:"어법",q:"두 빈칸에 들어갈 말로 알맞은 것은?",w:"___在家躺着玩儿手机,___出去跑跑步。",c:["与其 / 不如","宁可 / 也不","不是 / 就是","一边 / 一边"],a:0,e:"与其A,不如B: A하느니 차라리 B하는 편이 낫다(뒤의 B를 선택). 집에 누워 폰 하느니 나가서 달리는 게 낫다."},
+{lv:5,t:"어법",q:"두 빈칸에 들어갈 말로 알맞은 것은?",w:"他___自己多干点儿活,___愿意麻烦别人。",c:["宁可 / 也不","与其 / 不如","只要 / 就","除非 / 才"],a:0,e:"宁可A,也不B: 차라리 A할지언정 B하지는 않겠다(앞의 A를 선택). 与其…不如와 선택 방향이 반대이니 주의!"},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"他连这么简单的问题都答错了,___他根本没复习。",c:["可见","不然","万一","难道"],a:0,e:"可见 = (앞 내용으로 보아) ~임을 알 수 있다. 根本 = 아예, 전혀. 쉬운 문제도 틀린 걸 보니 복습을 전혀 안 했음을 알 수 있다."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"请大家把桌子上的材料___一下。",c:["整理","整齐","整个","完整"],a:0,e:"把자문의 술어는 동사여야 한다. 整理 = 정리하다(동사). 整齐(가지런하다)·完整(완전하다)은 형용사라 쓸 수 없다."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"都十二点了,他___不会来了。",c:["恐怕","难道","幸亏","果然"],a:0,e:"恐怕 = 아마 ~일 것이다(걱정 섞인 추측). 예) 恐怕来不及了。(아무래도 늦을 것 같다.)"},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"___你忘了我们的约定吗?",c:["难道","恐怕","千万","毕竟"],a:0,e:"难道…吗? = 설마 ~란 말인가?(반어법 강조) 예) 难道你不知道吗?(설마 몰랐단 말이야?)"},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"___我已经知道了,你就别瞒着我了。",c:["反正","万一","难道","否则"],a:0,e:"反正 = 어차피, 어쨌든. 瞒 = 숨기다, 속이다. 어차피 다 알고 있으니 숨기지 말라는 뜻."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"冰箱里的东西都让弟弟吃___了。",c:["光","满","住","懂"],a:0,e:"吃光 = 남김없이 다 먹어 버리다. 光은 「하나도 남지 않다」는 결과보어. ※让 + 사람 + 동사 = ~에게 …당하다(피동)."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"请大家把这个电话号码记___。",c:["下来","上去","出来","过去"],a:0,e:"记下来 = 적어 두다, 기억해 두다. 방향보어 下来에는 「고정·보존」의 파생 의미가 있다. (写下来, 留下来 등)"},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"这个办法听___不错,可是做起来很难。",c:["起来","出来","下去","进来"],a:0,e:"동사 + 起来: 「~해 보니」라는 시험·평가의 파생 의미. 听起来 = 듣기에는, 做起来 = 해 보면."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"别灰心,坚持___就一定会成功。",c:["下去","下来","起来","出去"],a:0,e:"동사 + 下去: 동작의 지속(계속 ~해 나가다). 坚持下去 = 계속 버텨 나가다. 灰心 = 낙심하다."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 양사로 알맞은 것은?",w:"墙上挂着一___山水画。",c:["幅","份","篇","台"],a:0,e:"그림·지도처럼 넓게 펼쳐진 것에는 양사 幅(fú). 一幅画 = 그림 한 폭. ※篇은 글·문장, 份은 서류·신문, 台는 기계."},
+{lv:5,t:"어법",q:"빈칸에 들어갈 말로 알맞은 것은?",w:"他___中国历史很感兴趣。",c:["对","关于","由于","为了"],a:0,e:"对…感兴趣: ~에 흥미가 있다(고정 격식). 关于(~에 관하여)는 이 자리에 쓸 수 없다."},
+/* ---- G. 표현/성어 (10: 5급7 + 4급3) ---- */
+{lv:5,t:"표현",q:"다음 표현의 뜻으로 알맞은 것은?",w:"乱七八糟",c:["엉망진창이다","아주 깔끔하다","몹시 시끄럽다","수량이 많다"],a:0,e:"乱七八糟(luànqībāzāo) = 뒤죽박죽, 엉망진창이다. 예) 房间里乱七八糟的。(방이 엉망진창이다.)"},
+{lv:5,t:"표현",q:"다음 표현의 뜻으로 알맞은 것은?",w:"自言自语",c:["혼잣말을 하다","말다툼을 하다","약속을 지키다","거짓말을 하다"],a:0,e:"自言自语(zìyánzìyǔ) = 혼잣말하다. 예) 他一个人在那儿自言自语。(그는 혼자서 혼잣말을 하고 있다.)"},
+{lv:5,t:"표현",q:"다음 표현의 뜻으로 알맞은 것은?",w:"十全十美",c:["완벽하여 나무랄 데 없다","열 명이 모두 아름답다","매우 부유하다","수량이 충분하다"],a:0,e:"十全十美(shíquánshíměi) = 완전무결하다, 완벽하다. 예) 世界上没有十全十美的人。(세상에 완벽한 사람은 없다.)"},
+{lv:5,t:"표현",q:"「他说不定已经到家了。」에서 「说不定」의 뜻은?",w:"说不定",c:["아마 ~일지도 모른다","절대 ~하지 않는다","말주변이 없다","틀림없이 ~이다"],a:0,e:"说不定 = ~일지도 모른다(추측). 예) 明天说不定会下雨。(내일 비가 올지도 몰라.)"},
+{lv:5,t:"표현",q:"「他不见得会同意。」의 뜻으로 알맞은 것은?",w:"不见得",c:["그가 꼭 동의한다고는 할 수 없다","그는 반드시 동의할 것이다","그를 만나기 어렵다","그가 보이지 않는다"],a:0,e:"不见得 = 꼭 ~인 것은 아니다(= 不一定). 단정을 피하는 완곡한 부정 추측 표현이다."},
+{lv:4,t:"표현",q:"「现在去恐怕来不及了。」에서 「来不及」의 뜻은?",w:"来不及",c:["시간에 대지 못하다","오고 싶지 않다","올 필요가 없다","시간이 넉넉하다"],a:0,e:"来不及 = 시간이 모자라 손쓸 수 없다, 늦다. 반의어 来得及 = 시간에 댈 수 있다."},
+{lv:5,t:"표현",q:"「我恨不得马上飞回家。」에서 「恨不得」가 나타내는 것은?",w:"恨不得",c:["간절히 ~하고 싶다","몹시 미워하다","절대 ~하지 않겠다","~하지 못해 다행이다"],a:0,e:"恨不得 = (실제론 어려운 일을) 간절히 바라다, ~하지 못해 안달이다. 恨이 있지만 「미워하다」와는 무관!"},
+{lv:4,t:"표현",q:"「我差点儿忘了带护照。」의 뜻으로 알맞은 것은?",w:"差点儿",c:["여권을 잊고 올 뻔했다(실제로는 챙겼다)","여권을 잊고 왔다","여권이 조금 부족하다","여권을 자주 잃어버린다"],a:0,e:"差点儿 + 동사 = 하마터면 ~할 뻔했다(실제로는 일어나지 않음). 差点儿忘了 = 잊을 뻔했지만 안 잊었다."},
+{lv:5,t:"어휘",q:"「骄傲」의 반의어로 알맞은 것은?",w:"骄傲",c:["谦虚","害羞","老实","温柔"],a:0,e:"骄傲(거만하다) ↔ 谦虚(겸손하다). ※骄傲는 「자랑스럽다」라는 긍정적 의미로도 쓰인다. (我为你骄傲。)"},
+{lv:4,t:"어법",q:"두 빈칸에 들어갈 말로 알맞은 것은?",w:"雨___下___大,我们回不去了。",c:["越 / 越","又 / 又","一 / 就","再 / 再"],a:0,e:"越A越B: A할수록 더 B하다. 雨越下越大 = 비가 내릴수록 거세진다. ※시간이 갈수록이면 越来越."},
+/* ---- H. HSK5 독해 (10) ---- */
+{lv:5,t:"독해",q:"왕 선생(王先生)은 어떤 사람인가?",w:"王先生这个人很热心,同事们遇到困难,他总是主动帮忙。",c:["남을 잘 돕는 사람","늘 바쁜 사람","성격이 급한 사람","말이 많은 사람"],a:0,e:"热心 = 친절하고 적극적이다, 主动 = 자발적으로. 동료가 어려우면 먼저 나서서 돕는 사람이다."},
+{lv:5,t:"독해",q:"화자의 생각으로 알맞은 것은?",w:"这份工作虽然工资不高,但是能学到很多东西,所以我打算先干两年再说。",c:["우선 이 일을 계속할 생각이다","곧 사직할 생각이다","월급에 매우 만족한다","바로 이직할 계획이다"],a:0,e:"先…再说 = 우선 ~하고 나서 다시 생각하다. 배울 게 많으니 일단 2년은 해 볼 생각이다."},
+{lv:5,t:"독해",q:"사람들이 놀란 이유는?",w:"小刘平时学习不太努力,这次考试居然得了第一名,大家都很吃惊。",c:["평소 노력하지 않던 샤오리우가 1등을 해서","샤오리우가 시험에 떨어져서","시험이 너무 어려워서","샤오리우가 시험에 결석해서"],a:0,e:"居然 = 뜻밖에도, 吃惊 = 놀라다. 평소 모습과 달리 1등이라는 예상 밖의 결과에 모두 놀랐다."},
+{lv:5,t:"독해",q:"글의 내용과 일치하지 않는 것은?",w:"为了健康,他把烟戒了,每天还坚持跑步半个小时。",c:["그는 술을 끊었다","그는 담배를 끊었다","그는 매일 30분씩 달린다","그는 건강을 위해 노력한다"],a:0,e:"戒烟 = 담배를 끊다. 술(酒)에 대한 언급은 없다. 坚持 = 꾸준히 하다, 半个小时 = 30분."},
+{lv:5,t:"독해",q:"이 식물을 기르는 방법으로 알맞은 것은?",w:"这种植物特别好养,一个星期浇一次水就行,放在光线不太强的地方更好。",c:["일주일에 한 번 물을 준다","매일 물을 준다","강한 햇빛 아래에 둔다","물을 줄 필요가 없다"],a:0,e:"浇水 = 물을 주다, 一个星期(浇)一次 = 일주일에 한 번. 光线不太强的地方 = 빛이 너무 강하지 않은 곳."},
+{lv:5,t:"독해",q:"장 비서(张秘书)가 부탁받은 일은?",w:"张秘书,麻烦你把会议改到下午三点,再通知一下各部门。",c:["회의 시간을 바꾸고 각 부서에 알리기","회의를 취소하기","회의실을 청소하기","자료를 복사하기"],a:0,e:"改到下午三点 = 오후 3시로 변경하다, 通知各部门 = 각 부서에 통지하다. 두 가지 일을 부탁받았다."},
+{lv:5,t:"독해",q:"화자에 대해 알 수 있는 것은?",w:"刚来北京的时候,我连一句汉语都不会说,现在已经能跟中国朋友聊天儿了。",c:["중국어 실력이 크게 늘었다","아직 중국어를 전혀 못한다","베이징에 가 본 적이 없다","중국인 친구가 없다"],a:0,e:"连一句…都不会 = 한마디조차 못했다 → 지금은 聊天(수다)이 가능하다. 실력이 크게 향상된 것."},
+{lv:5,t:"독해",q:"이 대화가 이루어진 장소로 가장 알맞은 곳은?",w:"真抱歉,您订的这本书暂时没货了,您留个电话,到货后我们马上通知您。",c:["서점","병원","은행","우체국"],a:0,e:"订书 = 책을 주문하다, 没货 = 재고가 없다, 到货 = 입고되다 → 서점에서 오가는 대화다."},
+{lv:5,t:"독해",q:"화자가 말하고자 하는 것은?",w:"广告里的效果往往是夸张的,买东西以前最好多看看真实的评价。",c:["광고만 믿지 말고 실제 후기를 참고해라","광고 속 상품이 가장 믿을 만하다","물건은 되도록 사지 마라","후기는 전혀 믿을 수 없다"],a:0,e:"夸张 = 과장되다, 评价 = 평가·후기. 광고는 과장이 많으니 사기 전에 실제 후기를 많이 보라는 조언."},
+{lv:5,t:"독해",q:"듣는 사람이 해야 할 일은?",w:"会议材料我已经发到你邮箱了,你打印二十份,下午开会要用。",c:["자료를 20부 인쇄한다","자료를 이메일로 보낸다","회의를 취소한다","회의실을 예약한다"],a:0,e:"打印 = 인쇄하다, 份 = 부(서류를 세는 양사). 메일로 받은 자료를 20부 출력해야 한다."}
+];
+/* ============ messages ============ */
+var MSG_OK=["太棒了!","真厉害!","好样的!","完美!","继续加油!","不错嘛!"];
+var MSG_NO=["没关系!","加油!","下次一定行!","别灰心!","再想想~"];
+var MSG_IDLE=["加油加油!","你可以的!","慢慢想~","集中!集中!","冲呀!"];
+var RANK_MSG={
+ S:"完美!! HSK 마스터의 기운이 느껴져!",
+ A:"太棒了! 합격권이야, 이대로 쭉 가자!",
+ B:"不错! 조금만 다듬으면 완벽해!",
+ C:"加油! 오답 복습이 레벨업의 지름길!",
+ D:"别灰心! 다시 도전하면 분명 늘어!"
+};
+
+/* ============ state ============ */
+var el={}, pool=[], idx=0, score=0, streak=0, maxStreak=0, mood="idle";
+var stats={4:{o:0,t:0},5:{o:0,t:0}}, wrongs=[], startedAt=0, answered=false, order=[], curMode="all";
+
+/* ============ mascot control ============ */
+function paintAll(m){
+  ["mas-start","mas-quiz","mas-res"].forEach(function(id){
+    var c=document.getElementById(id); if(c)paintMascot(c,m);
+  });
+}
+function setMood(m){mood=m;paintAll(m);}
+function setBubble(t){if(el.bubble)el.bubble.textContent=t;}
+function mascotFx(cls){
+  var c=el.masQuiz; if(!c)return;
+  c.classList.remove("jump","shake");
+  void c.offsetWidth;
+  if(cls)c.classList.add(cls);
+}
+
+/* ============ screens ============ */
+function show(name){
+  ["start","quiz","result"].forEach(function(n){
+    var s=document.getElementById("scr-"+n);
+    if(s)s.classList.toggle("on",n===name);
+  });
+}
+function floatScore(txt,good){
+  var s=document.createElement("span");
+  s.className="float "+(good?"g":"b");
+  s.textContent=txt;
+  el.scoreWrap.appendChild(s);
+  setTimeout(function(){s.remove();},900);
+}
+
+/* ============ game flow ============ */
+function startGame(mode){
+  curMode=mode;
+  pool=shuffled(QUESTIONS.filter(function(q){return mode==="all"||q.lv===mode;}));
+  idx=0; score=0; streak=0; maxStreak=0;
+  stats={4:{o:0,t:0},5:{o:0,t:0}}; wrongs=[];
+  startedAt=Date.now();
+  el.score.textContent="000000";
+  el.comboBox.classList.add("hide");
+  show("quiz");
+  setBubble("开始! 화이팅!");
+  showQ();
+}
+function showQ(){
+  answered=false;
+  var q=pool[idx];
+  el.qnum.textContent=(idx+1)+"/"+pool.length;
+  el.pfill.style.width=(idx/pool.length*100)+"%";
+  el.lvBadge.textContent="HSK "+q.lv+"급";
+  el.lvBadge.className=(q.lv===4?"l4":"l5");
+  el.typeChip.textContent=q.t;
+  el.qtext.textContent="Q"+(idx+1)+". "+q.q;
+  if(q.w){
+    el.wbox.classList.remove("hide");
+    el.wtext.textContent=q.w;
+    el.wtext.classList.toggle("small",q.w.length>10);
+    el.ttsBtn.classList.toggle("hide",!/[\u4e00-\u9fff]/.test(q.w));
+  }else{
+    el.wbox.classList.add("hide");
+  }
+  order=shuffled([0,1,2,3]);
+  el.choices.innerHTML="";
+  var KEYS=["A","B","C","D"];
+  order.forEach(function(ci,pos){
+    var b=document.createElement("button");
+    b.className="choice";
+    var k=document.createElement("span"); k.className="key"; k.textContent=KEYS[pos];
+    var ct=document.createElement("span"); ct.className="ct"; ct.textContent=q.c[ci];
+    b.appendChild(k); b.appendChild(ct);
+    b.addEventListener("click",function(){choose(pos);});
+    el.choices.appendChild(b);
+  });
+  el.feedback.classList.add("hide");
+  setMood("idle");
+  if(idx>0&&idx%4===0)setBubble(pick(MSG_IDLE));
+  el.qbody.scrollTop=0;
+}
+function choose(pos){
+  if(answered)return;
+  answered=true;
+  var q=pool[idx];
+  var ok=(order[pos]===q.a);
+  stats[q.lv].t++;
+  var btns=Array.prototype.slice.call(el.choices.children);
+  btns.forEach(function(b,i){
+    b.disabled=true;
+    if(order[i]===q.a){b.classList.add("ok");b.querySelector(".key").textContent="✔";}
+    else if(i===pos){b.classList.add("no");b.querySelector(".key").textContent="✖";}
+    else b.classList.add("dim");
+  });
+  if(ok){
+    var gain=calcGain(streak);
+    streak++; if(streak>maxStreak)maxStreak=streak;
+    score+=gain; stats[q.lv].o++;
+    el.score.textContent=String(score).padStart(6,"0");
+    floatScore("+"+gain,true);
+    setMood("happy"); mascotFx("jump");
+    if(streak>=5&&streak%5===0){setBubble(streak+"연속! 太厉害了!");sCombo();}
+    else{setBubble(pick(MSG_OK));sOk();}
+    el.fbBanner.textContent="★ 정답! +"+gain;
+    el.fbBanner.className="g";
+  }else{
+    streak=0;
+    wrongs.push({q:q,picked:q.c[order[pos]]});
+    setMood("sad"); mascotFx("shake");
+    setBubble(pick(MSG_NO));
+    sNo();
+    if(navigator.vibrate){try{navigator.vibrate(60);}catch(e){}}
+    el.fbBanner.textContent="✖ 오답...";
+    el.fbBanner.className="b";
+  }
+  el.combo.textContent=streak;
+  el.comboBox.classList.toggle("hide",streak<2);
+  el.fbAns.textContent="정답: "+q.c[q.a];
+  el.expText.textContent=q.e;
+  el.nextBtn.textContent=(idx+1>=pool.length)?"결과 보기 ▶":"다음 문제 ▶";
+  el.feedback.classList.remove("hide");
+  setTimeout(function(){
+    try{el.feedback.scrollIntoView({behavior:"smooth",block:"end"});}catch(e){}
+  },60);
+}
+function endGame(){
+  var t4=stats[4], t5=stats[5];
+  var tot=t4.t+t5.t, okc=t4.o+t5.o;
+  var acc=tot?okc/tot:0;
+  var rank=rankOf(acc);
+  el.rankL.textContent=rank;
+  el.rankL.className="rk-"+rank;
+  el.rankMsg.textContent=RANK_MSG[rank];
+  el.resScore.textContent=String(score).padStart(6,"0");
+  el.resAcc.textContent=tot?(Math.round(acc*100)+"% ("+okc+"/"+tot+")"):"-";
+  el.resCombo.textContent="×"+maxStreak;
+  el.resTime.textContent=fmtTime(Date.now()-startedAt);
+  el.res4.textContent=t4.t?(t4.o+"/"+t4.t):"-";
+  el.res5.textContent=t5.t?(t5.o+"/"+t5.t):"-";
+  el.wrongList.innerHTML="";
+  if(!wrongs.length){
+    el.wrongTitle.textContent=tot?"틀린 문제 없음! 完美通关! 🎉":"푼 문제가 없어!";
+  }else{
+    el.wrongTitle.textContent="✍ 틀린 문제 "+wrongs.length+"개 복습";
+    wrongs.forEach(function(w){
+      var li=document.createElement("li");
+      var lv=document.createElement("b"); lv.className="wlv "+(w.q.lv===4?"l4":"l5"); lv.textContent=w.q.lv+"급";
+      var wq=document.createElement("span"); wq.className="wq"; wq.textContent=(w.q.w||w.q.q);
+      var wa=document.createElement("span"); wa.className="wa";
+      wa.innerHTML="내 답: "+"<s></s>"+" → 정답: "+"<em></em>";
+      wa.querySelector("s").textContent=w.picked;
+      wa.querySelector("em").textContent=w.q.c[w.q.a];
+      li.appendChild(lv); li.appendChild(wq); li.appendChild(wa);
+      el.wrongList.appendChild(li);
+    });
+  }
+  setMood((rank==="C"||rank==="D")?"sad":"happy");
+  show("result");
+  el.resInner.scrollTop=0;
+  sEnd();
+}
+
+/* ============ init ============ */
+function init(){
+  var g=function(id){return document.getElementById(id);};
+  el={
+    masStart:g("mas-start"), masQuiz:g("mas-quiz"), masRes:g("mas-res"),
+    sndBtn:g("sndBtn"), scoreWrap:g("scoreWrap"), score:g("score"),
+    comboBox:g("comboBox"), combo:g("combo"), qnum:g("qnum"), quitBtn:g("quitBtn"),
+    pfill:g("pfill"), qbody:g("qbody"), bubble:g("bubble"),
+    lvBadge:g("lvBadge"), typeChip:g("typeChip"), qtext:g("qtext"),
+    wbox:g("wbox"), wtext:g("wtext"), ttsBtn:g("ttsBtn"),
+    choices:g("choices"), feedback:g("feedback"), fbBanner:g("fbBanner"),
+    fbAns:g("fbAns"), expText:g("expText"), nextBtn:g("nextBtn"),
+    rankL:g("rankL"), rankMsg:g("rankMsg"), resScore:g("resScore"),
+    resAcc:g("resAcc"), resCombo:g("resCombo"), resTime:g("resTime"),
+    res4:g("res4"), res5:g("res5"), wrongTitle:g("wrongTitle"), wrongList:g("wrongList"),
+    resInner:g("resInner"), modal:g("modal"), mYes:g("mYes"), mNo:g("mNo")
+  };
+  /* mode counts */
+  var c4=QUESTIONS.filter(function(q){return q.lv===4;}).length;
+  var c5=QUESTIONS.filter(function(q){return q.lv===5;}).length;
+  g("cnt-all").textContent=QUESTIONS.length+"문";
+  g("cnt-4").textContent=c4+"문";
+  g("cnt-5").textContent=c5+"문";
+  /* mode buttons */
+  Array.prototype.forEach.call(document.querySelectorAll(".mode"),function(b){
+    b.addEventListener("click",function(){
+      sClick();
+      var m=b.getAttribute("data-mode");
+      startGame(m==="all"?"all":Number(m));
+    });
+  });
+  /* hud */
+  el.sndBtn.addEventListener("click",function(){
+    muted=!muted;
+    el.sndBtn.textContent=muted?"🔇":"🔊";
+    if(muted&&("speechSynthesis" in window)){try{window.speechSynthesis.cancel();}catch(e){}}
+    if(!muted)sClick();
+  });
+  el.quitBtn.addEventListener("click",function(){sClick();el.modal.classList.remove("hide");});
+  el.mNo.addEventListener("click",function(){sClick();el.modal.classList.add("hide");});
+  el.mYes.addEventListener("click",function(){sClick();el.modal.classList.add("hide");endGame();});
+  /* quiz */
+  el.nextBtn.addEventListener("click",function(){
+    sClick();
+    idx++;
+    if(idx>=pool.length)endGame(); else showQ();
+  });
+  el.ttsBtn.addEventListener("click",function(){
+    sClick();
+    if(pool[idx]&&pool[idx].w)speak(pool[idx].w);
+  });
+  /* result */
+  g("againBtn").addEventListener("click",function(){sClick();startGame(curMode);});
+  g("homeBtn").addEventListener("click",function(){sClick();setMood("idle");show("start");});
+  /* mascot */
+  paintAll("idle");
+  setInterval(function(){
+    if(mood!=="idle")return;
+    paintAll("blink");
+    setTimeout(function(){if(mood==="idle")paintAll("idle");},130);
+  },3400);
+  /* lifecycle */
+  document.addEventListener("visibilitychange",function(){
+    try{
+      if(AC){document.hidden?AC.suspend():AC.resume();}
+      if(document.hidden&&("speechSynthesis" in window))window.speechSynthesis.cancel();
+    }catch(e){}
+  });
+}
+
+/* ============ boot / test hooks ============ */
+if(typeof document!=="undefined"){
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);
+  else init();
+}
+if(typeof module!=="undefined"&&module.exports!==undefined){
+  module.exports={QUESTIONS:QUESTIONS,BASE_MAP:BASE_MAP,MOODS:MOODS,PALETTE:PALETTE,
+    calcGain:calcGain,rankOf:rankOf,shuffled:shuffled,fmtTime:fmtTime};
+}
+</script>
+</body>
+</html>

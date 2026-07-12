@@ -126,6 +126,13 @@
     }
     .pixel-deco.tl { top: 8px; left: 10px; }
     .pixel-deco.tr { top: 8px; right: 10px; }
+    .card-date {
+      position: absolute; top: 22px; right: 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px; line-height: 1.7; text-align: right;
+      color: var(--dim); opacity: 0.9;
+    }
+    .card-date .updated { color: var(--c); }
     .card-body { padding: 20px 22px 22px; }
     .card-num {
       font-family: 'Press Start 2P', monospace; font-size: 9px;
@@ -174,178 +181,39 @@
 
   <main class="game-grid">
 
-    <a class="card" data-color="grn" href="omniwatch-simulator-ja.html">
-      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">JP</span></div>
+    <!-- ⚠ RULE: 새로 추가되는 앱은 항상 이 <main> 태그 바로 아래, 맨 첫 번째 카드로 삽입할 것.
+         가장 최근에 추가된 앱이 최상단에 오도록 유지 (역순 정렬). COMING SOON 카드는 항상 맨 마지막에 고정.
+         새 카드 추가 시 card-top 우측 상단에 등록일 표기: '2026/07/12 등록' 형식. 이후 수정 시 그 아래에 '2026/07/14 최근 업데이트' 형식으로 추가. -->
+
+    <a class="card" data-color="pink" href="four-color-grid-rts.html">
+      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/07/12 등록</span></div>
       <div class="card-body">
-        <div class="card-num">NO. 01</div>
-        <div class="card-title">OmniWatch/IM<br>Mobile</div>
-        <div class="card-desc">統合監視コンソールのモバイル版シミュレーター。システム監視の雰囲気をリアルに再現。日本語版。</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">OMNIWATCH</span><span class="tag">日本語</span></div>
+        <div class="card-num">NO. 19</div>
+        <div class="card-title">사색 영토전 RTS</div>
+        <div class="card-desc">4색 세력이 그리드 위에서 실시간으로 영토를 다투는 RTS 감상 시뮬레이터.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">RTS</span><span class="tag">영토전</span></div>
         <div class="card-play">▶ WATCH</div>
       </div>
     </a>
 
-    <a class="card" data-color="cyan" href="omniwatch-simulator-ko.html">
-      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">KR</span></div>
+    <a class="card" data-color="grn" href="cli-tetris-loop.html">
+      <div class="card-top">🧱<span class="pixel-deco tl">CLI</span><span class="card-date">2026/07/12 등록</span></div>
       <div class="card-body">
-        <div class="card-num">NO. 02</div>
-        <div class="card-title">통합감시 콘솔<br>모바일</div>
-        <div class="card-desc">통합 시스템 감시 콘솔의 모바일 버전 시뮬레이터. 실제 감시 화면 분위기를 실감나게 재현. 한국어판.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">OMNIWATCH</span><span class="tag">한국어</span></div>
+        <div class="card-num">NO. 20</div>
+        <div class="card-title">nightshift.c<br>AUTO TETRIS</div>
+        <div class="card-desc">터미널 스타일로 재현한 AI 자동 테트리스 루프. 블록이 쌓이고 지워지는 걸 감상하라.</div>
+        <div class="card-tags"><span class="tag">CLI</span><span class="tag">TETRIS</span><span class="tag">AUTO</span></div>
         <div class="card-play">▶ WATCH</div>
       </div>
     </a>
 
-    <a class="card" data-color="cyan" href="nova_miner.html">
-      <div class="card-top">🌟<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">NOVA</span></div>
+    <a class="card" data-color="pink" href="pixel-studio-tycoon.html">
+      <div class="card-top">🎮<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">TYCOON</span></div>
       <div class="card-body">
-        <div class="card-num">NO. 03</div>
-        <div class="card-title">노바 채굴 시뮬레이터</div>
-        <div class="card-desc">NVX 코인을 자동 채굴하는 시뮬레이터. 고래 매수, 채굴 붐, 정전 같은 이벤트가 터지는 걸 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">NOVA</span><span class="tag">우주</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="yel" href="number_chain.html">
-      <div class="card-top">🔗<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">數</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 04</div>
-        <div class="card-title">數의 連鎖</div>
-        <div class="card-desc">숫자가 조건을 채우면 다음 칸으로 흐른다. 그냥 켜놓고 숫자의 흐름을 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">숫자</span><span class="tag">연쇄</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="pink" href="territory_war.html">
-      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.442</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 05</div>
-        <div class="card-title">TERRITORY WAR<br>4색 영토전</div>
-        <div class="card-desc">4개 세력이 영토를 두고 끝없이 다투는 시뮬레이터. 그냥 켜놓고 영토가 뒤집히는 걸 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">영토전</span><span class="tag">4색</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="pink" href="hanja_viewer.html">
-      <div class="card-top">漢<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">漢字</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 06</div>
-        <div class="card-title">漢字 STREAM</div>
-        <div class="card-desc">어문회 준2급~특급II 한자가 등급과 함께 끝없이 흘러나온다. 그냥 켜놓고 한자 흐름을 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">漢字</span><span class="tag">어문회</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="grn" href="equation-stream.html">
-      <div class="card-top">∑<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">EQ</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 07</div>
-        <div class="card-title">EQ STREAM</div>
-        <div class="card-desc">무작위 사칙연산 수식이 터미널처럼 흘러간다. 역대 최댓값·최솟값도 실시간 기록.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">수식</span><span class="tag">터미널</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="cyan" href="auto_python.html">
-      <div class="card-top">🐍<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">PY</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 08</div>
-        <div class="card-title">py.live // auto</div>
-        <div class="card-desc">파이썬 코드가 자동으로 한 줄씩 타이핑되며 작성되는 시뮬레이터. 코딩하는 분위기를 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">PYTHON</span><span class="tag">CODE</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="yel" href="switch-cli.html">
-      <div class="card-top">🔌<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">CLI</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 09</div>
-        <div class="card-title">Catalyst CLI</div>
-        <div class="card-desc">네트워크 스위치 CLI 터미널을 재현한 시뮬레이터. 명령어가 흘러가는 걸 그냥 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">CLI</span><span class="tag">네트워크</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="cyan" href="ai-breakout.html">
-      <div class="card-top">🧱<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">AUTO</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 10</div>
-        <div class="card-title">NEON BREAKER</div>
-        <div class="card-desc">AI가 혼자 벽돌을 깨는 자동 벽돌깨기 시뮬레이터. 그냥 켜놓고 AI의 움직임을 감상하라.</div>
-        <div class="card-tags"><span class="tag">AI</span><span class="tag">AUTO</span><span class="tag">벽돌깨기</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="grn" href="territory_artillery_v1_2.html">
-      <div class="card-top">💣<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.2</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 11</div>
-        <div class="card-title">포격 사분전<br>v1.2</div>
-        <div class="card-desc">4개 세력이 포격으로 영토를 뺏고 뺏기는 전쟁 시뮬레이터. 포탄이 날아가는 걸 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">포격</span><span class="tag">영토전</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="pink" href="doom-runner.html">
-      <div class="card-top">🔫<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">FPS</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 12</div>
-        <div class="card-title">DOOM RUNNER</div>
-        <div class="card-desc">AI가 혼자 FPS 던전을 달리는 감상용 시뮬레이터. DOOM 스타일 레이캐스팅 뷰어.</div>
-        <div class="card-tags"><span class="tag">AI</span><span class="tag">FPS</span><span class="tag">DOOM</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="yel" href="greatsword-dashboard.html">
-      <div class="card-top">⚔️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">GS</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 13</div>
-        <div class="card-title">마검 텔레메트리</div>
-        <div class="card-desc">대검의 콤보·차지 데이터를 실시간 대시보드로 감상하는 시뮬레이터.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">대검</span><span class="tag">TELEMETRY</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="grn" href="midnight_crossing.html">
-      <div class="card-top">🌙<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">밤</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 14</div>
-        <div class="card-title">심야 교차로<br>Midnight Crossing</div>
-        <div class="card-desc">새벽 교차로에 차들이 지나가는 걸 그냥 바라보는 시뮬레이터. 심야 감성을 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">심야</span><span class="tag">교차로</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="grn" href="park-run.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">RUN</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 15</div>
-        <div class="card-title">PARK RUN<br>공원 러닝 감상</div>
-        <div class="card-desc">공원을 도는 러너를 그냥 바라보는 감상 시뮬레이터. 5km 러닝 감성 그대로.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">러닝</span><span class="tag">공원</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
-    <a class="card" data-color="cyan" href="motherboard-defense.html">
-      <div class="card-top">⚙️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">DEF</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 16</div>
-        <div class="card-title">MOTHERBOARD<br>DEFENSE</div>
-        <div class="card-desc">메인보드 회로 위에서 벌어지는 방어전 시뮬레이터. 전류와 침입자가 흐르는 걸 감상하라.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">회로</span><span class="tag">디펜스</span></div>
+        <div class="card-num">NO. 18</div>
+        <div class="card-title">PIXEL STUDIO<br>TYCOON</div>
+        <div class="card-desc">픽셀 아트 게임 개발사가 성장해나가는 걸 감상하는 타이쿤 시뮬레이터. 오늘의게임즈 감성.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">TYCOON</span><span class="tag">게임개발</span></div>
         <div class="card-play">▶ WATCH</div>
       </div>
     </a>
@@ -361,13 +229,178 @@
       </div>
     </a>
 
-    <a class="card" data-color="pink" href="pixel-studio-tycoon.html">
-      <div class="card-top">🎮<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">TYCOON</span></div>
+    <a class="card" data-color="cyan" href="motherboard-defense.html">
+      <div class="card-top">⚙️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">DEF</span></div>
       <div class="card-body">
-        <div class="card-num">NO. 18</div>
-        <div class="card-title">PIXEL STUDIO<br>TYCOON</div>
-        <div class="card-desc">픽셀 아트 게임 개발사가 성장해나가는 걸 감상하는 타이쿤 시뮬레이터. 오늘의게임즈 감성.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">TYCOON</span><span class="tag">게임개발</span></div>
+        <div class="card-num">NO. 16</div>
+        <div class="card-title">MOTHERBOARD<br>DEFENSE</div>
+        <div class="card-desc">메인보드 회로 위에서 벌어지는 방어전 시뮬레이터. 전류와 침입자가 흐르는 걸 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">회로</span><span class="tag">디펜스</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="park-run.html">
+      <div class="card-top">🏃<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">RUN</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 15</div>
+        <div class="card-title">PARK RUN<br>공원 러닝 감상</div>
+        <div class="card-desc">공원을 도는 러너를 그냥 바라보는 감상 시뮬레이터. 5km 러닝 감성 그대로.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">러닝</span><span class="tag">공원</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="midnight_crossing.html">
+      <div class="card-top">🌙<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">밤</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 14</div>
+        <div class="card-title">심야 교차로<br>Midnight Crossing</div>
+        <div class="card-desc">새벽 교차로에 차들이 지나가는 걸 그냥 바라보는 시뮬레이터. 심야 감성을 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">심야</span><span class="tag">교차로</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="yel" href="greatsword-dashboard.html">
+      <div class="card-top">⚔️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">GS</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 13</div>
+        <div class="card-title">마검 텔레메트리</div>
+        <div class="card-desc">대검의 콤보·차지 데이터를 실시간 대시보드로 감상하는 시뮬레이터.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">대검</span><span class="tag">TELEMETRY</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="pink" href="doom-runner.html">
+      <div class="card-top">🔫<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">FPS</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 12</div>
+        <div class="card-title">DOOM RUNNER</div>
+        <div class="card-desc">AI가 혼자 FPS 던전을 달리는 감상용 시뮬레이터. DOOM 스타일 레이캐스팅 뷰어.</div>
+        <div class="card-tags"><span class="tag">AI</span><span class="tag">FPS</span><span class="tag">DOOM</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="territory_artillery_v1_2.html">
+      <div class="card-top">💣<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.2</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 11</div>
+        <div class="card-title">포격 사분전<br>v1.2</div>
+        <div class="card-desc">4개 세력이 포격으로 영토를 뺏고 뺏기는 전쟁 시뮬레이터. 포탄이 날아가는 걸 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">포격</span><span class="tag">영토전</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="cyan" href="ai-breakout.html">
+      <div class="card-top">🧱<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">AUTO</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 10</div>
+        <div class="card-title">NEON BREAKER</div>
+        <div class="card-desc">AI가 혼자 벽돌을 깨는 자동 벽돌깨기 시뮬레이터. 그냥 켜놓고 AI의 움직임을 감상하라.</div>
+        <div class="card-tags"><span class="tag">AI</span><span class="tag">AUTO</span><span class="tag">벽돌깨기</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="yel" href="switch-cli.html">
+      <div class="card-top">🔌<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">CLI</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 09</div>
+        <div class="card-title">Catalyst CLI</div>
+        <div class="card-desc">네트워크 스위치 CLI 터미널을 재현한 시뮬레이터. 명령어가 흘러가는 걸 그냥 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">CLI</span><span class="tag">네트워크</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="cyan" href="auto_python.html">
+      <div class="card-top">🐍<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">PY</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 08</div>
+        <div class="card-title">py.live // auto</div>
+        <div class="card-desc">파이썬 코드가 자동으로 한 줄씩 타이핑되며 작성되는 시뮬레이터. 코딩하는 분위기를 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">PYTHON</span><span class="tag">CODE</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="equation-stream.html">
+      <div class="card-top">∑<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">EQ</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 07</div>
+        <div class="card-title">EQ STREAM</div>
+        <div class="card-desc">무작위 사칙연산 수식이 터미널처럼 흘러간다. 역대 최댓값·최솟값도 실시간 기록.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">수식</span><span class="tag">터미널</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="pink" href="hanja_viewer.html">
+      <div class="card-top">漢<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">漢字</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 06</div>
+        <div class="card-title">漢字 STREAM</div>
+        <div class="card-desc">어문회 준2급~특급II 한자가 등급과 함께 끝없이 흘러나온다. 그냥 켜놓고 한자 흐름을 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">漢字</span><span class="tag">어문회</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="pink" href="territory_war.html">
+      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.442</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 05</div>
+        <div class="card-title">TERRITORY WAR<br>4색 영토전</div>
+        <div class="card-desc">4개 세력이 영토를 두고 끝없이 다투는 시뮬레이터. 그냥 켜놓고 영토가 뒤집히는 걸 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">영토전</span><span class="tag">4색</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="yel" href="number_chain.html">
+      <div class="card-top">🔗<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">數</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 04</div>
+        <div class="card-title">數의 連鎖</div>
+        <div class="card-desc">숫자가 조건을 채우면 다음 칸으로 흐른다. 그냥 켜놓고 숫자의 흐름을 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">숫자</span><span class="tag">연쇄</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="cyan" href="nova_miner.html">
+      <div class="card-top">🌟<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">NOVA</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 03</div>
+        <div class="card-title">노바 채굴 시뮬레이터</div>
+        <div class="card-desc">NVX 코인을 자동 채굴하는 시뮬레이터. 고래 매수, 채굴 붐, 정전 같은 이벤트가 터지는 걸 감상하라.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">NOVA</span><span class="tag">우주</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="cyan" href="omniwatch-simulator-ko.html">
+      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">KR</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 02</div>
+        <div class="card-title">통합감시 콘솔<br>모바일</div>
+        <div class="card-desc">통합 시스템 감시 콘솔의 모바일 버전 시뮬레이터. 실제 감시 화면 분위기를 실감나게 재현. 한국어판.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">OMNIWATCH</span><span class="tag">한국어</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="omniwatch-simulator-ja.html">
+      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">JP</span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 01</div>
+        <div class="card-title">OmniWatch/IM<br>Mobile</div>
+        <div class="card-desc">統合監視コンソールのモバイル版シミュレーター。システム監視の雰囲気をリアルに再現。日本語版。</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">OMNIWATCH</span><span class="tag">日本語</span></div>
         <div class="card-play">▶ WATCH</div>
       </div>
     </a>
