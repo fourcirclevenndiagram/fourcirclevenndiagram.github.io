@@ -125,6 +125,13 @@
     }
     .pixel-deco.tl { top: 8px; left: 10px; }
     .pixel-deco.tr { top: 8px; right: 10px; }
+    .card-date {
+      position: absolute; top: 22px; right: 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px; line-height: 1.7; text-align: right;
+      color: var(--dim); opacity: 0.9;
+    }
+    .card-date .updated { color: var(--c); }
     .card-body { padding: 20px 22px 22px; }
     .card-num {
       font-family: 'Press Start 2P', monospace; font-size: 9px;
@@ -175,14 +182,18 @@
 
   <main class="game-grid">
 
-    <a class="card" data-color="pink" href="kanji_go_lv6.html">
-      <div class="card-top">漢<span class="pixel-deco tl">KANJI</span><span class="pixel-deco tr">Lv.6</span></div>
+    <!-- ⚠ RULE: 새로 추가되는 앱은 항상 이 <main> 태그 바로 아래, 맨 첫 번째 카드로 삽입할 것.
+         가장 최근에 추가된 앱이 최상단에 오도록 유지 (역순 정렬). COMING SOON 카드는 항상 맨 마지막에 고정.
+         새 카드 추가 시 card-top 우측 상단에 등록일 표기: '2026/07/12 등록' 형식. 이후 수정 시 그 아래에 '2026/07/14 최근 업데이트' 형식으로 추가. -->
+
+    <a class="card" data-color="cyan" href="kanji-go-quiz-500.html">
+      <div class="card-top">漢<span class="pixel-deco tl">QUIZ</span><span class="pixel-deco tr">Lv.6</span></div>
       <div class="card-body">
-        <div class="card-num">NO. 01</div>
-        <div class="card-title">漢字でGO<br>Lv.6 フラッシュ</div>
-        <div class="card-desc">漢字でGO! 스타일 플래시카드. 레벨 6 한자가 음·뜻과 함께 빠르게 흘러가며 자연스럽게 익혀진다.</div>
-        <div class="card-tags"><span class="tag">漢字</span><span class="tag">학습</span><span class="tag">Lv.6</span></div>
-        <div class="card-play">▶ WATCH</div>
+        <div class="card-num">NO. 03</div>
+        <div class="card-title">漢字でGO！<br>Lv.6 四択クイズ 500</div>
+        <div class="card-desc">漢字でGO! 스타일 4지선다 퀴즈 500문제. 레벨 6 한자를 직접 풀어보며 익힌다.</div>
+        <div class="card-tags"><span class="tag">漢字</span><span class="tag">퀴즈</span><span class="tag">Lv.6</span></div>
+        <div class="card-play">▶ PLAY</div>
       </div>
     </a>
 
@@ -197,14 +208,14 @@
       </div>
     </a>
 
-    <a class="card" data-color="cyan" href="kanji-go-quiz-500.html">
-      <div class="card-top">漢<span class="pixel-deco tl">QUIZ</span><span class="pixel-deco tr">Lv.6</span></div>
+    <a class="card" data-color="pink" href="kanji_go_lv6.html">
+      <div class="card-top">漢<span class="pixel-deco tl">KANJI</span><span class="pixel-deco tr">Lv.6</span></div>
       <div class="card-body">
-        <div class="card-num">NO. 03</div>
-        <div class="card-title">漢字でGO！<br>Lv.6 四択クイズ 500</div>
-        <div class="card-desc">漢字でGO! 스타일 4지선다 퀴즈 500문제. 레벨 6 한자를 직접 풀어보며 익힌다.</div>
-        <div class="card-tags"><span class="tag">漢字</span><span class="tag">퀴즈</span><span class="tag">Lv.6</span></div>
-        <div class="card-play">▶ PLAY</div>
+        <div class="card-num">NO. 01</div>
+        <div class="card-title">漢字でGO<br>Lv.6 フラッシュ</div>
+        <div class="card-desc">漢字でGO! 스타일 플래시카드. 레벨 6 한자가 음·뜻과 함께 빠르게 흘러가며 자연스럽게 익혀진다.</div>
+        <div class="card-tags"><span class="tag">漢字</span><span class="tag">학습</span><span class="tag">Lv.6</span></div>
+        <div class="card-play">▶ WATCH</div>
       </div>
     </a>
 
