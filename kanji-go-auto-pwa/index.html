@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#070915">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="漢字でGO!">
+  <meta name="description" content="500개의 초난독 한자를 자동으로 감상하고 학습하는 오프라인 PWA">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>漢字でGO! — Neon Auto Museum</title>
+</head>
+<body>
+  <canvas id="glCanvas" aria-hidden="true"></canvas>
+  <canvas id="fallbackCanvas" aria-hidden="true"></canvas>
+  <canvas id="fxCanvas" aria-hidden="true"></canvas>
+  <div class="edge-chroma" aria-hidden="true"></div>
+
+  <main id="app" class="app" aria-label="漢字でGO 자동 한자 학습">
+    <header class="top-hud">
+      <div class="brand-lockup" aria-label="漢字でGO Neon Archive">
+        <span class="brand-kicker">NEON ARCHIVE</span>
+        <strong>漢字で<span>GO!</span></strong>
+      </div>
+      <div class="meta-grid" aria-label="현재 재생 정보">
+        <span><small>ID</small><b id="metaId">001</b></span>
+        <span><small>LOOP</small><b id="metaPosition">001 / 500</b></span>
+        <span><small>PHASE</small><b id="metaStage">漢字</b></span>
+        <span><small>MODE</small><b id="metaMode">전체 랜덤</b></span>
+      </div>
+    </header>
+
+    <section id="studyStage" class="study-stage" tabindex="0" aria-label="화면 중앙을 누르면 일시정지 또는 재생">
+      <div class="sigil" aria-hidden="true">
+        <i></i><i></i><i></i><i></i>
+      </div>
+      <div id="shockwave" class="shockwave" aria-hidden="true"></div>
+
+      <div class="count-ring" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-track" cx="60" cy="60" r="53"></circle>
+          <circle id="ringProgress" class="ring-progress" cx="60" cy="60" r="53"></circle>
+        </svg>
+        <span id="stageSeconds">5</span>
+      </div>
+
+      <article id="kanjiCore" class="kanji-core" aria-live="polite">
+        <p id="questionLabel" class="question-label">READ THE KANJI</p>
+        <h1 id="kanji" class="kanji" lang="ja">彳亍</h1>
+        <div id="readingWrap" class="reading-wrap" aria-hidden="true">
+          <div class="reading-scan" aria-hidden="true"></div>
+          <p id="reading" class="reading" lang="ja">てきちょく</p>
+        </div>
+      </article>
+
+      <section id="explanations" class="explanations" aria-hidden="true">
+        <article id="jpPanel" class="explain-panel jp-panel" lang="ja">
+          <div class="panel-head">
+            <span class="lang-mark">JP</span>
+            <h2>日本語解説</h2>
+          </div>
+          <p id="jpExplanation"></p>
+        </article>
+        <article id="koPanel" class="explain-panel ko-panel" lang="ko">
+          <div class="panel-head">
+            <span class="lang-mark">KR</span>
+            <h2>한국어 해설</h2>
+          </div>
+          <p id="koExplanation"></p>
+        </article>
+      </section>
+
+      <div id="pauseBadge" class="pause-badge" role="status" aria-live="polite">
+        <span>Ⅱ</span> PAUSED
+      </div>
+      <div id="audioHint" class="audio-hint">한 번 터치하면 사운드가 활성화됩니다</div>
+    </section>
+
+    <footer class="bottom-dock">
+      <div class="progress-cluster" aria-label="재생 진행 상태">
+        <div class="progress-row">
+          <span>15s TOTAL</span>
+          <span id="totalTimeText">00.0 / 15.0</span>
+        </div>
+        <div class="total-track">
+          <i class="segment kanji-segment"></i>
+          <i class="segment reading-segment"></i>
+          <i class="segment explain-segment"></i>
+          <b id="totalProgress"></b>
+        </div>
+        <div class="progress-row stage-row">
+          <span id="stageProgressLabel">漢字を考える</span>
+          <span id="stageTimeText">00.0 / 05.0</span>
+        </div>
+        <div class="stage-track"><b id="stageProgress"></b></div>
+      </div>
+
+      <nav class="controls" aria-label="재생 및 학습 조작">
+        <button id="prevBtn" class="control-button" type="button" aria-label="이전 문제">
+          <span aria-hidden="true">‹</span><small>이전</small>
+        </button>
+        <button id="pauseBtn" class="control-button primary" type="button" aria-label="일시정지">
+          <span id="pauseIcon" aria-hidden="true">Ⅱ</span><small id="pauseText">정지</small>
+        </button>
+        <button id="nextBtn" class="control-button" type="button" aria-label="다음 문제">
+          <span aria-hidden="true">›</span><small>다음</small>
+        </button>
+        <button id="favoriteBtn" class="control-button marker" type="button" aria-label="즐겨찾기 등록 또는 해제" aria-pressed="false">
+          <span aria-hidden="true">☆</span><small>즐겨찾기</small>
+        </button>
+        <button id="difficultBtn" class="control-button marker" type="button" aria-label="어려운 문제 등록 또는 해제" aria-pressed="false">
+          <span aria-hidden="true">◇</span><small>어려움</small>
+        </button>
+        <button id="settingsBtn" class="control-button" type="button" aria-label="설정 열기">
+          <span aria-hidden="true">⚙</span><small>설정</small>
+        </button>
+      </nav>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="srStage" class="sr-only" aria-live="assertive"></div>
+
+  <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
+    <form method="dialog" class="settings-sheet">
+      <header>
+        <div>
+          <span class="sheet-kicker">SYSTEM CONTROL</span>
+          <h2 id="settingsTitle">학습 설정</h2>
+        </div>
+        <button id="closeSettings" class="close-button" value="cancel" aria-label="설정 닫기">×</button>
+      </header>
+
+      <div class="settings-body">
+        <fieldset>
+          <legend>재생</legend>
+          <label class="wide">재생 모드
+            <select id="modeSelect">
+              <option value="random">전체 랜덤 재생</option>
+              <option value="sequential">ID 순서대로 재생</option>
+              <option value="least">아직 덜 본 문제 우선</option>
+              <option value="difficult">어려운 문제만 재생</option>
+              <option value="favorites">즐겨찾기 문제만 재생</option>
+            </select>
+          </label>
+          <div class="triple">
+            <label>한자 <span id="kanjiDurationValue">5초</span>
+              <input id="kanjiDuration" type="range" min="2" max="15" step="1" value="5">
+            </label>
+            <label>요미가나 <span id="readingDurationValue">5초</span>
+              <input id="readingDuration" type="range" min="2" max="15" step="1" value="5">
+            </label>
+            <label>해설 <span id="explainDurationValue">5초</span>
+              <input id="explainDuration" type="range" min="2" max="20" step="1" value="5">
+            </label>
+          </div>
+          <label class="wide">후리가나 표시
+            <select id="furiganaMode">
+              <option value="all">모든 대표 읽기</option>
+              <option value="primary">첫 번째 읽기만</option>
+              <option value="spaced">구분점을 넣어 표시</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>표시</legend>
+          <div class="two-col">
+            <label>한자 크기 <span id="kanjiSizeValue">100%</span>
+              <input id="kanjiSize" type="range" min="70" max="135" step="5" value="100">
+            </label>
+            <label>해설 크기 <span id="explainSizeValue">100%</span>
+              <input id="explainSize" type="range" min="80" max="125" step="5" value="100">
+            </label>
+          </div>
+          <div class="switch-list">
+            <label><span>日本語解説 표시</span><input id="showJapanese" type="checkbox" checked><i></i></label>
+            <label><span>한국어 해설 표시</span><input id="showKorean" type="checkbox" checked><i></i></label>
+            <label><span>화면 흔들림</span><input id="screenShake" type="checkbox" checked><i></i></label>
+            <label><span>효과 줄이기</span><input id="reducedMotion" type="checkbox"><i></i></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>WebGL · 사운드</legend>
+          <div class="two-col">
+            <label>효과 품질
+              <select id="quality">
+                <option value="auto">자동</option>
+                <option value="low">낮음</option>
+                <option value="medium">중간</option>
+                <option value="high">높음</option>
+              </select>
+            </label>
+            <label>입자 수 <span id="particleCountValue">자동</span>
+              <input id="particleCount" type="range" min="80" max="900" step="20" value="420">
+            </label>
+          </div>
+          <div class="switch-list">
+            <label><span>효과음</span><input id="soundEnabled" type="checkbox" checked><i></i></label>
+            <label><span>앰비언트 배경음</span><input id="musicEnabled" type="checkbox"><i></i></label>
+            <label><span>자동 화면 꺼짐 방지</span><input id="wakeLockEnabled" type="checkbox"><i></i></label>
+          </div>
+        </fieldset>
+
+        <section class="learning-stats" aria-label="학습 통계">
+          <div><small>누적 학습</small><b id="statStudyTime">0분</b></div>
+          <div><small>완료 순환</small><b id="statCycles">0회</b></div>
+          <div><small>즐겨찾기</small><b id="statFavorites">0개</b></div>
+          <div><small>어려움</small><b id="statDifficult">0개</b></div>
+        </section>
+
+        <button id="resetBtn" class="reset-button" type="button">학습 기록 초기화</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./kanji-data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
