@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#05070d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Chaos Cup">
+  <meta name="description" content="네 팀이 스스로 싸우고 점령하고 역전하는 자동 관전형 네온 전략 경기">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+  <title>CHAOS WORLD CUP</title>
+</head>
+<body>
+  <main id="app" aria-label="카오스 월드컵 자동 경기">
+    <section id="boot" class="boot" aria-live="polite">
+      <div class="boot-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <h1>CHAOS WORLD CUP</h1>
+      <p id="bootText">경기장을 깨우는 중…</p>
+      <div class="boot-bar"><span id="bootProgress"></span></div>
+    </section>
+
+    <header id="hud" class="hud" hidden>
+      <div class="brand-row">
+        <div>
+          <span class="eyebrow">CHAOS WORLD CUP</span>
+          <strong id="phaseLabel">ROUND 01</strong>
+        </div>
+        <div class="timer-wrap">
+          <span id="speedBadge">×1</span>
+          <time id="timer">05:00</time>
+        </div>
+      </div>
+      <div id="scoreboard" class="scoreboard" aria-label="팀 점수"></div>
+      <div class="rule-strip">
+        <span class="rule-dot"></span>
+        <div><small>현재 규칙</small><strong id="ruleName">기본 점수전</strong></div>
+        <span id="ruleTimer">변경 35초</span>
+      </div>
+    </header>
+
+    <section id="arenaWrap" class="arena-wrap" hidden>
+      <canvas id="arena" aria-label="자동 경기장"></canvas>
+      <div id="worldTint" class="world-tint" aria-hidden="true"></div>
+      <div id="countdown" class="countdown" aria-live="assertive"></div>
+      <div id="headline" class="headline" aria-live="assertive">
+        <strong></strong><span></span>
+      </div>
+      <div class="objective-rail">
+        <span id="crystalStatus">◇ 수정: 중앙 대기</span>
+        <span id="bossStatus" hidden>보스 100%</span>
+      </div>
+      <div id="commentary" class="commentary" aria-live="polite"></div>
+      <div id="debugPanel" class="debug-panel" hidden></div>
+      <button id="audioUnlock" class="audio-unlock" aria-label="소리 켜기">♪</button>
+    </section>
+
+    <nav id="controls" class="controls" hidden aria-label="경기 조작">
+      <button id="pauseBtn" class="control primary" aria-label="일시정지"><span>Ⅱ</span><small>정지</small></button>
+      <button id="speedBtn" class="control" aria-label="배속 변경"><span>×1</span><small>배속</small></button>
+      <button id="mapBtn" class="control" aria-label="전체 지도"><span>⌖</span><small>전체</small></button>
+      <button id="cameraBtn" class="control active" aria-label="자동 카메라"><span>◉</span><small>자동</small></button>
+      <button id="teamBtn" class="control" aria-label="팀 추적"><span>◆</span><small>추적</small></button>
+      <button id="chaosBtn" class="control chaos" aria-label="카오스 사건 투입"><span>⚡</span><small>카오스 <b id="chaosCount">3</b></small></button>
+      <button id="settingsBtn" class="control" aria-label="설정 열기"><span>⚙</span><small>설정</small></button>
+    </nav>
+
+    <section id="results" class="results" hidden aria-labelledby="winnerTitle">
+      <div class="result-glow"></div>
+      <span class="eyebrow">MATCH COMPLETE</span>
+      <h2 id="winnerTitle">파랑 팀 우승</h2>
+      <p id="resultSeed"></p>
+      <canvas id="scoreGraph" width="680" height="180" aria-label="점수 변화 그래프"></canvas>
+      <div id="resultRanks" class="result-ranks"></div>
+      <div id="awards" class="awards"></div>
+      <div id="resultFacts" class="result-facts"></div>
+      <div class="result-actions">
+        <button id="nextBtn">다음 경기</button>
+        <button id="replayBtn">같은 시드</button>
+        <button id="holdResultBtn">자동 진행 정지</button>
+      </div>
+      <p id="nextCountdown">11초 뒤 새로운 경기가 시작됩니다</p>
+    </section>
+
+    <div id="sheetShade" class="sheet-shade" hidden></div>
+    <aside id="settingsSheet" class="sheet" aria-label="경기 설정" aria-hidden="true">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head"><h2>경기 설정</h2><button id="closeSettings" aria-label="닫기">×</button></div>
+      <div class="setting-grid">
+        <label>맵 크기<select id="mapSize"><option value="80">80 × 80</option><option value="100" selected>100 × 100</option><option value="120">120 × 120</option></select></label>
+        <label>그래픽<select id="quality"><option value="auto">자동</option><option value="low">낮음</option><option value="medium">보통</option><option value="high">높음</option></select></label>
+        <label>기본 배속<select id="defaultSpeed"><option value="1">1배</option><option value="2">2배</option><option value="4">4배</option></select></label>
+        <label>재난 빈도<select id="chaosFrequency"><option value="low">낮음</option><option value="normal" selected>보통</option><option value="high">높음</option></select></label>
+      </div>
+      <div class="toggle-list">
+        <label><span>효과음과 절차 음악</span><input id="soundToggle" type="checkbox" checked><i></i></label>
+        <label><span>진동 효과</span><input id="vibrationToggle" type="checkbox" checked><i></i></label>
+        <label><span>자동 카메라</span><input id="autoCameraToggle" type="checkbox" checked><i></i></label>
+        <label><span>디버그 정보</span><input id="debugToggle" type="checkbox"><i></i></label>
+      </div>
+      <label class="seed-field">시드 재현<input id="seedInput" inputmode="numeric" placeholder="현재 시드 입력"><button id="seedStartBtn">시작</button></label>
+      <div class="sheet-actions"><button id="statsBtn">누적 기록</button><button id="resetStatsBtn">기록 초기화</button></div>
+      <section id="statsPanel" class="stats-panel" hidden></section>
+    </aside>
+
+    <div id="toast" class="toast" role="status"></div>
+  </main>
+  <noscript>이 경기는 JavaScript가 필요합니다.</noscript>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "CHAOS WORLD CUP — 4색 대격돌",
+  "short_name": "Chaos Cup",
+  "description": "빨강·노랑·초록·파랑 네 팀의 자동 전략 시뮬레이션",
+  "lang": "ko-KR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#03050a",
+  "theme_color": "#05070d",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"빠른 경기","short_name":"빠른 경기","url":"./index.html?fast=1","icons":[{"src":"icon-192.png","sizes":"192x192"}]}
+  ]
+}
