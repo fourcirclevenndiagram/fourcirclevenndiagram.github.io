@@ -1,0 +1,2935 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>GHOST AUTHOR — 무한 코딩 관상용</title>
+<meta name="theme-color" content="#070912">
+<meta name="description" content="유령 개발자가 30가지 프로그램을 영원히 타이핑하고, 실행하고, 커피를 마신다.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GHOST AUTHOR">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070912'/%3E%3Ctext x='32' y='43' font-family='monospace' font-size='34' font-weight='bold' fill='%2358e8ff' text-anchor='middle'%3E%26gt;_%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --ink:#070912; --panel:#0d1020; --rail:#12172a; --edge:#1e2540;
+  --cy:#58e8ff; --mg:#ff4fa3; --am:#ffb454; --gr:#7ee787; --vi:#a78bfa;
+  --tx:#c6d0f0; --dim:#5b6480; --faint:#333c5c;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "D2Coding", Menlo, Consolas, "Liberation Mono", monospace;
+  --cs: clamp(9.5px, 3.1vw, 15px);
+  --us: clamp(7.5px, 2.15vw, 11px);
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent}
+html,body{height:100%; overflow:hidden; background:var(--ink)}
+body{
+  font-family:var(--mono); color:var(--tx);
+  font-variant-ligatures:none; text-rendering:optimizeSpeed;
+  overscroll-behavior:none; touch-action:manipulation;
+  -webkit-user-select:none; user-select:none;
+}
+#app{
+  position:fixed; inset:0; height:100dvh; display:flex; flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:
+    radial-gradient(120% 70% at 50% -10%, #101736 0%, transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px),
+    var(--ink);
+}
+
+/* ── title bar ─────────────────────────────── */
+.bar{
+  flex:0 0 auto; display:flex; align-items:center; gap:8px;
+  padding:7px 11px; background:linear-gradient(180deg,#131a30,#0b0f1e);
+  border-bottom:1px solid var(--edge);
+}
+.dots{display:flex; gap:5px}
+.dots i{width:8px; height:8px; border-radius:50%; display:block; opacity:.85}
+.dots i:nth-child(1){background:var(--mg)} .dots i:nth-child(2){background:var(--am)} .dots i:nth-child(3){background:var(--gr)}
+.bar .who{
+  font-size:var(--us); letter-spacing:.22em; color:var(--dim); text-transform:uppercase;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.bar .who b{color:var(--cy); font-weight:600}
+.bar .spacer{flex:1}
+.hb{
+  display:flex; gap:3px; align-items:flex-end; height:11px; opacity:.75;
+}
+.hb i{width:2px; background:var(--cy); display:block; height:20%; border-radius:1px}
+
+/* ── tab strip ─────────────────────────────── */
+.tabs{
+  flex:0 0 auto; display:flex; align-items:stretch; background:#0a0d1a;
+  border-bottom:1px solid var(--edge); overflow:hidden;
+}
+.tab{
+  display:flex; align-items:center; gap:7px; padding:7px 12px;
+  font-size:var(--us); color:var(--tx); background:var(--panel);
+  border-right:1px solid var(--edge); position:relative; min-width:0;
+}
+.tab::before{content:""; position:absolute; left:0; right:0; top:0; height:2px; background:var(--cy)}
+.tab .fn{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tab .dot{width:6px; height:6px; border-radius:50%; background:var(--am); flex:0 0 auto}
+.tabs .idx{
+  margin-left:auto; padding:7px 12px; font-size:var(--us); color:var(--dim);
+  letter-spacing:.12em; white-space:nowrap;
+}
+.tabs .idx b{color:var(--vi); font-weight:600}
+
+/* ── stage ─────────────────────────────────── */
+.stage{flex:1 1 auto; display:flex; min-height:0; position:relative}
+.phaserail{
+  flex:0 0 auto; width:16px; background:#080b16; border-right:1px solid var(--edge);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; padding:6px 0;
+}
+.phaserail s{
+  width:4px; flex:1 1 0; min-height:4px; border-radius:2px; background:var(--faint);
+  text-decoration:none; transition:background .25s ease, box-shadow .25s ease;
+}
+.phaserail s.on{background:var(--cy); box-shadow:0 0 8px var(--cy)}
+.phaserail s.done{background:#27406a}
+.work{flex:1 1 auto; display:flex; flex-direction:column; min-width:0; min-height:0}
+
+/* ── editor ────────────────────────────────── */
+.editor{
+  flex:1 1 auto; min-height:0; overflow:hidden; position:relative;
+  padding:8px 0 10px; background:linear-gradient(180deg,#0b0e1c,#080b16);
+  transition:flex-basis .5s cubic-bezier(.3,.9,.25,1);
+}
+.editor::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:26px; pointer-events:none;
+  background:linear-gradient(180deg,transparent,#080b16);
+}
+.scroll{position:absolute; inset:0; overflow:hidden}
+.code{padding:8px 12px 60vh 0; font-size:var(--cs); line-height:1.5; tab-size:4; -moz-tab-size:4}
+.ln{display:flex; align-items:flex-start; white-space:pre-wrap; word-break:break-word}
+.ln>u{
+  flex:0 0 auto; width:3.1em; text-align:right; padding-right:.9em; color:var(--faint);
+  text-decoration:none; font-size:.86em; line-height:1.75; user-select:none;
+}
+.ln>span{flex:1 1 auto; min-width:0}
+.ln.cur{background:rgba(88,232,255,.045)}
+.ln.cur>u{color:var(--cy)}
+.cur .cx{
+  display:inline-block; width:.55em; height:1.02em; margin-bottom:-.18em;
+  background:var(--cy); box-shadow:0 0 7px var(--cy); animation:bl 1s steps(1) infinite;
+}
+@keyframes bl{50%{opacity:.15}}
+.k{color:var(--mg)} .s{color:var(--gr)} .n{color:var(--am)} .c{color:#4a5578; font-style:italic}
+.f{color:var(--cy)} .t{color:var(--vi)} .p{color:#8892b8} .d{color:#e6b3ff}
+
+/* ── console ───────────────────────────────── */
+.console{
+  flex:0 0 0; min-height:0; overflow:hidden; display:flex; flex-direction:column;
+  border-top:1px solid var(--edge); background:#06080f;
+  transition:flex-basis .5s cubic-bezier(.3,.9,.25,1);
+}
+.chead{
+  flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:5px 10px;
+  background:#0a0e1c; border-bottom:1px solid var(--edge); font-size:var(--us); color:var(--dim);
+}
+.chead .cmd{color:var(--gr); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1}
+.chead .cmd em{color:var(--dim); font-style:normal}
+.chead .pid{letter-spacing:.1em; color:var(--faint)}
+.cbody{flex:1 1 auto; min-height:0; display:flex; flex-direction:column}
+#term{
+  flex:1 1 auto; min-height:0; overflow:hidden; padding:7px 10px;
+  font-size:calc(var(--cs)*.88); line-height:1.45; white-space:pre-wrap; word-break:break-word;
+  color:#9fb0d8; display:none;
+}
+#term .o{color:var(--tx)} #term .k2{color:var(--gr)} #term .e{color:var(--mg)}
+#term .w{color:var(--am)} #term .a{color:var(--cy)} #term .m{color:var(--dim)} #term .v{color:var(--vi)}
+.canvwrap{flex:1 1 auto; min-height:0; position:relative; display:none; background:#04060c}
+#glc{position:absolute; inset:0; width:100%; height:100%; display:block; image-rendering:pixelated}
+.canvwrap::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+  mix-blend-mode:multiply;
+}
+
+/* ── status bar ────────────────────────────── */
+.status{
+  flex:0 0 auto; display:flex; align-items:center; gap:10px; padding:5px 11px;
+  background:#0a0e1c; border-top:1px solid var(--edge);
+  font-size:var(--us); color:var(--dim); letter-spacing:.06em; white-space:nowrap;
+}
+.status .ph{color:var(--ink); background:var(--cy); padding:2px 7px; border-radius:2px; font-weight:700; letter-spacing:.14em}
+.status .ph.run{background:var(--gr)} .status .ph.wait{background:var(--am)} .status .ph.brew{background:var(--mg)}
+.status .gap{flex:1}
+.status .tick{color:var(--faint)}
+.status b{color:#8fa0c8; font-weight:500}
+
+/* ── coffee overlay ────────────────────────── */
+.coffee{
+  position:absolute; inset:0; z-index:5; display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:10px; padding:14px;
+  background:radial-gradient(90% 60% at 50% 45%, #14101c 0%, #05060d 72%);
+}
+.coffee.on{display:flex}
+.coffee pre{
+  font-size:clamp(5.4px, 1.92vw, 11px); line-height:1.16; color:var(--am);
+  text-shadow:0 0 12px rgba(255,180,84,.32); white-space:pre; letter-spacing:0;
+}
+.coffee .cap{
+  font-size:var(--us); color:var(--dim); letter-spacing:.2em; text-transform:uppercase; text-align:center;
+}
+.coffee .quote{
+  font-size:calc(var(--cs)*.86); color:#8a7a68; text-align:center; max-width:34ch; line-height:1.6;
+}
+.coffee .bar2{width:min(210px,58vw); height:2px; background:#241d2c; overflow:hidden; border-radius:2px}
+.coffee .bar2 i{display:block; height:100%; width:0%; background:var(--am); box-shadow:0 0 8px var(--am)}
+
+/* ── controls ──────────────────────────────── */
+.ctl{
+  position:absolute; z-index:9; right:10px; bottom:calc(10px + env(safe-area-inset-bottom));
+  display:flex; gap:5px; padding:5px; border-radius:999px;
+  background:rgba(12,16,32,.86); border:1px solid var(--edge);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  opacity:0; transform:translateY(8px); pointer-events:none; transition:opacity .3s, transform .3s;
+}
+.ctl.show{opacity:1; transform:none; pointer-events:auto}
+.ctl button{
+  font-family:var(--mono); font-size:var(--us); color:var(--dim); background:transparent;
+  border:0; padding:6px 9px; border-radius:999px; letter-spacing:.06em; cursor:pointer;
+}
+.ctl button.on{background:var(--cy); color:#04060c; font-weight:700}
+.hint{
+  position:absolute; z-index:9; left:50%; bottom:calc(16px + env(safe-area-inset-bottom));
+  transform:translateX(-50%); font-size:var(--us); color:var(--faint); letter-spacing:.18em;
+  text-transform:uppercase; transition:opacity .6s; pointer-events:none;
+}
+.hint.gone{opacity:0}
+
+/* ── boot ──────────────────────────────────── */
+.boot{
+  position:fixed; inset:0; z-index:20; background:var(--ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  transition:opacity .6s; font-size:var(--us); letter-spacing:.22em; color:var(--dim);
+}
+.boot.gone{opacity:0; pointer-events:none}
+.boot .lg{
+  font-size:clamp(20px,7.4vw,38px); letter-spacing:.14em; color:var(--tx); font-weight:700;
+}
+.boot .lg em{color:var(--cy); font-style:normal; text-shadow:0 0 18px rgba(88,232,255,.5)}
+.boot .ld{width:min(220px,56vw); height:2px; background:var(--rail); overflow:hidden}
+.boot .ld i{display:block; height:100%; width:0; background:var(--cy); box-shadow:0 0 10px var(--cy)}
+
+@media (prefers-reduced-motion:reduce){
+  .cur .cx{animation:none}
+  .editor,.console{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <div class="who">ghost author <b>v1.0</b> — <span id="langlabel">idle</span></div>
+    <div class="spacer"></div>
+    <div class="hb" id="hb"><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab"><span class="dot" id="tabdot"></span><span class="fn" id="fname">—</span></div>
+    <div class="idx"><b id="pidx">00</b>/30 · <span id="cyc">CYCLE 1</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="phaserail" id="rail"><s></s><s></s><s></s><s></s><s></s></div>
+    <div class="work" id="work">
+      <div class="editor" id="editor">
+        <div class="scroll" id="scroll"><div class="code" id="code"></div></div>
+      </div>
+      <div class="console" id="console">
+        <div class="chead"><span class="cmd" id="cmd"></span><span class="pid" id="pid"></span></div>
+        <div class="cbody">
+          <div id="term"></div>
+          <div class="canvwrap" id="canvwrap"><canvas id="glc"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="coffee" id="coffee">
+      <pre id="coffeeart"></pre>
+      <div class="cap" id="coffeecap">coffee break</div>
+      <div class="quote" id="coffeequote"></div>
+      <div class="bar2"><i id="coffeebar"></i></div>
+    </div>
+  </div>
+
+  <div class="status">
+    <span class="ph" id="phase">BOOT</span>
+    <span id="meta">—</span>
+    <span class="gap"></span>
+    <span class="tick" id="tick">00:00</span>
+  </div>
+
+  <div class="ctl" id="ctl">
+    <button data-sp="1">×1</button>
+    <button data-sp="2">×2</button>
+    <button data-sp="4">×4</button>
+    <button id="btnpause">⏸</button>
+    <button id="btnskip">⏭</button>
+  </div>
+  <div class="hint" id="hint">tap for controls</div>
+</div>
+
+<div class="boot" id="boot">
+  <div class="lg">GHOST<em>&gt;_</em>AUTHOR</div>
+  <div>30 PROGRAMS · INFINITE LOOP</div>
+  <div class="ld"><i id="bootbar"></i></div>
+  <div id="bootmsg">initializing webgl context…</div>
+</div>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════
+   0. utils
+   ══════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const lerp = (a,b,t) => a+(b-a)*t;
+let SEED = 1337;
+function rnd(){ SEED = (SEED*1664525 + 1013904223) >>> 0; return SEED/4294967296; }
+function ri(a,b){ return a + Math.floor(rnd()*(b-a+1)); }
+function pick(arr){ return arr[Math.floor(rnd()*arr.length)]; }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function pad(n,w){ n=String(n); while(n.length<w) n=" "+n; return n; }
+function pad0(n,w){ n=String(n); while(n.length<w) n="0"+n; return n; }
+function fx(v,d){ return Number(v).toFixed(d); }
+
+/* ══════════════════════════════════════════════════════════════
+   1. syntax highlighter — hand-rolled scanner, partial-line safe
+   ══════════════════════════════════════════════════════════════ */
+const KW = {
+  py:"def class return if elif else for while in import from as with try except finally lambda yield not and or is None True False pass break continue global raise assert del async await self print len range enumerate zip map filter sum min max abs int float str list dict set tuple sorted reversed open format round any all".split(" "),
+  js:"const let var function return if else for while do switch case break continue new class extends super this null undefined true false typeof instanceof in of try catch finally throw async await import export default delete yield void static get set".split(" "),
+  ts:"const let var function return if else for while do switch case break continue new class extends super this null undefined true false typeof interface type enum implements private public readonly async await import export default number string boolean void any".split(" "),
+  c:"int char float double void long short unsigned signed const static struct typedef enum union return if else for while do switch case break continue sizeof include define NULL printf malloc free".split(" "),
+  cpp:"int char float double void long short unsigned const static struct class public private protected template typename namespace using return if else for while do switch case break continue new delete nullptr true false auto inline virtual override struct include define std vector cout endl".split(" "),
+  go:"package import func var const type struct interface map chan go defer return if else for range switch case break continue nil true false string int float64 byte error make new len cap append panic recover select".split(" "),
+  rs:"fn let mut const struct enum impl trait pub use mod match if else for while loop return break continue in as ref move Some None Ok Err Self self true false i32 u32 f32 f64 usize String Vec Box where dyn".split(" "),
+  java:"public private protected class interface extends implements static final void int long double float boolean char String new return if else for while do switch case break continue import package this null true false try catch finally throws abstract".split(" "),
+  glsl:"void float vec2 vec3 vec4 mat2 mat3 mat4 int bool uniform varying attribute const in out precision highp mediump lowp return if else for while break continue discard struct sampler2D gl_FragColor gl_FragCoord gl_Position".split(" "),
+  sql:"SELECT FROM WHERE GROUP BY ORDER HAVING JOIN LEFT RIGHT INNER OUTER ON AS WITH UNION ALL DISTINCT COUNT SUM AVG MIN MAX CASE WHEN THEN ELSE END LIMIT OFFSET DESC ASC AND OR NOT NULL IS IN BETWEEN OVER PARTITION CREATE TABLE INSERT INTO VALUES UPDATE SET DELETE".split(" "),
+  sh:"if then else fi for do done while case esac function local export echo set trap exit return read cd mkdir rm cp mv tar gzip find sort uniq wc awk sed grep curl date printf".split(" ")
+};
+const TYPES = {
+  py:["np","torch","nn","plt","math","random","time","os","sys","json"],
+  js:["Math","Array","Object","JSON","Date","Promise","Map","Set","console","document","window"],
+  ts:["Math","Array","Object","JSON","Date","Promise","Map","Set","console","Algo"],
+  c:["FILE","size_t","uint8_t","uint32_t","bool"],
+  cpp:["std","Vec3","Ray","Sphere","Scene","Camera","Color"],
+  go:["http","fmt","log","time","sync","json","Server","Handler","Request"],
+  rs:["Vec2","Particle","World","Instant","Duration","HashMap","Rc","RefCell"],
+  java:["System","Arrays","List","ArrayList","Integer","Math","Collections"],
+  glsl:["u_time","u_res","u_prog"],
+  sql:["orders","users","products","events","daily","cte","revenue"],
+  sh:["PATH","HOME","PWD","IFS","BACKUP_DIR","SRC"]
+};
+const COMMENT = { py:"#", js:"//", ts:"//", c:"//", cpp:"//", go:"//", rs:"//", java:"//", glsl:"//", sql:"--", sh:"#" };
+const kwset = {}, tyset = {};
+for(const k in KW){ kwset[k]=new Set(KW[k]); tyset[k]=new Set(TYPES[k]||[]); }
+
+function hl(lang, line){
+  const kws = kwset[lang] || kwset.js, tys = tyset[lang] || new Set(), cm = COMMENT[lang] || "//";
+  let out = "", i = 0, n = line.length;
+  while(i < n){
+    const ch = line[i];
+    // comment
+    if(line.startsWith(cm, i)){ out += '<i class="c">'+esc(line.slice(i))+"</i>"; break; }
+    // string
+    if(ch === '"' || ch === "'"){
+      let j = i+1;
+      while(j < n){ if(line[j] === "\\"){ j += 2; continue; } if(line[j] === ch){ j++; break; } j++; }
+      out += '<i class="s">'+esc(line.slice(i,j))+"</i>"; i = j; continue;
+    }
+    // number
+    if(ch >= "0" && ch <= "9"){
+      let j = i;
+      while(j < n && /[0-9a-fA-FxX._]/.test(line[j])) j++;
+      out += '<i class="n">'+esc(line.slice(i,j))+"</i>"; i = j; continue;
+    }
+    // word
+    if(/[A-Za-z_]/.test(ch)){
+      let j = i;
+      while(j < n && /[A-Za-z0-9_]/.test(line[j])) j++;
+      const w = line.slice(i,j);
+      let cls = "";
+      if(kws.has(w) || (lang === "sql" && kws.has(w.toUpperCase()))) cls = "k";
+      else if(tys.has(w)) cls = "t";
+      else if(line[j] === "(") cls = "f";
+      else if(/^[A-Z][A-Za-z0-9_]*$/.test(w)) cls = "d";
+      out += cls ? '<i class="'+cls+'">'+esc(w)+"</i>" : esc(w);
+      i = j; continue;
+    }
+    // punctuation run
+    let j = i;
+    while(j < n && !/[A-Za-z0-9_"'\s]/.test(line[j]) && !line.startsWith(cm,j)) j++;
+    if(j === i) j++;
+    const p = line.slice(i,j);
+    out += /^\s+$/.test(p) ? esc(p) : '<i class="p">'+esc(p)+"</i>";
+    i = j;
+  }
+  return out;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2. WebGL renderer — texture path (CPU pixel sims) + shader path
+   ══════════════════════════════════════════════════════════════ */
+const VS = "attribute vec2 a;varying vec2 v;void main(){v=a*0.5+0.5;gl_Position=vec4(a,0.0,1.0);}";
+const FS_TEX = [
+"precision mediump float;varying vec2 v;uniform sampler2D u_tex;uniform vec2 u_res;uniform float u_time;",
+"void main(){",
+" vec2 uv=vec2(v.x,1.0-v.y);",
+" vec2 c=uv-0.5; float r2=dot(c,c); uv+=c*r2*0.055;",
+" if(uv.x<0.0||uv.x>1.0||uv.y<0.0||uv.y>1.0){gl_FragColor=vec4(0.01,0.02,0.04,1.0);return;}",
+" float ab=0.0016;",
+" vec3 col; col.r=texture2D(u_tex,uv+vec2(ab,0.0)).r; col.g=texture2D(u_tex,uv).g; col.b=texture2D(u_tex,uv-vec2(ab,0.0)).b;",
+" float sc=0.86+0.14*sin(uv.y*u_res.y*3.14159);",
+" col*=sc; col+=col*col*0.28;",
+" col*=1.0-0.35*r2;",
+" gl_FragColor=vec4(col,1.0);",
+"}"].join("\n");
+
+const GL = {
+  ok:false, gl:null, ctx2d:null, canvas:null, W:1, H:1,
+  progTex:null, progShader:null, curKey:"", tex:null, quad:null,
+  init(canvas){
+    this.canvas = canvas;
+    let g = null;
+    try{ g = canvas.getContext("webgl",{alpha:false,antialias:false,depth:false,powerPreference:"low-power"}) || canvas.getContext("experimental-webgl"); }catch(e){ g = null; }
+    if(!g){ this.ok = false; try{ this.ctx2d = canvas.getContext("2d"); }catch(e){} return false; }
+    this.gl = g; this.ok = true;
+    try{
+      this.quad = g.createBuffer();
+      g.bindBuffer(g.ARRAY_BUFFER, this.quad);
+      g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), g.STATIC_DRAW);
+      this.tex = g.createTexture();
+      g.bindTexture(g.TEXTURE_2D, this.tex);
+      g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+      g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+      g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+      g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+      this.progTex = this.build(FS_TEX);
+    }catch(e){ this.ok = false; }
+    return this.ok;
+  },
+  build(fs){
+    const g = this.gl;
+    const mk = (t,src) => { const s = g.createShader(t); g.shaderSource(s,src); g.compileShader(s); return s; };
+    const vs = mk(g.VERTEX_SHADER, VS), f = mk(g.FRAGMENT_SHADER, fs);
+    const p = g.createProgram(); g.attachShader(p,vs); g.attachShader(p,f); g.linkProgram(p);
+    if(g.getProgramParameter && g.getProgramParameter(p, g.LINK_STATUS) === false){
+      return null;
+    }
+    return p;
+  },
+  use(p){
+    const g = this.gl;
+    g.useProgram(p);
+    const loc = g.getAttribLocation(p,"a");
+    g.bindBuffer(g.ARRAY_BUFFER, this.quad);
+    g.enableVertexAttribArray(loc);
+    g.vertexAttribPointer(loc, 2, g.FLOAT, false, 0, 0);
+    return p;
+  },
+  size(w,h){
+    this.W = w; this.H = h;
+    if(this.canvas){ this.canvas.width = w; this.canvas.height = h; }
+    if(this.ok) this.gl.viewport(0,0,w,h);
+  },
+  drawPixels(buf, pw, ph, time){
+    if(!this.ok){
+      if(this.ctx2d){
+        try{
+          if(!this.off){ this.off = document.createElement("canvas"); this.offc = this.off.getContext("2d"); }
+          if(this.off.width !== pw || this.off.height !== ph){ this.off.width = pw; this.off.height = ph; }
+          this.offc.putImageData(new ImageData(new Uint8ClampedArray(buf), pw, ph), 0, 0);
+          this.ctx2d.imageSmoothingEnabled = false;
+          this.ctx2d.drawImage(this.off, 0, 0, this.W, this.H);
+        }catch(e){}
+      }
+      return;
+    }
+    const g = this.gl;
+    if(!this.progTex) return;
+    g.bindTexture(g.TEXTURE_2D, this.tex);
+    g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, pw, ph, 0, g.RGBA, g.UNSIGNED_BYTE, buf);
+    this.use(this.progTex);
+    g.uniform1i(g.getUniformLocation(this.progTex,"u_tex"), 0);
+    g.uniform2f(g.getUniformLocation(this.progTex,"u_res"), pw, ph);
+    g.uniform1f(g.getUniformLocation(this.progTex,"u_time"), time);
+    g.activeTexture(g.TEXTURE0);
+    g.bindTexture(g.TEXTURE_2D, this.tex);
+    g.drawArrays(g.TRIANGLES, 0, 3);
+  },
+  drawShader(key, fsSrc, time, prog){
+    if(!this.ok) return false;
+    const g = this.gl;
+    if(this.curKey !== key){
+      if(this.progShader) g.deleteProgram(this.progShader);
+      this.progShader = this.build(fsSrc);
+      this.curKey = key;
+    }
+    if(!this.progShader) return false;
+    this.use(this.progShader);
+    g.uniform2f(g.getUniformLocation(this.progShader,"u_res"), this.W, this.H);
+    g.uniform1f(g.getUniformLocation(this.progShader,"u_time"), time);
+    g.uniform1f(g.getUniformLocation(this.progShader,"u_prog"), prog);
+    g.drawArrays(g.TRIANGLES, 0, 3);
+    return true;
+  }
+};
+/* ══════════════════════════════════════════════════════════════
+   3. pixel framebuffer + drawing primitives (CPU rasterizer)
+   ══════════════════════════════════════════════════════════════ */
+const PIX = {
+  W:0, H:0, buf:null,
+  alloc(w,h){
+    w = Math.max(8,w|0); h = Math.max(8,h|0);
+    if(this.W !== w || this.H !== h || !this.buf){
+      this.W = w; this.H = h; this.buf = new Uint8Array(w*h*4);
+    }
+    return this.buf;
+  },
+  clear(r,g,b){
+    const b4 = this.buf, n = this.W*this.H;
+    for(let i=0;i<n;i++){ const o=i*4; b4[o]=r; b4[o+1]=g; b4[o+2]=b; b4[o+3]=255; }
+  },
+  fade(f){
+    const b4 = this.buf, n = this.W*this.H*4;
+    for(let i=0;i<n;i+=4){ b4[i]=b4[i]*f; b4[i+1]=b4[i+1]*f; b4[i+2]=b4[i+2]*f; }
+  },
+  set(x,y,r,g,b){
+    x|=0; y|=0;
+    if(x<0||y<0||x>=this.W||y>=this.H) return;
+    const o=(y*this.W+x)*4, b4=this.buf;
+    b4[o]=r; b4[o+1]=g; b4[o+2]=b; b4[o+3]=255;
+  },
+  add(x,y,r,g,b){
+    x|=0; y|=0;
+    if(x<0||y<0||x>=this.W||y>=this.H) return;
+    const o=(y*this.W+x)*4, b4=this.buf;
+    b4[o]=Math.min(255,b4[o]+r); b4[o+1]=Math.min(255,b4[o+1]+g); b4[o+2]=Math.min(255,b4[o+2]+b); b4[o+3]=255;
+  },
+  rect(x,y,w,h,r,g,b){
+    const x0=Math.max(0,x|0), y0=Math.max(0,y|0), x1=Math.min(this.W,(x+w)|0), y1=Math.min(this.H,(y+h)|0);
+    for(let j=y0;j<y1;j++) for(let i=x0;i<x1;i++){
+      const o=(j*this.W+i)*4, b4=this.buf; b4[o]=r; b4[o+1]=g; b4[o+2]=b; b4[o+3]=255;
+    }
+  },
+  line(x0,y0,x1,y1,r,g,b){
+    x0|=0;y0|=0;x1|=0;y1|=0;
+    let dx=Math.abs(x1-x0), dy=-Math.abs(y1-y0), sx=x0<x1?1:-1, sy=y0<y1?1:-1, err=dx+dy;
+    let guard = 0;
+    for(;;){
+      this.set(x0,y0,r,g,b);
+      if((x0===x1 && y0===y1) || ++guard>4000) break;
+      const e2=2*err;
+      if(e2>=dy){ err+=dy; x0+=sx; }
+      if(e2<=dx){ err+=dx; y0+=sy; }
+    }
+  },
+  disc(cx,cy,rad,r,g,b){
+    const r2=rad*rad;
+    for(let j=-rad;j<=rad;j++) for(let i=-rad;i<=rad;i++){
+      if(i*i+j*j<=r2) this.set(cx+i,cy+j,r,g,b);
+    }
+  }
+};
+function hsv(h,s,v){
+  h=(h%1+1)%1;
+  const i=Math.floor(h*6), f=h*6-i, p=v*(1-s), q=v*(1-f*s), t=v*(1-(1-f)*s);
+  let r,g,b;
+  switch(i%6){
+    case 0: r=v;g=t;b=p; break; case 1: r=q;g=v;b=p; break; case 2: r=p;g=v;b=t; break;
+    case 3: r=p;g=q;b=v; break; case 4: r=t;g=p;b=v; break; default: r=v;g=p;b=q;
+  }
+  return [r*255|0, g*255|0, b*255|0];
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. CPU simulations — each is {init(w,h), step(dt,t,prog)}
+   ══════════════════════════════════════════════════════════════ */
+const SIMS = {};
+
+/* --- 4.1 sorting bars ------------------------------------------------ */
+SIMS.bars = {
+  init(){
+    const n = clamp(Math.floor(PIX.W/3), 24, 72);
+    this.n = n; this.a = []; this.i = 0; this.j = 0; this.done = false; this.hi = -1;
+    for(let k=0;k<n;k++) this.a.push(0.08 + rnd()*0.9);
+  },
+  step(dt){
+    const a = this.a, n = this.n;
+    if(!this.done){
+      for(let s=0;s<Math.max(1,Math.round(n*n*dt/9));s++){
+        if(this.i >= n-1){ this.done = true; break; }
+        if(a[this.j] > a[this.j+1]){ const t=a[this.j]; a[this.j]=a[this.j+1]; a[this.j+1]=t; }
+        this.hi = this.j; this.j++;
+        if(this.j >= n-1-this.i){ this.j = 0; this.i++; }
+      }
+    }
+    PIX.clear(5,7,14);
+    const bw = PIX.W/n;
+    for(let k=0;k<n;k++){
+      const h = Math.round(a[k]*(PIX.H-6));
+      let c = hsv(0.55 - a[k]*0.42, 0.8, 0.92);
+      if(this.done) c = hsv(0.33, 0.7, 0.95);
+      else if(k === this.hi || k === this.hi+1) c = [255,90,150];
+      PIX.rect(Math.round(k*bw), PIX.H-h-2, Math.max(1,Math.round(bw)-1), h, c[0],c[1],c[2]);
+    }
+  }
+};
+
+/* --- 4.2 prime sieve grid -------------------------------------------- */
+SIMS.sieve = {
+  init(){
+    this.cw = 4; this.gw = Math.floor(PIX.W/this.cw); this.gh = Math.floor(PIX.H/this.cw);
+    this.N = this.gw*this.gh;
+    this.mark = new Uint8Array(this.N+1); this.p = 2; this.m = 4; this.acc = 0;
+  },
+  step(dt){
+    this.acc += dt*Math.max(60, this.N*0.9);
+    let ops = Math.min(4000, this.acc|0); this.acc -= ops;
+    while(ops-- > 0 && this.p*this.p <= this.N){
+      if(this.mark[this.p]){ this.p++; this.m = this.p*this.p; continue; }
+      if(this.m > this.N){ this.p++; this.m = this.p*this.p; continue; }
+      this.mark[this.m] = 1; this.m += this.p;
+    }
+    PIX.clear(6,8,16);
+    const cw = this.cw;
+    for(let k=2;k<=this.N;k++){
+      const idx = k-2, gx = idx % this.gw, gy = (idx/this.gw)|0;
+      let r,g,b;
+      if(this.mark[k]){ r=18;g=22;b=40; }
+      else if(k === this.p){ r=255;g=180;b=84; }
+      else { const c = hsv(0.5+ (k%37)/300, 0.75, 0.95); r=c[0];g=c[1];b=c[2]; }
+      PIX.rect(gx*cw, gy*cw, cw-1, cw-1, r,g,b);
+    }
+  }
+};
+
+/* --- 4.3 matrix rain -------------------------------------------------- */
+SIMS.matrix = {
+  init(){
+    this.cw = 4; this.ch = 6;
+    this.cols = Math.floor(PIX.W/this.cw); this.rows = Math.floor(PIX.H/this.ch);
+    this.y = []; this.sp = [];
+    for(let i=0;i<this.cols;i++){ this.y.push(rnd()*this.rows); this.sp.push(6+rnd()*16); }
+  },
+  step(dt){
+    PIX.fade(0.86);
+    for(let i=0;i<this.cols;i++){
+      this.y[i] += this.sp[i]*dt;
+      if(this.y[i] > this.rows + 6){ this.y[i] = -ri(0,10); this.sp[i] = 6+rnd()*16; }
+      const gy = Math.floor(this.y[i]);
+      for(let k=0;k<3;k++){
+        const yy = gy-k; if(yy<0||yy>=this.rows) continue;
+        const br = k===0 ? 1 : 0.42/k;
+        const g = 255*br, r = k===0 ? 200 : 20, b = k===0 ? 220 : 60;
+        for(let dy=0; dy<this.ch-1; dy++) for(let dx=0; dx<this.cw-1; dx++){
+          if(((dx*7+dy*13+gy*31+i*17)>>1)%3 === 0) PIX.set(i*this.cw+dx, yy*this.ch+dy, r*br|0, g|0, b*br|0);
+        }
+      }
+    }
+  }
+};
+
+/* --- 4.4 game of life ------------------------------------------------- */
+SIMS.life = {
+  init(){
+    this.cw = 3; this.w = Math.floor(PIX.W/this.cw); this.h = Math.floor(PIX.H/this.cw);
+    this.a = new Uint8Array(this.w*this.h); this.b = new Uint8Array(this.w*this.h);
+    this.age = new Uint8Array(this.w*this.h);
+    for(let i=0;i<this.a.length;i++) this.a[i] = rnd()<0.28 ? 1 : 0;
+    this.acc = 0; this.gen = 0;
+  },
+  step(dt){
+    this.acc += dt;
+    while(this.acc > 0.09){
+      this.acc -= 0.09; this.gen++;
+      const {w,h,a,b} = this;
+      for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+        let c = 0;
+        for(let j=-1;j<=1;j++) for(let i=-1;i<=1;i++){
+          if(!i && !j) continue;
+          c += a[((y+j+h)%h)*w + ((x+i+w)%w)];
+        }
+        const idx = y*w+x, alive = a[idx];
+        b[idx] = (alive && (c===2||c===3)) || (!alive && c===3) ? 1 : 0;
+        this.age[idx] = b[idx] ? Math.min(60, this.age[idx]+1) : 0;
+      }
+      this.a = b; this.b = a;
+    }
+    PIX.clear(6,8,17);
+    const cw = this.cw;
+    for(let y=0;y<this.h;y++) for(let x=0;x<this.w;x++){
+      const idx = y*this.w+x;
+      if(!this.a[idx]) continue;
+      const c = hsv(0.48 + this.age[idx]/150, 0.8, 1);
+      PIX.rect(x*cw, y*cw, cw-1, cw-1, c[0],c[1],c[2]);
+    }
+  }
+};
+
+/* --- 4.5 maze carving (DFS) ------------------------------------------ */
+SIMS.maze = {
+  init(){
+    this.cw = 4;
+    this.w = Math.floor(PIX.W/this.cw)|1; this.h = Math.floor(PIX.H/this.cw)|1;
+    if(this.w<7) this.w=7; if(this.h<7) this.h=7;
+    this.g = new Uint8Array(this.w*this.h);
+    this.stack = [[1,1]]; this.g[1*this.w+1] = 1; this.acc = 0; this.done = false; this.flash = 0;
+  },
+  carve(){
+    const st = this.stack;
+    if(!st.length){
+      if(!this.done){ this.done = true; this.flash = 1; }
+      return;
+    }
+    const [x,y] = st[st.length-1];
+    const dirs = [[2,0],[-2,0],[0,2],[0,-2]], opts = [];
+    for(const d of dirs){
+      const nx = x+d[0], ny = y+d[1];
+      if(nx>0 && ny>0 && nx<this.w-1 && ny<this.h-1 && !this.g[ny*this.w+nx]) opts.push([nx,ny]);
+    }
+    if(!opts.length){ st.pop(); return; }
+    const [nx,ny] = pick(opts);
+    this.g[ny*this.w+nx] = 1;
+    this.g[((y+ny)>>1)*this.w + ((x+nx)>>1)] = 1;
+    st.push([nx,ny]);
+  },
+  step(dt){
+    this.acc += dt*70;
+    while(this.acc >= 1){ this.acc--; this.carve(); }
+    if(this.done) this.flash = Math.max(0, this.flash - dt*0.6);
+    PIX.clear(5,6,13);
+    const cw = this.cw;
+    for(let y=0;y<this.h;y++) for(let x=0;x<this.w;x++){
+      if(!this.g[y*this.w+x]) continue;
+      const c = hsv(0.72 - (x+y)/(this.w+this.h)*0.34, 0.62, 0.55 + 0.45*this.flash);
+      PIX.rect(x*cw, y*cw, cw, cw, c[0],c[1],c[2]);
+    }
+    const st = this.stack;
+    if(st.length){
+      const [hx,hy] = st[st.length-1];
+      PIX.rect(hx*cw, hy*cw, cw, cw, 255,200,90);
+    }
+  }
+};
+
+/* --- 4.6 A* pathfinding ---------------------------------------------- */
+SIMS.astar = {
+  init(){
+    this.cw = 4;
+    this.w = Math.max(9, Math.floor(PIX.W/this.cw)); this.h = Math.max(9, Math.floor(PIX.H/this.cw));
+    const n = this.w*this.h;
+    this.wall = new Uint8Array(n);
+    for(let i=0;i<n;i++) this.wall[i] = rnd()<0.27 ? 1 : 0;
+    // smooth walls into blobs
+    for(let p=0;p<2;p++){
+      const nw = new Uint8Array(n);
+      for(let y=0;y<this.h;y++) for(let x=0;x<this.w;x++){
+        let c=0;
+        for(let j=-1;j<=1;j++) for(let i=-1;i<=1;i++){
+          const xx=clamp(x+i,0,this.w-1), yy=clamp(y+j,0,this.h-1);
+          c += this.wall[yy*this.w+xx];
+        }
+        nw[y*this.w+x] = c>=5?1:0;
+      }
+      this.wall = nw;
+    }
+    this.s = 1*this.w+1; this.t = (this.h-2)*this.w + (this.w-2);
+    this.wall[this.s]=0; this.wall[this.t]=0;
+    this.g = new Float32Array(n).fill(1e9);
+    this.f = new Float32Array(n).fill(1e9);
+    this.from = new Int32Array(n).fill(-1);
+    this.closed = new Uint8Array(n);
+    this.inOpen = new Uint8Array(n);
+    this.open = [this.s]; this.inOpen[this.s]=1; this.g[this.s]=0; this.f[this.s]=this.hcost(this.s);
+    this.path = null; this.acc = 0; this.fail = false;
+  },
+  hcost(i){
+    const x=i%this.w, y=(i/this.w)|0, tx=this.t%this.w, ty=(this.t/this.w)|0;
+    return Math.abs(x-tx)+Math.abs(y-ty);
+  },
+  expand(){
+    if(this.path || this.fail) return;
+    if(!this.open.length){ this.fail = true; return; }
+    let bi=0;
+    for(let i=1;i<this.open.length;i++) if(this.f[this.open[i]] < this.f[this.open[bi]]) bi=i;
+    const cur = this.open.splice(bi,1)[0];
+    this.inOpen[cur]=0;
+    if(cur === this.t){
+      const p=[]; let c=cur;
+      while(c>=0){ p.push(c); c=this.from[c]; }
+      this.path = p; return;
+    }
+    this.closed[cur]=1;
+    const x=cur%this.w, y=(cur/this.w)|0;
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    for(const d of dirs){
+      const nx=x+d[0], ny=y+d[1];
+      if(nx<0||ny<0||nx>=this.w||ny>=this.h) continue;
+      const ni=ny*this.w+nx;
+      if(this.wall[ni]||this.closed[ni]) continue;
+      const ng=this.g[cur]+1;
+      if(ng < this.g[ni]){
+        this.g[ni]=ng; this.f[ni]=ng+this.hcost(ni); this.from[ni]=cur;
+        if(!this.inOpen[ni]){ this.inOpen[ni]=1; this.open.push(ni); }
+      }
+    }
+  },
+  step(dt){
+    this.acc += dt*90;
+    while(this.acc >= 1){ this.acc--; this.expand(); }
+    PIX.clear(5,6,13);
+    const cw=this.cw;
+    for(let i=0;i<this.w*this.h;i++){
+      const x=i%this.w, y=(i/this.w)|0;
+      let c=null;
+      if(this.wall[i]) c=[22,26,44];
+      else if(this.closed[i]) c=hsv(0.62, 0.5, 0.34);
+      else if(this.inOpen[i]) c=[90,220,255];
+      if(c) PIX.rect(x*cw,y*cw,cw-1,cw-1,c[0],c[1],c[2]);
+    }
+    if(this.path){
+      for(let k=0;k<this.path.length;k++){
+        const i=this.path[k], x=i%this.w, y=(i/this.w)|0;
+        const c=hsv(0.12+k/this.path.length*0.2, 0.9, 1);
+        PIX.rect(x*cw,y*cw,cw-1,cw-1,c[0],c[1],c[2]);
+      }
+    }
+    PIX.rect((this.s%this.w)*cw,((this.s/this.w)|0)*cw,cw,cw,126,231,135);
+    PIX.rect((this.t%this.w)*cw,((this.t/this.w)|0)*cw,cw,cw,255,79,163);
+  }
+};
+/* --- 4.7 particle field ---------------------------------------------- */
+SIMS.particles = {
+  init(){
+    this.n = clamp(Math.floor(PIX.W*PIX.H/26), 200, 1400);
+    this.p = new Float32Array(this.n*4);
+    for(let i=0;i<this.n;i++){
+      this.p[i*4]   = rnd()*PIX.W;
+      this.p[i*4+1] = rnd()*PIX.H;
+      this.p[i*4+2] = (rnd()-0.5)*10;
+      this.p[i*4+3] = (rnd()-0.5)*10;
+    }
+    this.t = 0;
+  },
+  step(dt){
+    this.t += dt;
+    PIX.fade(0.80);
+    const cx = PIX.W*(0.5+0.3*Math.sin(this.t*0.7)), cy = PIX.H*(0.5+0.3*Math.cos(this.t*0.53));
+    const p = this.p;
+    for(let i=0;i<this.n;i++){
+      const o=i*4;
+      let dx=cx-p[o], dy=cy-p[o+1];
+      const d2=dx*dx+dy*dy+24;
+      const f=900/d2;
+      p[o+2]+=dx*f*dt; p[o+3]+=dy*f*dt;
+      p[o+2]*=0.996; p[o+3]*=0.996;
+      p[o]+=p[o+2]*dt*10; p[o+1]+=p[o+3]*dt*10;
+      if(p[o]<0){p[o]=0;p[o+2]*=-0.7;} if(p[o]>PIX.W-1){p[o]=PIX.W-1;p[o+2]*=-0.7;}
+      if(p[o+1]<0){p[o+1]=0;p[o+3]*=-0.7;} if(p[o+1]>PIX.H-1){p[o+1]=PIX.H-1;p[o+3]*=-0.7;}
+      const sp=Math.min(1,Math.sqrt(p[o+2]*p[o+2]+p[o+3]*p[o+3])/22);
+      const c=hsv(0.58-sp*0.5,0.85,1);
+      PIX.add(p[o],p[o+1],c[0]*0.75|0,c[1]*0.75|0,c[2]*0.75|0);
+    }
+    PIX.add(cx,cy,120,120,140);
+  }
+};
+
+/* --- 4.8 boids -------------------------------------------------------- */
+SIMS.boids = {
+  init(){
+    this.n = clamp(Math.floor(PIX.W/2.2), 40, 130);
+    this.b = [];
+    for(let i=0;i<this.n;i++){
+      const a=rnd()*6.28;
+      this.b.push({x:rnd()*PIX.W, y:rnd()*PIX.H, vx:Math.cos(a)*18, vy:Math.sin(a)*18});
+    }
+  },
+  step(dt){
+    PIX.fade(0.74);
+    const b=this.b, W=PIX.W, H=PIX.H, R=18, R2=R*R;
+    for(let i=0;i<b.length;i++){
+      const a=b[i];
+      let cx=0,cy=0,ax=0,ay=0,sx=0,sy=0,c=0;
+      for(let j=0;j<b.length;j++){
+        if(i===j) continue;
+        const o=b[j], dx=o.x-a.x, dy=o.y-a.y, d2=dx*dx+dy*dy;
+        if(d2>R2||d2<0.01) continue;
+        c++; cx+=o.x; cy+=o.y; ax+=o.vx; ay+=o.vy;
+        if(d2<26){ sx-=dx/d2*9; sy-=dy/d2*9; }
+      }
+      if(c){
+        a.vx += ((cx/c-a.x)*0.42 + (ax/c-a.vx)*0.55 + sx*4)*dt;
+        a.vy += ((cy/c-a.y)*0.42 + (ay/c-a.vy)*0.55 + sy*4)*dt;
+      }
+      a.vx += (W*0.5-a.x)*0.09*dt; a.vy += (H*0.5-a.y)*0.09*dt;
+      const sp=Math.hypot(a.vx,a.vy)||1, want=clamp(sp,14,30);
+      a.vx=a.vx/sp*want; a.vy=a.vy/sp*want;
+      a.x+=a.vx*dt; a.y+=a.vy*dt;
+      if(a.x<0)a.x+=W; if(a.x>=W)a.x-=W; if(a.y<0)a.y+=H; if(a.y>=H)a.y-=H;
+      const hue=0.5+(Math.atan2(a.vy,a.vx)/6.283)*0.42;
+      const col=hsv(hue,0.8,1);
+      PIX.set(a.x,a.y,col[0],col[1],col[2]);
+      PIX.add(a.x-a.vx*0.06, a.y-a.vy*0.06, col[0]*0.4|0, col[1]*0.4|0, col[2]*0.4|0);
+    }
+  }
+};
+
+/* --- 4.9 L-system tree ------------------------------------------------ */
+SIMS.lsystem = {
+  init(){
+    this.segs = [];
+    const build = (x,y,ang,len,depth) => {
+      if(depth>9||len<1.1) return;
+      const nx=x+Math.cos(ang)*len, ny=y+Math.sin(ang)*len;
+      this.segs.push([x,y,nx,ny,depth]);
+      const spread=0.34+rnd()*0.42, k=0.70+rnd()*0.11;
+      build(nx,ny,ang-spread,len*k,depth+1);
+      build(nx,ny,ang+spread,len*k,depth+1);
+      if(rnd()<0.22) build(nx,ny,ang+(rnd()-0.5)*0.3,len*k*0.8,depth+1);
+    };
+    build(PIX.W/2, PIX.H-2, -Math.PI/2, PIX.H*0.20, 0);
+    this.grown = 0; this.wind = 0;
+  },
+  step(dt,t,prog){
+    this.grown = Math.min(this.segs.length, this.grown + this.segs.length*dt*0.42);
+    this.wind += dt;
+    PIX.clear(6,7,15);
+    const lim = this.grown|0;
+    for(let i=0;i<lim;i++){
+      const s=this.segs[i], sw=Math.sin(this.wind*1.4 + s[4]*0.6)*s[4]*0.35;
+      const c = s[4]<3 ? [120,86,60] : hsv(0.26+s[4]*0.012,0.72,0.55+s[4]*0.05);
+      PIX.line(s[0]+sw*0.4,s[1],s[2]+sw,s[3],c[0],c[1],c[2]);
+      if(s[4]>=7 && i<lim-1){
+        const f=hsv(0.92+rnd()*0.06,0.6,1);
+        PIX.set(s[2]+sw,s[3],f[0],f[1],f[2]);
+      }
+    }
+  }
+};
+
+/* --- 4.10 verlet cloth ------------------------------------------------ */
+SIMS.cloth = {
+  init(){
+    this.cols = clamp(Math.floor(PIX.W/9), 8, 18);
+    this.rows = clamp(Math.floor(PIX.H/9), 8, 20);
+    const gx=(PIX.W-10)/(this.cols-1), gy=(PIX.H*0.72)/(this.rows-1);
+    this.pt=[]; this.lk=[];
+    for(let y=0;y<this.rows;y++) for(let x=0;x<this.cols;x++){
+      this.pt.push({x:5+x*gx, y:6+y*gy, px:5+x*gx, py:6+y*gy, pin: y===0 && (x%4===0 || x===this.cols-1)});
+    }
+    const idx=(x,y)=>y*this.cols+x;
+    for(let y=0;y<this.rows;y++) for(let x=0;x<this.cols;x++){
+      if(x<this.cols-1) this.lk.push([idx(x,y),idx(x+1,y),gx,1]);
+      if(y<this.rows-1) this.lk.push([idx(x,y),idx(x,y+1),gy,1]);
+    }
+    this.t=0;
+  },
+  step(dt){
+    dt=Math.min(dt,0.033); this.t+=dt;
+    const wind=Math.sin(this.t*0.9)*34 + Math.sin(this.t*2.7)*13;
+    for(const p of this.pt){
+      if(p.pin) continue;
+      const vx=(p.x-p.px)*0.985, vy=(p.y-p.py)*0.985;
+      p.px=p.x; p.py=p.y;
+      p.x+=vx+wind*dt*dt*60; p.y+=vy+62*dt*dt*60;
+    }
+    for(let it=0; it<3; it++){
+      for(const l of this.lk){
+        const a=this.pt[l[0]], b=this.pt[l[1]];
+        if(!l[3]) continue;
+        let dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||0.001;
+        const diff=(d-l[2])/d*0.5;
+        const ox=dx*diff, oy=dy*diff;
+        if(!a.pin){ a.x+=ox; a.y+=oy; }
+        if(!b.pin){ b.x-=ox; b.y-=oy; }
+        if(d > l[2]*3.6) l[3]=0;
+      }
+    }
+    PIX.clear(5,6,14);
+    for(const l of this.lk){
+      if(!l[3]) continue;
+      const a=this.pt[l[0]], b=this.pt[l[1]];
+      const st=clamp(Math.abs(Math.hypot(b.x-a.x,b.y-a.y)-l[2])/6,0,1);
+      const c=hsv(0.55-st*0.5,0.8,0.55+st*0.45);
+      PIX.line(a.x,a.y,b.x,b.y,c[0],c[1],c[2]);
+    }
+    for(const p of this.pt) if(p.pin) PIX.set(p.x,p.y,255,180,84);
+  }
+};
+
+/* --- 4.11 sorting race (4 algorithms) --------------------------------- */
+SIMS.sortrace = {
+  init(){
+    this.names=["bubble","insert","select","quick"];
+    this.lanes=[];
+    const n=clamp(Math.floor(PIX.W/2.4),28,80);
+    const base=[]; for(let i=0;i<n;i++) base.push(0.06+rnd()*0.9);
+    for(let k=0;k<4;k++) this.lanes.push({a:base.slice(), i:0,j:1,hi:0,done:false,ops:0,stack:[[0,n-1]],mode:k});
+    this.n=n;
+  },
+  tick(L){
+    const a=L.a, n=this.n;
+    if(L.done) return;
+    L.ops++;
+    if(L.mode===0){
+      if(L.i>=n-1){L.done=true;return;}
+      if(a[L.j-1]>a[L.j]){const t=a[L.j-1];a[L.j-1]=a[L.j];a[L.j]=t;}
+      L.hi=L.j; L.j++;
+      if(L.j>=n-L.i){L.j=1;L.i++;}
+    } else if(L.mode===1){
+      if(L.i>=n){L.done=true;return;}
+      if(L.j>0 && a[L.j-1]>a[L.j]){const t=a[L.j-1];a[L.j-1]=a[L.j];a[L.j]=t;L.j--;}
+      else {L.i++; L.j=L.i;}
+      L.hi=L.j;
+    } else if(L.mode===2){
+      if(L.i>=n-1){L.done=true;return;}
+      if(L.j<n){ if(a[L.j]<a[L.min===undefined?L.i:L.min]) L.min=L.j; L.hi=L.j; L.j++; }
+      else { const m=L.min===undefined?L.i:L.min; const t=a[L.i];a[L.i]=a[m];a[m]=t; L.i++; L.j=L.i+1; L.min=L.i; }
+    } else {
+      if(!L.stack.length){L.done=true;return;}
+      const [lo,hi]=L.stack[L.stack.length-1];
+      if(L.pi===undefined){ L.pi=lo; L.pj=lo; L.pv=a[hi]; }
+      if(L.pj<hi){
+        if(a[L.pj]<L.pv){ const t=a[L.pi];a[L.pi]=a[L.pj];a[L.pj]=t; L.pi++; }
+        L.hi=L.pj; L.pj++;
+      } else {
+        const t=a[L.pi];a[L.pi]=a[hi];a[hi]=t;
+        L.stack.pop();
+        if(L.pi-1>lo) L.stack.push([lo,L.pi-1]);
+        if(L.pi+1<hi) L.stack.push([L.pi+1,hi]);
+        L.pi=undefined; L.pj=undefined;
+      }
+    }
+  },
+  step(dt){
+    const steps=Math.max(1,Math.round(this.n*this.n*dt/7));
+    for(const L of this.lanes) for(let s=0;s<steps;s++) this.tick(L);
+    PIX.clear(5,7,14);
+    const lh=Math.floor(PIX.H/4), bw=PIX.W/this.n;
+    const cols=[[88,232,255],[255,79,163],[255,180,84],[126,231,135]];
+    for(let k=0;k<4;k++){
+      const L=this.lanes[k], y0=k*lh, c=cols[k];
+      for(let i=0;i<this.n;i++){
+        const h=Math.max(1,Math.round(L.a[i]*(lh-4)));
+        const on = !L.done && i===L.hi;
+        const cc = on?[255,255,255]:(L.done?[126,231,135]:c);
+        PIX.rect(Math.round(i*bw), y0+lh-h-2, Math.max(1,Math.round(bw)-1), h, cc[0],cc[1],cc[2]);
+      }
+      PIX.rect(0,y0+lh-1,PIX.W,1,20,24,44);
+    }
+  }
+};
+
+/* --- 4.12 wave function collapse (pipes) ------------------------------ */
+SIMS.wfc = {
+  init(){
+    this.T=6; // tile pixel size
+    this.w=Math.max(6,Math.floor(PIX.W/this.T)); this.h=Math.max(6,Math.floor(PIX.H/this.T));
+    // tile = 4-bit connection mask N E S W
+    this.tiles=[]; for(let m=0;m<16;m++) this.tiles.push(m);
+    this.cell=[]; 
+    for(let i=0;i<this.w*this.h;i++) this.cell.push(this.tiles.slice());
+    this.fixed=new Int8Array(this.w*this.h).fill(-1);
+    this.acc=0; this.done=false;
+  },
+  ok(a,b,dir){ // dir 0=N 1=E 2=S 3=W from a to b
+    const A=(a>>dir)&1, B=(b>>((dir+2)%4))&1;
+    return A===B;
+  },
+  collapse(){
+    if(this.done) return;
+    let best=-1, bn=99;
+    for(let i=0;i<this.cell.length;i++){
+      if(this.fixed[i]>=0) continue;
+      const l=this.cell[i].length;
+      if(l===0){ this.fixed[i]=0; continue; }
+      if(l<bn || (l===bn && rnd()<0.25)){ bn=l; best=i; }
+    }
+    if(best<0){ this.done=true; return; }
+    const opts=this.cell[best];
+    const weights=opts.map(t=>{ let c=0; for(let d=0;d<4;d++) c+=(t>>d)&1; return c===0?0.4:(c===1?1.6:(c===2?2.4:0.8)); });
+    let sum=weights.reduce((a,b)=>a+b,0), r=rnd()*sum, ch=opts[0];
+    for(let i=0;i<opts.length;i++){ r-=weights[i]; if(r<=0){ ch=opts[i]; break; } }
+    this.cell[best]=[ch]; this.fixed[best]=ch;
+    // propagate
+    let q=[best], guard=0;
+    while(q.length && guard++<4000){
+      const i=q.pop(), x=i%this.w, y=(i/this.w)|0;
+      const nb=[[x,y-1,0],[x+1,y,1],[x,y+1,2],[x-1,y,3]];
+      for(const [nx,ny,d] of nb){
+        if(nx<0||ny<0||nx>=this.w||ny>=this.h) continue;
+        const ni=ny*this.w+nx;
+        if(this.fixed[ni]>=0) continue;
+        const before=this.cell[ni].length;
+        this.cell[ni]=this.cell[ni].filter(t=>this.cell[i].some(a=>this.ok(a,t,d)));
+        if(this.cell[ni].length===0){ this.cell[ni]=[0]; this.fixed[ni]=0; }
+        else if(this.cell[ni].length!==before) q.push(ni);
+      }
+    }
+  },
+  step(dt){
+    this.acc += dt*26;
+    while(this.acc>=1){ this.acc--; this.collapse(); }
+    PIX.clear(6,7,16);
+    const T=this.T, h2=T>>1;
+    for(let i=0;i<this.cell.length;i++){
+      const x=(i%this.w)*T, y=((i/this.w)|0)*T;
+      const f=this.fixed[i];
+      if(f<0){
+        const e=this.cell[i].length/16;
+        PIX.rect(x+h2-1,y+h2-1,2,2, 20+e*30|0, 24+e*26|0, 44+e*40|0);
+        continue;
+      }
+      const c=hsv(0.5+((i*7)%17)/90,0.7,0.95);
+      PIX.rect(x+h2-1,y+h2-1,2,2,c[0],c[1],c[2]);
+      if(f&1) PIX.line(x+h2,y+h2,x+h2,y,c[0],c[1],c[2]);
+      if(f&2) PIX.line(x+h2,y+h2,x+T-1,y+h2,c[0],c[1],c[2]);
+      if(f&4) PIX.line(x+h2,y+h2,x+h2,y+T-1,c[0],c[1],c[2]);
+      if(f&8) PIX.line(x+h2,y+h2,x,y+h2,c[0],c[1],c[2]);
+    }
+  }
+};
+
+/* --- 4.13 neural net decision boundary -------------------------------- */
+SIMS.nn = {
+  init(){
+    this.w1=[]; this.b1=[]; this.w2=[]; this.b2=0;
+    for(let i=0;i<4;i++){ this.w1.push([rnd()*2-1, rnd()*2-1]); this.b1.push(rnd()*0.4-0.2); this.w2.push(rnd()*2-1); }
+    this.data=[[0,0,0],[0,1,1],[1,0,1],[1,1,0]];
+    this.epoch=0; this.loss=1; this.acc=0;
+  },
+  fwd(x0,x1){
+    const h=[];
+    for(let i=0;i<4;i++) h.push(Math.tanh(this.w1[i][0]*x0 + this.w1[i][1]*x1 + this.b1[i]));
+    let s=this.b2; for(let i=0;i<4;i++) s+=this.w2[i]*h[i];
+    return [1/(1+Math.exp(-s)), h];
+  },
+  train(n){
+    const lr=0.55;
+    for(let it=0; it<n; it++){
+      let L=0;
+      for(const d of this.data){
+        const [y,h]=this.fwd(d[0],d[1]);
+        const e=y-d[2]; L+=e*e;
+        for(let i=0;i<4;i++){
+          const dh=e*this.w2[i]*(1-h[i]*h[i]);
+          this.w2[i]-=lr*e*h[i];
+          this.w1[i][0]-=lr*dh*d[0]; this.w1[i][1]-=lr*dh*d[1]; this.b1[i]-=lr*dh;
+        }
+        this.b2-=lr*e;
+      }
+      this.loss=L/4; this.epoch++;
+    }
+  },
+  step(dt){
+    this.acc+=dt*260;
+    const n=this.acc|0; this.acc-=n;
+    if(this.epoch<6000) this.train(Math.min(n,600));
+    PIX.clear(6,7,16);
+    const S=4;
+    if(!this.field || this.fieldW!==PIX.W || this.fieldH!==PIX.H){
+      this.fieldW=PIX.W; this.fieldH=PIX.H;
+      this.fw=Math.ceil(PIX.W/S); this.fh=Math.ceil(PIX.H/S);
+      this.field=new Uint8Array(this.fw*this.fh*3); this.lastEpoch=-1;
+    }
+    if(this.epoch - this.lastEpoch > 120){
+      this.lastEpoch=this.epoch;
+      let k=0;
+      for(let gy=0;gy<this.fh;gy++) for(let gx=0;gx<this.fw;gx++){
+        const x0=gx*S/PIX.W*1.3-0.15, x1=1-(gy*S/PIX.H*1.3-0.15);
+        const y=this.fwd(x0,x1)[0];
+        const c=hsv(y<0.5?0.58:0.92, 0.55, 0.18+Math.abs(y-0.5)*1.1);
+        this.field[k++]=c[0]; this.field[k++]=c[1]; this.field[k++]=c[2];
+      }
+    }
+    for(let gy=0;gy<this.fh;gy++) for(let gx=0;gx<this.fw;gx++){
+      const k=(gy*this.fw+gx)*3;
+      PIX.rect(gx*S,gy*S,S,S,this.field[k],this.field[k+1],this.field[k+2]);
+    }
+    for(const d of this.data){
+      const px=(d[0]+0.15)/1.3*PIX.W, py=(1-(d[1]+0.15)/1.3)*PIX.H;
+      const c=d[2]?[126,231,135]:[255,180,84];
+      PIX.disc(px,py,2,c[0],c[1],c[2]);
+    }
+    const bw=Math.round(PIX.W*clamp(1-this.loss*3.6,0,1));
+    PIX.rect(0,PIX.H-3,bw,3,88,232,255);
+  }
+};
+
+/* --- 4.14 attention heatmap ------------------------------------------- */
+SIMS.attn = {
+  init(){
+    this.n=clamp(Math.floor(Math.min(PIX.W,PIX.H)/7),8,18);
+    this.m=[]; this.tgt=[];
+    for(let i=0;i<this.n*this.n;i++){ this.m.push(rnd()*0.3); this.tgt.push(0); }
+    this.reroll(); this.t=0; this.step_=0;
+  },
+  reroll(){
+    const n=this.n;
+    for(let i=0;i<n;i++){
+      let s=0; const row=[];
+      for(let j=0;j<n;j++){
+        const v = j>i ? 0 : Math.exp((rnd()*2.4-0.4) - (i-j)*0.28*rnd());
+        row.push(v); s+=v;
+      }
+      for(let j=0;j<n;j++) this.tgt[i*n+j]= s>0 ? row[j]/s : 0;
+    }
+  },
+  step(dt){
+    this.t+=dt;
+    if(this.t>1.15){ this.t=0; this.reroll(); this.step_++; }
+    for(let i=0;i<this.m.length;i++) this.m[i]=lerp(this.m[i],this.tgt[i],Math.min(1,dt*5));
+    PIX.clear(6,7,16);
+    const n=this.n, pad=Math.max(2,Math.floor(PIX.W*0.04));
+    const cw=Math.floor((Math.min(PIX.W,PIX.H)-pad*2)/n);
+    const ox=Math.floor((PIX.W-cw*n)/2), oy=Math.floor((PIX.H-cw*n)/2);
+    for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+      const v=clamp(this.m[i*n+j]*2.4,0,1);
+      const c=hsv(0.72-v*0.58, 0.85, 0.10+v*0.95);
+      PIX.rect(ox+j*cw, oy+i*cw, cw-1, cw-1, c[0],c[1],c[2]);
+    }
+    PIX.rect(ox-1,oy-1,cw*n+1,1,40,50,80);
+    PIX.rect(ox-1,oy+cw*n,cw*n+1,1,40,50,80);
+  }
+};
+
+/* --- 4.15 hanoi (visual companion) ------------------------------------ */
+SIMS.hanoi = {
+  init(){
+    this.N=5; this.peg=[[],[],[]];
+    for(let i=this.N;i>=1;i--) this.peg[0].push(i);
+    this.moves=[]; const solve=(n,a,b,c)=>{ if(!n)return; solve(n-1,a,c,b); this.moves.push([a,c]); solve(n-1,b,a,c); };
+    solve(this.N,0,1,2);
+    this.k=0; this.acc=0;
+  },
+  step(dt){
+    this.acc+=dt*3.1;
+    while(this.acc>=1 && this.k<this.moves.length){
+      this.acc--; const [a,b]=this.moves[this.k++];
+      const d=this.peg[a].pop(); if(d!==undefined) this.peg[b].push(d);
+    }
+    PIX.clear(6,7,16);
+    const pw=PIX.W/3, base=PIX.H-4, dh=Math.max(2,Math.floor(PIX.H/22));
+    PIX.rect(2,base,PIX.W-4,2,60,70,110);
+    for(let p=0;p<3;p++){
+      const cx=Math.round(pw*(p+0.5));
+      PIX.rect(cx-1, base-dh*(this.N+1), 2, dh*(this.N+1), 44,52,88);
+      for(let i=0;i<this.peg[p].length;i++){
+        const d=this.peg[p][i], w=Math.round(pw*0.16 + pw*0.62*(d/this.N));
+        const c=hsv(0.5-d/this.N*0.42,0.8,0.95);
+        PIX.rect(cx-w/2, base-dh*(i+1), w, dh-1, c[0],c[1],c[2]);
+      }
+    }
+  }
+};
+/* ══════════════════════════════════════════════════════════════
+   5. GPU fragment shaders
+   ══════════════════════════════════════════════════════════════ */
+const SH_HEAD = [
+"#ifdef GL_FRAGMENT_PRECISION_HIGH",
+"precision highp float;",
+"#else",
+"precision mediump float;",
+"#endif",
+"varying vec2 v;",
+"uniform vec2 u_res;",
+"uniform float u_time;",
+"uniform float u_prog;",
+"float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
+"vec2 h22(vec2 p){return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);}",
+"float nz(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);",
+" return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}",
+"float fbm(vec2 p){float s=0.0,a=0.5;for(int i=0;i<5;i++){s+=a*nz(p);p*=2.03;a*=0.5;}return s;}",
+"mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}",
+"vec3 pal(float t){return 0.5+0.5*cos(6.28318*(vec3(1.0,1.0,1.0)*t+vec3(0.0,0.33,0.67)));}",
+""].join("\n");
+
+const SHADERS = {};
+
+SHADERS.mandelbrot = SH_HEAD + [
+"void main(){",
+" vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y;",
+" float zoom=exp(1.0-u_time*0.30);",
+" vec2 tc=vec2(-0.74364388703,0.13182590421);",
+" vec2 c=tc+uv*zoom*2.2;",
+" vec2 z=vec2(0.0); float i=0.0; float m=0.0;",
+" for(int k=0;k<160;k++){",
+"  z=vec2(z.x*z.x-z.y*z.y,2.0*z.x*z.y)+c;",
+"  m=dot(z,z); if(m>256.0) break; i+=1.0;",
+" }",
+" vec3 col;",
+" if(i>=159.0){ col=vec3(0.02,0.03,0.06); }",
+" else { float sm=i-log2(log2(m))+4.0; col=pal(0.06*sm+u_time*0.05); col=pow(col,vec3(1.25)); }",
+" col*=1.0-0.42*dot(uv,uv);",
+" gl_FragColor=vec4(col,1.0);",
+"}"].join("\n");
+
+SHADERS.plasma = SH_HEAD + [
+"void main(){",
+" vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y;",
+" float t=u_time*0.55;",
+" float a=sin(uv.x*6.0+t)+sin(uv.y*7.3-t*1.2);",
+" a+=sin((uv.x+uv.y)*5.4+t*0.7)+sin(length(uv*3.4)*7.0-t*1.9);",
+" float w=fbm(uv*3.0+vec2(t*0.3,-t*0.22));",
+" a+=w*2.4;",
+" vec3 col=pal(a*0.15+0.5);",
+" col=mix(col,vec3(0.02,0.03,0.08),smoothstep(0.5,1.35,length(uv)));",
+" col+=pow(max(0.0,1.0-abs(fract(a*0.5)-0.5)*3.4),8.0)*vec3(0.5,0.8,1.0);",
+" gl_FragColor=vec4(col,1.0);",
+"}"].join("\n");
+
+SHADERS.voronoi = SH_HEAD + [
+"void main(){",
+" vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y*4.0;",
+" vec2 g=floor(uv),f=fract(uv);",
+" float d1=9.0,d2=9.0; vec2 id=vec2(0.0);",
+" for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){",
+"  vec2 o=vec2(float(i),float(j));",
+"  vec2 p=h22(g+o); p=0.5+0.5*sin(u_time*0.9+6.283*p);",
+"  float d=length(o+p-f);",
+"  if(d<d1){d2=d1;d1=d;id=g+o;} else if(d<d2){d2=d;}",
+" }",
+" float edge=smoothstep(0.0,0.09,d2-d1);",
+" vec3 col=pal(h21(id)*0.7+u_time*0.03)*(0.28+0.72*edge);",
+" col*=0.55+0.55*(1.0-d1);",
+" col+=vec3(0.45,0.85,1.0)*(1.0-edge)*0.55;",
+" gl_FragColor=vec4(col,1.0);",
+"}"].join("\n");
+
+SHADERS.cube = SH_HEAD + [
+"float box(vec3 p,vec3 b,float r){vec3 q=abs(p)-b;return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0)-r;}",
+"float map(vec3 p){",
+" p.xz*=rot(u_time*0.6); p.xy*=rot(u_time*0.43);",
+" float d=box(p,vec3(0.62),0.05);",
+" float h=min(min(length(p.xy),length(p.yz)),length(p.xz))-0.30;",
+" return max(d,-h);",
+"}",
+"vec3 nrm(vec3 p){vec2 e=vec2(0.0015,0.0);",
+" return normalize(vec3(map(p+e.xyy)-map(p-e.xyy),map(p+e.yxy)-map(p-e.yxy),map(p+e.yyx)-map(p-e.yyx)));}",
+"void main(){",
+" vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y;",
+" vec3 ro=vec3(0.0,0.0,-2.7), rd=normalize(vec3(uv,1.35));",
+" float t=0.0; float hit=0.0;",
+" for(int i=0;i<70;i++){vec3 p=ro+rd*t;float d=map(p);if(d<0.001){hit=1.0;break;}t+=d;if(t>7.0)break;}",
+" vec3 col=vec3(0.02,0.03,0.07)+0.06*pal(uv.y*0.3+u_time*0.05);",
+" if(hit>0.5){",
+"  vec3 p=ro+rd*t, n=nrm(p);",
+"  vec3 l=normalize(vec3(0.6,0.8,-0.5));",
+"  float dif=max(dot(n,l),0.0), fr=pow(1.0-max(dot(n,-rd),0.0),3.0);",
+"  vec3 base=pal(0.55+n.y*0.18+u_time*0.04);",
+"  col=base*(0.16+0.84*dif)+fr*vec3(0.4,0.9,1.0)*0.9;",
+"  col+=pow(max(dot(reflect(rd,n),l),0.0),42.0)*vec3(1.0);",
+" }",
+" col*=1.0-0.4*dot(uv,uv);",
+" gl_FragColor=vec4(pow(col,vec3(0.85)),1.0);",
+"}"].join("\n");
+
+SHADERS.terrain = SH_HEAD + [
+"float hgt(vec2 p){return fbm(p*0.55)*1.5-0.55;}",
+"void main(){",
+" vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y;",
+" vec3 ro=vec3(0.0,1.25,-u_time*0.85);",
+" vec3 rd=normalize(vec3(uv.x,uv.y-0.05,1.0));",
+" float t=0.4; float hit=0.0; vec3 p=ro;",
+" for(int i=0;i<78;i++){",
+"  p=ro+rd*t; float h=p.y-hgt(p.xz);",
+"  if(h<0.008*t){hit=1.0;break;} t+=h*0.42; if(t>26.0)break;",
+" }",
+" vec3 sky=mix(vec3(0.03,0.05,0.12),vec3(0.28,0.13,0.34),pow(max(uv.y+0.35,0.0),0.8));",
+" sky+=pow(max(0.0,1.0-abs(uv.x-0.28)*1.4-abs(uv.y-0.28)*1.4),12.0)*vec3(1.0,0.6,0.3);",
+" vec3 col=sky;",
+" if(hit>0.5){",
+"  vec2 e=vec2(0.03,0.0);",
+"  vec3 n=normalize(vec3(hgt(p.xz-e.xy)-hgt(p.xz+e.xy),2.0*e.x,hgt(p.xz-e.yx)-hgt(p.xz+e.yx)));",
+"  vec3 l=normalize(vec3(0.7,0.42,0.3));",
+"  float dif=max(dot(n,l),0.0);",
+"  vec3 rock=mix(vec3(0.10,0.12,0.22),vec3(0.42,0.30,0.46),smoothstep(-0.2,0.9,p.y));",
+"  rock=mix(rock,vec3(0.75,0.85,1.0),smoothstep(0.55,0.95,p.y)*smoothstep(0.4,0.9,n.y));",
+"  col=rock*(0.14+0.9*dif)+vec3(0.2,0.45,0.7)*max(n.y,0.0)*0.16;",
+"  col=mix(col,sky,smoothstep(6.0,24.0,t));",
+" }",
+" col*=1.0-0.35*dot(uv,uv);",
+" gl_FragColor=vec4(col,1.0);",
+"}"].join("\n");
+
+SHADERS.raymarch = SH_HEAD + [
+"float sph(vec3 p,float r){return length(p)-r;}",
+"float tor(vec3 p,vec2 t){vec2 q=vec2(length(p.xz)-t.x,p.y);return length(q)-t.y;}",
+"float sm(float a,float b,float k){float h=clamp(0.5+0.5*(b-a)/k,0.0,1.0);return mix(b,a,h)-k*h*(1.0-h);}",
+"float map(vec3 p){",
+" vec3 q=p; q.xz*=rot(u_time*0.35);",
+" float d=tor(q,vec2(1.05,0.26));",
+" vec3 s=p; s.y-=sin(u_time*1.2)*0.42;",
+" d=sm(d,sph(s,0.52),0.34);",
+" d=sm(d,sph(vec3(p.x-1.3*sin(u_time*0.8),p.y+0.3,p.z-1.3*cos(u_time*0.8)),0.3),0.3);",
+" return min(d,p.y+1.15);",
+"}",
+"vec3 nrm(vec3 p){vec2 e=vec2(0.002,0.0);",
+" return normalize(vec3(map(p+e.xyy)-map(p-e.xyy),map(p+e.yxy)-map(p-e.yxy),map(p+e.yyx)-map(p-e.yyx)));}",
+"float sha(vec3 ro,vec3 rd){float r=1.0,t=0.05;",
+" for(int i=0;i<26;i++){float h=map(ro+rd*t);r=min(r,10.0*h/t);t+=clamp(h,0.02,0.4);if(r<0.002||t>7.0)break;}",
+" return clamp(r,0.0,1.0);}",
+"void main(){",
+" vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y;",
+" vec3 ro=vec3(0.0,0.55,-3.4), rd=normalize(vec3(uv,1.4));",
+" float t=0.0,hit=0.0;",
+" for(int i=0;i<86;i++){vec3 p=ro+rd*t;float d=map(p);if(d<0.0015){hit=1.0;break;}t+=d;if(t>16.0)break;}",
+" vec3 col=mix(vec3(0.02,0.03,0.07),vec3(0.10,0.05,0.16),uv.y+0.5);",
+" if(hit>0.5){",
+"  vec3 p=ro+rd*t,n=nrm(p),l=normalize(vec3(0.65,0.75,-0.35));",
+"  float dif=max(dot(n,l),0.0)*sha(p+n*0.01,l);",
+"  float ao=clamp(map(p+n*0.22)/0.22,0.0,1.0);",
+"  vec3 base=p.y<-1.1?vec3(0.09,0.11,0.18)*(0.6+0.4*mod(floor(p.x)+floor(p.z),2.0)):pal(0.6+n.y*0.2);",
+"  col=base*(0.10+0.9*dif)*(0.35+0.65*ao);",
+"  col+=pow(max(dot(reflect(rd,n),l),0.0),48.0)*vec3(1.0,0.95,0.85);",
+"  col=mix(col,vec3(0.03,0.04,0.09),smoothstep(6.0,15.0,t));",
+" }",
+" col*=1.0-0.36*dot(uv,uv);",
+" gl_FragColor=vec4(pow(col,vec3(0.88)),1.0);",
+"}"].join("\n");
+
+SHADERS.raytracer = SH_HEAD + [
+"vec3 SP[3]; vec3 SC[3]; float SR[3];",
+"float isect(vec3 ro,vec3 rd,out int id){",
+" float best=1e9; id=-1;",
+" for(int i=0;i<3;i++){",
+"  vec3 oc=ro-SP[i]; float b=dot(oc,rd), c=dot(oc,oc)-SR[i]*SR[i], h=b*b-c;",
+"  if(h>0.0){ float t=-b-sqrt(h); if(t>0.002&&t<best){best=t;id=i;} }",
+" }",
+" float tp=(-1.0-ro.y)/rd.y;",
+" if(tp>0.002&&tp<best){best=tp;id=3;}",
+" return best;",
+"}",
+"void main(){",
+" SP[0]=vec3(sin(u_time*0.7)*1.15,0.0,0.0); SC[0]=vec3(0.95,0.35,0.55); SR[0]=0.62;",
+" SP[1]=vec3(-1.25,-0.42,1.1); SC[1]=vec3(0.35,0.85,0.95); SR[1]=0.42;",
+" SP[2]=vec3(1.35,-0.32+sin(u_time*1.6)*0.3,-0.9); SC[2]=vec3(0.98,0.75,0.35); SR[2]=0.5;",
+" vec2 uv=(gl_FragCoord.xy-0.5*u_res)/u_res.y;",
+" vec3 ro=vec3(0.0,0.35,-4.2); vec3 rd=normalize(vec3(uv,1.5));",
+" rd.xz*=rot(sin(u_time*0.25)*0.22);",
+" vec3 L=normalize(vec3(0.6,0.9,-0.4));",
+" vec3 col=vec3(0.0), att=vec3(1.0);",
+" for(int bounce=0;bounce<3;bounce++){",
+"  int id; float t=isect(ro,rd,id);",
+"  if(id<0){ col+=att*mix(vec3(0.03,0.04,0.10),vec3(0.16,0.09,0.24),clamp(rd.y+0.5,0.0,1.0)); break; }",
+"  vec3 p=ro+rd*t; vec3 n; vec3 base;",
+"  if(id==3){ n=vec3(0.0,1.0,0.0); float ch=mod(floor(p.x)+floor(p.z),2.0); base=mix(vec3(0.07,0.08,0.13),vec3(0.22,0.24,0.34),ch); }",
+"  else { for(int i=0;i<3;i++){ if(i==id){ n=normalize(p-SP[i]); base=SC[i]; } } }",
+"  int sid; float st=isect(p+n*0.004,L,sid);",
+"  float sh=(sid>=0&&st<1e8)?0.22:1.0;",
+"  float dif=max(dot(n,L),0.0)*sh;",
+"  col+=att*base*(0.09+0.92*dif);",
+"  col+=att*pow(max(dot(reflect(rd,n),L),0.0),64.0)*0.6*sh;",
+"  att*=0.32*base+0.08;",
+"  ro=p+n*0.004; rd=reflect(rd,n);",
+" }",
+" col*=1.0-0.34*dot(uv,uv);",
+" gl_FragColor=vec4(pow(col,vec3(0.85)),1.0);",
+"}"].join("\n");
+/* ══════════════════════════════════════════════════════════════
+   6. the 30 programs
+   ══════════════════════════════════════════════════════════════ */
+const L = (ms,txt,cls,rep) => [ms, txt, cls||"o", rep?1:0];
+function bar(p,w){ const f=Math.round(p*w); return "[" + "#".repeat(f) + ".".repeat(w-f) + "] " + pad(Math.round(p*100),3) + "%"; }
+function progress(label, steps, total, cls){
+  const out=[]; for(let i=1;i<=steps;i++) out.push(L(total/steps, label+" "+bar(i/steps,16), cls||"a", i>1?1:0));
+  return out;
+}
+
+const PROGRAMS = [
+{ file:"hello.py", lang:"py", title:"인사부터", cmd:"python3 hello.py",
+code: String.raw`# hello.py — 모든 것은 여기서 시작한다
+import sys
+from datetime import datetime
+
+GREETINGS = ["안녕", "Hello", "こんにちは", "Bonjour", "Hola"]
+
+def greet(name="world"):
+    stamp = datetime.now().strftime("%H:%M:%S")
+    for i, g in enumerate(GREETINGS, 1):
+        print("[%s] %d. %s, %s!" % (stamp, i, g, name))
+    return len(GREETINGS)
+
+if __name__ == "__main__":
+    who = sys.argv[1] if len(sys.argv) > 1 else "world"
+    n = greet(who)
+    print("-- %d greetings delivered." % n)`,
+run:{mode:"term", out:()=>[
+  L(500,"[03:14:07] 1. 안녕, world!"),L(340,"[03:14:07] 2. Hello, world!"),
+  L(340,"[03:14:07] 3. こんにちは, world!"),L(340,"[03:14:07] 4. Bonjour, world!"),
+  L(340,"[03:14:07] 5. Hola, world!"),L(600,"-- 5 greetings delivered.","k2"),
+  L(900,"","m"),L(300,"real  0m0.031s","m"),L(200,"user  0m0.022s","m")
+]}},
+
+{ file:"fizzbuzz.js", lang:"js", title:"규칙 세 줄", cmd:"node fizzbuzz.js",
+code: String.raw`// fizzbuzz.js — 규칙은 단순할수록 아름답다
+const rules = [[15, "FizzBuzz"], [3, "Fizz"], [5, "Buzz"]];
+
+function fizzbuzz(n) {
+  for (const [div, word] of rules) {
+    if (n % div === 0) return word;
+  }
+  return String(n);
+}
+
+const out = [];
+for (let i = 1; i <= 30; i++) out.push(fizzbuzz(i));
+
+for (let r = 0; r < 5; r++) {
+  console.log(out.slice(r * 6, r * 6 + 6).join("  "));
+}
+const words = out.filter((x) => Number.isNaN(+x));
+console.log("words:", words.length, "/ numbers:", 30 - words.length);`,
+run:{mode:"term", out:()=>[
+  L(600,"1  2  Fizz  4  Buzz  Fizz"),L(420,"7  8  Fizz  Buzz  11  Fizz"),
+  L(420,"13  14  FizzBuzz  16  17  Fizz"),L(420,"19  Buzz  Fizz  22  23  Fizz"),
+  L(420,"Buzz  26  Fizz  28  29  FizzBuzz"),
+  L(700,"words: 14 / numbers: 16","k2"),L(1200,"","m")
+]}},
+
+{ file:"temp.c", lang:"c", title:"변환표", cmd:"gcc temp.c -o temp && ./temp",
+code: String.raw`// temp.c — 섭씨에서 화씨로, 그리고 켈빈까지
+#include <stdio.h>
+
+#define LOWER  -20
+#define UPPER  100
+#define STEP    20
+
+double c2f(double c) { return c * 9.0 / 5.0 + 32.0; }
+double c2k(double c) { return c + 273.15; }
+
+int main(void) {
+    printf("   C        F        K\n");
+    printf("-------------------------\n");
+    for (int c = LOWER; c <= UPPER; c += STEP) {
+        printf("%4d %8.1f %8.2f\n", c, c2f(c), c2k(c));
+    }
+    printf("-------------------------\n");
+    return 0;
+}`,
+run:{mode:"term", out:()=>[
+  L(900,"gcc temp.c -o temp","m"),
+  L(700,"   C        F        K","v"),L(200,"-------------------------","m"),
+  L(300,"  -20    -4.0   253.15"),L(300,"    0    32.0   273.15"),
+  L(300,"   20    68.0   293.15"),L(300,"   40   104.0   313.15"),
+  L(300,"   60   140.0   333.15"),L(300,"   80   176.0   353.15"),
+  L(300,"  100   212.0   373.15"),L(200,"-------------------------","m"),
+  L(800,"exit status 0","k2")
+]}},
+
+{ file:"fib.py", lang:"py", title:"메모이제이션", cmd:"python3 fib.py",
+code: String.raw`# fib.py — 같은 계산을 두 번 하지 않기
+from functools import lru_cache
+import time
+
+@lru_cache(maxsize=None)
+def fib(n):
+    return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+def naive(n):
+    return n if n < 2 else naive(n - 1) + naive(n - 2)
+
+if __name__ == "__main__":
+    for n in (10, 20, 30, 60, 90):
+        t0 = time.perf_counter()
+        v = fib(n)
+        dt = (time.perf_counter() - t0) * 1e6
+        print("fib(%2d) = %-20d %8.1f us" % (n, v, dt))
+
+    print("ratio  =", fib(90) / fib(89))
+    print("cache  =", fib.cache_info())`,
+run:{mode:"term", out:()=>[
+  L(700,"fib(10) = 55                       12.4 us"),
+  L(420,"fib(20) = 6765                      8.1 us"),
+  L(420,"fib(30) = 832040                    9.6 us"),
+  L(420,"fib(60) = 1548008755920            22.7 us"),
+  L(420,"fib(90) = 2880067194370816120      31.2 us"),
+  L(700,"ratio  = 1.618033988749895","a"),
+  L(500,"cache  = CacheInfo(hits=176, misses=91)","m"),
+  L(1100,"","m")
+]}},
+
+{ file:"BinarySearch.java", lang:"java", title:"반씩 자르기", cmd:"java BinarySearch",
+code: String.raw`// BinarySearch.java — 정렬된 배열이라면 log n 이면 충분하다
+import java.util.Arrays;
+
+public class BinarySearch {
+    static int find(int[] a, int key) {
+        int lo = 0, hi = a.length - 1, steps = 0;
+        while (lo <= hi) {
+            int mid = lo + (hi - lo) / 2;
+            steps++;
+            System.out.printf("  step %d: [%d..%d] mid=%d%n", steps, lo, hi, a[mid]);
+            if (a[mid] == key) return mid;
+            if (a[mid] < key) lo = mid + 1;
+            else hi = mid - 1;
+        }
+        return -1;
+    }
+
+    public static void main(String[] args) {
+        int[] a = new int[1024];
+        for (int i = 0; i < a.length; i++) a[i] = i * 3 + 1;
+        int idx = find(a, 1723);
+        System.out.println("found at index " + idx);
+    }
+}`,
+run:{mode:"term", out:()=>[
+  L(900,"searching 1723 in 1024 sorted ints","m"),
+  L(420,"  step 1: [0..1023] mid=1534"),L(360,"  step 2: [512..1023] mid=2302"),
+  L(360,"  step 3: [512..766] mid=1918"),L(360,"  step 4: [512..638] mid=1726"),
+  L(360,"  step 5: [512..574] mid=1630"),L(360,"  step 6: [543..574] mid=1678"),
+  L(360,"  step 7: [559..574] mid=1702"),L(360,"  step 8: [567..574] mid=1714"),
+  L(360,"  step 9: [571..574] mid=1720"),L(360,"  step 10: [573..574] mid=1723"),
+  L(650,"found at index 574","k2"),L(900,"10 steps for 1024 elements  (log2 = 10)","a")
+]}},
+
+{ file:"backup.sh", lang:"sh", title:"밤에 도는 스크립트", cmd:"bash backup.sh --nightly",
+code: String.raw`#!/usr/bin/env bash
+# backup.sh — 새벽 3시에 조용히 도는 스크립트
+set -euo pipefail
+
+SRC="/var/www/app"
+BACKUP_DIR="/mnt/backup/$(date +%Y%m%d)"
+KEEP_DAYS=14
+
+log() { printf "[%s] %s\n" "$(date +%H:%M:%S)" "$1"; }
+
+mkdir -p "$BACKUP_DIR"
+log "collecting file list"
+find "$SRC" -type f -not -path "*/node_modules/*" > /tmp/list.txt
+
+log "archiving $(wc -l < /tmp/list.txt) files"
+tar -czf "$BACKUP_DIR/app.tar.gz" -T /tmp/list.txt
+
+log "pruning archives older than $KEEP_DAYS days"
+find /mnt/backup -maxdepth 1 -mtime "+$KEEP_DAYS" -exec rm -rf {} +
+
+log "done: $(du -h "$BACKUP_DIR/app.tar.gz" | cut -f1)"`,
+run:{mode:"term", out:()=>[
+  L(600,"[03:00:01] collecting file list","m"),
+  L(900,"[03:00:04] archiving 18,442 files","m")
+].concat(progress("  tar", 10, 5200)).concat([
+  L(500,"[03:01:36] pruning archives older than 14 days","m"),
+  L(700,"removed /mnt/backup/20260721","w"),
+  L(400,"removed /mnt/backup/20260720","w"),
+  L(700,"[03:01:38] done: 412M","k2")
+])}},
+
+{ file:"analytics.sql", lang:"sql", title:"어제의 숫자", cmd:"psql -f analytics.sql",
+code: String.raw`-- analytics.sql — 어제 무슨 일이 있었는지
+WITH daily AS (
+    SELECT date_trunc('day', created_at) AS d,
+           country,
+           count(*)                      AS orders,
+           sum(total_krw)                AS revenue
+    FROM orders
+    WHERE created_at >= now() - interval '7 days'
+      AND status = 'paid'
+    GROUP BY 1, 2
+)
+SELECT country,
+       sum(orders)                          AS orders,
+       sum(revenue)                         AS revenue,
+       round(avg(revenue / orders))         AS aov,
+       round(100.0 * sum(revenue)
+             / sum(sum(revenue)) OVER (), 1) AS share
+FROM daily
+GROUP BY country
+ORDER BY revenue DESC
+LIMIT 6;`,
+run:{mode:"term", out:()=>[
+  L(1400,"planning… seq scan avoided, using idx_orders_created_at","m"),
+  L(900," country | orders |   revenue   |  aov  | share","v"),
+  L(200,"---------+--------+-------------+-------+-------","m"),
+  L(330," KR      |  12480 | 418,220,000 | 33511 |  61.2"),
+  L(330," JP      |   4102 | 131,940,500 | 32165 |  19.3"),
+  L(330," US      |   2237 |  74,880,200 | 33473 |  11.0"),
+  L(330," TW      |    901 |  29,410,700 | 32643 |   4.3"),
+  L(330," SG      |    620 |  18,220,400 | 29388 |   2.7"),
+  L(330," DE      |    311 |  10,530,900 | 33861 |   1.5"),
+  L(400,"(6 rows)","m"),
+  L(800,"Time: 84.221 ms","k2")
+]}},
+
+{ file:"server.go", lang:"go", title:"요청을 받는 쪽", cmd:"go run server.go",
+code: String.raw`// server.go — 요청을 받고, 재고를 세고, 돌려준다
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+	"sync"
+	"time"
+)
+
+type Stock struct {
+	mu    sync.RWMutex
+	items map[string]int
+}
+
+func (s *Stock) handle(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	json.NewEncoder(w).Encode(s.items)
+	log.Printf("%s %s %v", r.Method, r.URL.Path, time.Since(start))
+}
+
+func main() {
+	s := &Stock{items: map[string]int{"apple": 120, "pear": 64}}
+	http.HandleFunc("/stock", s.handle)
+	log.Println("listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}`,
+run:{mode:"term", out:()=>{
+  const paths=["/stock","/stock?sku=apple","/health","/stock?sku=pear","/metrics","/stock"];
+  const o=[L(800,"2026/08/04 03:20:11 listening on :8080","k2")];
+  for(let i=0;i<11;i++){
+    const p=pick(paths), ms=(0.2+rnd()*3.4).toFixed(3);
+    const code = rnd()<0.1 ? "404" : "200";
+    o.push(L(500+rnd()*500,"2026/08/04 03:20:"+pad0(12+i,2)+" GET "+p+" "+ms+"ms "+code, code==="200"?"o":"w"));
+  }
+  o.push(L(700,"^C  graceful shutdown in 1.2s","m"));
+  return o;
+}}},
+
+{ file:"hanoi.py", lang:"py", title:"재귀의 교과서", cmd:"python3 hanoi.py --disks 5",
+code: String.raw`# hanoi.py — 원판 n개를 옮기려면 n-1개를 먼저 옮겨야 한다
+import sys
+
+moves = []
+
+def hanoi(n, src, aux, dst):
+    if n == 0:
+        return
+    hanoi(n - 1, src, dst, aux)
+    moves.append((n, src, dst))
+    hanoi(n - 1, aux, src, dst)
+
+def render(pegs, n):
+    for level in range(n - 1, -1, -1):
+        row = ""
+        for peg in pegs:
+            d = peg[level] if level < len(peg) else 0
+            row += ("#" * d).center(n * 2 + 1)
+        print(row)
+    print("-" * ((n * 2 + 1) * 3))
+
+if __name__ == "__main__":
+    n = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+    hanoi(n, "A", "B", "C")
+    print("total moves:", len(moves), "= 2^%d - 1" % n)`,
+run:{mode:"split", sim:"hanoi", out:()=>{
+  const o=[L(500,"solving for 5 disks…","m")];
+  const seq=[[1,"A","C"],[2,"A","B"],[1,"C","B"],[3,"A","C"],[1,"B","A"],[2,"B","C"],[1,"A","C"],[4,"A","B"],[1,"C","B"],[2,"C","A"],[1,"B","A"],[3,"C","B"],[1,"A","C"],[2,"A","B"],[1,"C","B"],[5,"A","C"]];
+  seq.forEach((m,i)=>o.push(L(520,"  "+pad(i+1,3)+"  disk "+m[0]+"  "+m[1]+" -> "+m[2], m[0]===5?"a":"o")));
+  o.push(L(700,"total moves: 31 = 2^5 - 1","k2"));
+  return o;
+}}},
+
+{ file:"bubble_sort.js", lang:"js", title:"가장 느린 정렬", cmd:"node bubble_sort.js --visual",
+code: String.raw`// bubble_sort.js — 가장 느리지만 가장 잘 보이는 정렬
+export function* bubbleSort(a) {
+  const n = a.length;
+  for (let i = 0; i < n - 1; i++) {
+    let swapped = false;
+    for (let j = 0; j < n - 1 - i; j++) {
+      if (a[j] > a[j + 1]) {
+        [a[j], a[j + 1]] = [a[j + 1], a[j]];
+        swapped = true;
+      }
+      yield { array: a, cursor: j, pass: i };
+    }
+    if (!swapped) break;
+  }
+  return a;
+}
+
+const data = Array.from({ length: 64 }, () => Math.random());
+const frames = [...bubbleSort(data)];
+render(frames, { fps: 60, palette: "spectrum" });`,
+run:{mode:"canvas", sim:"bars", ms:19000}},
+
+{ file:"sieve.c", lang:"c", title:"에라토스테네스", cmd:"./sieve 4096",
+code: String.raw`// sieve.c — 2300년 전 알고리즘이 아직도 제일 빠르다
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char **argv) {
+    int n = argc > 1 ? atoi(argv[1]) : 4096;
+    char *mark = calloc(n + 1, 1);
+    int count = 0;
+
+    for (int p = 2; (long)p * p <= n; p++) {
+        if (mark[p]) continue;
+        for (int m = p * p; m <= n; m += p) mark[m] = 1;
+    }
+
+    for (int i = 2; i <= n; i++)
+        if (!mark[i]) count++;
+
+    printf("primes below %d: %d\n", n, count);
+    free(mark);
+    return 0;
+}`,
+run:{mode:"canvas", sim:"sieve", ms:18000}},
+
+{ file:"matrix_rain.js", lang:"js", title:"떨어지는 글자", cmd:"node matrix_rain.js",
+code: String.raw`// matrix_rain.js — 화면 밖으로 계속 흘려보내기
+const GLYPHS = "アイウエオカキクケコ0123456789";
+
+class Column {
+  constructor(x, rows) {
+    this.x = x;
+    this.rows = rows;
+    this.reset(-Math.random() * rows);
+  }
+  reset(y = -1) {
+    this.y = y;
+    this.speed = 6 + Math.random() * 16;
+    this.trail = 3 + (Math.random() * 9 | 0);
+  }
+  update(dt) {
+    this.y += this.speed * dt;
+    if (this.y > this.rows + this.trail) this.reset();
+  }
+  glyph(i) {
+    return GLYPHS[(this.x * 31 + i * 17) % GLYPHS.length];
+  }
+}
+
+const cols = Array.from({ length: 64 }, (_, x) => new Column(x, 48));
+loop((dt) => cols.forEach((c) => c.update(dt)));`,
+run:{mode:"canvas", sim:"matrix", ms:17000}},
+
+{ file:"life.py", lang:"py", title:"세 가지 규칙", cmd:"python3 life.py --gens inf",
+code: String.raw`# life.py — 규칙 세 개로 만들어지는 생태계
+import numpy as np
+
+def step(grid):
+    n = sum(np.roll(np.roll(grid, i, 0), j, 1)
+            for i in (-1, 0, 1) for j in (-1, 0, 1)
+            if (i, j) != (0, 0))
+    return ((n == 3) | (grid & (n == 2))).astype(np.uint8)
+
+def seed(w, h, density=0.28):
+    return (np.random.random((h, w)) < density).astype(np.uint8)
+
+if __name__ == "__main__":
+    grid = seed(96, 72)
+    gen = 0
+    while True:
+        grid = step(grid)
+        gen += 1
+        if gen % 100 == 0:
+            print("gen %5d  alive %5d" % (gen, grid.sum()))`,
+run:{mode:"canvas", sim:"life", ms:19000}},
+
+{ file:"maze_gen.js", lang:"js", title:"길을 파내기", cmd:"node maze_gen.js --seed 2026",
+code: String.raw`// maze_gen.js — 벽을 세우는 대신 길을 파낸다
+function carve(w, h, seed = 2026) {
+  const grid = new Uint8Array(w * h);
+  const stack = [[1, 1]];
+  grid[w + 1] = 1;
+
+  while (stack.length) {
+    const [x, y] = stack[stack.length - 1];
+    const options = [[2, 0], [-2, 0], [0, 2], [0, -2]]
+      .map(([dx, dy]) => [x + dx, y + dy])
+      .filter(([nx, ny]) =>
+        nx > 0 && ny > 0 && nx < w - 1 && ny < h - 1 && !grid[ny * w + nx]);
+
+    if (!options.length) { stack.pop(); continue; }
+
+    const [nx, ny] = options[(Math.random() * options.length) | 0];
+    grid[ny * w + nx] = 1;
+    grid[((y + ny) >> 1) * w + ((x + nx) >> 1)] = 1;
+    stack.push([nx, ny]);
+  }
+  return grid;
+}`,
+run:{mode:"canvas", sim:"maze", ms:16000}},
+
+{ file:"astar.py", lang:"py", title:"목적지를 아는 탐색", cmd:"python3 astar.py",
+code: String.raw`# astar.py — 목적지를 아는 탐색은 훨씬 적게 걷는다
+import heapq
+
+def astar(grid, start, goal):
+    h = lambda p: abs(p[0] - goal[0]) + abs(p[1] - goal[1])
+    open_set = [(h(start), 0, start, None)]
+    came, cost = {}, {start: 0}
+
+    while open_set:
+        _, g, cur, parent = heapq.heappop(open_set)
+        if cur in came:
+            continue
+        came[cur] = parent
+        if cur == goal:
+            break
+        for d in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nxt = (cur[0] + d[0], cur[1] + d[1])
+            if grid.get(nxt, 1):
+                continue
+            ng = g + 1
+            if ng < cost.get(nxt, 1 << 30):
+                cost[nxt] = ng
+                heapq.heappush(open_set, (ng + h(nxt), ng, nxt, cur))
+
+    path, node = [], goal
+    while node:
+        path.append(node)
+        node = came.get(node)
+    return path[::-1]`,
+run:{mode:"canvas", sim:"astar", ms:17000}},
+{ file:"particles.rs", lang:"rs", title:"인력과 감쇠", cmd:"cargo run --release --bin particles",
+code: String.raw`// particles.rs — 인력 하나와 감쇠 하나면 충분하다
+use std::time::Instant;
+
+#[derive(Clone, Copy)]
+struct Particle { pos: Vec2, vel: Vec2 }
+
+impl Particle {
+    fn update(&mut self, attractor: Vec2, dt: f32) {
+        let d = attractor - self.pos;
+        let f = 900.0 / (d.len_sq() + 24.0);
+        self.vel = (self.vel + d * f * dt) * 0.996;
+        self.pos = self.pos + self.vel * dt * 10.0;
+    }
+}
+
+fn main() {
+    let mut world: Vec<Particle> = (0..1400).map(|_| Particle::random()).collect();
+    let clock = Instant::now();
+
+    loop {
+        let t = clock.elapsed().as_secs_f32();
+        let attractor = Vec2::new(t.sin() * 0.3, (t * 0.53).cos() * 0.3);
+        for p in world.iter_mut() { p.update(attractor, 1.0 / 60.0); }
+        present(&world);
+    }
+}`,
+run:{mode:"canvas", sim:"particles", ms:18000}},
+
+{ file:"boids.js", lang:"js", title:"세 가지 본능", cmd:"node boids.js",
+code: String.raw`// boids.js — 응집, 정렬, 분리. 새떼는 이걸로 끝난다
+const R = 18, R2 = R * R;
+
+function flock(boids, dt) {
+  for (const a of boids) {
+    let cx = 0, cy = 0, ax = 0, ay = 0, sx = 0, sy = 0, n = 0;
+
+    for (const b of boids) {
+      if (a === b) continue;
+      const dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy;
+      if (d2 > R2) continue;
+      n++; cx += b.x; cy += b.y; ax += b.vx; ay += b.vy;
+      if (d2 < 26) { sx -= dx / d2 * 9; sy -= dy / d2 * 9; }
+    }
+
+    if (n) {
+      a.vx += ((cx / n - a.x) * 0.42 + (ax / n - a.vx) * 0.55 + sx * 4) * dt;
+      a.vy += ((cy / n - a.y) * 0.42 + (ay / n - a.vy) * 0.55 + sy * 4) * dt;
+    }
+    a.x += a.vx * dt; a.y += a.vy * dt;
+  }
+}`,
+run:{mode:"canvas", sim:"boids", ms:18000}},
+
+{ file:"lsystem.js", lang:"js", title:"자라는 규칙", cmd:"node lsystem.js --depth 9",
+code: String.raw`// lsystem.js — 나무는 자기 자신을 반복해서 자란다
+const RULES = { F: "FF", X: "F[+X][-X]FX" };
+
+function expand(axiom, depth) {
+  let s = axiom;
+  for (let i = 0; i < depth; i++) {
+    s = [...s].map((c) => RULES[c] ?? c).join("");
+  }
+  return s;
+}
+
+function turtle(str, len, angle) {
+  const stack = [], segs = [];
+  let x = 0, y = 0, a = -Math.PI / 2, d = 0;
+
+  for (const c of str) {
+    if (c === "F") {
+      const nx = x + Math.cos(a) * len, ny = y + Math.sin(a) * len;
+      segs.push([x, y, nx, ny, d]);
+      x = nx; y = ny;
+    } else if (c === "+") a += angle;
+    else if (c === "-") a -= angle;
+    else if (c === "[") { stack.push([x, y, a, d]); d++; len *= 0.72; }
+    else if (c === "]") { [x, y, a, d] = stack.pop(); len /= 0.72; }
+  }
+  return segs;
+}`,
+run:{mode:"canvas", sim:"lsystem", ms:18000}},
+
+{ file:"cloth.rs", lang:"rs", title:"천이 찢어질 때까지", cmd:"cargo run --release --bin cloth",
+code: String.raw`// cloth.rs — 점과 막대기만으로 천을 만든다 (Verlet)
+struct Point { pos: Vec2, prev: Vec2, pinned: bool }
+struct Link  { a: usize, b: usize, rest: f32, alive: bool }
+
+const GRAVITY: f32 = 62.0;
+const TEAR: f32 = 3.6;
+
+fn integrate(points: &mut [Point], wind: f32, dt: f32) {
+    for p in points.iter_mut() {
+        if p.pinned { continue; }
+        let vel = (p.pos - p.prev) * 0.985;
+        p.prev = p.pos;
+        p.pos = p.pos + vel + Vec2::new(wind, GRAVITY) * dt * dt * 60.0;
+    }
+}
+
+fn relax(points: &mut Vec<Point>, links: &mut Vec<Link>) {
+    for _ in 0..3 {
+        for l in links.iter_mut() {
+            if !l.alive { continue; }
+            let delta = points[l.b].pos - points[l.a].pos;
+            let dist = delta.len().max(1e-4);
+            if dist > l.rest * TEAR { l.alive = false; continue; }
+            let offset = delta * ((dist - l.rest) / dist * 0.5);
+            if !points[l.a].pinned { points[l.a].pos += offset; }
+            if !points[l.b].pinned { points[l.b].pos -= offset; }
+        }
+    }
+}`,
+run:{mode:"canvas", sim:"cloth", ms:19000}},
+
+{ file:"sort_race.ts", lang:"ts", title:"네 알고리즘 동시 출발", cmd:"ts-node sort_race.ts",
+code: String.raw`// sort_race.ts — 같은 배열, 네 가지 전략, 동시 출발
+type Step = { array: number[]; cursor: number; done: boolean };
+type Algo = (a: number[]) => Generator<Step>;
+
+const Algos: Record<string, Algo> = {
+  bubble: function* (a) { /* O(n^2) */ yield* pairwise(a); },
+  insert: function* (a) { /* O(n^2), 거의 정렬된 배열에 강함 */ yield* shift(a); },
+  select: function* (a) { /* 교환 횟수 최소 */ yield* minPick(a); },
+  quick:  function* (a) { /* O(n log n) 기대값 */ yield* partition(a, 0, a.length - 1); },
+};
+
+async function race(size = 64): Promise<void> {
+  const base = Array.from({ length: size }, () => Math.random());
+  const runners = Object.entries(Algos)
+    .map(([name, algo]) => ({ name, gen: algo([...base]), ops: 0 }));
+
+  while (runners.some((r) => !r.gen.next().done)) {
+    runners.forEach((r) => (r.ops += 1));
+    await frame();
+  }
+  console.table(runners.map(({ name, ops }) => ({ name, ops })));
+}`,
+run:{mode:"canvas", sim:"sortrace", ms:20000}},
+
+{ file:"mandelbrot.glsl", lang:"glsl", title:"경계 위의 무한", cmd:"glslviewer mandelbrot.glsl",
+code: String.raw`// mandelbrot.glsl — 두 줄짜리 점화식이 만드는 무한한 해안선
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+
+vec3 palette(float t) {
+    return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67)));
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / u_res.y;
+    float zoom = exp(1.0 - u_time * 0.30);
+    vec2 target = vec2(-0.74364388703, 0.13182590421);
+    vec2 c = target + uv * zoom * 2.2;
+
+    vec2 z = vec2(0.0);
+    float i = 0.0, m = 0.0;
+    for (int k = 0; k < 160; k++) {
+        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+        m = dot(z, z);
+        if (m > 256.0) break;
+        i += 1.0;
+    }
+
+    float smoothed = i - log2(log2(m)) + 4.0;
+    vec3 col = i >= 159.0 ? vec3(0.02, 0.03, 0.06)
+                          : palette(0.06 * smoothed + u_time * 0.05);
+    gl_FragColor = vec4(col * (1.0 - 0.42 * dot(uv, uv)), 1.0);
+}`,
+run:{mode:"shader", shader:"mandelbrot", ms:20000}},
+
+{ file:"plasma.glsl", lang:"glsl", title:"사인파를 겹치면", cmd:"glslviewer plasma.glsl",
+code: String.raw`// plasma.glsl — 사인파 네 개를 겹치면 그게 데모신이다
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+
+float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x),
+               mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+
+float fbm(vec2 p) {
+    float s = 0.0, a = 0.5;
+    for (int i = 0; i < 5; i++) { s += a * noise(p); p *= 2.03; a *= 0.5; }
+    return s;
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / u_res.y;
+    float t = u_time * 0.55;
+    float a = sin(uv.x * 6.0 + t) + sin(uv.y * 7.3 - t * 1.2)
+            + sin((uv.x + uv.y) * 5.4 + t * 0.7)
+            + sin(length(uv * 3.4) * 7.0 - t * 1.9)
+            + fbm(uv * 3.0 + vec2(t * 0.3, -t * 0.22)) * 2.4;
+    gl_FragColor = vec4(0.5 + 0.5 * cos(6.28318 * (a * 0.15 + vec3(0.0, 0.33, 0.67))), 1.0);
+}`,
+run:{mode:"shader", shader:"plasma", ms:17000}},
+
+{ file:"voronoi.glsl", lang:"glsl", title:"가장 가까운 점", cmd:"glslviewer voronoi.glsl",
+code: String.raw`// voronoi.glsl — "가장 가까운 점"만 물어봐도 세포가 생긴다
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+
+vec2 hash2(vec2 p) {
+    return fract(sin(vec2(dot(p, vec2(127.1, 311.7)),
+                          dot(p, vec2(269.5, 183.3)))) * 43758.5453);
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / u_res.y * 4.0;
+    vec2 g = floor(uv), f = fract(uv);
+
+    float d1 = 9.0, d2 = 9.0;
+    vec2 id = vec2(0.0);
+
+    for (int j = -1; j <= 1; j++)
+    for (int i = -1; i <= 1; i++) {
+        vec2 o = vec2(float(i), float(j));
+        vec2 p = 0.5 + 0.5 * sin(u_time * 0.9 + 6.283 * hash2(g + o));
+        float d = length(o + p - f);
+        if (d < d1) { d2 = d1; d1 = d; id = g + o; }
+        else if (d < d2) { d2 = d; }
+    }
+
+    float edge = smoothstep(0.0, 0.09, d2 - d1);
+    gl_FragColor = vec4(vec3(0.45, 0.85, 1.0) * (1.0 - edge) + edge * 0.6, 1.0);
+}`,
+run:{mode:"shader", shader:"voronoi", ms:17000}},
+
+{ file:"cube.glsl", lang:"glsl", title:"거리로 그린 정육면체", cmd:"glslviewer cube.glsl",
+code: String.raw`// cube.glsl — 삼각형 없이, 거리 함수만으로 입체를 만든다
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+
+mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+
+float sdBox(vec3 p, vec3 b, float r) {
+    vec3 q = abs(p) - b;
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+}
+
+float map(vec3 p) {
+    p.xz *= rot(u_time * 0.6);
+    p.xy *= rot(u_time * 0.43);
+    float box = sdBox(p, vec3(0.62), 0.05);
+    float hole = min(min(length(p.xy), length(p.yz)), length(p.xz)) - 0.30;
+    return max(box, -hole);      // 구멍을 뚫는 건 뺄셈 하나
+}
+
+vec3 normal(vec3 p) {
+    vec2 e = vec2(0.0015, 0.0);
+    return normalize(vec3(map(p + e.xyy) - map(p - e.xyy),
+                          map(p + e.yxy) - map(p - e.yxy),
+                          map(p + e.yyx) - map(p - e.yyx)));
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / u_res.y;
+    vec3 ro = vec3(0.0, 0.0, -2.7), rd = normalize(vec3(uv, 1.35));
+    float t = 0.0;
+    for (int i = 0; i < 70; i++) {
+        float d = map(ro + rd * t);
+        if (d < 0.001 || t > 7.0) break;
+        t += d;
+    }
+    gl_FragColor = vec4(shade(ro + rd * t, normal(ro + rd * t)), 1.0);
+}`,
+run:{mode:"shader", shader:"cube", ms:18000}},
+
+{ file:"terrain.glsl", lang:"glsl", title:"없는 산을 걷기", cmd:"glslviewer terrain.glsl",
+code: String.raw`// terrain.glsl — 존재하지 않는 산맥 위를 계속 날아간다
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+
+float fbm(vec2 p);
+
+float height(vec2 p) { return fbm(p * 0.55) * 1.5 - 0.55; }
+
+vec3 skyColor(vec2 uv) {
+    vec3 sky = mix(vec3(0.03, 0.05, 0.12), vec3(0.28, 0.13, 0.34),
+                   pow(max(uv.y + 0.35, 0.0), 0.8));
+    float sun = pow(max(0.0, 1.0 - abs(uv.x - 0.28) * 1.4 - abs(uv.y - 0.28) * 1.4), 12.0);
+    return sky + sun * vec3(1.0, 0.6, 0.3);
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / u_res.y;
+    vec3 ro = vec3(0.0, 1.25, -u_time * 0.85);
+    vec3 rd = normalize(vec3(uv.x, uv.y - 0.05, 1.0));
+
+    float t = 0.4;
+    vec3 p = ro;
+    bool hit = false;
+    for (int i = 0; i < 78; i++) {
+        p = ro + rd * t;
+        float h = p.y - height(p.xz);
+        if (h < 0.008 * t) { hit = true; break; }
+        t += h * 0.42;                 // 지형은 성큼성큼 걸어도 된다
+        if (t > 26.0) break;
+    }
+
+    vec3 col = hit ? shadeTerrain(p, t, uv) : skyColor(uv);
+    gl_FragColor = vec4(col * (1.0 - 0.35 * dot(uv, uv)), 1.0);
+}`,
+run:{mode:"shader", shader:"terrain", ms:20000}},
+
+{ file:"raymarch.glsl", lang:"glsl", title:"부드럽게 합치기", cmd:"glslviewer raymarch.glsl",
+code: String.raw`// raymarch.glsl — 두 물체를 부드럽게 합치는 데 필요한 건 mix 한 줄
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+
+float sdSphere(vec3 p, float r) { return length(p) - r; }
+
+float sdTorus(vec3 p, vec2 t) {
+    vec2 q = vec2(length(p.xz) - t.x, p.y);
+    return length(q) - t.y;
+}
+
+float smin(float a, float b, float k) {
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+    return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+float map(vec3 p) {
+    vec3 q = p; q.xz *= rot(u_time * 0.35);
+    float d = sdTorus(q, vec2(1.05, 0.26));
+    vec3 s = p; s.y -= sin(u_time * 1.2) * 0.42;
+    d = smin(d, sdSphere(s, 0.52), 0.34);
+    d = smin(d, sdSphere(p - orbit(u_time), 0.30), 0.30);
+    return min(d, p.y + 1.15);       // 바닥은 그냥 평면
+}
+
+float softShadow(vec3 ro, vec3 rd) {
+    float res = 1.0, t = 0.05;
+    for (int i = 0; i < 26; i++) {
+        float h = map(ro + rd * t);
+        res = min(res, 10.0 * h / t);
+        t += clamp(h, 0.02, 0.4);
+        if (res < 0.002 || t > 7.0) break;
+    }
+    return clamp(res, 0.0, 1.0);
+}`,
+run:{mode:"shader", shader:"raymarch", ms:20000}},
+
+{ file:"raytracer.cpp", lang:"cpp", title:"빛을 거꾸로", cmd:"g++ -O3 raytracer.cpp && ./a.out",
+code: String.raw`// raytracer.cpp — 빛을 눈에서 거꾸로 쏘면 세상이 그려진다
+#include <cmath>
+#include <vector>
+#include <iostream>
+
+struct Vec3 {
+    double x, y, z;
+    Vec3 operator+(const Vec3 &o) const { return {x + o.x, y + o.y, z + o.z}; }
+    Vec3 operator-(const Vec3 &o) const { return {x - o.x, y - o.y, z - o.z}; }
+    Vec3 operator*(double s)      const { return {x * s, y * s, z * s}; }
+    double dot(const Vec3 &o)     const { return x * o.x + y * o.y + z * o.z; }
+    Vec3 norm() const { double l = std::sqrt(dot(*this)); return *this * (1.0 / l); }
+};
+
+struct Sphere {
+    Vec3 center, albedo;
+    double radius, reflectivity;
+
+    bool hit(const Vec3 &ro, const Vec3 &rd, double &t) const {
+        Vec3 oc = ro - center;
+        double b = oc.dot(rd), c = oc.dot(oc) - radius * radius;
+        double disc = b * b - c;
+        if (disc < 0.0) return false;
+        t = -b - std::sqrt(disc);
+        return t > 1e-3;
+    }
+};
+
+Vec3 trace(const Vec3 &ro, const Vec3 &rd, const std::vector<Sphere> &scene, int depth) {
+    if (depth <= 0) return {0.02, 0.03, 0.07};
+    // ... 가장 가까운 교차점을 찾고, 그림자를 쏘고, 반사 광선을 다시 trace
+    return shade(ro, rd, scene, depth);
+}`,
+run:{mode:"shader", shader:"raytracer", ms:20000}},
+
+{ file:"wfc.py", lang:"py", title:"모순 없이 채우기", cmd:"python3 wfc.py --tiles pipes",
+code: String.raw`# wfc.py — 가능성을 하나씩 지워 나가면 지도가 남는다
+import random
+
+class Cell:
+    def __init__(self, options):
+        self.options = set(options)
+
+    @property
+    def entropy(self):
+        return len(self.options)
+
+    def collapse(self, weights):
+        pool = sorted(self.options)
+        self.options = {random.choices(pool, [weights[o] for o in pool])[0]}
+        return next(iter(self.options))
+
+def propagate(grid, start, compatible):
+    queue = [start]
+    while queue:
+        idx = queue.pop()
+        for nb, direction in neighbours(grid, idx):
+            before = len(grid[nb].options)
+            grid[nb].options &= {
+                t for t in grid[nb].options
+                if any(compatible(a, t, direction) for a in grid[idx].options)
+            }
+            if not grid[nb].options:
+                raise Contradiction(nb)
+            if len(grid[nb].options) != before:
+                queue.append(nb)
+
+def solve(grid, weights, compatible):
+    while (cell := lowest_entropy(grid)) is not None:
+        cell.collapse(weights)
+        propagate(grid, cell.index, compatible)
+    return grid`,
+run:{mode:"canvas", sim:"wfc", ms:19000}},
+
+{ file:"nn_xor.py", lang:"py", title:"XOR를 배우는 데 필요한 것", cmd:"python3 nn_xor.py",
+code: String.raw`# nn_xor.py — 은닉층 하나면 직선으로 못 나누는 문제도 풀린다
+import numpy as np
+
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
+Y = np.array([[0], [1], [1], [0]], dtype=np.float32)
+
+rng = np.random.default_rng(2026)
+W1, b1 = rng.normal(0, 1, (2, 4)), np.zeros((1, 4))
+W2, b2 = rng.normal(0, 1, (4, 1)), np.zeros((1, 1))
+
+sigmoid = lambda z: 1.0 / (1.0 + np.exp(-z))
+lr = 0.55
+
+for epoch in range(1, 6001):
+    H = np.tanh(X @ W1 + b1)
+    P = sigmoid(H @ W2 + b2)
+
+    err = P - Y
+    loss = float(np.mean(err ** 2))
+
+    dH = (err @ W2.T) * (1 - H ** 2)
+    W2 -= lr * H.T @ err;  b2 -= lr * err.sum(0, keepdims=True)
+    W1 -= lr * X.T @ dH;   b1 -= lr * dH.sum(0, keepdims=True)
+
+    if epoch % 500 == 0:
+        print("epoch %5d  loss %.6f  acc %.2f" % (epoch, loss, accuracy(P, Y)))`,
+run:{mode:"split", sim:"nn", ms:20000, out:()=>{
+  const o=[L(700,"training 2-4-1 MLP on XOR…","m")];
+  const losses=[0.251402,0.243318,0.198774,0.084521,0.021447,0.007913,0.003962,0.002391,0.001604,0.001155,0.000875,0.000689];
+  losses.forEach((l,i)=>o.push(L(950,"epoch "+pad((i+1)*500,5)+"  loss "+fx(l,6)+"  acc "+(i<3?"0.50":(i<4?"0.75":"1.00")), i<4?"w":"o")));
+  o.push(L(700,"converged. XOR solved with 13 parameters.","k2"));
+  return o;
+}}},
+
+{ file:"mini_gpt.py", lang:"py", title:"모든 토큰이 서로를 본다", cmd:"python3 mini_gpt.py --train",
+code: String.raw`# mini_gpt.py — 모든 토큰이 모든 토큰을 바라보게 하는 일
+import torch
+import torch.nn as nn
+
+class Head(nn.Module):
+    def __init__(self, n_embd, head_size, block):
+        super().__init__()
+        self.key   = nn.Linear(n_embd, head_size, bias=False)
+        self.query = nn.Linear(n_embd, head_size, bias=False)
+        self.value = nn.Linear(n_embd, head_size, bias=False)
+        self.register_buffer("mask", torch.tril(torch.ones(block, block)))
+
+    def forward(self, x):
+        B, T, C = x.shape
+        k, q, v = self.key(x), self.query(x), self.value(x)
+        att = q @ k.transpose(-2, -1) * C ** -0.5
+        att = att.masked_fill(self.mask[:T, :T] == 0, float("-inf"))
+        att = att.softmax(dim=-1)          # 여기가 전부다
+        return att @ v, att
+
+class Block(nn.Module):
+    def __init__(self, n_embd, n_head, block):
+        super().__init__()
+        self.sa = MultiHead(n_head, n_embd // n_head, n_embd, block)
+        self.ff = FeedForward(n_embd)
+        self.ln1, self.ln2 = nn.LayerNorm(n_embd), nn.LayerNorm(n_embd)
+
+    def forward(self, x):
+        x = x + self.sa(self.ln1(x))
+        x = x + self.ff(self.ln2(x))
+        return x`,
+run:{mode:"split", sim:"attn", ms:22000, out:()=>{
+  const o=[
+    L(800,"device: cuda:0  |  params: 1.42M  |  block: 64","m"),
+    L(700,"vocab 4,096 · layers 4 · heads 4 · embd 128","m")
+  ];
+  const steps=[[100,3.8412,4.02],[200,2.9174,3.11],[400,2.4083,2.58],[800,2.0117,2.19],[1200,1.8442,2.03],[1600,1.7218,1.94],[2000,1.6404,1.89],[2400,1.5871,1.86]];
+  steps.forEach(s=>o.push(L(1400,"step "+pad(s[0],5)+"  train "+fx(s[1],4)+"  val "+fx(s[2],4),"o")));
+  o.push(L(900,'sample: "그 다음 줄은 아직 아무도 모른다"',"v"));
+  o.push(L(600,"checkpoint saved → out/ckpt.pt","k2"));
+  return o;
+}}}
+];
+/* ══════════════════════════════════════════════════════════════
+   7. coffee break — ascii scenes
+   ══════════════════════════════════════════════════════════════ */
+const STEAM = [
+["  ( )   ) (  ","   ) (   ) ) ","  (  )  (  ) "],
+["   ) ( (  )  ","  ( )  ) (  )","   ) (  )  ( "],
+["  )  ) ( )   ","   ( ) ( ) ( ","  ( )  ) )   "],
+["   ( ) ) (   ","  ) ( ( ) )  ","   ) ( ) (   "]
+];
+const SCENES = [
+{ name:"desk", pad:12, steamRow:7, body: String.raw`
+       ___________________
+      |  _______________  |
+      | |               | |
+      | |   > _         | |
+      | |_______________| |
+      |___________________|
+       \_________________/
+       o       ______
+      /|\     |      |__
+      / \     |      |  |
+              |      |__|
+              |______|
+   _________________________`.split("\n") },
+{ name:"mug", pad:9, steamRow:0, body: String.raw`
+            ________
+           |        |_____
+           |        |     |
+           |        |     |
+           |        |_____|
+           |        |
+           |________|
+          (__________)
+        ______________
+       /______________\ `.split("\n") },
+{ name:"window", pad:12, steamRow:5, body: String.raw`
+    .------------------------.
+    |    .        *       .  |
+    |         .        .     |
+    |   *          .      *  |
+    |____.__________.________|
+       o       ______
+      /|\     |      |__
+      / \     |      |  |
+              |      |__|
+              |______|
+   _________________________`.split("\n") }
+];
+const QUOTES = [
+"컴파일이 끝나기를 기다리는 시간은 근무 시간에 포함된다.",
+"버그는 사라지지 않는다. 다만 재현되지 않을 뿐이다.",
+"어제의 나는 이 코드를 이해했다. 오늘의 나는 아니다.",
+"가장 좋은 코드는 아직 쓰지 않은 코드다.",
+"이름 짓기, 캐시 무효화, 오프바이원 에러.",
+"돌아간다. 왜 돌아가는지는 내일 알아보자.",
+"주석은 왜 그렇게 했는지를 적는 곳이다.",
+"성능 문제의 90%는 잘못된 자료구조에서 온다.",
+"릴리스 직전의 '작은 수정'만큼 위험한 건 없다.",
+"결국 다시 켜보는 것으로 해결됐다."
+];
+const COFFEE = {
+  scene:null, quote:"", f:0,
+  begin(){
+    this.scene = pick(SCENES);
+    this.quote = pick(QUOTES);
+    this.f = 0;
+    $("coffeequote").textContent = this.quote;
+    $("coffeecap").textContent = "coffee break · " + this.scene.name;
+    this.draw(0);
+  },
+  draw(t){
+    if(!this.scene) return;
+    const fi = Math.floor(t*5) % STEAM.length;
+    const sp = " ".repeat(this.scene.pad);
+    const body = this.scene.body.filter((l,i) => !(i === 0 && l.trim() === ""));
+    const steam = STEAM[fi].map(x => sp + x);
+    body.splice(this.scene.steamRow, 0, steam[0], steam[1], steam[2]);
+    $("coffeeart").textContent = body.join("\n");
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   8. engine
+   ══════════════════════════════════════════════════════════════ */
+const PHASES = ["TYPE","HOLD","RUN","HOLD","BREW"];
+const HOLD_S = 10, BREW_S = 10;
+
+const APP = {
+  i:0, phase:0, t:0, speed:1, paused:false, cycle:1, total:0, ready:false,
+  lines:[], li:0, ci:0, typeAcc:0, lineEls:[], curEl:null, curSpan:null,
+  termLines:[], termQueue:[], termIdx:0, termAcc:0, cmdShown:0,
+  sim:null, simKey:"", runT:0, hbPhase:0,
+
+  boot(){
+    GL.init($("glc"));
+    this.setProgram(0);
+    this.ready = true;
+  },
+
+  /* ── program setup ─────────────────────────────── */
+  setProgram(i){
+    this.i = ((i % PROGRAMS.length) + PROGRAMS.length) % PROGRAMS.length;
+    const P = PROGRAMS[this.i];
+    SEED = (this.i * 7919 + this.cycle * 104729 + 12345) >>> 0;
+    this.lines = P.code.split("\n");
+    this.li = 0; this.ci = 0; this.typeAcc = 0;
+    this.lineEls = [];
+    $("code").innerHTML = "";
+    $("code").style.transform = "translateY(0px)";
+    $("fname").textContent = P.file;
+    $("langlabel").textContent = P.lang + " · " + P.title;
+    $("pidx").textContent = pad0(this.i+1,2);
+    $("cyc").textContent = "CYCLE " + this.cycle;
+    $("cmd").innerHTML = "";
+    $("term").innerHTML = "";
+    this.termLines = []; this.termQueue = []; this.termIdx = 0; this.termAcc = 0; this.cmdShown = 0;
+    this.setPhase(0);
+    this.newLine();
+  },
+  newLine(){
+    const d = document.createElement("div");
+    d.className = "ln cur";
+    const u = document.createElement("u");
+    u.textContent = String(this.li+1);
+    const s = document.createElement("span");
+    d.appendChild(u); d.appendChild(s);
+    $("code").appendChild(d);
+    if(this.curEl) this.curEl.className = "ln";
+    this.curEl = d; this.curSpan = s;
+    this.lineEls.push(d);
+    this.paintLine("");
+  },
+  paintLine(text){
+    const P = PROGRAMS[this.i];
+    this.curSpan.innerHTML = hl(P.lang, text) + '<i class="cx"></i>';
+  },
+  autoscroll(){
+    const ed = $("editor"), code = $("code");
+    if(!this.curEl || !ed) return;
+    const top = this.curEl.offsetTop, h = ed.clientHeight || 0;
+    const want = Math.max(0, top - h*0.55);
+    code.style.transform = "translateY(" + (-want) + "px)";
+  },
+
+  /* ── phases ────────────────────────────────────── */
+  setPhase(p){
+    this.phase = p; this.t = 0;
+    const names = ["TYPING","HOLD 10s","RUNNING","HOLD 10s","COFFEE"];
+    const cls = ["","wait","run","wait","brew"];
+    $("phase").textContent = names[p];
+    $("phase").className = "ph " + cls[p];
+    const rail = $("rail").children;
+    for(let k=0;k<rail.length;k++){
+      rail[k].className = k===p ? "on" : (k<p ? "done" : "");
+    }
+    $("coffee").className = p===4 ? "coffee on" : "coffee";
+    $("tabdot").style.background = p===2 ? "var(--gr)" : (p===4 ? "var(--mg)" : "var(--am)");
+
+    const P = PROGRAMS[this.i];
+    if(p===2){ this.startRun(); }
+    else if(p===4){ COFFEE.begin(); this.closeConsole(); }
+    else if(p===0){ this.closeConsole(); }
+    if(p===3){ this.pushTerm("", "m"); this.pushTerm("[process finished · exit code 0]", "k2"); }
+  },
+  closeConsole(){
+    $("editor").style.flex = "1 1 auto";
+    $("console").style.flex = "0 0 0px";
+    $("term").style.display = "none";
+    $("canvwrap").style.display = "none";
+  },
+  startRun(){
+    const P = PROGRAMS[this.i], R = P.run;
+    $("editor").style.flex = "0 0 36%";
+    $("console").style.flex = "1 1 64%";
+    $("pid").textContent = "pid " + (2000 + ((this.i*137+this.cycle*31)%7000));
+    this.termLines = []; $("term").innerHTML = "";
+    this.termQueue = R.out ? R.out() : [];
+    this.termIdx = 0; this.termAcc = 0; this.cmdShown = 0; this.runT = 0; this.prompted = false;
+    const showTerm = R.mode==="term" || R.mode==="split";
+    const showCanv = R.mode!=="term";
+    $("term").style.display = showTerm ? "block" : "none";
+    $("canvwrap").style.display = showCanv ? "block" : "none";
+    $("term").style.flex = R.mode==="split" ? "0 0 42%" : "1 1 auto";
+    this.sim = null; this.simKey = "";
+    if(showCanv){
+      this.fitCanvas();
+      const seq = this.seq = (this.seq||0)+1;
+      setTimeout(() => { if(this.phase===2 && this.seq===seq) this.fitCanvas(); }, 360);
+    }
+  },
+  fitCanvas(){
+    const R = PROGRAMS[this.i].run;
+    if(R.mode === "term") return;
+    this.sizeCanvas(R.mode === "shader");
+    if(R.sim){ this.sim = SIMS[R.sim]; this.simKey = R.sim; this.sim.init(); }
+  },
+  sizeCanvas(isShader){
+    const wrap = $("canvwrap"), work = $("work");
+    const est = (work ? work.clientHeight : 400) * (PROGRAMS[this.i].run.mode === "split" ? 0.36 : 0.58);
+    const cw = wrap.clientWidth || (work ? work.clientWidth : 360) || 360;
+    const ch = wrap.clientHeight > 24 ? wrap.clientHeight : Math.max(120, est);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    let bw = Math.round(cw*dpr*(isShader?0.8:0.85)), bh = Math.round(ch*dpr*(isShader?0.8:0.85));
+    const maxPx = isShader ? 420000 : 700000;
+    const px = bw*bh;
+    if(px > maxPx){ const s = Math.sqrt(maxPx/px); bw = Math.round(bw*s); bh = Math.round(bh*s); }
+    GL.size(Math.max(16,bw), Math.max(16,bh));
+    if(!isShader){
+      const pw = clamp(Math.round(cw/2.7), 88, 240);
+      const ph = clamp(Math.round(pw*ch/Math.max(1,cw)), 60, 260);
+      PIX.alloc(pw, ph);
+      PIX.clear(5,7,14);
+    }
+  },
+  phaseDuration(){
+    const P = PROGRAMS[this.i];
+    if(this.phase===1 || this.phase===3) return HOLD_S;
+    if(this.phase===4) return BREW_S;
+    if(this.phase===2){
+      if(P.run.ms) return P.run.ms/1000;
+      let s = 2.6; for(const e of this.termQueue) s += e[0]/1000;
+      return clamp(s, 9, 30);
+    }
+    return Infinity;
+  },
+
+  /* ── terminal ──────────────────────────────────── */
+  pushTerm(text, cls, rep){
+    if(rep && this.termLines.length) this.termLines[this.termLines.length-1] = [text, cls];
+    else this.termLines.push([text, cls]);
+    if(this.termLines.length > 220) this.termLines.splice(0, this.termLines.length-220);
+    const t = $("term");
+    t.innerHTML = this.termLines.map(l => '<span class="'+(l[1]||"o")+'">'+esc(l[0])+"</span>").join("\n");
+    t.scrollTop = t.scrollHeight;
+  },
+
+  /* ── main step ─────────────────────────────────── */
+  step(dtMs){
+    if(!this.ready) return;
+    let dt = Math.min(dtMs, 100)/1000;
+    if(this.paused) return;
+    this.total += dt;
+    dt *= this.speed;
+    this.t += dt;
+    this.hbPhase += dt;
+
+    if(this.phase===0) this.stepType(dt);
+    else if(this.phase===2) this.stepRun(dt);
+    else if(this.phase===4) COFFEE.draw(this.t);
+
+    const dur = this.phaseDuration();
+    if(this.t >= dur && dur !== Infinity){
+      if(this.phase===4){
+        const nx = this.i+1;
+        if(nx >= PROGRAMS.length) this.cycle++;
+        this.setProgram(nx);
+      } else this.setPhase(this.phase+1);
+    }
+    this.paint();
+  },
+
+  stepType(dt){
+    const P = PROGRAMS[this.i];
+    if(this.li >= this.lines.length){ this.setPhase(1); return; }
+    this.typeAcc += dt*46;
+    let guard = 0;
+    while(this.typeAcc >= 1 && guard++ < 400){
+      const line = this.lines[this.li];
+      if(this.ci >= line.length){
+        this.curSpan.innerHTML = hl(P.lang, line);
+        this.li++; this.ci = 0;
+        this.typeAcc -= 6 + rnd()*10;
+        if(this.li >= this.lines.length){ if(this.curEl) this.curEl.className="ln"; this.setPhase(1); return; }
+        this.newLine(); this.autoscroll();
+        continue;
+      }
+      const ch = line[this.ci];
+      this.ci++;
+      this.typeAcc -= (ch===" " ? 0.45 : 1) + (rnd()<0.06 ? rnd()*4 : 0);
+      this.paintLine(line.slice(0, this.ci));
+    }
+  },
+
+  stepRun(dt){
+    const P = PROGRAMS[this.i], R = P.run;
+    this.runT += dt;
+    // command line reveal
+    if(this.cmdShown < P.cmd.length){
+      this.cmdShown = Math.min(P.cmd.length, this.cmdShown + dt*34);
+      $("cmd").innerHTML = '<em>$</em> ' + esc(P.cmd.slice(0, this.cmdShown|0));
+    }
+    // terminal playback
+    if(this.termQueue.length && this.termIdx < this.termQueue.length){
+      this.termAcc += dt*1000;
+      let guard = 0;
+      while(this.termIdx < this.termQueue.length && guard++ < 60){
+        const e = this.termQueue[this.termIdx];
+        if(this.termAcc < e[0]) break;
+        this.termAcc -= e[0];
+        this.pushTerm(e[1], e[2], e[3]);
+        this.termIdx++;
+      }
+      if(this.termIdx >= this.termQueue.length && !this.prompted){
+        this.prompted = true;
+        this.pushTerm("$ _", "m");
+      }
+    }
+    // visuals
+    if(R.mode === "shader"){
+      const src = SHADERS[R.shader];
+      if(src && !GL.drawShader(R.shader, src, this.runT, this.t/Math.max(1,this.phaseDuration()))){
+        this.fallbackPaint();
+      }
+    } else if(this.sim){
+      try{ this.sim.step(Math.min(dt,0.05), this.runT, this.t/Math.max(1,this.phaseDuration())); }catch(e){}
+      GL.drawPixels(PIX.buf, PIX.W, PIX.H, this.runT);
+    }
+  },
+  fallbackPaint(){
+    PIX.alloc(120, 90);
+    for(let y=0;y<PIX.H;y++) for(let x=0;x<PIX.W;x++){
+      const v = Math.sin(x*0.14+this.runT)+Math.sin(y*0.11-this.runT*0.8)+Math.sin((x+y)*0.08+this.runT*0.4);
+      const c = hsv(0.55+v*0.06, 0.7, 0.5+v*0.16);
+      PIX.set(x,y,c[0],c[1],c[2]);
+    }
+    GL.drawPixels(PIX.buf, PIX.W, PIX.H, this.runT);
+  },
+
+  paint(){
+    if(this.phase===0) this.autoscroll();
+    const mm = Math.floor(this.total/60), ss = Math.floor(this.total%60);
+    $("tick").textContent = pad0(mm,2)+":"+pad0(ss,2);
+    const P = PROGRAMS[this.i];
+    let meta;
+    if(this.phase===0) meta = "Ln "+(this.li+1)+", Col "+(this.ci+1)+" · "+this.lines.length+" lines";
+    else if(this.phase===1) meta = "compiled · waiting "+Math.max(0,Math.ceil(HOLD_S-this.t))+"s";
+    else if(this.phase===2) meta = P.run.mode.toUpperCase()+" · "+Math.max(0,Math.ceil(this.phaseDuration()-this.t))+"s";
+    else if(this.phase===3) meta = "exit 0 · next in "+Math.max(0,Math.ceil(HOLD_S-this.t))+"s";
+    else meta = "break · "+Math.max(0,Math.ceil(BREW_S-this.t))+"s";
+    $("meta").textContent = meta;
+    if(this.phase===4){
+      $("coffeebar").style.width = clamp(this.t/BREW_S*100,0,100)+"%";
+    }
+    const hb = $("hb").children, act = this.phase===0?1:(this.phase===2?0.8:0.18);
+    for(let k=0;k<hb.length;k++){
+      const v = 20 + Math.abs(Math.sin(this.hbPhase*(3+k*0.7)+k))*80*act;
+      hb[k].style.height = v.toFixed(0)+"%";
+    }
+  }
+};
+/* ══════════════════════════════════════════════════════════════
+   9. shell — controls, pwa, lifecycle
+   ══════════════════════════════════════════════════════════════ */
+let ctlTimer = 0;
+function showCtl(){
+  $("ctl").classList.add("show");
+  $("hint").classList.add("gone");
+  clearTimeout(ctlTimer);
+  ctlTimer = setTimeout(() => $("ctl").classList.remove("show"), 3800);
+}
+function setSpeed(s){
+  APP.speed = s;
+  const bs = document.querySelectorAll("[data-sp]");
+  for(const b of bs) b.classList.toggle("on", Number(b.dataset.sp) === s);
+}
+document.addEventListener("pointerdown", (e) => {
+  if(e.target.closest(".ctl")) return;
+  showCtl();
+  requestWakeLock();
+}, {passive:true});
+document.querySelectorAll("[data-sp]").forEach(b => {
+  b.addEventListener("click", () => { setSpeed(Number(b.dataset.sp)); showCtl(); });
+});
+$("btnpause").addEventListener("click", () => {
+  APP.paused = !APP.paused;
+  $("btnpause").textContent = APP.paused ? "▶" : "⏸";
+  $("btnpause").classList.toggle("on", APP.paused);
+  showCtl();
+});
+$("btnskip").addEventListener("click", () => {
+  const nx = APP.i + 1;
+  if(nx >= PROGRAMS.length) APP.cycle++;
+  APP.setProgram(nx);
+  showCtl();
+});
+
+/* wake lock — 관상용이니까 화면이 꺼지면 곤란하다 */
+let wakeLock = null;
+async function requestWakeLock(){
+  try{
+    if("wakeLock" in navigator && !wakeLock){
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    }
+  }catch(e){ wakeLock = null; }
+}
+
+/* visibility — 백그라운드에서는 멈춘다 */
+let autoPaused = false;
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){
+    if(!APP.paused){ APP.paused = true; autoPaused = true; }
+  } else {
+    if(autoPaused){ APP.paused = false; autoPaused = false; }
+    requestWakeLock();
+    onResize();
+  }
+});
+
+let resizeTimer = 0;
+function onResize(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if(APP.phase === 2) APP.fitCanvas();
+    APP.autoscroll();
+  }, 180);
+}
+window.addEventListener("resize", onResize);
+try{
+  if(typeof ResizeObserver === "function"){
+    let roW = 0, roH = 0, roTimer = 0;
+    new ResizeObserver(entries => {
+      const r = entries[0] && entries[0].contentRect;
+      if(!r || r.width < 24 || r.height < 24) return;
+      if(Math.abs(r.width-roW) < 8 && Math.abs(r.height-roH) < 8) return;
+      roW = r.width; roH = r.height;
+      clearTimeout(roTimer);
+      roTimer = setTimeout(() => { if(APP.phase === 2) APP.fitCanvas(); }, 220);
+    }).observe($("canvwrap"));
+  }
+}catch(e){}
+window.addEventListener("orientationchange", onResize);
+
+/* PWA — manifest는 런타임에 만들어 붙인다 (단일 파일 유지) */
+function makeIcon(size){
+  try{
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const x = c.getContext("2d");
+    if(!x) return null;
+    x.fillStyle = "#070912"; x.fillRect(0,0,size,size);
+    x.fillStyle = "#58e8ff";
+    x.font = "bold " + Math.round(size*0.46) + "px monospace";
+    x.textAlign = "center"; x.textBaseline = "middle";
+    x.fillText(">_", size*0.5, size*0.54);
+    x.strokeStyle = "#ff4fa3"; x.lineWidth = Math.max(2,size*0.03);
+    x.strokeRect(size*0.11, size*0.11, size*0.78, size*0.78);
+    return c.toDataURL("image/png");
+  }catch(e){ return null; }
+}
+const SELF_FILE = (function(){
+  try{
+    const f = location.pathname.split("/").pop();
+    return f && f.indexOf(".") > 0 ? f : "./";
+  }catch(e){ return "./"; }
+})();
+function installManifest(){
+  try{
+    const i192 = makeIcon(192), i512 = makeIcon(512);
+    const icons = [];
+    if(i192) icons.push({src:i192, sizes:"192x192", type:"image/png", purpose:"any"});
+    if(i512) icons.push({src:i512, sizes:"512x512", type:"image/png", purpose:"any maskable"});
+    const mf = {
+      name:"GHOST AUTHOR — 무한 코딩", short_name:"GHOST>_",
+      description:"유령 개발자가 30개의 프로그램을 영원히 타이핑하고 실행하고 커피를 마신다.",
+      start_url: SELF_FILE, scope:"./", display:"standalone", orientation:"portrait",
+      background_color:"#070912", theme_color:"#070912", categories:["entertainment","graphics"],
+      icons: icons
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(mf)], {type:"application/manifest+json"}));
+    const link = document.createElement("link");
+    link.rel = "manifest"; link.href = url;
+    document.head.appendChild(link);
+    if(i192){
+      const at = document.createElement("link");
+      at.rel = "apple-touch-icon"; at.href = i192;
+      document.head.appendChild(at);
+    }
+  }catch(e){}
+  try{
+    if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+      navigator.serviceWorker.register("sw.js").then(() => navigator.serviceWorker.ready).then(reg => {
+        const target = reg.active || navigator.serviceWorker.controller;
+        if(target) target.postMessage({ type:"PRECACHE", urls:[location.href] });
+      }).catch(() => {});
+    }
+  }catch(e){}
+}
+
+/* boot */
+function boot(){
+  installManifest();
+  APP.boot();
+  setSpeed(1);
+  const msgs = ["initializing webgl context…","loading 30 source files…","warming up the coffee machine…","ready."];
+  let mi = 0, t0 = Date.now();
+  const bi = setInterval(() => {
+    const p = Math.min(1, (Date.now()-t0)/1700);
+    $("bootbar").style.width = (p*100).toFixed(0)+"%";
+    const want = Math.min(msgs.length-1, Math.floor(p*msgs.length));
+    if(want !== mi){ mi = want; $("bootmsg").textContent = msgs[mi]; }
+    if(p >= 1){
+      clearInterval(bi);
+      $("boot").classList.add("gone");
+      setTimeout(() => { const b=$("boot"); if(b && b.parentNode) b.parentNode.removeChild(b); }, 700);
+      setTimeout(() => $("hint").classList.add("gone"), 5200);
+    }
+  }, 60);
+}
+
+let last = 0;
+function frame(now){
+  if(!last) last = now;
+  const dt = now - last;
+  last = now;
+  APP.step(dt);
+  requestAnimationFrame(frame);
+}
+
+boot();
+requestAnimationFrame(frame);
+
+/* 검증용 훅 */
+window.__APP = {
+  APP, PROGRAMS, SIMS, SHADERS, GL, PIX, COFFEE, hl,
+  step(dt){ APP.step(dt); },
+  goto(i){ APP.setProgram(i); },
+  setPhase(p){ APP.setPhase(p); },
+  finishTyping(){ APP.li = APP.lines.length; }
+};
+</script>
+</body>
+</html>

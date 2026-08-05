@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="mbg" cx="50%" cy="44%" r="72%">
+      <stop offset="0" stop-color="#15233a"/><stop offset="1" stop-color="#020409"/>
+    </radialGradient>
+    <filter id="mg"><feGaussianBlur stdDeviation="8" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#mbg)"/>
+  <circle cx="256" cy="256" r="174" fill="none" stroke="#b8d8ff" stroke-opacity=".15" stroke-width="5"/>
+  <rect x="153" y="153" width="206" height="206" rx="25" fill="none" stroke="#e6f3ff" stroke-opacity=".25" stroke-width="4" transform="rotate(45 256 256)"/>
+  <g filter="url(#mg)">
+    <circle cx="183" cy="183" r="40" fill="#ff3b21"/>
+    <circle cx="329" cy="183" r="40" fill="#ffe638"/>
+    <circle cx="183" cy="329" r="40" fill="#42f06f"/>
+    <circle cx="329" cy="329" r="40" fill="#28a8ff"/>
+  </g>
+  <circle cx="256" cy="256" r="28" fill="#070e19" stroke="#e8f7ff" stroke-opacity=".58" stroke-width="5"/>
+  <circle cx="256" cy="256" r="9" fill="#e8f7ff"/>
+</svg>

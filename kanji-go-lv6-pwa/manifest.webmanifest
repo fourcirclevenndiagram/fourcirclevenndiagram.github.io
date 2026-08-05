@@ -1,0 +1,16 @@
+{
+  "name": "漢字でGO! Lv.6 自動鑑賞モード",
+  "short_name": "漢字GO6",
+  "description": "漢字でGO! Lv.6 500問을 자동으로 감상하며 익히는 한자 학습 웹앱",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#05060e",
+  "theme_color": "#05060e",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

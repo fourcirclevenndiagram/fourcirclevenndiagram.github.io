@@ -1,0 +1,1515 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07090f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Code Brew">
+  <meta name="description" content="코드를 쓰고, 실행하고, 커피를 마시는 30가지 무한 코딩 쇼">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>CODE BREW LOOP — 30개의 무한 코딩 쇼</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f5f7ff;
+      --muted: #8690a8;
+      --panel: rgba(9, 12, 21, .86);
+      --line: rgba(255, 255, 255, .09);
+      --accent: #65f5c6;
+      --accent-rgb: 101,245,198;
+      --warn: #ffcd70;
+      --font-mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+      --font-ui: Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; width: 100%; min-height: 100%; background: #05070c; overflow: hidden; }
+
+    body {
+      color: var(--ink);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+    }
+
+    button { font: inherit; }
+
+    #gl-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: .72;
+      pointer-events: none;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(1440px, 100%);
+      height: 100dvh;
+      margin: 0 auto;
+      padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 12px;
+    }
+
+    .topbar {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+
+    .mark {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 auto;
+      border: 1px solid rgba(var(--accent-rgb), .48);
+      border-radius: 11px;
+      background: linear-gradient(145deg, rgba(var(--accent-rgb), .18), rgba(255,255,255,.025));
+      box-shadow: inset 0 0 20px rgba(var(--accent-rgb), .08), 0 0 24px rgba(var(--accent-rgb), .08);
+    }
+
+    .mark::before, .mark::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .mark::before { width: 15px; height: 2px; left: 7px; top: 11px; transform: rotate(-32deg); }
+    .mark::after { width: 10px; height: 2px; right: 6px; bottom: 10px; transform: rotate(54deg); }
+
+    .brand-copy { min-width: 0; }
+    .brand h1 { margin: 0; font-size: 14px; font-weight: 760; letter-spacing: .18em; white-space: nowrap; }
+    .brand p { margin: 4px 0 0; color: var(--muted); font: 10px/1.2 var(--font-mono); letter-spacing: .08em; white-space: nowrap; }
+
+    .phase-wrap { display: flex; align-items: center; gap: 12px; }
+
+    .phase-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 132px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(8, 11, 19, .72);
+      backdrop-filter: blur(18px);
+    }
+
+    .pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 50% { opacity: .35; transform: scale(.72); } }
+
+    .phase-text { flex: 1; font-size: 11px; font-weight: 750; letter-spacing: .08em; }
+    .phase-time { color: var(--accent); font: 11px var(--font-mono); font-variant-numeric: tabular-nums; }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(330px, .92fr);
+      gap: 12px;
+    }
+
+    .window {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(160deg, rgba(15, 19, 31, .92), rgba(6, 8, 15, .88));
+      box-shadow: 0 20px 80px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.035);
+      backdrop-filter: blur(22px);
+    }
+
+    .window::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 0 50px rgba(var(--accent-rgb), .025);
+    }
+
+    .window-bar {
+      height: 43px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.018);
+    }
+
+    .traffic { display: flex; gap: 6px; }
+    .traffic i { width: 8px; height: 8px; border-radius: 50%; background: #394052; }
+    .traffic i:first-child { background: #ff6b7c; }
+    .traffic i:nth-child(2) { background: #ffd36b; }
+    .traffic i:last-child { background: #62e6a7; }
+
+    .tab {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding-left: 3px;
+      color: #cdd3e2;
+      font: 11px var(--font-mono);
+    }
+
+    .tab-icon { color: var(--accent); font-weight: 800; }
+    .tab-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-spacer { flex: 1; }
+    .runtime { color: #687188; font: 9px var(--font-mono); letter-spacing: .08em; white-space: nowrap; }
+
+    .editor-body {
+      position: absolute;
+      inset: 43px 0 30px;
+      display: grid;
+      grid-template-columns: 45px minmax(0, 1fr);
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--accent-rgb), .24) transparent;
+    }
+
+    .line-numbers, .code-view {
+      margin: 0;
+      padding: 16px 0 28px;
+      font: 12px/1.72 var(--font-mono);
+      tab-size: 2;
+    }
+
+    .line-numbers {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      padding-right: 11px;
+      color: #394154;
+      text-align: right;
+      user-select: none;
+      border-right: 1px solid rgba(255,255,255,.045);
+      background: rgba(8,10,17,.76);
+    }
+
+    .code-view { padding-left: 16px; padding-right: 22px; color: #d8deeb; white-space: pre; }
+    .tok-comment { color: #58627a; font-style: italic; }
+    .tok-string { color: #b8e986; }
+    .tok-key { color: #bba4ff; }
+    .tok-num { color: #ffb86c; }
+    .tok-fn { color: #70d7ff; }
+
+    .caret { color: var(--accent); text-shadow: 0 0 10px var(--accent); animation: blink .72s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .editor-status {
+      position: absolute;
+      z-index: 3;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 30px;
+      padding: 0 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #737d94;
+      background: rgba(7,9,16,.94);
+      border-top: 1px solid var(--line);
+      font: 9px var(--font-mono);
+      letter-spacing: .04em;
+    }
+
+    .editor-status .ok { color: var(--accent); }
+    .editor-status .right { margin-left: auto; }
+
+    .output { background: radial-gradient(circle at 50% 44%, rgba(var(--accent-rgb), .08), transparent 55%), rgba(6,8,14,.86); }
+
+    .output-body { position: absolute; inset: 43px 0 0; overflow: hidden; }
+    #outputCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .09;
+      background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(0,0,0,.32) 4px);
+      mix-blend-mode: multiply;
+    }
+
+    .output-label {
+      position: absolute;
+      top: 14px;
+      left: 15px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #788197;
+      font: 9px var(--font-mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .output-label::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+    .program-card {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 15px;
+      z-index: 4;
+      padding: 13px 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      background: rgba(7,9,16,.74);
+      backdrop-filter: blur(12px);
+    }
+
+    .program-title-row { display: flex; align-items: flex-start; gap: 10px; }
+    .program-index { padding-top: 2px; color: var(--accent); font: 10px var(--font-mono); }
+    .program-copy { flex: 1; min-width: 0; }
+    .program-copy h2 { margin: 0; font-size: 13px; line-height: 1.3; letter-spacing: -.01em; }
+    .program-copy p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+
+    .difficulty { display: flex; gap: 3px; padding-top: 3px; }
+    .difficulty i { width: 3px; height: 11px; border-radius: 2px; background: #303748; }
+    .difficulty i.on { background: var(--accent); box-shadow: 0 0 6px rgba(var(--accent-rgb), .55); }
+
+    .ascii-wrap {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: none;
+      place-items: center;
+      padding: 22px;
+      background: radial-gradient(circle, rgba(var(--accent-rgb), .13), rgba(5,7,12,.96) 66%);
+    }
+
+    .ascii-wrap.show { display: grid; }
+    #asciiArt { margin: 0; color: var(--accent); font: clamp(8px, 1.22vw, 13px)/1.18 var(--font-mono); text-shadow: 0 0 14px rgba(var(--accent-rgb), .38); white-space: pre; }
+    .coffee-note { position: absolute; bottom: 18px; color: #aeb6c8; font: 10px var(--font-mono); letter-spacing: .12em; }
+
+    .deck {
+      min-height: 82px;
+      display: grid;
+      grid-template-columns: minmax(230px, .8fr) minmax(300px, 1.35fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: rgba(8, 11, 19, .78);
+      box-shadow: 0 16px 48px rgba(0,0,0,.24);
+      backdrop-filter: blur(20px);
+    }
+
+    .now { min-width: 0; }
+    .eyebrow { color: var(--muted); font: 8px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+    .now-title { margin-top: 5px; font-size: 12px; font-weight: 730; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .now-meta { margin-top: 4px; color: #687188; font: 9px var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .timeline { min-width: 0; }
+    .timeline-labels { display: flex; justify-content: space-between; margin-bottom: 8px; color: #566077; font: 8px var(--font-mono); letter-spacing: .06em; }
+    .timeline-labels .active { color: var(--accent); }
+    .track { position: relative; height: 6px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .track-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, rgba(var(--accent-rgb),.5), var(--accent)); box-shadow: 0 0 12px rgba(var(--accent-rgb),.45); transition: width .08s linear; }
+    .dots { display: flex; gap: 4px; margin-top: 9px; }
+    .dots button { flex: 1; min-width: 2px; height: 3px; padding: 0; border: 0; border-radius: 3px; background: #303748; cursor: pointer; }
+    .dots button.done { background: rgba(var(--accent-rgb),.36); }
+    .dots button.active { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+    .controls { display: flex; align-items: center; gap: 7px; }
+    .control {
+      height: 36px;
+      min-width: 36px;
+      padding: 0 11px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: #aab2c3;
+      background: rgba(255,255,255,.025);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .control:hover, .control:focus-visible { color: var(--ink); border-color: rgba(var(--accent-rgb), .38); background: rgba(var(--accent-rgb), .08); outline: none; }
+    .control.primary { color: #06110d; background: var(--accent); border-color: var(--accent); font-weight: 850; }
+    .control svg { width: 15px; height: 15px; fill: currentColor; }
+
+    .drawer {
+      position: fixed;
+      z-index: 20;
+      inset: 0;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(2,4,8,.64);
+      backdrop-filter: blur(9px);
+    }
+
+    .drawer.show { display: flex; }
+    .sheet { width: min(820px, 100%); max-height: min(78vh, 700px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,.11); border-radius: 20px; background: #0b0f19; box-shadow: 0 35px 100px rgba(0,0,0,.6); }
+    .sheet-head { display: flex; align-items: center; padding: 17px 18px; border-bottom: 1px solid var(--line); }
+    .sheet-head h3 { margin: 0; font-size: 14px; }
+    .sheet-head p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .sheet-close { margin-left: auto; }
+    .program-list { padding: 10px; overflow: auto; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+    .program-item { width: 100%; padding: 11px; display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; border: 1px solid transparent; border-radius: 11px; color: #cfd5e3; text-align: left; background: rgba(255,255,255,.025); cursor: pointer; }
+    .program-item:hover, .program-item.current { border-color: rgba(var(--accent-rgb), .32); background: rgba(var(--accent-rgb), .075); }
+    .program-item .num { color: #596278; font: 9px var(--font-mono); }
+    .program-item strong { display: block; font-size: 10px; }
+    .program-item small { display: block; margin-top: 3px; color: #636d82; font: 8px var(--font-mono); }
+    .program-item .level { color: var(--accent); font: 8px var(--font-mono); }
+
+    .toast { position: fixed; z-index: 30; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px); padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; color: #d8deea; background: rgba(7,9,15,.92); opacity: 0; pointer-events: none; transition: .25s ease; font-size: 10px; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 760px) {
+      .app { padding-top: max(8px, env(safe-area-inset-top)); gap: 8px; }
+      .topbar { min-height: 42px; }
+      .mark { width: 31px; height: 31px; border-radius: 9px; }
+      .brand h1 { font-size: 12px; }
+      .brand p { display: none; }
+      .phase-pill { min-width: 117px; padding: 7px 9px; }
+      .phase-text, .phase-time { font-size: 9px; }
+      .workspace { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1.07fr) minmax(0, .93fr); gap: 8px; }
+      .window { border-radius: 14px; }
+      .window-bar { height: 36px; padding: 0 10px; }
+      .traffic i { width: 7px; height: 7px; }
+      .tab { font-size: 9px; }
+      .runtime { font-size: 7px; }
+      .editor-body { inset: 36px 0 24px; grid-template-columns: 34px minmax(0,1fr); }
+      .line-numbers, .code-view { padding-top: 10px; font-size: 9px; line-height: 1.52; }
+      .line-numbers { padding-right: 7px; }
+      .code-view { padding-left: 10px; padding-right: 12px; }
+      .editor-status { height: 24px; padding: 0 9px; font-size: 7px; }
+      .editor-status span:nth-child(2), .editor-status span:nth-child(3) { display: none; }
+      .output-body { top: 36px; }
+      .program-card { left: 10px; right: 10px; bottom: 9px; padding: 9px 10px; }
+      .program-copy h2 { font-size: 10px; }
+      .program-copy p { margin-top: 3px; font-size: 8px; max-width: 90%; }
+      .output-label { top: 9px; left: 10px; font-size: 7px; }
+      .deck { min-height: 67px; padding: 9px 10px; grid-template-columns: minmax(0,1fr) auto; gap: 8px; border-radius: 14px; }
+      .now { display: none; }
+      .timeline-labels { font-size: 6px; margin-bottom: 6px; }
+      .dots { margin-top: 7px; gap: 2px; }
+      .controls { gap: 5px; }
+      .control { width: 31px; min-width: 31px; height: 31px; padding: 0; border-radius: 9px; }
+      .control svg { width: 13px; height: 13px; }
+      .program-list { grid-template-columns: 1fr; }
+      #asciiArt { font-size: clamp(7px, 2vw, 10px); }
+    }
+
+    @media (max-height: 650px) and (orientation: landscape) {
+      .app { grid-template-rows: 38px minmax(0,1fr) 56px; padding-top: 6px; padding-bottom: 6px; }
+      .topbar { min-height: 38px; }
+      .deck { min-height: 56px; padding-block: 7px; }
+      .brand p, .timeline-labels { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pulse, .caret { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gl-bg" aria-hidden="true"></canvas>
+  <div class="noise" aria-hidden="true"></div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"></div>
+        <div class="brand-copy">
+          <h1>CODE BREW LOOP</h1>
+          <p>30 PROGRAMS · TYPE / RUN / REST / REPEAT</p>
+        </div>
+      </div>
+      <div class="phase-wrap">
+        <div class="phase-pill" aria-live="polite">
+          <span class="pulse"></span>
+          <span class="phase-text" id="phaseText">코드 작성 중</span>
+          <span class="phase-time" id="phaseTime">00:00</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <article class="window ide" aria-label="프로그래밍 편집기">
+        <div class="window-bar">
+          <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+          <div class="tab"><span class="tab-icon" id="tabIcon">JS</span><span class="tab-name" id="tabName">hello_clock.js</span></div>
+          <span class="bar-spacer"></span>
+          <span class="runtime" id="runtimeText">RUNTIME · BROWSER</span>
+        </div>
+        <div class="editor-body" id="editorScroll">
+          <pre class="line-numbers" id="lineNumbers">1</pre>
+          <pre class="code-view"><code id="codeText"></code></pre>
+        </div>
+        <div class="editor-status">
+          <span class="ok" id="compileStatus">● EDITING</span>
+          <span>UTF-8</span><span>LF</span>
+          <span class="right" id="cursorStatus">Ln 1, Col 1</span>
+        </div>
+      </article>
+
+      <article class="window output" aria-label="프로그램 실행 화면">
+        <div class="window-bar">
+          <div class="tab"><span class="tab-icon">›_</span><span>PROGRAM OUTPUT</span></div>
+          <span class="bar-spacer"></span>
+          <span class="runtime" id="fpsText">WEBGL · 60 FPS</span>
+        </div>
+        <div class="output-body">
+          <canvas id="outputCanvas"></canvas>
+          <div class="scanlines" aria-hidden="true"></div>
+          <div class="output-label" id="outputLabel">AWAITING BUILD</div>
+          <div class="program-card" id="programCard">
+            <div class="program-title-row">
+              <span class="program-index" id="programIndex">01/30</span>
+              <div class="program-copy">
+                <h2 id="programTitle">Hello Clock</h2>
+                <p id="programDescription">현재 시간을 읽어 첫 인사를 출력하는 가장 작은 프로그램</p>
+              </div>
+              <span class="difficulty" id="difficulty" aria-label="난이도 1"></span>
+            </div>
+          </div>
+          <div class="ascii-wrap" id="asciiWrap">
+            <pre id="asciiArt" aria-label="커피를 마시는 개발자 아스키 아트"></pre>
+            <div class="coffee-note">10초짜리 컴파일러 휴식 ☕</div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="deck">
+      <div class="now">
+        <div class="eyebrow">NOW BUILDING</div>
+        <div class="now-title" id="nowTitle">01 · Hello Clock</div>
+        <div class="now-meta" id="nowMeta">JavaScript · 난이도 1/5 · 다음: 온도 변환기</div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-labels" id="timelineLabels">
+          <span class="active">TYPE</span><span>10s HOLD</span><span>RUN</span><span>10s HOLD</span><span>COFFEE 10s</span>
+        </div>
+        <div class="track"><div class="track-fill" id="trackFill"></div></div>
+        <div class="dots" id="programDots" aria-label="30개 프로그램 진행 목록"></div>
+      </div>
+      <div class="controls">
+        <button class="control" id="listBtn" title="30종 목록" aria-label="30종 프로그램 목록">
+          <svg viewBox="0 0 24 24"><path d="M4 5h3v3H4V5zm5 0h11v3H9V5zM4 10.5h3v3H4v-3zm5 0h11v3H9v-3zM4 16h3v3H4v-3zm5 0h11v3H9v-3z"/></svg>
+        </button>
+        <button class="control" id="soundBtn" title="소리 켜기" aria-label="소리 켜기">
+          <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a3.5 3.5 0 0 0-1.7-3v6a3.5 3.5 0 0 0 1.7-3zM15 4.4v2.1a6 6 0 0 1 0 11v2.1a8 8 0 0 0 0-15.2z"/></svg>
+        </button>
+        <button class="control primary" id="pauseBtn" title="일시정지" aria-label="일시정지">
+          <svg id="pauseIcon" viewBox="0 0 24 24"><path d="M7 5h4v14H7V5zm6 0h4v14h-4V5z"/></svg>
+        </button>
+        <button class="control" id="skipBtn" title="다음 장면" aria-label="다음 장면">
+          <svg viewBox="0 0 24 24"><path d="M5 5v14l10-7L5 5zm11 0h3v14h-3V5z"/></svg>
+        </button>
+      </div>
+    </footer>
+  </main>
+
+  <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="listTitle">
+    <div class="sheet">
+      <div class="sheet-head">
+        <div><h3 id="listTitle">30개의 프로그램</h3><p>간단한 도구부터 그래픽·물리·인공지능까지</p></div>
+        <button class="control sheet-close" id="closeDrawer" aria-label="목록 닫기">×</button>
+      </div>
+      <div class="program-list" id="programList"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const HOLD_MS = 10000;
+    const COFFEE_MS = 10000;
+    const TYPE_RATE = 78;
+
+    const programs = [
+      {
+        title: "Hello Clock", file: "hello_clock.js", lang: "JavaScript", short: "JS", level: 1, runtime: 6200, visual: "hello", accent: "#65f5c6", rgb: "101,245,198",
+        description: "현재 시간을 읽어 첫 인사를 출력하는 가장 작은 프로그램",
+        code: [
+          "const now = new Date();",
+          "const hour = now.getHours();",
+          "const greeting = hour < 12",
+          "  ? \"좋은 아침입니다\"",
+          "  : hour < 18 ? \"좋은 오후입니다\"",
+          "  : \"좋은 밤입니다\";",
+          "",
+          "console.log(`${greeting}, 개발자님.`);",
+          "console.log(now.toLocaleTimeString(\"ko-KR\"));"
+        ].join("\n")
+      },
+      {
+        title: "온도 변환기", file: "temperature.py", lang: "Python", short: "PY", level: 1, runtime: 6400, visual: "thermo", accent: "#70d7ff", rgb: "112,215,255",
+        description: "섭씨의 움직임을 화씨와 절대온도로 실시간 번역",
+        code: [
+          "def convert(celsius: float) -> dict:",
+          "    return {",
+          "        \"celsius\": celsius,",
+          "        \"fahrenheit\": celsius * 9 / 5 + 32,",
+          "        \"kelvin\": celsius + 273.15,",
+          "    }",
+          "",
+          "for value in range(-20, 41, 10):",
+          "    print(convert(value))"
+        ].join("\n")
+      },
+      {
+        title: "암호 강도 측정기", file: "entropy_meter.rs", lang: "Rust", short: "RS", level: 1, runtime: 6800, visual: "entropy", accent: "#ffcd70", rgb: "255,205,112",
+        description: "문자 종류와 길이로 암호의 추정 엔트로피를 계산",
+        code: [
+          "fn entropy(password: &str) -> f64 {",
+          "    let mut pool: f64 = 0.0;",
+          "    if password.chars().any(|c| c.is_lowercase()) { pool += 26.0; }",
+          "    if password.chars().any(|c| c.is_uppercase()) { pool += 26.0; }",
+          "    if password.chars().any(|c| c.is_numeric()) { pool += 10.0; }",
+          "    if password.chars().any(|c| !c.is_alphanumeric()) { pool += 32.0; }",
+          "    password.len() as f64 * pool.log2()",
+          "}",
+          "println!(\"{:.1} bits\", entropy(\"Coffee!2026\"));"
+        ].join("\n")
+      },
+      {
+        title: "FizzBuzz 행진", file: "fizzbuzz.js", lang: "JavaScript", short: "JS", level: 1, runtime: 7000, visual: "fizzbuzz", accent: "#ff8fb8", rgb: "255,143,184",
+        description: "숫자들이 Fizz와 Buzz의 규칙에 맞춰 색을 갈아입는 행진",
+        code: [
+          "for (let n = 1; n <= 100; n++) {",
+          "  let word = \"\";",
+          "  if (n % 3 === 0) word += \"Fizz\";",
+          "  if (n % 5 === 0) word += \"Buzz\";",
+          "  console.log(word || n);",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "에라토스테네스의 체", file: "prime_sieve.py", lang: "Python", short: "PY", level: 2, runtime: 7600, visual: "primes", accent: "#8effa0", rgb: "142,255,160",
+        description: "합성수를 차례로 지워 2부터 100까지 소수만 남김",
+        code: [
+          "limit = 100",
+          "prime = [True] * (limit + 1)",
+          "prime[0] = prime[1] = False",
+          "",
+          "for p in range(2, int(limit ** .5) + 1):",
+          "    if prime[p]:",
+          "        for n in range(p * p, limit + 1, p):",
+          "            prime[n] = False",
+          "",
+          "print([n for n in range(limit + 1) if prime[n]])"
+        ].join("\n")
+      },
+      {
+        title: "퀵 정렬", file: "quicksort.js", lang: "JavaScript", short: "JS", level: 2, runtime: 8200, visual: "sort", accent: "#a8a1ff", rgb: "168,161,255",
+        description: "피벗을 기준으로 숫자 막대를 갈라 빠르게 제자리에 정렬",
+        code: [
+          "function quicksort(values) {",
+          "  if (values.length < 2) return values;",
+          "  const pivot = values[values.length - 1];",
+          "  const left = values.filter((n, i) => i < values.length - 1 && n < pivot);",
+          "  const right = values.filter((n, i) => i < values.length - 1 && n >= pivot);",
+          "  return [...quicksort(left), pivot, ...quicksort(right)];",
+          "}",
+          "",
+          "console.log(quicksort([42, 7, 18, 3, 29, 11, 35]));"
+        ].join("\n")
+      },
+      {
+        title: "이진 탐색", file: "binary_search.rs", lang: "Rust", short: "RS", level: 2, runtime: 7600, visual: "binary", accent: "#66e3ff", rgb: "102,227,255",
+        description: "정렬된 배열의 절반을 매번 버리며 목표 숫자를 추적",
+        code: [
+          "fn search(data: &[i32], target: i32) -> Option<usize> {",
+          "    let (mut low, mut high) = (0, data.len());",
+          "    while low < high {",
+          "        let mid = low + (high - low) / 2;",
+          "        match data[mid].cmp(&target) {",
+          "            std::cmp::Ordering::Less => low = mid + 1,",
+          "            std::cmp::Ordering::Greater => high = mid,",
+          "            std::cmp::Ordering::Equal => return Some(mid),",
+          "        }",
+          "    }",
+          "    None",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "마르코프 이름 공장", file: "markov_names.py", lang: "Python", short: "PY", level: 2, runtime: 8200, visual: "markov", accent: "#f5a6ff", rgb: "245,166,255",
+        description: "글자 사이의 확률을 학습해 낯선 도시 이름을 계속 생성",
+        code: [
+          "from collections import defaultdict",
+          "from random import choice",
+          "",
+          "chain = defaultdict(list)",
+          "for name in [\"seoul\", \"busan\", \"incheon\", \"suwon\"]:",
+          "    padded = \"^^\" + name + \"$\"",
+          "    for i in range(len(padded) - 2):",
+          "        chain[padded[i:i+2]].append(padded[i+2])",
+          "",
+          "# 두 글자 상태를 따라 새 이름을 만든다"
+        ].join("\n")
+      },
+      {
+        title: "스도쿠 해결사", file: "sudoku_solver.cpp", lang: "C++", short: "C++", level: 3, runtime: 8800, visual: "sudoku", accent: "#ffd275", rgb: "255,210,117",
+        description: "후보를 놓고 모순이 생기면 되돌아가는 백트래킹 탐색",
+        code: [
+          "bool solve(int board[9][9], int cell = 0) {",
+          "  if (cell == 81) return true;",
+          "  int row = cell / 9, col = cell % 9;",
+          "  if (board[row][col]) return solve(board, cell + 1);",
+          "",
+          "  for (int n = 1; n <= 9; ++n) {",
+          "    if (!valid(board, row, col, n)) continue;",
+          "    board[row][col] = n;",
+          "    if (solve(board, cell + 1)) return true;",
+          "    board[row][col] = 0;",
+          "  }",
+          "  return false;",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "깊이우선 미로", file: "maze_dfs.js", lang: "JavaScript", short: "JS", level: 3, runtime: 9200, visual: "maze", accent: "#65f5c6", rgb: "101,245,198",
+        description: "막다른 길까지 파고든 뒤 되돌아와 거대한 미로를 조각",
+        code: [
+          "function carve(cell) {",
+          "  cell.visited = true;",
+          "  const dirs = shuffle([NORTH, EAST, SOUTH, WEST]);",
+          "",
+          "  for (const dir of dirs) {",
+          "    const next = neighbor(cell, dir);",
+          "    if (!next || next.visited) continue;",
+          "    removeWall(cell, next);",
+          "    carve(next);",
+          "  }",
+          "}",
+          "carve(grid[0][0]);"
+        ].join("\n")
+      },
+      {
+        title: "A* 길찾기", file: "astar.py", lang: "Python", short: "PY", level: 3, runtime: 9600, visual: "astar", accent: "#70d7ff", rgb: "112,215,255",
+        description: "지나온 비용과 남은 거리의 합이 가장 작은 칸부터 탐색",
+        code: [
+          "def astar(start, goal, world):",
+          "    frontier = PriorityQueue()",
+          "    frontier.put((0, start))",
+          "    came_from = {start: None}",
+          "    cost = {start: 0}",
+          "",
+          "    while frontier:",
+          "        _, current = frontier.get()",
+          "        if current == goal: break",
+          "        for nxt in world.neighbors(current):",
+          "            new_cost = cost[current] + world.cost(nxt)",
+          "            relax(current, nxt, new_cost, goal)"
+        ].join("\n")
+      },
+      {
+        title: "콘웨이 생명게임", file: "game_of_life.c", lang: "C", short: "C", level: 3, runtime: 9400, visual: "life", accent: "#8effa0", rgb: "142,255,160",
+        description: "단 네 가지 이웃 규칙에서 탄생과 소멸의 무늬가 솟아남",
+        code: [
+          "void step(bool world[H][W]) {",
+          "  bool next[H][W] = {0};",
+          "  for (int y = 0; y < H; ++y) {",
+          "    for (int x = 0; x < W; ++x) {",
+          "      int n = neighbors(world, x, y);",
+          "      next[y][x] = world[y][x] ? (n == 2 || n == 3) : (n == 3);",
+          "    }",
+          "  }",
+          "  memcpy(world, next, sizeof next);",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "랭턴의 개미", file: "langtons_ant.js", lang: "JavaScript", short: "JS", level: 3, runtime: 9800, visual: "ant", accent: "#ff8fb8", rgb: "255,143,184",
+        description: "흰 칸과 검은 칸의 회전 규칙만으로 고속도로 패턴을 생성",
+        code: [
+          "for (let step = 0; step < 12000; step++) {",
+          "  const key = `${ant.x},${ant.y}`;",
+          "  const black = grid.has(key);",
+          "  ant.dir = (ant.dir + (black ? 3 : 1)) % 4;",
+          "",
+          "  if (black) grid.delete(key);",
+          "  else grid.add(key);",
+          "",
+          "  ant.x += DX[ant.dir];",
+          "  ant.y += DY[ant.dir];",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "L-시스템 숲", file: "l_system.py", lang: "Python", short: "PY", level: 3, runtime: 10200, visual: "lsystem", accent: "#a8ef88", rgb: "168,239,136",
+        description: "짧은 문자열 치환 규칙을 반복해 가지와 잎을 성장",
+        code: [
+          "axiom = \"F\"",
+          "rule = \"FF+[+F-F-F]-[-F+F+F]\"",
+          "sentence = axiom",
+          "",
+          "for generation in range(4):",
+          "    sentence = \"\".join(rule if c == \"F\" else c for c in sentence)",
+          "",
+          "for token in sentence:",
+          "    turtle.execute(token, angle=22.5, length=3)"
+        ].join("\n")
+      },
+      {
+        title: "보이드 군집", file: "boids.ts", lang: "TypeScript", short: "TS", level: 4, runtime: 11200, visual: "boids", accent: "#66e3ff", rgb: "102,227,255",
+        description: "분리·정렬·응집 세 힘으로 새 떼 같은 집단 움직임을 구성",
+        code: [
+          "function steer(boid: Boid, flock: Boid[]) {",
+          "  const nearby = flock.filter(other =>",
+          "    other !== boid && distance(boid, other) < 64",
+          "  );",
+          "",
+          "  const separation = avoidCrowding(boid, nearby).scale(1.7);",
+          "  const alignment = matchVelocity(boid, nearby).scale(1.0);",
+          "  const cohesion = seekCenter(boid, nearby).scale(0.85);",
+          "",
+          "  boid.acceleration.add(separation, alignment, cohesion);",
+          "  boid.velocity.limit(MAX_SPEED);",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "중력 우물", file: "gravity_well.rs", lang: "Rust", short: "RS", level: 4, runtime: 10800, visual: "gravity", accent: "#b6a4ff", rgb: "182,164,255",
+        description: "수백 개 입자가 질량 중심에 끌리며 빛나는 궤적을 남김",
+        code: [
+          "fn integrate(p: &mut Particle, well: Vec2, dt: f32) {",
+          "    let delta = well - p.position;",
+          "    let r2 = delta.length_squared().max(36.0);",
+          "    let force = delta.normalize() * G * p.mass / r2;",
+          "",
+          "    p.velocity += force * dt;",
+          "    p.position += p.velocity * dt;",
+          "    p.trail.push_front(p.position);",
+          "    p.trail.truncate(42);",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "궤도 적분기", file: "orbit_integrator.py", lang: "Python", short: "PY", level: 4, runtime: 11200, visual: "orbit", accent: "#ffd275", rgb: "255,210,117",
+        description: "속도 베를레 적분으로 작은 태양계의 안정적인 궤도를 예측",
+        code: [
+          "def verlet(body, bodies, dt):",
+          "    a0 = acceleration(body, bodies)",
+          "    body.position += body.velocity * dt + .5 * a0 * dt * dt",
+          "    a1 = acceleration(body, bodies)",
+          "    body.velocity += .5 * (a0 + a1) * dt",
+          "",
+          "for frame in range(3600):",
+          "    for planet in planets:",
+          "        verlet(planet, planets, 1 / 120)"
+        ].join("\n")
+      },
+      {
+        title: "베를레 천 시뮬레이션", file: "verlet_cloth.cpp", lang: "C++", short: "C++", level: 4, runtime: 11600, visual: "cloth", accent: "#f5a6ff", rgb: "245,166,255",
+        description: "점과 거리 제약만으로 바람에 흔들리는 디지털 천을 계산",
+        code: [
+          "void Point::integrate(float dt) {",
+          "  Vec2 velocity = position - previous;",
+          "  previous = position;",
+          "  position += velocity * 0.995f + gravity * dt * dt;",
+          "}",
+          "",
+          "void satisfy(Link& link) {",
+          "  Vec2 delta = link.b->position - link.a->position;",
+          "  float error = (delta.length() - link.rest) / delta.length();",
+          "  link.a->position += delta * error * 0.5f;",
+          "  link.b->position -= delta * error * 0.5f;",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "유체 벡터장", file: "fluid_field.glsl", lang: "GLSL", short: "GL", level: 4, runtime: 11800, visual: "fluid", accent: "#70d7ff", rgb: "112,215,255",
+        description: "회전하는 속도장을 따라 잉크 입자가 부드러운 소용돌이를 그림",
+        code: [
+          "vec2 velocityField(vec2 p, float time) {",
+          "  float a = sin(p.y * 4.0 + time) * 0.7;",
+          "  float b = cos(p.x * 5.0 - time * 0.8) * 0.7;",
+          "  vec2 curl = vec2(a - p.y, b + p.x);",
+          "  return normalize(curl + 0.001);",
+          "}",
+          "",
+          "void advect(inout Particle p, float dt) {",
+          "  vec2 v1 = velocityField(p.xy, u_time);",
+          "  vec2 v2 = velocityField(p.xy + v1 * dt * .5, u_time);",
+          "  p.xy += v2 * dt;",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "반응-확산", file: "reaction_diffusion.glsl", lang: "GLSL", short: "GL", level: 5, runtime: 12200, visual: "reaction", accent: "#ff8fb8", rgb: "255,143,184",
+        description: "두 화학 물질의 확산과 반응으로 산호 같은 무늬를 성장",
+        code: [
+          "vec2 grayScott(vec2 uv) {",
+          "  vec2 state = texture(u_state, uv).rg;",
+          "  vec2 lap = laplacian9(u_state, uv);",
+          "  float reaction = state.r * state.g * state.g;",
+          "",
+          "  float a = state.r + (DA * lap.r - reaction + FEED * (1.0-state.r)) * DT;",
+          "  float b = state.g + (DB * lap.g + reaction - (KILL+FEED)*state.g) * DT;",
+          "  return clamp(vec2(a, b), 0.0, 1.0);",
+          "}",
+          "",
+          "fragColor = vec4(grayScott(v_uv), 0.12, 1.0);"
+        ].join("\n")
+      },
+      {
+        title: "펄린 지형 생성기", file: "perlin_terrain.js", lang: "JavaScript", short: "JS", level: 4, runtime: 11400, visual: "terrain", accent: "#8effa0", rgb: "142,255,160",
+        description: "여러 주파수의 부드러운 노이즈를 겹쳐 끝없는 산맥을 생성",
+        code: [
+          "function height(x, z) {",
+          "  let value = 0, amp = 1, freq = 0.008;",
+          "  for (let octave = 0; octave < 5; octave++) {",
+          "    value += noise2D(x * freq, z * freq) * amp;",
+          "    amp *= 0.5;",
+          "    freq *= 2.03;",
+          "  }",
+          "  return Math.pow(Math.max(0, value), 1.7);",
+          "}",
+          "mesh.vertices.forEach(v => v.y = height(v.x, v.z));"
+        ].join("\n")
+      },
+      {
+        title: "보로노이 도시", file: "voronoi_city.rs", lang: "Rust", short: "RS", level: 4, runtime: 11200, visual: "voronoi", accent: "#ffcd70", rgb: "255,205,112",
+        description: "가장 가까운 중심점을 기준으로 도시 블록과 도로망을 분할",
+        code: [
+          "fn nearest_site(point: Vec2, sites: &[Vec2]) -> usize {",
+          "    sites.iter()",
+          "        .enumerate()",
+          "        .min_by(|(_, a), (_, b)| {",
+          "            point.distance_squared(**a)",
+          "                .total_cmp(&point.distance_squared(**b))",
+          "        })",
+          "        .map(|(index, _)| index)",
+          "        .unwrap()",
+          "}",
+          "raster.par_iter_mut().for_each(|p| p.zone = nearest_site(p.xy, &sites));"
+        ].join("\n")
+      },
+      {
+        title: "푸리에 에피사이클", file: "fourier_draw.py", lang: "Python", short: "PY", level: 5, runtime: 12400, visual: "fourier", accent: "#b6a4ff", rgb: "182,164,255",
+        description: "주파수별 회전 원을 합쳐 복잡한 한 줄 그림을 다시 복원",
+        code: [
+          "def epicycles(origin, time, spectrum):",
+          "    point = complex(*origin)",
+          "    circles = []",
+          "    for freq, amplitude, phase in spectrum:",
+          "        previous = point",
+          "        point += amplitude * exp(1j * (freq * time + phase))",
+          "        circles.append((previous, amplitude, point))",
+          "    return point, circles",
+          "",
+          "spectrum = fft(sampled_outline)",
+          "trace.append(epicycles(CENTER, t, spectrum)[0])"
+        ].join("\n")
+      },
+      {
+        title: "실시간 스펙트럼", file: "spectrum.cpp", lang: "C++", short: "C++", level: 4, runtime: 10800, visual: "spectrum", accent: "#65f5c6", rgb: "101,245,198",
+        description: "짧은 오디오 창을 주파수 성분으로 분해해 빛 막대로 표시",
+        code: [
+          "void analyze(const float* samples, Complex* bins) {",
+          "  for (int i = 0; i < FFT_SIZE; ++i) {",
+          "    float window = 0.5f - 0.5f * cos(TAU * i / FFT_SIZE);",
+          "    bins[i] = Complex(samples[i] * window, 0.0f);",
+          "  }",
+          "",
+          "  fft(bins, FFT_SIZE);",
+          "  for (int k = 0; k < FFT_SIZE / 2; ++k)",
+          "    spectrum[k] = log1p(abs(bins[k]));",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "작은 신경망", file: "tiny_neural_net.py", lang: "Python", short: "PY", level: 5, runtime: 12200, visual: "neural", accent: "#f5a6ff", rgb: "245,166,255",
+        description: "세 층의 뉴런이 오차를 역전파하며 점들의 경계를 학습",
+        code: [
+          "class Network:",
+          "    def forward(self, x):",
+          "        self.h = relu(x @ self.w1 + self.b1)",
+          "        return sigmoid(self.h @ self.w2 + self.b2)",
+          "",
+          "    def train(self, x, y, rate=.03):",
+          "        prediction = self.forward(x)",
+          "        loss = binary_cross_entropy(prediction, y)",
+          "        gradients = backward(loss, self.parameters())",
+          "        for p, g in zip(self.parameters(), gradients):",
+          "            p -= rate * g",
+          "        return loss"
+        ].join("\n")
+      },
+      {
+        title: "유전 로켓", file: "genetic_rockets.js", lang: "JavaScript", short: "JS", level: 5, runtime: 12600, visual: "genetic", accent: "#ff8fb8", rgb: "255,143,184",
+        description: "목표에 가까운 비행을 선택·교배·변이해 세대마다 진화",
+        code: [
+          "function nextGeneration(population) {",
+          "  const ranked = population",
+          "    .map(rocket => ({ rocket, score: fitness(rocket) }))",
+          "    .sort((a, b) => b.score - a.score);",
+          "",
+          "  return Array.from({ length: population.length }, () => {",
+          "    const mother = weightedPick(ranked).rocket.dna;",
+          "    const father = weightedPick(ranked).rocket.dna;",
+          "    return new Rocket(mutate(crossover(mother, father), 0.012));",
+          "  });",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "DDA 레이캐스터", file: "raycaster.c", lang: "C", short: "C", level: 5, runtime: 12200, visual: "raycaster", accent: "#70d7ff", rgb: "112,215,255",
+        description: "화면 열마다 격자에 광선을 쏴 고전적인 3D 복도를 렌더링",
+        code: [
+          "for (int column = 0; column < WIDTH; ++column) {",
+          "  float camera = 2.0f * column / WIDTH - 1.0f;",
+          "  Ray ray = make_ray(player, camera);",
+          "  Hit hit = dda(world, ray);",
+          "",
+          "  int height = (int)(HEIGHT / hit.distance);",
+          "  Color shade = wall_color(hit.side, hit.distance);",
+          "  draw_vertical(column, HEIGHT/2-height/2, HEIGHT/2+height/2, shade);",
+          "}"
+        ].join("\n")
+      },
+      {
+        title: "경로 추적기", file: "path_tracer.cpp", lang: "C++", short: "C++", level: 5, runtime: 13400, visual: "raytrace", accent: "#ffd275", rgb: "255,210,117",
+        description: "광선의 반사와 확률적 산란을 누적해 부드러운 빛을 복원",
+        code: [
+          "Color trace(Ray ray, int depth) {",
+          "  if (depth <= 0) return Color(0);",
+          "  Hit hit = scene.intersect(ray);",
+          "  if (!hit) return sky(ray.direction);",
+          "",
+          "  Vec3 bounce = cosineHemisphere(hit.normal, rng);",
+          "  Ray scattered(hit.position + hit.normal * EPSILON, bounce);",
+          "  return hit.emission + hit.albedo * trace(scattered, depth - 1);",
+          "}",
+          "",
+          "pixel += trace(camera.sample(x, y, rng), 8) / SAMPLES;"
+        ].join("\n")
+      },
+      {
+        title: "만델브로 셰이더", file: "mandelbrot.glsl", lang: "GLSL", short: "GL", level: 5, runtime: 13200, visual: "mandelbrot", accent: "#b6a4ff", rgb: "182,164,255",
+        description: "복소수 반복을 픽셀마다 병렬 계산해 무한 경계로 확대",
+        code: [
+          "float mandelbrot(vec2 c) {",
+          "  vec2 z = vec2(0.0);",
+          "  float iteration = 0.0;",
+          "  for (int i = 0; i < 240; ++i) {",
+          "    if (dot(z, z) > 256.0) break;",
+          "    z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;",
+          "    iteration += 1.0;",
+          "  }",
+          "  return iteration - log2(log2(dot(z,z))) + 4.0;",
+          "}",
+          "fragColor = palette(mandelbrot(complexPlane(v_uv)));"
+        ].join("\n")
+      },
+      {
+        title: "8비트 가상 머신", file: "tiny_vm.rs", lang: "Rust", short: "RS", level: 5, runtime: 13800, visual: "vm", accent: "#65f5c6", rgb: "101,245,198",
+        description: "16개 명령어·메모리·화면을 가진 작은 컴퓨터가 한 프레임씩 동작",
+        code: [
+          "fn tick(vm: &mut Vm) {",
+          "    let opcode = vm.memory[vm.pc as usize];",
+          "    vm.pc = vm.pc.wrapping_add(1);",
+          "",
+          "    match opcode >> 4 {",
+          "        0x0 => vm.nop(),",
+          "        0x1 => vm.load(opcode & 0x0f),",
+          "        0x2 => vm.add(opcode & 0x0f),",
+          "        0x3 => vm.store(opcode & 0x0f),",
+          "        0xA => vm.jump_if_zero(opcode & 0x0f),",
+          "        0xF => vm.draw_sprite(),",
+          "        _ => vm.halted = true,",
+          "    }",
+          "}"
+        ].join("\n")
+      }
+    ];
+
+    const phases = [
+      { id: "typing", label: "코드 작성 중", short: "TYPE" },
+      { id: "codeHold", label: "코드 검토 중", short: "10s HOLD" },
+      { id: "running", label: "프로그램 실행 중", short: "RUN" },
+      { id: "runHold", label: "결과 감상 중", short: "10s HOLD" },
+      { id: "coffee", label: "커피 휴식 중", short: "COFFEE 10s" }
+    ];
+
+    const coffeeFrames = [
+String.raw`          (  )   (   )
+           ) (     )  (
+        ...............
+        |             |]
+        \             /
+         '-----------'
+
+            .-"""-.
+           /  -   -  \
+          |     ^     |
+          |   \___/   |
+           \_________/
+          __/|  DEV |\__
+         /   |______|   \
+       _/____/      \____\_
+      |_____________________|`,
+String.raw`             (  (
+              )  )
+           ........
+           |      |]
+       ____\      /___
+      /     '----'    \
+     /                 \
+        .-"""-.
+       /  -   -  \____
+      |     ^          \
+      |   \___/    ____/
+       \_________/
+      __/|  DEV |\__
+     /   |______|   \ `,
+String.raw`        (  )
+         ) (
+      ........
+      |      |]  .-"""-.
+      \      /  /  -   -  \
+       '----'  |     o     |
+                \  \___/  /
+                 '-------'
+                __/|DEV|\__
+               /   |___|   \
+
+           * sip... compile... *`,
+String.raw`                    ( (
+                     ) )
+                  ........
+                  |      |]
+     .-"""-.      \      /
+    /  -   -  \____'----'
+   |     ^          \
+   |   \___/    ____/
+    \_________/
+   __/|  DEV |\__
+  /   |______|   \
+
+       energy += coffee;`,
+String.raw`          (  )   (   )
+           ) (     )  (
+        ...............
+        |             |]
+        \             /
+         '-----------'
+
+            .-"""-.
+           /  ^   ^  \
+          |     ^     |
+          |   \___/   |
+           \_________/
+          __/| READY|\__
+         /   |______|   \
+       _/____/      \____\_
+      |_____NEXT_PROGRAM___|`
+    ];
+
+    const el = {
+      code: document.getElementById("codeText"), lines: document.getElementById("lineNumbers"), editor: document.getElementById("editorScroll"),
+      tabName: document.getElementById("tabName"), tabIcon: document.getElementById("tabIcon"), runtime: document.getElementById("runtimeText"),
+      phaseText: document.getElementById("phaseText"), phaseTime: document.getElementById("phaseTime"), compile: document.getElementById("compileStatus"), cursor: document.getElementById("cursorStatus"),
+      canvas: document.getElementById("outputCanvas"), outputLabel: document.getElementById("outputLabel"), fps: document.getElementById("fpsText"),
+      title: document.getElementById("programTitle"), desc: document.getElementById("programDescription"), index: document.getElementById("programIndex"), difficulty: document.getElementById("difficulty"),
+      nowTitle: document.getElementById("nowTitle"), nowMeta: document.getElementById("nowMeta"), fill: document.getElementById("trackFill"), labels: document.getElementById("timelineLabels"), dots: document.getElementById("programDots"),
+      asciiWrap: document.getElementById("asciiWrap"), ascii: document.getElementById("asciiArt"), pause: document.getElementById("pauseBtn"), pauseIcon: document.getElementById("pauseIcon"), skip: document.getElementById("skipBtn"), sound: document.getElementById("soundBtn"),
+      drawer: document.getElementById("drawer"), listBtn: document.getElementById("listBtn"), closeDrawer: document.getElementById("closeDrawer"), list: document.getElementById("programList"), toast: document.getElementById("toast")
+    };
+
+    const ctx = el.canvas.getContext("2d", { alpha: true });
+    let cw = 0, ch = 0, dpr = 1;
+    let index = 0, phaseIndex = 0, phaseStart = performance.now(), pausedAt = 0, paused = false;
+    let lastTyped = -1, audioOn = false, audioCtx = null, toastTimer = 0, frameCounter = 0, fpsAt = performance.now(), fps = 60;
+    let cachedMandel = null;
+
+    function durationFor(program, pIndex) {
+      if (pIndex === 0) return Math.max(3600, Math.min(14500, program.code.length / TYPE_RATE * 1000));
+      if (pIndex === 1 || pIndex === 3) return HOLD_MS;
+      if (pIndex === 2) return program.runtime;
+      return COFFEE_MS;
+    }
+
+    function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+    function highlight(source) {
+      const escaped = escapeHtml(source);
+      const token = /(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/)|(\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')|\b(const|let|var|function|return|if|else|for|while|class|new|true|false|null|undefined|def|from|import|in|range|fn|mut|match|pub|struct|impl|void|int|float|bool|auto|vec2|vec3|vec4|uniform|inout|out|break|continue|self|None|Some|Option|usize|f32|f64)\b|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_][\w]*)(?=\()/g;
+      return escaped.replace(token, (m, comment, string, keyword, number, fn) => {
+        if (comment) return `<span class="tok-comment">${comment}</span>`;
+        if (string) return `<span class="tok-string">${string}</span>`;
+        if (keyword) return `<span class="tok-key">${keyword}</span>`;
+        if (number) return `<span class="tok-num">${number}</span>`;
+        if (fn) return `<span class="tok-fn">${fn}</span>`;
+        return m;
+      });
+    }
+
+    function setCode(source, withCaret) {
+      el.code.innerHTML = highlight(source) + (withCaret ? '<span class="caret">▋</span>' : '');
+      const lineCount = source.split("\n").length;
+      el.lines.textContent = Array.from({ length: lineCount }, (_, i) => i + 1).join("\n");
+      const last = source.split("\n").pop().length + 1;
+      el.cursor.textContent = `Ln ${lineCount}, Col ${last}`;
+      if (withCaret) el.editor.scrollTop = el.editor.scrollHeight;
+    }
+
+    function setTheme(program) {
+      document.documentElement.style.setProperty("--accent", program.accent);
+      document.documentElement.style.setProperty("--accent-rgb", program.rgb);
+    }
+
+    function difficulty(level) {
+      el.difficulty.innerHTML = Array.from({ length: 5 }, (_, i) => `<i class="${i < level ? "on" : ""}"></i>`).join("");
+      el.difficulty.setAttribute("aria-label", `난이도 ${level}`);
+    }
+
+    function setupProgram() {
+      const p = programs[index];
+      setTheme(p);
+      el.tabName.textContent = p.file;
+      el.tabIcon.textContent = p.short;
+      el.runtime.textContent = `RUNTIME · ${p.lang.toUpperCase()}`;
+      el.title.textContent = p.title;
+      el.desc.textContent = p.description;
+      el.index.textContent = `${String(index + 1).padStart(2, "0")}/30`;
+      el.nowTitle.textContent = `${String(index + 1).padStart(2, "0")} · ${p.title}`;
+      el.nowMeta.textContent = `${p.lang} · 난이도 ${p.level}/5 · 다음: ${programs[(index + 1) % programs.length].title}`;
+      difficulty(p.level);
+      cachedMandel = null;
+      [...el.dots.children].forEach((dot, i) => {
+        dot.classList.toggle("active", i === index);
+        dot.classList.toggle("done", i < index);
+      });
+      [...el.list.children].forEach((item, i) => item.classList.toggle("current", i === index));
+    }
+
+    function enterPhase(next) {
+      phaseIndex = next;
+      phaseStart = performance.now();
+      lastTyped = -1;
+      if (phaseIndex === 2) soundEvent("run");
+      if (phaseIndex === 4) soundEvent("coffee");
+    }
+
+    function advance() {
+      if (phaseIndex < phases.length - 1) enterPhase(phaseIndex + 1);
+      else {
+        index = (index + 1) % programs.length;
+        setupProgram();
+        enterPhase(0);
+      }
+    }
+
+    function jumpTo(i) {
+      index = i;
+      setupProgram();
+      enterPhase(0);
+      closeDrawer();
+      showToast(`${String(i + 1).padStart(2,"0")} · ${programs[i].title}`);
+    }
+
+    function phaseUi(program, progress, remaining) {
+      const phase = phases[phaseIndex];
+      el.phaseText.textContent = paused ? "일시정지" : phase.label;
+      el.phaseTime.textContent = `${String(Math.ceil(remaining / 1000)).padStart(2,"0")}s`;
+      el.fill.style.width = `${progress * 100}%`;
+      [...el.labels.children].forEach((label, i) => label.classList.toggle("active", i === phaseIndex));
+
+      el.asciiWrap.classList.toggle("show", phaseIndex === 4);
+      if (phaseIndex === 0) {
+        const count = Math.min(program.code.length, Math.floor(progress * program.code.length));
+        if (count !== lastTyped) {
+          setCode(program.code.slice(0, count), true);
+          if (count > lastTyped && count % 3 === 0) soundKey();
+          lastTyped = count;
+        }
+        el.compile.textContent = "● EDITING";
+        el.compile.style.color = program.accent;
+        el.outputLabel.textContent = "AWAITING BUILD";
+      } else {
+        if (lastTyped !== program.code.length) { setCode(program.code, false); lastTyped = program.code.length; }
+        if (phaseIndex === 1) {
+          el.compile.textContent = "✓ 0 ERRORS";
+          el.compile.style.color = program.accent;
+          el.outputLabel.textContent = "BUILD READY · 10 SECOND HOLD";
+        } else if (phaseIndex === 2) {
+          el.compile.textContent = "▶ RUNNING";
+          el.outputLabel.textContent = `EXECUTING · ${program.short}`;
+        } else if (phaseIndex === 3) {
+          el.compile.textContent = "✓ EXIT CODE 0";
+          el.outputLabel.textContent = "PROGRAM COMPLETE · 10 SECOND HOLD";
+        } else {
+          el.compile.textContent = "☕ DEVELOPER AFK";
+          el.outputLabel.textContent = "COFFEE BREAK";
+          const frame = Math.min(coffeeFrames.length - 1, Math.floor(progress * coffeeFrames.length));
+          el.ascii.textContent = coffeeFrames[frame];
+        }
+      }
+    }
+
+    function resizeCanvas() {
+      const rect = el.canvas.getBoundingClientRect();
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      cw = Math.max(1, rect.width);
+      ch = Math.max(1, rect.height);
+      el.canvas.width = Math.round(cw * dpr);
+      el.canvas.height = Math.round(ch * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cachedMandel = null;
+    }
+
+    const ro = new ResizeObserver(resizeCanvas);
+    ro.observe(el.canvas);
+
+    function rand(i, seed = 1) { return Math.abs(Math.sin(i * 127.1 + seed * 311.7) * 43758.5453) % 1; }
+    function rgba(hex, a) {
+      const n = parseInt(hex.slice(1), 16);
+      return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+    }
+    function ease(t) { return t < .5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
+    function clear(program) {
+      ctx.clearRect(0,0,cw,ch);
+      const g = ctx.createRadialGradient(cw*.5,ch*.45,0,cw*.5,ch*.45,Math.max(cw,ch)*.72);
+      g.addColorStop(0, rgba(program.accent,.08)); g.addColorStop(1,"rgba(3,5,10,.2)");
+      ctx.fillStyle = g; ctx.fillRect(0,0,cw,ch);
+    }
+
+    function glow(color, blur=14) { ctx.shadowColor = color; ctx.shadowBlur = blur; }
+    function noGlow() { ctx.shadowBlur = 0; }
+
+    function renderVisual(p, progress, time) {
+      clear(p);
+      const t = time / 1000;
+      const fn = visuals[p.visual] || visuals.hello;
+      fn(p, Math.max(0, Math.min(1, progress)), t);
+      noGlow();
+    }
+
+    const visuals = {
+      hello(p, q, t) {
+        ctx.textAlign = "center"; ctx.fillStyle = rgba(p.accent,.32); ctx.font = `${Math.max(9,cw*.018)}px ${getComputedStyle(document.body).fontFamily}`;
+        ctx.fillText("SYSTEM CLOCK", cw/2, ch*.27);
+        glow(p.accent,18); ctx.fillStyle = p.accent; ctx.font = `700 ${Math.min(cw*.13,ch*.24)}px var(--font-mono)`;
+        const secs = Math.floor(t) % 60;
+        ctx.fillText(`21:${String(34 + Math.floor(q*4)).padStart(2,"0")}:${String(secs).padStart(2,"0")}`, cw/2, ch*.52);
+        noGlow(); ctx.fillStyle = "rgba(230,235,246,.72)"; ctx.font = `${Math.max(10,cw*.025)}px var(--font-mono)`;
+        ctx.fillText(q > .55 ? "좋은 밤입니다, 개발자님." : "initializing greeting...", cw/2, ch*.66);
+      },
+      thermo(p,q,t) {
+        const x=cw*.5, top=ch*.18, bottom=ch*.7, r=Math.min(28,cw*.055), temp=-20+60*q;
+        ctx.lineWidth=Math.max(5,cw*.018); ctx.strokeStyle="rgba(255,255,255,.14)"; ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke();
+        const grad=ctx.createLinearGradient(0,bottom,0,top); grad.addColorStop(0,"#70d7ff"); grad.addColorStop(.55,"#65f5c6"); grad.addColorStop(1,"#ff8f8f");
+        ctx.strokeStyle=grad; glow(p.accent,14); ctx.beginPath(); ctx.moveTo(x,bottom); ctx.lineTo(x,bottom-(bottom-top)*q); ctx.stroke(); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(x,bottom,r,0,Math.PI*2); ctx.fill(); noGlow();
+        ctx.fillStyle="#eef2fb"; ctx.textAlign="left"; ctx.font=`700 ${Math.max(18,cw*.055)}px var(--font-mono)`; ctx.fillText(`${temp.toFixed(1)}°C`,x+r+25,ch*.39);
+        ctx.font=`${Math.max(10,cw*.022)}px var(--font-mono)`; ctx.fillStyle="rgba(230,235,246,.55)"; ctx.fillText(`${(temp*9/5+32).toFixed(1)}°F`,x+r+25,ch*.48); ctx.fillText(`${(temp+273.15).toFixed(2)} K`,x+r+25,ch*.55);
+      },
+      entropy(p,q,t) {
+        const bits=Math.round(18+q*68); const cx=cw/2, cy=ch*.45, r=Math.min(cw,ch)*.2;
+        ctx.lineWidth=10; ctx.strokeStyle="rgba(255,255,255,.08)"; ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI*.8,Math.PI*2.2); ctx.stroke();
+        ctx.strokeStyle=p.accent; glow(p.accent,18); ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI*.8,Math.PI*.8+Math.PI*1.4*q); ctx.stroke(); noGlow();
+        ctx.fillStyle=p.accent; ctx.textAlign="center"; ctx.font=`800 ${Math.min(58,cw*.13)}px var(--font-mono)`; ctx.fillText(bits,cx,cy+10); ctx.font=`${Math.max(9,cw*.02)}px var(--font-mono)`; ctx.fillStyle="rgba(235,239,249,.6)"; ctx.fillText("BITS OF ENTROPY",cx,cy+34);
+        const bars=4; for(let i=0;i<bars;i++){ctx.fillStyle=i<Math.ceil(q*bars)?p.accent:"#252b38";ctx.fillRect(cx-r+i*(r*2/bars+4),cy+r+35,r*2/bars-6,5);}
+      },
+      fizzbuzz(p,q,t) {
+        const cols=10, size=Math.min(cw*.075,ch*.075), ox=(cw-cols*size)/2, oy=ch*.12, max=Math.ceil(100*q);
+        ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font=`${Math.max(7,size*.25)}px var(--font-mono)`;
+        for(let n=1;n<=100;n++){const x=ox+((n-1)%cols)*size,y=oy+Math.floor((n-1)/cols)*size;ctx.fillStyle=n<=max?(n%15===0?p.accent:n%3===0?"#70d7ff":n%5===0?"#ff8fb8":"rgba(255,255,255,.12)"):"rgba(255,255,255,.025)";ctx.fillRect(x+2,y+2,size-4,size-4);ctx.fillStyle=n<=max&&n%15===0?"#07100c":"rgba(235,239,248,.72)";ctx.fillText(n%15===0?"FB":n%3===0?"F":n%5===0?"B":n,x+size/2,y+size/2);}
+      },
+      primes(p,q,t) {
+        const size=Math.min(cw*.078,ch*.078),ox=(cw-10*size)/2,oy=ch*.12,max=Math.ceil(100*q);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=`${Math.max(7,size*.27)}px var(--font-mono)`;
+        const prime=n=>{if(n<2)return false;for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true;};
+        for(let n=1;n<=100;n++){const x=ox+((n-1)%10)*size,y=oy+Math.floor((n-1)/10)*size;const active=n<=max&&prime(n);ctx.fillStyle=active?rgba(p.accent,.8):n<=max?"rgba(255,255,255,.025)":"rgba(255,255,255,.06)";if(active)glow(p.accent,8);ctx.beginPath();ctx.arc(x+size/2,y+size/2,size*.36,0,Math.PI*2);ctx.fill();noGlow();ctx.fillStyle=active?"#07100c":"rgba(200,207,221,.28)";ctx.fillText(n,x+size/2,y+size/2);}
+      },
+      sort(p,q,t) {
+        const n=34,gap=2,base=ch*.78,w=(cw*.82)/n,ox=cw*.09;for(let i=0;i<n;i++){const from=rand(i,6),to=(i+1)/n,v=from*(1-ease(q))+to*ease(q),h=v*ch*.55;const active=Math.abs(i/n-q)<.09;ctx.fillStyle=active?p.accent:rgba(p.accent,.3+.55*v);if(active)glow(p.accent,12);ctx.fillRect(ox+i*w,base-h,w-gap,h);noGlow();}ctx.fillStyle="rgba(220,227,240,.45)";ctx.font=`${Math.max(9,cw*.018)}px var(--font-mono)`;ctx.fillText(`partition ${Math.floor(q*9)+1} / 10`,ox,ch*.88);
+      },
+      binary(p,q,t) {
+        const values=Array.from({length:16},(_,i)=>i*7+3),target=73,steps=[[0,15,7],[8,15,11],[8,10,9],[10,10,10]],s=Math.min(3,Math.floor(q*4)),[lo,hi,mid]=steps[s],size=Math.min(cw*.052,28),gap=4,total=16*(size+gap),ox=(cw-total)/2,cy=ch*.43;ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=`${Math.max(7,size*.31)}px var(--font-mono)`;
+        values.forEach((v,i)=>{const x=ox+i*(size+gap);ctx.fillStyle=i<lo||i>hi?"rgba(255,255,255,.025)":i===mid?p.accent:"rgba(255,255,255,.1)";if(i===mid)glow(p.accent,12);ctx.fillRect(x,cy,size,size);noGlow();ctx.fillStyle=i===mid?"#06100c":"rgba(231,236,247,.7)";ctx.fillText(v,x+size/2,cy+size/2);});ctx.fillStyle=p.accent;ctx.font=`700 ${Math.max(14,cw*.035)}px var(--font-mono)`;ctx.fillText(s===3?"FOUND 73 @ INDEX 10":`target 73 · range [${lo}, ${hi}]`,cw/2,ch*.67);
+      },
+      markov(p,q,t) {
+        const names=["SEORIN","BUSORA","INCHEONI","SUWORA","HAEUL","YEONSA","DORIM"];for(let i=0;i<28;i++){const a=i/28*Math.PI*2+t*.08,x=cw/2+Math.cos(a)*cw*(.18+rand(i,2)*.25),y=ch*.42+Math.sin(a)*ch*(.16+rand(i,3)*.2);ctx.strokeStyle=rgba(p.accent,.07+.08*Math.sin(t+i));ctx.beginPath();ctx.moveTo(cw/2,ch*.42);ctx.lineTo(x,y);ctx.stroke();}
+        ctx.textAlign="center";names.forEach((name,i)=>{const appear=q*names.length-i;if(appear<=0)return;const y=ch*.18+i*ch*.075;ctx.fillStyle=i===Math.min(names.length-1,Math.floor(q*names.length))?p.accent:`rgba(230,235,246,${.18+.4*Math.min(1,appear)})`;ctx.font=`${i===Math.floor(q*names.length)?700:500} ${Math.max(10,cw*(i===Math.floor(q*names.length)?.034:.021))}px var(--font-mono)`;ctx.fillText(name,cw/2,y);});
+      },
+      sudoku(p,q,t) {
+        const puzzle="530070000600195000098000060800060003400803001700020006060000280000419005000080079",solution="534678912672195348198342567859761423426853791713924856961537284287419635345286179",size=Math.min(cw*.065,ch*.075),ox=(cw-size*9)/2,oy=ch*.12,filled=Math.floor(q*81);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=`${Math.max(9,size*.42)}px var(--font-mono)`;
+        for(let i=0;i<81;i++){const x=ox+(i%9)*size,y=oy+Math.floor(i/9)*size;ctx.strokeStyle=(i%3===0||Math.floor(i/9)%3===0)?"rgba(255,255,255,.25)":"rgba(255,255,255,.07)";ctx.strokeRect(x,y,size,size);const given=puzzle[i]!=="0",show=given||i<filled;if(show){ctx.fillStyle=given?"rgba(235,239,248,.72)":p.accent;ctx.fillText(given?puzzle[i]:solution[i],x+size/2,y+size/2);}}
+      },
+      maze(p,q,t) {
+        const cols=22,rows=14,cell=Math.min(cw*.039,ch*.052),ox=(cw-cols*cell)/2,oy=ch*.12;ctx.lineWidth=1;ctx.strokeStyle=rgba(p.accent,.38);const revealed=Math.floor(q*cols*rows);for(let i=0;i<revealed;i++){const x=ox+(i%cols)*cell,y=oy+Math.floor(i/cols)*cell,rv=rand(i,10);ctx.beginPath();if(rv>.22){ctx.moveTo(x,y);ctx.lineTo(x+cell,y);}if(rv<.78){ctx.moveTo(x,y);ctx.lineTo(x,y+cell);}ctx.stroke();}const px=ox+((revealed-1)%cols)*cell+cell/2,py=oy+Math.floor((revealed-1)/cols)*cell+cell/2;glow(p.accent,12);ctx.fillStyle=p.accent;ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill();noGlow();
+      },
+      astar(p,q,t) {
+        const cols=24,rows=15,cell=Math.min(cw*.035,ch*.045),ox=(cw-cols*cell)/2,oy=ch*.12;for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const i=y*cols+x,obs=rand(i,11)<.18,seen=i<q*cols*rows*.78;ctx.fillStyle=obs?"rgba(255,255,255,.08)":seen?rgba(p.accent,.10):"rgba(255,255,255,.018)";ctx.fillRect(ox+x*cell+1,oy+y*cell+1,cell-2,cell-2);}ctx.strokeStyle=p.accent;ctx.lineWidth=3;glow(p.accent,10);ctx.beginPath();for(let i=0;i<18*q;i++){const x=ox+(i/17)*(cols-1)*cell+cell/2,y=oy+(rows*.55+Math.sin(i*.8)*1.6)*cell;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();noGlow();
+      },
+      life(p,q,t) {
+        const cols=42,rows=24,cell=Math.min(cw/cols,ch*.78/rows),ox=(cw-cols*cell)/2,oy=ch*.08,g=Math.floor(t*5);for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const wave=Math.sin((x+g)*.72)+Math.cos((y-g)*.81)+Math.sin((x+y+g)*.22);const alive=wave>1.18||((x*y+g)%31===0);if(alive){ctx.fillStyle=rgba(p.accent,.3+.65*((wave+3)/6));ctx.fillRect(ox+x*cell+1,oy+y*cell+1,cell-1,cell-1);}}
+      },
+      ant(p,q,t) {
+        const cols=38,rows=24,cell=Math.min(cw/cols,ch*.8/rows),ox=(cw-cols*cell)/2,oy=ch*.08,step=Math.floor(q*900);for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const v=Math.sin((x-19)*.64+(y-12)*.77+step*.035)+Math.cos(x*y*.09-step*.02);if(v>1.05){ctx.fillStyle=rgba(p.accent,.35);ctx.fillRect(ox+x*cell,oy+y*cell,cell-1,cell-1);}}const ax=ox+(19+Math.sin(step*.023)*8)*cell,ay=oy+(12+Math.cos(step*.019)*6)*cell;glow(p.accent,14);ctx.fillStyle=p.accent;ctx.beginPath();ctx.arc(ax,ay,Math.max(3,cell*.45),0,Math.PI*2);ctx.fill();noGlow();
+      },
+      lsystem(p,q,t) {
+        ctx.save();ctx.translate(cw/2,ch*.84);ctx.strokeStyle=rgba(p.accent,.75);ctx.lineWidth=Math.max(1,cw*.0025);glow(p.accent,7);const depth=Math.floor(3+q*6);function branch(len,d,a){if(d<=0||len<2)return;ctx.save();ctx.rotate(a+Math.sin(t*.8+d)*.012);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-len);ctx.stroke();ctx.translate(0,-len);branch(len*.72,d-1,-.38);branch(len*.69,d-1,.43);if(d%2===0)branch(len*.62,d-1,.04);ctx.restore();}branch(ch*.2,depth,0);noGlow();ctx.restore();
+      },
+      boids(p,q,t) {
+        const n=56;for(let i=0;i<n;i++){const a=t*(.25+rand(i,1)*.18)+i*.42,r=cw*(.08+rand(i,2)*.34),x=cw/2+Math.cos(a+Math.sin(t+i)*.2)*r,y=ch*.43+Math.sin(a*.87)*ch*(.12+rand(i,3)*.25);const dir=a+Math.PI/2;ctx.save();ctx.translate(x,y);ctx.rotate(dir);ctx.fillStyle=rgba(p.accent,.3+.7*rand(i,6));ctx.beginPath();ctx.moveTo(7,0);ctx.lineTo(-5,-3);ctx.lineTo(-2,0);ctx.lineTo(-5,3);ctx.closePath();ctx.fill();ctx.restore();}
+      },
+      gravity(p,q,t) {
+        const cx=cw/2,cy=ch*.43;for(let i=0;i<90;i++){const r=(12+rand(i,2)*Math.min(cw,ch)*.43)*(1-.08*q),a=i*.7+t*(.3+1.8/(r*.05+1)),x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.55;ctx.fillStyle=rgba(p.accent,.2+.7*(1-r/(cw*.5)));ctx.beginPath();ctx.arc(x,y,1+rand(i,7)*2.2,0,Math.PI*2);ctx.fill();}glow(p.accent,24);ctx.fillStyle=p.accent;ctx.beginPath();ctx.arc(cx,cy,8+Math.sin(t*2)*2,0,Math.PI*2);ctx.fill();noGlow();
+      },
+      orbit(p,q,t) {
+        const cx=cw/2,cy=ch*.43,max=Math.min(cw,ch);for(let i=0;i<5;i++){const r=max*(.09+i*.07);ctx.strokeStyle="rgba(255,255,255,.07)";ctx.beginPath();ctx.ellipse(cx,cy,r,r*.44,0,0,Math.PI*2);ctx.stroke();const a=t*(1.3-i*.16)+i*1.9,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.44;ctx.fillStyle=i===2?p.accent:["#70d7ff","#ff8fb8","#ffd275","#b6a4ff","#8effa0"][i];glow(ctx.fillStyle,10);ctx.beginPath();ctx.arc(x,y,3+i*1.1,0,Math.PI*2);ctx.fill();noGlow();}glow(p.accent,24);ctx.fillStyle="#fff2b0";ctx.beginPath();ctx.arc(cx,cy,12,0,Math.PI*2);ctx.fill();noGlow();
+      },
+      cloth(p,q,t) {
+        const cols=24,rows=15,sx=cw*.1,sy=ch*.13,dx=cw*.8/(cols-1),dy=ch*.55/(rows-1);const point=(x,y)=>({x:sx+x*dx+Math.sin(t*1.3+y*.38+x*.1)*y*.35,y:sy+y*dy+Math.cos(t+x*.3)*y*.12});ctx.strokeStyle=rgba(p.accent,.34);ctx.lineWidth=1;for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const a=point(x,y);if(x<cols-1){const b=point(x+1,y);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}if(y<rows-1){const b=point(x,y+1);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}}for(let x=0;x<cols;x+=4){const a=point(x,0);ctx.fillStyle=p.accent;ctx.fillRect(a.x-2,a.y-2,4,4);}
+      },
+      fluid(p,q,t) {
+        for(let i=0;i<120;i++){let x=rand(i,4)*cw,y=rand(i,5)*ch*.75+ch*.08;const a=Math.sin(y*.018+t)+Math.cos(x*.012-t*.7);for(let k=0;k<10;k++){const nx=x+Math.cos(a+k*.08)*3,ny=y+Math.sin(a+k*.08)*3;ctx.strokeStyle=rgba(p.accent,.025+k*.012);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(nx,ny);ctx.stroke();x=nx;y=ny;}}
+      },
+      reaction(p,q,t) {
+        const step=Math.max(7,Math.floor(cw/65));for(let y=0;y<ch*.78;y+=step)for(let x=0;x<cw;x+=step){const v=Math.sin(x*.045+Math.sin(y*.028+t*.32)*3)+Math.cos(y*.053-Math.sin(x*.03-t*.25)*2);if(Math.abs(v)<.34+q*.08){ctx.fillStyle=rgba(p.accent,.18+.58*(.34-Math.abs(v)));ctx.beginPath();ctx.arc(x,y,step*.46,0,Math.PI*2);ctx.fill();}}
+      },
+      terrain(p,q,t) {
+        const horizon=ch*.28;ctx.lineWidth=1;for(let z=0;z<22;z++){const depth=z/21,y=horizon+Math.pow(depth,1.5)*ch*.48;ctx.strokeStyle=rgba(p.accent,.06+depth*.42);ctx.beginPath();for(let x=0;x<=48;x++){const nx=x/48,noise=Math.sin(nx*12+z*.4+t*.2)*.5+Math.sin(nx*31-z*.7)*.18,px=nx*cw,py=y-noise*(1-depth)*ch*.15;if(x===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}ctx.stroke();}ctx.fillStyle=rgba(p.accent,.5);ctx.textAlign="center";ctx.font=`${Math.max(9,cw*.018)}px var(--font-mono)`;ctx.fillText(`seed 0x${Math.floor(q*0xffffff).toString(16).padStart(6,"0")}`,cw/2,ch*.84);
+      },
+      voronoi(p,q,t) {
+        const sites=18;for(let y=0;y<ch*.78;y+=10)for(let x=0;x<cw;x+=10){let best=Infinity,bi=0;for(let i=0;i<sites;i++){const sx=rand(i,21)*cw,sy=rand(i,22)*ch*.78,d=(x-sx)**2+(y-sy)**2;if(d<best){best=d;bi=i;}}ctx.fillStyle=`hsla(${(bi*47+40)%360},70%,65%,${.055+.06*q})`;ctx.fillRect(x,y,9,9);}for(let i=0;i<sites;i++){const x=rand(i,21)*cw,y=rand(i,22)*ch*.78;glow(p.accent,8);ctx.fillStyle=p.accent;ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();}noGlow();
+      },
+      fourier(p,q,t) {
+        const origin={x:cw*.42,y:ch*.42},circles=[62,31,18,11,7],angles=[t,t*-2.1,t*3.2,t*-5.4,t*8.1];let x=origin.x,y=origin.y;ctx.lineWidth=1;for(let i=0;i<circles.length;i++){const r=Math.min(cw,ch)*circles[i]/300,px=x,py=y;ctx.strokeStyle="rgba(255,255,255,.14)";ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();x+=Math.cos(angles[i])*r;y+=Math.sin(angles[i])*r;ctx.strokeStyle=rgba(p.accent,.65);ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(x,y);ctx.stroke();}glow(p.accent,12);ctx.fillStyle=p.accent;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();noGlow();ctx.strokeStyle=rgba(p.accent,.52);ctx.beginPath();for(let i=0;i<120*q;i++){const xx=cw*.62+i*1.4,yy=ch*.42+Math.sin(i*.13+t*2)*24+Math.sin(i*.37-t)*8;if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);}ctx.stroke();
+      },
+      spectrum(p,q,t) {
+        const n=48,w=cw*.82/n,ox=cw*.09,base=ch*.76;for(let i=0;i<n;i++){const amp=(.18+.82*Math.abs(Math.sin(i*.31+t*2.1)+Math.sin(i*.09-t*.7)*.5)/1.5)*(1-Math.abs(i-n*.35)/n*.8),h=amp*ch*.48;const g=ctx.createLinearGradient(0,base,0,base-h);g.addColorStop(0,rgba(p.accent,.25));g.addColorStop(1,p.accent);ctx.fillStyle=g;ctx.fillRect(ox+i*w,base-h,w-2,h);}ctx.strokeStyle=rgba(p.accent,.8);ctx.beginPath();for(let i=0;i<160;i++){const x=i/159*cw,y=ch*.2+Math.sin(i*.22+t*7)*7+Math.sin(i*.071-t*2)*5;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
+      },
+      neural(p,q,t) {
+        const layers=[4,7,6,2],xs=layers.map((_,i)=>cw*(.14+i*.24)),nodes=[];layers.forEach((n,li)=>{nodes[li]=Array.from({length:n},(_,j)=>({x:xs[li],y:ch*(.16+(j+1)*.58/(n+1))}));});for(let li=0;li<layers.length-1;li++)for(const a of nodes[li])for(const b of nodes[li+1]){const pulse=(Math.sin(t*4+a.y*.03+b.y*.02)+1)/2;ctx.strokeStyle=rgba(p.accent,.035+pulse*.12*q);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}nodes.flat().forEach((n,i)=>{const active=(Math.sin(t*3+i)+1)/2;ctx.fillStyle=rgba(p.accent,.24+active*.7);glow(p.accent,active*8);ctx.beginPath();ctx.arc(n.x,n.y,4+active*2,0,Math.PI*2);ctx.fill();});noGlow();ctx.fillStyle="rgba(235,239,248,.55)";ctx.font=`${Math.max(8,cw*.017)}px var(--font-mono)`;ctx.fillText(`loss ${((1-q)*.684).toFixed(3)}`,cw*.42,ch*.84);
+      },
+      genetic(p,q,t) {
+        const target={x:cw*.82,y:ch*.18};glow(p.accent,14);ctx.strokeStyle=p.accent;ctx.beginPath();ctx.arc(target.x,target.y,10,0,Math.PI*2);ctx.stroke();noGlow();for(let i=0;i<34;i++){const fitness=.35+q*.58*rand(i,4),x=cw*.1+(target.x-cw*.1)*fitness+Math.sin(t*1.4+i)*cw*.07*(1-q),y=ch*.72+(target.y-ch*.72)*fitness+Math.cos(t*1.1+i*.7)*ch*.15*(1-q);ctx.fillStyle=rgba(p.accent,.22+.7*fitness);ctx.save();ctx.translate(x,y);ctx.rotate(-.8+Math.sin(t+i)*.15);ctx.fillRect(-5,-2,10,4);ctx.restore();}ctx.fillStyle=p.accent;ctx.font=`${Math.max(10,cw*.022)}px var(--font-mono)`;ctx.fillText(`GENERATION ${Math.floor(q*28)+1}`,cw*.09,ch*.85);
+      },
+      raycaster(p,q,t) {
+        const horizon=ch*.42;ctx.fillStyle="rgba(60,70,94,.13)";ctx.fillRect(0,0,cw,horizon);ctx.fillStyle="rgba(0,0,0,.3)";ctx.fillRect(0,horizon,cw,ch-horizon);const cols=Math.floor(cw/5)+1;for(let i=0;i<cols;i++){const x=i/cols*cw,ray=(i/cols-.5),dist=.35+Math.abs(Math.sin(ray*4+t*.33))*1.8+Math.abs(Math.sin(ray*11-t*.16))*.35,h=Math.min(ch*.72,ch/dist),y=horizon-h/2,shade=Math.max(.12,1-dist*.2);ctx.fillStyle=rgba(p.accent,shade*.72);ctx.fillRect(x,y,cw/cols+1,h);}ctx.strokeStyle="rgba(255,255,255,.07)";for(let i=0;i<9;i++){ctx.beginPath();ctx.moveTo(cw/2,horizon);ctx.lineTo(i/8*cw,ch);ctx.stroke();}
+      },
+      raytrace(p,q,t) {
+        const samples=Math.max(1,Math.floor(q*96));for(let i=0;i<samples*12;i++){ctx.fillStyle=`rgba(255,255,255,${.004+.018*q})`;ctx.fillRect(rand(i,81)*cw,rand(i,82)*ch*.76,1,1);}const floor=ch*.7;const g=ctx.createLinearGradient(0,ch*.12,0,floor);g.addColorStop(0,"rgba(80,110,160,.28)");g.addColorStop(1,"rgba(255,210,117,.04)");ctx.fillStyle=g;ctx.fillRect(0,0,cw,floor);const spheres=[{x:.3,y:.56,r:.16,c:p.accent},{x:.57,y:.48,r:.22,c:"#ff8fb8"},{x:.78,y:.6,r:.1,c:"#70d7ff"}];spheres.forEach((s,i)=>{const x=cw*s.x,y=ch*s.y,r=Math.min(cw,ch)*s.r,sg=ctx.createRadialGradient(x-r*.35,y-r*.42,r*.04,x,y,r);sg.addColorStop(0,"rgba(255,255,255,.9)");sg.addColorStop(.18,s.c);sg.addColorStop(1,"rgba(2,3,6,.92)");ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});ctx.fillStyle="rgba(255,255,255,.42)";ctx.font=`${Math.max(9,cw*.018)}px var(--font-mono)`;ctx.fillText(`${samples} SAMPLES / PIXEL`,cw*.06,ch*.84);
+      },
+      mandelbrot(p,q,t) {
+        const key=Math.min(8,Math.floor(q*9));if(!cachedMandel||cachedMandel.key!==key){const mq=key/8,w=150,h=95,img=ctx.createImageData(w,h),zoom=1.0+mq*2.2,cx0=-.62-mq*.11,cy0=.02;for(let py=0;py<h;py++)for(let px=0;px<w;px++){let x0=(px/w-.5)*3.2/zoom+cx0,y0=(py/h-.5)*2.1/zoom+cy0,x=0,y=0,it=0;while(x*x+y*y<16&&it<80){const xt=x*x-y*y+x0;y=2*x*y+y0;x=xt;it++;}const off=(py*w+px)*4,v=it===80?0:it/80,base=parseInt(p.accent.slice(1),16);img.data[off]=(base>>16)*v*1.8;img.data[off+1]=((base>>8)&255)*v*1.5;img.data[off+2]=(base&255)*v*1.8+30*v;img.data[off+3]=255;}cachedMandel={img,w,h,key};}const temp=document.createElement("canvas");temp.width=cachedMandel.w;temp.height=cachedMandel.h;temp.getContext("2d").putImageData(cachedMandel.img,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(temp,0,0,cw,ch*.79);ctx.fillStyle="rgba(255,255,255,.58)";ctx.font=`${Math.max(9,cw*.018)}px var(--font-mono)`;ctx.fillText(`ZOOM ×${(1+q*2.2).toFixed(2)} · 240 ITERATIONS`,cw*.06,ch*.86);
+      },
+      vm(p,q,t) {
+        const cols=16,rows=10,cell=Math.min(cw*.032,ch*.043),ox=cw*.51,oy=ch*.16;for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const on=Math.sin(x*.8+y*.54+t*2)>1||(x>2&&x<13&&y===Math.floor(3+Math.sin(t)*2));ctx.fillStyle=on?p.accent:"rgba(255,255,255,.035)";ctx.fillRect(ox+x*cell,oy+y*cell,cell-2,cell-2);}ctx.font=`${Math.max(9,cw*.019)}px var(--font-mono)`;ctx.fillStyle="rgba(225,231,243,.46)";const regs=["PC","A ","B ","SP"];regs.forEach((r,i)=>{ctx.fillText(`${r}  0x${Math.floor((q*173+i*41)%256).toString(16).padStart(2,"0").toUpperCase()}`,cw*.1,ch*(.25+i*.1));});ctx.strokeStyle=rgba(p.accent,.32);ctx.strokeRect(cw*.07,ch*.17,cw*.32,ch*.48);ctx.fillStyle=p.accent;ctx.fillText(`OPCODE  ${["LOAD","ADD","STORE","JNZ","DRAW"][Math.floor(t*3)%5]}`,cw*.1,ch*.73);
+      }
+    };
+
+    function drawIdle(program, phase, q, time) {
+      if (phase === 0) {
+        clear(program);
+        ctx.fillStyle="rgba(255,255,255,.16)";ctx.textAlign="center";ctx.font=`${Math.max(10,cw*.022)}px var(--font-mono)`;
+        const dots=".".repeat(1+Math.floor(time/500)%3);ctx.fillText(`waiting for source${dots}`,cw/2,ch*.42);
+      } else if (phase === 1) {
+        clear(program);ctx.textAlign="center";ctx.fillStyle=program.accent;glow(program.accent,13);ctx.font=`700 ${Math.max(16,cw*.046)}px var(--font-mono)`;ctx.fillText("BUILD READY",cw/2,ch*.42);noGlow();ctx.fillStyle="rgba(235,239,248,.45)";ctx.font=`${Math.max(9,cw*.018)}px var(--font-mono)`;ctx.fillText("0 errors · 0 warnings",cw/2,ch*.52);
+      } else if (phase === 3) {
+        renderVisual(program,1,time);
+      }
+    }
+
+    function tick(now) {
+      requestAnimationFrame(tick);
+      if (paused) now = pausedAt;
+      const p = programs[index], duration=durationFor(p,phaseIndex), elapsed=Math.max(0,now-phaseStart), progress=Math.min(1,elapsed/duration),remaining=Math.max(0,duration-elapsed);
+      phaseUi(p,progress,remaining);
+      if(phaseIndex===2)renderVisual(p,progress,elapsed);else if(phaseIndex!==4)drawIdle(p,phaseIndex,progress,elapsed);
+      bgState.phase = phaseIndex; bgState.tint = p.rgb.split(",").map(Number).map(v=>v/255);
+      if(!paused && elapsed>=duration)advance();
+      frameCounter++;if(now-fpsAt>1000){fps=Math.round(frameCounter*1000/(now-fpsAt));frameCounter=0;fpsAt=now;el.fps.textContent=`WEBGL · ${Math.min(60,fps)} FPS`;}
+    }
+
+    function togglePause() {
+      paused=!paused;
+      if(paused){pausedAt=performance.now();el.pauseIcon.innerHTML='<path d="M8 5v14l11-7L8 5z"/>';showToast("일시정지");}
+      else{phaseStart+=performance.now()-pausedAt;el.pauseIcon.innerHTML='<path d="M7 5h4v14H7V5zm6 0h4v14h-4V5z"/>';showToast("계속 재생");}
+      el.pause.setAttribute("aria-label",paused?"계속 재생":"일시정지");
+    }
+
+    function showToast(message){clearTimeout(toastTimer);el.toast.textContent=message;el.toast.classList.add("show");toastTimer=setTimeout(()=>el.toast.classList.remove("show"),1500);}
+    function openDrawer(){el.drawer.classList.add("show");}
+    function closeDrawer(){el.drawer.classList.remove("show");}
+
+    function initLists(){
+      programs.forEach((p,i)=>{
+        const dot=document.createElement("button");dot.type="button";dot.title=`${i+1}. ${p.title}`;dot.setAttribute("aria-label",`${i+1}번 ${p.title}로 이동`);dot.addEventListener("click",()=>jumpTo(i));el.dots.appendChild(dot);
+        const item=document.createElement("button");item.type="button";item.className="program-item";item.innerHTML=`<span class="num">${String(i+1).padStart(2,"0")}</span><span><strong>${p.title}</strong><small>${p.file} · ${p.lang}</small></span><span class="level">LV ${p.level}</span>`;item.addEventListener("click",()=>jumpTo(i));el.list.appendChild(item);
+      });
+    }
+
+    function ensureAudio(){if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();}
+    function ping(freq,duration,volume,type="sine"){if(!audioOn)return;ensureAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(volume,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration);}
+    let lastKeySound=0;
+    function soundKey(){const now=performance.now();if(now-lastKeySound<58)return;lastKeySound=now;ping(850+Math.random()*220,.025,.018,"square");}
+    function soundEvent(kind){if(kind==="run"){ping(440,.18,.045);setTimeout(()=>ping(660,.22,.035),100);}else{ping(220,.3,.035,"sine");}}
+
+    el.pause.addEventListener("click",togglePause);
+    el.skip.addEventListener("click",()=>{advance();showToast("다음 장면");});
+    el.listBtn.addEventListener("click",openDrawer);el.closeDrawer.addEventListener("click",closeDrawer);el.drawer.addEventListener("click",e=>{if(e.target===el.drawer)closeDrawer();});
+    el.sound.addEventListener("click",()=>{audioOn=!audioOn;if(audioOn){ensureAudio();ping(660,.12,.04);showToast("사운드 켜짐");}else showToast("사운드 꺼짐");el.sound.style.color=audioOn?"var(--accent)":"";el.sound.title=audioOn?"소리 끄기":"소리 켜기";});
+    window.addEventListener("keydown",e=>{if(e.code==="Space"){e.preventDefault();togglePause();}else if(e.key==="ArrowRight")advance();else if(e.key.toLowerCase()==="l")openDrawer();else if(e.key==="Escape")closeDrawer();});
+
+    initLists();setupProgram();resizeCanvas();requestAnimationFrame(tick);
+
+    if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+
+    const bgState={phase:0,tint:[.4,.96,.78]};
+    initWebGLBackground();
+
+    function initWebGLBackground(){
+      const canvas=document.getElementById("gl-bg"),gl=canvas.getContext("webgl",{antialias:false,alpha:false});if(!gl)return;
+      const vertex=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+      const fragment=`precision highp float;uniform vec2 r;uniform float t;uniform vec3 tint;uniform float phase;
+      float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
+      void main(){vec2 uv=(gl_FragCoord.xy-.5*r)/min(r.x,r.y);float n=noise(uv*3.+t*.045)+.5*noise(uv*7.-t*.03);float grid=(smoothstep(.94,1.,sin((uv.x+uv.y*.18)*44.)*.5+.5)+smoothstep(.94,1.,sin((uv.y-uv.x*.12)*44.)*.5+.5))*.035;float orb=.012/(abs(length(uv-vec2(sin(t*.11)*.35,cos(t*.09)*.22))-.27)+.015);float vign=smoothstep(1.15,.12,length(uv));vec3 base=vec3(.012,.018,.035)+tint*(n*.018+grid+orb*.09)*(0.7+phase*.08);gl_FragColor=vec4(base*vign,1.);}`;
+      function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}const pr=gl.createProgram();gl.attachShader(pr,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(pr);gl.useProgram(pr);const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);const loc=gl.getAttribLocation(pr,"p");gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);const ur=gl.getUniformLocation(pr,"r"),ut=gl.getUniformLocation(pr,"t"),uc=gl.getUniformLocation(pr,"tint"),up=gl.getUniformLocation(pr,"phase");
+      function size(){const dd=Math.min(1.5,devicePixelRatio||1);canvas.width=innerWidth*dd;canvas.height=innerHeight*dd;gl.viewport(0,0,canvas.width,canvas.height);}addEventListener("resize",size);size();
+      function draw(now){gl.uniform2f(ur,canvas.width,canvas.height);gl.uniform1f(ut,now/1000);gl.uniform3fv(uc,bgState.tint);gl.uniform1f(up,bgState.phase);gl.drawArrays(gl.TRIANGLES,0,6);requestAnimationFrame(draw);}requestAnimationFrame(draw);
+    }
+  })();
+  </script>
+</body>
+</html>

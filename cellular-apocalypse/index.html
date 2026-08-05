@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#05070d">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CELLULAR">
+  <meta name="description" content="불·전기·식물·물이 벌이는 자동 생태 전쟁 시뮬레이션">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+  <title>CELLULAR APOCALYPSE</title>
+</head>
+<body>
+  <noscript>이 시뮬레이션을 실행하려면 JavaScript가 필요합니다.</noscript>
+
+  <div id="loading" class="loading-screen" aria-live="polite">
+    <div class="loading-mark" aria-hidden="true">
+      <i class="ember"></i><i class="volt"></i><i class="bloom"></i><i class="tide"></i>
+    </div>
+    <h1>CELLULAR<br><span>APOCALYPSE</span></h1>
+    <p>생태계를 배양하는 중</p>
+    <div class="loading-track"><b id="loadingBar"></b></div>
+    <small id="loadingText">시뮬레이션 엔진 준비 · 0%</small>
+  </div>
+
+  <main id="app" class="app" hidden>
+    <header class="top-hud">
+      <div class="brand-row">
+        <div class="brand">
+          <span class="brand-kicker">LIVE ECOSYSTEM</span>
+          <strong>CELLULAR <em>APOCALYPSE</em></strong>
+        </div>
+        <div class="match-clock" aria-label="경기 시간">
+          <span id="phaseLabel">배양</span>
+          <b id="timeLabel">00:00</b>
+          <small id="speedLabel">1×</small>
+        </div>
+      </div>
+
+      <section id="teamHud" class="team-hud" aria-label="세력 현황">
+        <article class="team-card ember" data-team="1">
+          <div><i></i><b>EMBER</b><span id="pct1">0%</span></div>
+          <div class="meter"><span id="bar1"></span></div>
+          <small><span id="energy1">0</span>⚡ · <span id="cores1">1</span>◆</small>
+        </article>
+        <article class="team-card volt" data-team="2">
+          <div><i></i><b>VOLT</b><span id="pct2">0%</span></div>
+          <div class="meter"><span id="bar2"></span></div>
+          <small><span id="energy2">0</span>⚡ · <span id="cores2">1</span>◆</small>
+        </article>
+        <article class="team-card bloom" data-team="3">
+          <div><i></i><b>BLOOM</b><span id="pct3">0%</span></div>
+          <div class="meter"><span id="bar3"></span></div>
+          <small><span id="energy3">0</span>⚡ · <span id="cores3">1</span>◆</small>
+        </article>
+        <article class="team-card tide" data-team="4">
+          <div><i></i><b>TIDE</b><span id="pct4">0%</span></div>
+          <div class="meter"><span id="bar4"></span></div>
+          <small><span id="energy4">0</span>⚡ · <span id="cores4">1</span>◆</small>
+        </article>
+      </section>
+    </header>
+
+    <section class="battle-zone" aria-label="자동 시뮬레이션 전장">
+      <div id="battleFrame" class="battle-frame">
+        <canvas id="glCanvas" aria-label="4색 물질 전쟁 지도"></canvas>
+        <canvas id="fxCanvas" aria-hidden="true"></canvas>
+        <div class="vignette" aria-hidden="true"></div>
+        <div id="scanline" class="scanline" aria-hidden="true"></div>
+
+        <button id="seedButton" class="seed-chip" type="button" aria-label="현재 시드 복사">
+          <span>SEED</span><b id="seedLabel">--------</b>
+        </button>
+
+        <aside id="performance" class="performance" hidden>
+          <span>FPS <b id="fpsLabel">--</b></span>
+          <span>TPS <b id="tpsLabel">--</b></span>
+          <span>CELLS <b id="cellsLabel">--</b></span>
+          <span>FX <b id="particlesLabel">--</b></span>
+        </aside>
+
+        <div id="focusBadge" class="focus-badge" hidden>
+          <span>추적 중</span><b id="focusName">충돌 지역</b>
+        </div>
+
+        <div id="pauseBadge" class="pause-badge" hidden>시뮬레이션 일시정지</div>
+      </div>
+
+      <div class="broadcast" aria-live="polite">
+        <span class="live-dot">LIVE</span>
+        <p id="broadcastText">네 물질 코어가 깨어납니다.</p>
+      </div>
+    </section>
+
+    <nav class="bottom-controls" aria-label="시뮬레이션 제어">
+      <button id="pauseButton" class="control-button icon-button" type="button" aria-label="일시정지">
+        <span class="icon pause-icon" aria-hidden="true"></span><small>정지</small>
+      </button>
+      <div class="speed-control" role="group" aria-label="배속">
+        <button type="button" data-speed="1" class="active">1×</button>
+        <button type="button" data-speed="2">2×</button>
+        <button type="button" data-speed="4">4×</button>
+      </div>
+      <button id="mapButton" class="control-button icon-button" type="button" aria-label="전체 맵">
+        <span class="icon map-icon" aria-hidden="true"></span><small>전체</small>
+      </button>
+      <button id="cameraButton" class="control-button icon-button active" type="button" aria-label="자동 카메라">
+        <span class="icon camera-icon" aria-hidden="true"></span><small>자동</small>
+      </button>
+      <button id="disasterButton" class="control-button icon-button danger-button" type="button" aria-label="재난 투입">
+        <span class="icon disaster-icon" aria-hidden="true"></span><small>재난 <b id="disasterCount">3</b></small>
+      </button>
+      <button id="settingsButton" class="control-button icon-button" type="button" aria-label="설정">
+        <span class="icon settings-icon" aria-hidden="true"></span><small>설정</small>
+      </button>
+    </nav>
+  </main>
+
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <section id="disasterSheet" class="sheet" hidden aria-labelledby="disasterTitle">
+    <header>
+      <div><span>WORLD INTERVENTION</span><h2 id="disasterTitle">재난 투입</h2></div>
+      <button class="close-sheet" type="button" aria-label="닫기">×</button>
+    </header>
+    <p>남은 개입 <b id="sheetDisasterCount">3회</b> · 현재 배치에 따라 모든 세력에 득과 실이 생깁니다.</p>
+    <div id="disasterGrid" class="disaster-grid">
+      <button type="button" data-disaster="rain"><i>◌</i><b>집중호우</b><small>수분↑ · 전도↑</small></button>
+      <button type="button" data-disaster="drought"><i>☀</i><b>가뭄</b><small>수분↓ · 연소↑</small></button>
+      <button type="button" data-disaster="heatwave"><i>⌁</i><b>폭염</b><small>온도↑ · 증발↑</small></button>
+      <button type="button" data-disaster="freeze"><i>❄</i><b>한파</b><small>결빙 · 성장↓</small></button>
+      <button type="button" data-disaster="storm"><i>ϟ</i><b>낙뢰 폭풍</b><small>전하↑ · 연쇄 번개</small></button>
+      <button type="button" data-disaster="nutrient"><i>✣</i><b>영양 폭발</b><small>양분↑ · 생장↑</small></button>
+      <button type="button" data-disaster="meteor"><i>◉</i><b>운석 충돌</b><small>충격 · 지형 변화</small></button>
+      <button type="button" data-disaster="vein"><i>◇</i><b>광맥 노출</b><small>전도성↑ · 고지대</small></button>
+      <button type="button" data-disaster="sink"><i>⌄</i><b>지반 침하</b><small>저지대 · 범람</small></button>
+      <button type="button" data-disaster="wind"><i>≈</i><b>강풍</b><small>포자·불씨 이동</small></button>
+    </div>
+  </section>
+
+  <section id="settingsSheet" class="sheet settings-sheet" hidden aria-labelledby="settingsTitle">
+    <header>
+      <div><span>SIMULATION CONTROL</span><h2 id="settingsTitle">환경 설정</h2></div>
+      <button class="close-sheet" type="button" aria-label="닫기">×</button>
+    </header>
+    <div class="settings-scroll">
+      <label class="setting-row">
+        <span><b>맵 크기</b><small>다음 경기부터 적용</small></span>
+        <select id="mapSizeSetting">
+          <option value="80">80 × 80 · 빠름</option>
+          <option value="100" selected>100 × 100 · 기본</option>
+          <option value="120">120 × 120 · 고밀도</option>
+        </select>
+      </label>
+      <label class="setting-row">
+        <span><b>그래픽 품질</b><small>발광과 파티클 밀도</small></span>
+        <select id="qualitySetting">
+          <option value="auto" selected>자동</option>
+          <option value="low">낮음</option>
+          <option value="medium">보통</option>
+          <option value="high">높음</option>
+        </select>
+      </label>
+      <label class="setting-row">
+        <span><b>경기 제한</b><small>교착 시 종말 단계 진입</small></span>
+        <select id="durationSetting">
+          <option value="240">4분</option>
+          <option value="300" selected>5분</option>
+          <option value="360">6분</option>
+          <option value="420">7분</option>
+        </select>
+      </label>
+      <label class="setting-row">
+        <span><b>재난 빈도</b><small>자동 세계 사건</small></span>
+        <select id="disasterFrequencySetting">
+          <option value="low">낮음</option>
+          <option value="normal" selected>보통</option>
+          <option value="high">높음</option>
+        </select>
+      </label>
+      <label class="setting-row switch-row">
+        <span><b>자동 카메라</b><small>중요 사건을 추적</small></span>
+        <input id="autoCameraSetting" type="checkbox" checked><i></i>
+      </label>
+      <label class="setting-row switch-row">
+        <span><b>합성 음향</b><small>첫 터치 후 활성화</small></span>
+        <input id="soundSetting" type="checkbox" checked><i></i>
+      </label>
+      <label class="setting-row switch-row">
+        <span><b>진동 피드백</b><small>지원 기기에서만 작동</small></span>
+        <input id="vibrationSetting" type="checkbox" checked><i></i>
+      </label>
+      <label class="setting-row switch-row">
+        <span><b>성능 표시</b><small>FPS · TPS · 활성 셀</small></span>
+        <input id="performanceSetting" type="checkbox"><i></i>
+      </label>
+      <label class="setting-row">
+        <span><b>관찰 레이어</b><small>환경값을 색으로 확인</small></span>
+        <select id="debugSetting">
+          <option value="faction">세력 소속</option>
+          <option value="temperature">온도</option>
+          <option value="moisture">수분</option>
+          <option value="nutrient">영양분</option>
+          <option value="charge">전하량</option>
+          <option value="conductivity">전도성</option>
+          <option value="height">지형 높이</option>
+          <option value="pollution">오염도</option>
+          <option value="change">최근 변화량</option>
+          <option value="strategy">자동 전략 목표</option>
+        </select>
+      </label>
+      <div class="setting-actions">
+        <button id="newMatchButton" type="button">새 시드로 경기 시작</button>
+        <button id="sameSeedButton" type="button">같은 시드로 재경기</button>
+      </div>
+      <div class="career-stats">
+        <span>누적 우승</span>
+        <div><i class="ember"></i> <b id="wins1">0</b></div>
+        <div><i class="volt"></i> <b id="wins2">0</b></div>
+        <div><i class="bloom"></i> <b id="wins3">0</b></div>
+        <div><i class="tide"></i> <b id="wins4">0</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="resultOverlay" class="result-overlay" hidden aria-labelledby="resultTitle">
+    <canvas id="timelapseCanvas" aria-hidden="true"></canvas>
+    <div class="result-scrim"></div>
+    <article class="result-card">
+      <span class="result-kicker">ECOSYSTEM COLLAPSED</span>
+      <div id="winnerSigil" class="winner-sigil"><i></i></div>
+      <h2 id="resultTitle">EMBER 승리</h2>
+      <p id="resultReason">제한 시간 종합 점수 우세</p>
+      <div id="resultStats" class="result-stats"></div>
+      <canvas id="historyChart" width="600" height="180" aria-label="세력별 점유율 변화 그래프"></canvas>
+      <div class="result-meta"><span id="resultSeed">SEED —</span><span id="resultDuration">00:00</span></div>
+      <div class="countdown"><span id="countdownBar"></span><b><em id="countdownNumber">11</em>초 후 새 세계</b></div>
+      <div class="result-actions">
+        <button id="instantReplayButton" type="button">즉시 새 경기</button>
+        <button id="seedReplayButton" type="button">같은 시드 재경기</button>
+      </div>
+    </article>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
