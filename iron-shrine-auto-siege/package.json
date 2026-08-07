@@ -1,0 +1,13 @@
+{
+  "name": "iron-shrine-auto-siege",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/build.js"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  }
+}

@@ -6,14 +6,21 @@
 <meta name="theme-color" content="#05060c">
 <title>MINI MARATHON: SEVEN</title>
 <style>
-:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);}
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100dvh;overflow:hidden;background:#05060c;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-#c{position:fixed;inset:0;display:block;}
+html{width:100%;height:100%;background:#05060c;}
+body{position:fixed;top:0;left:0;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#05060c;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+/* canvas는 replaced element라 width/height를 명시하지 않으면
+   intrinsic 크기(=canvas.width, 즉 CSS px * DPR)로 레이아웃된다. 반드시 지정할 것. */
+#c{position:fixed;top:0;left:0;width:100%;height:100%;display:block;touch-action:none;}
+/* env()는 getPropertyValue로 계산값을 못 읽으므로 padding 계산값으로 실측한다 */
+#sa{position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+    padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<div id="sa"></div>
 <script>
 'use strict';
 /* ============ MINI MARATHON: SEVEN ============ */
@@ -37,17 +44,35 @@ function withA(h,a){const c=hexRGB(h);return 'rgba('+c[0]+','+c[1]+','+c[2]+','+
 
 /* ---------- canvas ---------- */
 const cvs=document.getElementById('c');
+const saProbe=document.getElementById('sa');
 const ctx=cvs.getContext('2d');
-let W=0,H=0,DPR=1,SAT=0,SAB=0,scanPat=null;
+let W=0,H=0,DPR=1,SAT=0,SAB=0,scanPat=null,rectL=0,rectT=0;
+function viewSize(){
+  let w=window.innerWidth||0,h=window.innerHeight||0;
+  try{
+    const de=document.documentElement;
+    if(de&&de.clientWidth){w=Math.min(w||1e9,de.clientWidth)||w;}
+    const vv=window.visualViewport;
+    if(vv&&vv.width&&vv.height&&vv.scale&&Math.abs(vv.scale-1)<0.01){
+      w=Math.round(vv.width);h=Math.round(vv.height);
+    }
+  }catch(e){}
+  return {w:Math.max(1,Math.round(w)),h:Math.max(1,Math.round(h))};
+}
 function resize(){
   DPR=Math.min(2,window.devicePixelRatio||1);
-  W=window.innerWidth;H=window.innerHeight;
+  const v=viewSize();
+  W=v.w;H=v.h;
   cvs.width=Math.round(W*DPR);cvs.height=Math.round(H*DPR);
+  cvs.style.width=W+'px';cvs.style.height=H+'px';
   try{
-    const cs=getComputedStyle(document.documentElement);
-    SAT=parseFloat(cs.getPropertyValue('--sat'))||0;
-    SAB=parseFloat(cs.getPropertyValue('--sab'))||0;
+    const cs=getComputedStyle(saProbe);
+    SAT=parseFloat(cs.paddingTop)||0;
+    SAB=parseFloat(cs.paddingBottom)||0;
   }catch(e){SAT=0;SAB=0;}
+  SAT=clamp(SAT,0,H*0.2);SAB=clamp(SAB,0,H*0.2);
+  try{const r=cvs.getBoundingClientRect();rectL=r.left||0;rectT=r.top||0;}
+  catch(e){rectL=0;rectT=0;}
   try{
     const pc=document.createElement('canvas');pc.width=4;pc.height=4;
     const px=pc.getContext('2d');
@@ -56,7 +81,21 @@ function resize(){
   }catch(e){scanPat=null;}
   initStars();
 }
-window.addEventListener('resize',resize);
+/* 모바일은 회전/주소창 변화 직후 값이 스테일해서 지연 재측정이 필요하다 */
+let reT=null;
+function reflow(){
+  resize();
+  if(reT)clearTimeout(reT);
+  reT=setTimeout(function(){reT=null;resize();},220);
+}
+window.addEventListener('resize',reflow);
+window.addEventListener('orientationchange',reflow);
+try{
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',reflow);
+    window.visualViewport.addEventListener('scroll',reflow);
+  }
+}catch(e){}
 const HUD_H=()=>SAT+84;
 const PLAY=()=>({x:0,y:HUD_H(),w:W,h:H-HUD_H()-SAB-12});
 
@@ -419,18 +458,21 @@ function onDown(p){
 }
 function onMove(p){if(STATE==='play'&&!paused&&cur&&cur.move)cur.move(p);}
 function onUp(p){if(STATE==='play'&&cur&&cur.up)cur.up(p);}
+const px=e=>e.clientX-rectL,py=e=>e.clientY-rectT;
 cvs.addEventListener('pointerdown',function(e){
   e.preventDefault();audioInit();
-  const p={x:e.clientX,y:e.clientY,id:e.pointerId!==undefined?e.pointerId:0};
-  pointers.set(p.id,p);onDown(p);
-});
+  const id=e.pointerId!==undefined?e.pointerId:0;
+  const p={x:px(e),y:py(e),id:id};
+  try{if(cvs.setPointerCapture)cvs.setPointerCapture(id);}catch(err){}
+  pointers.set(id,p);onDown(p);
+},{passive:false});
 cvs.addEventListener('pointermove',function(e){
   e.preventDefault();
   const id=e.pointerId!==undefined?e.pointerId:0;
   if(!pointers.has(id))return;
-  const p={x:e.clientX,y:e.clientY,id:id};
+  const p={x:px(e),y:py(e),id:id};
   pointers.set(id,p);onMove(p);
-});
+},{passive:false});
 function endP(e){
   const id=e.pointerId!==undefined?e.pointerId:0;
   const p=pointers.get(id);pointers.delete(id);
@@ -438,7 +480,12 @@ function endP(e){
 }
 cvs.addEventListener('pointerup',endP);
 cvs.addEventListener('pointercancel',endP);
+cvs.addEventListener('lostpointercapture',endP);
 window.addEventListener('contextmenu',function(e){e.preventDefault();});
+/* iOS: 더블탭 확대 / 스크롤 바운스 차단 */
+['touchstart','touchmove','touchend','gesturestart','gesturechange','dblclick'].forEach(function(t){
+  window.addEventListener(t,function(e){if(e.cancelable)e.preventDefault();},{passive:false});
+});
 document.addEventListener('visibilitychange',function(){
   if(document.hidden&&(STATE==='play'||STATE==='intro'))paused=true;
 });

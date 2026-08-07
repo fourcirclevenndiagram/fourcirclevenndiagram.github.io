@@ -1,0 +1,16 @@
+{
+  "name": "IRON SHRINE: AUTO SIEGE",
+  "short_name": "IRON SHRINE",
+  "description": "A hands-off pixel-art tactical siege simulation.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0e18",
+  "theme_color": "#10121d",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

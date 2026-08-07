@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+    <meta name="theme-color" content="#10121d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="IRON SHRINE" />
+    <meta name="description" content="An automatic pixel-art tactical siege simulation." />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>IRON SHRINE: AUTO SIEGE</title>
+  </head>
+  <body>
+    <main class="app" aria-label="Iron Shrine automatic strategy simulation">
+      <section class="game-shell" id="gameShell">
+        <canvas id="game" width="216" height="468" aria-label="Automatic pixel strategy battlefield"></canvas>
+        <output id="gameStatus" class="sr-only" aria-live="polite">Automatic deployment is starting.</output>
+        <div class="boot" id="boot" aria-live="polite">
+          <div class="boot-window">
+            <p class="boot-kicker">OBSERVATION PROGRAM // 08</p>
+            <h1>IRON<br />SHRINE</h1>
+            <div class="boot-emblem" aria-hidden="true"><i></i><b></b><i></i></div>
+            <p class="boot-mode">AUTO SIEGE</p>
+            <p class="boot-hint">TAP ONCE FOR SOUND</p>
+          </div>
+        </div>
+        <div class="rotate-note" aria-hidden="true">PORTRAIT MODE</div>
+      </section>
+    </main>
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
