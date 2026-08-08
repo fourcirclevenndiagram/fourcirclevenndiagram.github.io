@@ -36,7 +36,7 @@ html, body {
 }
 
 body {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", ui-monospace, sans-serif;
 }
 
 .app {
@@ -117,8 +117,8 @@ canvas {
 .boot h1 {
   margin: 8% 0 5%;
   font-size: clamp(35px, 13vw, 72px);
-  line-height: .82;
-  letter-spacing: -.08em;
+  line-height: .9;
+  letter-spacing: .02em;
   text-shadow: 5px 5px 0 #2d344b;
 }
 .boot-mode { color: var(--amber); font-size: clamp(13px, 4vw, 24px); }

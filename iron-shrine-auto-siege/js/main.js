@@ -28,6 +28,15 @@ const simulation = new Simulation(seed, {
 simulation.wins = stats.wins;
 simulation.losses = stats.losses;
 
+const requestedScene = new URLSearchParams(location.search).get("scene");
+if (["field", "status", "tactical", "duel"].includes(requestedScene)) {
+  simulation.phase = "play";
+  simulation.phaseTimer = 0;
+  if (requestedScene === "status") simulation.startUnitBrief();
+  else if (requestedScene === "tactical") simulation.startProtocolClash();
+  else if (requestedScene === "duel") simulation.spawnBoss();
+}
+
 let renderer;
 try {
   renderer = new Renderer(canvas);
@@ -74,7 +83,9 @@ function frame(now) {
   renderer.render(simulation, meta);
   if (now - lastStatusUpdate > 500) {
     lastStatusUpdate = now;
-    gameStatus.value = `Sector ${simulation.level}. ${simulation.phase}. ${Math.ceil(simulation.timeLeft)} seconds. Core ${Math.ceil(simulation.coreHp)}. Charge ${Math.floor(simulation.coreCharge)} percent. ${simulation.units.length} units and ${simulation.enemies.length} enemies. Doctrine ${simulation.doctrine}.`;
+    const phaseName = simulation.duel ? "일기토" : simulation.protocol ? "전술 판정" : simulation.unitBrief ? "부대 상태" : simulation.phase === "intro" ? "배치" : simulation.phase === "result" ? "결과" : "전투";
+    const doctrineName = simulation.doctrine === "seek" ? "개척" : simulation.doctrine === "bastion" ? "수호" : "격멸";
+    gameStatus.value = `제 ${simulation.level}구역. ${phaseName}. 남은 시간 ${Math.ceil(simulation.timeLeft)}초. 성소 내구도 ${Math.ceil(simulation.coreHp)}. 충전 ${Math.floor(simulation.coreCharge)}퍼센트. 아군 ${simulation.units.length}명, 적 ${simulation.enemies.length}기. ${doctrineName} 전술.`;
     gameStatus.dataset.phase = simulation.phase;
     gameStatus.dataset.time = simulation.time.toFixed(2);
     gameStatus.dataset.charge = simulation.coreCharge.toFixed(2);

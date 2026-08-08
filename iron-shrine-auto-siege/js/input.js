@@ -21,6 +21,8 @@ export class InputController {
     const x = (event.clientX - rect.left) / rect.width * W;
     const y = (event.clientY - rect.top) / rect.height * H;
 
+    if (this.sim.duel || this.sim.protocol || this.sim.unitBrief) return;
+
     if (y < 42) {
       if (x >= 181) {
         this.audio.toggleMute();

@@ -1,5 +1,5 @@
 import {
-  ARENA, DOCTRINES, UNIT_SPECS, ENEMY_SPECS,
+  ARENA, DOCTRINES, UNIT_SPECS, ENEMY_SPECS, ROLE_NAMES,
   COLORS, clamp, lerp, distance, dist2
 } from "./constants.js";
 import { PRNG } from "./prng.js";
@@ -45,9 +45,13 @@ export class Simulation {
     this.recruitTimer = 2.4;
     this.nextProtocol = 15.5;
     this.protocol = null;
+    this.nextUnitBrief = 6.5;
+    this.unitBrief = null;
+    this.duel = null;
+    this.presentationVisits = { status: 0, tactical: 0, duel: 0 };
     this.bossSpawned = false;
     this.doctrine = "seek";
-    this.doctrineReason = "RELAY SEARCH";
+    this.doctrineReason = "중계기 탐색";
     this.doctrineOverride = 0;
     this.doctrineThink = 3;
     this.units = [];
@@ -79,7 +83,7 @@ export class Simulation {
     this.camera.zoom = this.camera.targetZoom = 1;
     this.screenFlash = .25;
     this.screenShake = 1.5;
-    this.message("AUTONOMOUS LINK", COLORS.cyan, 108, 182, 1.8);
+    this.message("자동 지휘 연결", COLORS.cyan, 108, 182, 1.8);
   }
 
   makeRelay(id, x, y) {
@@ -125,7 +129,7 @@ export class Simulation {
     if (!DOCTRINES[id]) return;
     const changed = this.doctrine !== id;
     this.doctrine = id;
-    this.doctrineReason = manual ? "OBSERVER OVERRIDE" : this.doctrineReason;
+    this.doctrineReason = manual ? "관전자 임시 명령" : this.doctrineReason;
     if (manual) this.doctrineOverride = 11;
     if (changed || manual) {
       this.screenFlash = Math.max(this.screenFlash, .14);
@@ -167,6 +171,11 @@ export class Simulation {
       return;
     }
 
+    if (this.duel) {
+      this.updateDuel(dt);
+      return;
+    }
+
     this.time += dt;
     this.timeLeft = Math.max(0, this.timeLeft - dt);
     this.scrap = Math.min(99, this.scrap + this.ownedRelays * dt * .11);
@@ -179,8 +188,16 @@ export class Simulation {
 
     this.nextWave -= dt;
     if (this.nextWave <= 0) this.spawnWave();
+    if (this.unitBrief) {
+      this.unitBrief.timer -= dt;
+      if (this.unitBrief.timer <= 0) this.unitBrief = null;
+    } else {
+      this.nextUnitBrief -= dt;
+      if (this.nextUnitBrief <= 0 && !this.protocol) this.startUnitBrief();
+    }
+
     this.nextProtocol -= dt;
-    if (this.nextProtocol <= 0 && !this.protocol) this.startProtocolClash();
+    if (this.nextProtocol <= 0 && !this.protocol && !this.unitBrief) this.startProtocolClash();
     if (this.protocol) this.updateProtocol(dt);
 
     this.updateRelays(dt);
@@ -192,9 +209,9 @@ export class Simulation {
 
     if (!this.bossSpawned && (this.coreCharge >= 55 || this.timeLeft <= 38)) this.spawnBoss();
 
-    if (this.coreCharge >= 100) this.finish(true, "SHRINE ASCENDED");
-    else if (this.coreHp <= 0) this.finish(false, "REACTOR BROKEN");
-    else if (this.timeLeft <= 0) this.finish(this.coreCharge >= 72, this.coreCharge >= 72 ? "PARTIAL ASCENSION" : "LINK TIMED OUT");
+    if (this.coreCharge >= 100) this.finish(true, "성소 승천 완료");
+    else if (this.coreHp <= 0) this.finish(false, "성소 노심 붕괴");
+    else if (this.timeLeft <= 0) this.finish(this.coreCharge >= 72, this.coreCharge >= 72 ? "불완전 승천 성공" : "지휘 연결 시간 초과");
   }
 
   get ownedRelays() { return this.relays.filter(relay => relay.owner === 1).length; }
@@ -207,18 +224,158 @@ export class Simulation {
     let next = this.doctrine;
     if (this.coreHp < 52 || nearby >= 5 || badlyHurt >= 3) {
       next = "bastion";
-      this.doctrineReason = this.coreHp < 52 ? "CORE IN DANGER" : "DEFENSE DENSITY";
+      this.doctrineReason = this.coreHp < 52 ? "성소 위험 감지" : "방어선 밀집";
     } else if (this.ownedRelays < 3) {
       next = "seek";
-      this.doctrineReason = "RELAY SEARCH";
+      this.doctrineReason = "중계기 탐색";
     } else if (this.enemies.length > this.units.length * 1.4 || this.boss) {
       next = "reaper";
-      this.doctrineReason = this.boss ? "HERALD TARGET" : "HOSTILE SURPLUS";
+      this.doctrineReason = this.boss ? "공허의 사도 지정" : "적 전력 과다";
     } else {
       next = this.rng.chance(.58) ? "reaper" : "bastion";
-      this.doctrineReason = next === "reaper" ? "THREAT PURGE" : "CHARGE GUARD";
+      this.doctrineReason = next === "reaper" ? "위협 전력 소거" : "충전선 수호";
     }
     this.setDoctrine(next, false);
+  }
+
+  startUnitBrief() {
+    if (!this.units.length || this.duel || this.protocol) return;
+    const roles = ["sentinel", "lancer", "runner", "medic"];
+    const desiredRole = roles[this.presentationVisits.status % roles.length];
+    const unit = this.units.find(candidate => candidate.role === desiredRole)
+      || this.units.reduce((best, candidate) => candidate.maxHp > best.maxHp ? candidate : best, this.units[0]);
+    this.unitBrief = {
+      timer: 3.9,
+      duration: 3.9,
+      unit,
+      roleName: ROLE_NAMES[unit.role],
+      serial: `A-${String(unit.id % 100).padStart(2, "0")}`,
+      attack: Math.round(UNIT_SPECS[unit.role].damage * this.damageMultiplier(unit) * 10),
+      mobility: Math.round(UNIT_SPECS[unit.role].speed * 4.2),
+      survival: Math.round(unit.hp / unit.maxHp * 100)
+    };
+    this.presentationVisits.status++;
+    this.nextUnitBrief = this.rng.float(24, 29);
+    this.emit("protocol", { status: true });
+  }
+
+  startDuel(boss) {
+    if (this.duel || !boss) return;
+    if (!this.units.length) this.spawnUnit("sentinel", this.core.x, this.core.y + 14);
+    const champion = this.units.reduce((best, unit) => {
+      const rating = unit.hp + UNIT_SPECS[unit.role].damage * 5;
+      const bestRating = best.hp + UNIT_SPECS[best.role].damage * 5;
+      return rating > bestRating ? unit : best;
+    }, this.units[0]);
+    this.duel = {
+      phase: "intro",
+      timer: 2.15,
+      duration: 2.15,
+      totalTime: 0,
+      champion,
+      boss,
+      heroHp: 100,
+      enemyHp: 100,
+      heroScore: 0,
+      enemyScore: 0,
+      nextStrike: .52,
+      ring: 0,
+      result: null,
+      sparks: []
+    };
+    this.presentationVisits.duel++;
+  }
+
+  updateDuel(dt) {
+    const duel = this.duel;
+    if (!duel) return;
+    duel.totalTime += dt;
+    duel.ring = (duel.ring + dt * .24) % 1;
+    for (const spark of duel.sparks) {
+      spark.life -= dt;
+      spark.x += spark.vx * dt;
+      spark.y += spark.vy * dt;
+      spark.vx *= Math.pow(.12, dt);
+      spark.vy *= Math.pow(.12, dt);
+    }
+    duel.sparks = duel.sparks.filter(spark => spark.life > 0).slice(-90);
+
+    if (duel.phase === "intro") {
+      duel.timer -= dt;
+      if (duel.timer <= 0) {
+        duel.phase = "active";
+        duel.timer = duel.duration = 7.2;
+        duel.nextStrike = .25;
+        this.emit("protocol", { duel: true });
+      }
+      return;
+    }
+
+    if (duel.phase === "result") {
+      duel.timer -= dt;
+      if (duel.timer <= 0) {
+        this.duel = null;
+        this.screenFlash = .32;
+        this.screenShake = 3;
+      }
+      return;
+    }
+
+    duel.timer -= dt;
+    duel.nextStrike -= dt;
+    if (duel.nextStrike <= 0) {
+      const doctrineEdge = this.doctrine === "reaper" ? .12 : this.doctrine === "bastion" ? .06 : .08;
+      const healthEdge = (duel.champion.hp / duel.champion.maxHp - .5) * .16;
+      const heroLands = this.rng.next() < clamp(.5 + doctrineEdge + healthEdge, .34, .74);
+      const critical = this.rng.chance(.16);
+      const damage = this.rng.float(7.5, 13.5) * (critical ? 1.65 : 1);
+      if (heroLands) {
+        duel.enemyHp = Math.max(0, duel.enemyHp - damage);
+        duel.heroScore += critical ? 250 : 100;
+        this.addDuelSparks(132, 245, critical ? COLORS.paper : COLORS.cyan, critical ? 25 : 13);
+      } else {
+        const mitigated = damage * (this.doctrine === "bastion" ? .68 : 1);
+        duel.heroHp = Math.max(0, duel.heroHp - mitigated);
+        duel.enemyScore += critical ? 250 : 100;
+        this.addDuelSparks(84, 245, critical ? COLORS.paper : COLORS.red, critical ? 25 : 13);
+      }
+      duel.nextStrike = this.rng.float(.42, .78);
+      this.screenFlash = Math.max(this.screenFlash, critical ? .32 : .08);
+      this.screenShake = Math.max(this.screenShake, critical ? 5 : 2);
+      this.emit(critical ? "hurt" : "hit", { duel: true, heroLands });
+    }
+
+    if (duel.heroHp <= 0 || duel.enemyHp <= 0 || duel.timer <= 0) this.resolveDuel();
+  }
+
+  addDuelSparks(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = this.rng.float(0, Math.PI * 2);
+      const speed = this.rng.float(18, 62);
+      this.duel.sparks.push({
+        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        life: this.rng.float(.22, .7), maxLife: .7, color, size: this.rng.int(1, 3)
+      });
+    }
+  }
+
+  resolveDuel() {
+    const duel = this.duel;
+    if (!duel || duel.phase === "result") return;
+    const won = duel.enemyHp <= 0 || (duel.heroHp > 0 && duel.heroHp >= duel.enemyHp);
+    duel.phase = "result";
+    duel.timer = duel.duration = 1.85;
+    duel.result = won ? "수호대 승리" : "공허의 사도 승리";
+    if (won) {
+      this.damage(duel.boss, duel.boss.maxHp * .38, false);
+      this.coreCharge = Math.min(100, this.coreCharge + 7);
+      this.score += 600;
+      this.emit("capture", { duel: true });
+    } else {
+      duel.champion.hp = Math.max(1, duel.champion.hp - duel.champion.maxHp * .28);
+      this.coreHp = Math.max(1, this.coreHp - 9);
+      this.emit("hurt", { duel: true });
+    }
   }
 
   updateRelays(dt) {
@@ -248,11 +405,11 @@ export class Simulation {
           this.score += 180;
           this.scrap = Math.min(99, this.scrap + 8);
           this.burst(relay.x, relay.y, COLORS.green, 34, 38, 2, true);
-          this.message("RELAY LINKED", COLORS.green, relay.x, relay.y - 15, 1.4);
+          this.message("중계기 연결", COLORS.green, relay.x, relay.y - 15, 1.4);
           this.emit("capture", { relay: relay.id, owner: 1 });
         } else if (relay.owner === -1) {
           this.burst(relay.x, relay.y, COLORS.red, 26, 30, 2, true);
-          this.message("RELAY LOST", COLORS.red, relay.x, relay.y - 15, 1.3);
+          this.message("중계기 함락", COLORS.red, relay.x, relay.y - 15, 1.3);
           this.emit("hurt", { relay: relay.id });
         }
       }
@@ -547,7 +704,7 @@ export class Simulation {
         }
         if (target.role === "herald") {
           this.coreCharge = Math.min(100, this.coreCharge + 14);
-          this.message("HERALD ERASED", COLORS.paper, target.x, target.y - 18, 2);
+          this.message("공허의 사도 소멸", COLORS.paper, target.x, target.y - 18, 2);
           this.emit("capture", { boss: true });
         }
       }
@@ -605,7 +762,7 @@ export class Simulation {
       this.spawnEnemy(role, spawn.x, spawn.y);
     }
     this.nextWave = Math.max(3.3, 6.2 - this.level * .15 - this.time * .012) + this.rng.float(-.5, .8);
-    this.message(`WAVE ${String(this.waveIndex).padStart(2, "0")}`, COLORS.red, 108, 55, .9);
+    this.message(`제 ${String(this.waveIndex).padStart(2, "0")} 공세`, COLORS.red, 108, 55, .9);
   }
 
   pickEnemyRole() {
@@ -632,10 +789,11 @@ export class Simulation {
     const boss = this.spawnEnemy("herald", spawn.x, spawn.y);
     boss.hp *= 1 + this.level * .05;
     boss.maxHp = boss.hp;
-    this.message("VOID HERALD", COLORS.red, 108, 77, 2.1);
+    this.message("공허의 사도 출현", COLORS.red, 108, 77, 2.1);
     this.screenFlash = .8;
     this.screenShake = 8;
     this.emit("boss");
+    this.startDuel(boss);
   }
 
   autoRecruit(dt) {
@@ -654,7 +812,7 @@ export class Simulation {
     if (this.scrap >= cost) {
       this.scrap -= cost;
       this.spawnUnit(role, this.core.x + this.rng.float(-8, 8), this.core.y + this.rng.float(-8, 8));
-      this.message(role, UNIT_SPECS[role].color, this.core.x, this.core.y + 18, .8);
+      this.message(`${ROLE_NAMES[role]} 증원`, UNIT_SPECS[role].color, this.core.x, this.core.y + 18, .8);
     }
   }
 
@@ -662,11 +820,12 @@ export class Simulation {
     const friendlyPower = this.units.reduce((sum, unit) => sum + unit.hp / unit.maxHp, 0) + this.ownedRelays * 1.7 + this.coreHp / 30;
     const enemyPower = this.enemies.reduce((sum, enemy) => sum + Math.min(4, enemy.hp / 38), 0) + this.level * 1.2;
     this.protocol = {
-      type: this.rng.pick(["TACTICAL CLASH", "SIGNAL DUEL", "CORE GAMBIT"]),
+      type: this.rng.pick(["전술 충돌", "신호 쟁탈", "성소 도박"]),
       duration: 4.2, timer: 4.2, friendlyPower, enemyPower, result: null, resultTimer: 0,
       needle: .5
     };
     this.nextProtocol = this.rng.float(18, 23);
+    this.presentationVisits.tactical++;
     this.emit("protocol", { clash: true });
   }
 
@@ -687,12 +846,12 @@ export class Simulation {
     p.needle = clamp(.5 + (friendly - enemy) / Math.max(12, friendly + enemy), .06, .94);
     if (p.timer <= 0) {
       const success = friendly * this.rng.float(.93, 1.09) >= enemy;
-      p.result = success ? (friendly > enemy * 1.35 ? "PERFECT" : "LINKED") : "BREACH";
+      p.result = success ? (friendly > enemy * 1.35 ? "완벽 제압" : "연결 성공") : "방벽 파손";
       p.resultTimer = 1.6;
       if (success) {
-        this.coreCharge = Math.min(100, this.coreCharge + (p.result === "PERFECT" ? 8 : 5));
+        this.coreCharge = Math.min(100, this.coreCharge + (p.result === "완벽 제압" ? 8 : 5));
         this.coreHp = Math.min(100, this.coreHp + 7);
-        this.score += p.result === "PERFECT" ? 350 : 220;
+        this.score += p.result === "완벽 제압" ? 350 : 220;
         this.burst(this.core.x, this.core.y, COLORS.green, 30, 38, 2, true);
         this.emit("capture", { protocol: true });
       } else {

@@ -1,5 +1,6 @@
 import { W, H, ARENA, COLORS, DOCTRINES, UNIT_SPECS, ENEMY_SPECS, clamp } from "./constants.js";
-import { drawText, textWidth } from "./bitmap-font.js";
+import { drawText, drawKText, drawHybridText } from "./bitmap-font.js";
+import { drawUnitStatusScene, drawTacticalScene, drawDuelScene } from "./ui-scenes.js";
 
 export class Renderer {
   constructor(canvas) {
@@ -140,12 +141,19 @@ export class Renderer {
     ctx.fillStyle = COLORS.void;
     ctx.fillRect(0, 0, W, H);
     this.drawBackdrop(ctx, sim);
-    this.drawArena(ctx, sim);
-    this.drawTopHud(ctx, sim, meta);
-    this.drawBottomHud(ctx, sim, meta);
-    if (sim.protocol) this.drawProtocol(ctx, sim);
-    if (sim.phase === "intro") this.drawIntro(ctx, sim);
-    if (sim.phase === "result") this.drawResult(ctx, sim, meta);
+    if (sim.phase === "play" && sim.duel) {
+      drawDuelScene(ctx, sim, meta);
+    } else if (sim.phase === "play" && sim.protocol) {
+      drawTacticalScene(ctx, sim, meta);
+    } else if (sim.phase === "play" && sim.unitBrief) {
+      drawUnitStatusScene(ctx, sim, meta);
+    } else {
+      this.drawArena(ctx, sim);
+      this.drawTopHud(ctx, sim, meta);
+      this.drawBottomHud(ctx, sim, meta);
+      if (sim.phase === "intro") this.drawIntro(ctx, sim);
+      if (sim.phase === "result") this.drawResult(ctx, sim, meta);
+    }
     if (sim.paused) this.drawPause(ctx);
   }
 
@@ -174,6 +182,7 @@ export class Renderer {
     ctx.translate(-sim.camera.x, -sim.camera.y);
 
     this.drawFloor(ctx, sim);
+    this.drawFieldDecor(ctx, sim);
     for (const obstacle of sim.obstacles) this.drawObstacle(ctx, obstacle, sim.round);
     this.drawRelayLinks(ctx, sim);
     for (const relay of sim.relays) this.drawRelay(ctx, relay, sim);
@@ -223,6 +232,40 @@ export class Renderer {
     radial.addColorStop(1, "#080a1200");
     ctx.fillStyle = radial;
     ctx.fillRect(ARENA.left, ARENA.top, ARENA.right - ARENA.left, ARENA.bottom - ARENA.top);
+  }
+
+  drawFieldDecor(ctx, sim) {
+    const runeColor = sim.doctrine === "seek" ? COLORS.green : sim.doctrine === "bastion" ? COLORS.amber : COLORS.red;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = .12;
+    ctx.fillStyle = runeColor;
+    const runes = [[23, 132], [193, 276], [113, 103], [103, 343], [61, 238], [160, 185]];
+    runes.forEach(([x, y], index) => {
+      const blink = ((Math.floor(sim.time * 3) + index) % 4) !== 0;
+      if (!blink) return;
+      ctx.fillRect(x - 4, y, 9, 1);
+      ctx.fillRect(x, y - 4, 1, 9);
+      ctx.fillRect(x - 2, y - 2, 5, 5);
+    });
+    for (const relay of sim.relays) {
+      if (relay.owner !== 1) continue;
+      const beam = ctx.createLinearGradient(relay.x, relay.y - 42, relay.x, relay.y + 12);
+      beam.addColorStop(0, "#72df6d00");
+      beam.addColorStop(.65, "#72df6d17");
+      beam.addColorStop(1, "#72df6d44");
+      ctx.fillStyle = beam;
+      ctx.fillRect(relay.x - 8, relay.y - 42, 16, 52);
+    }
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < 34; i++) {
+      const x = ARENA.left + ((i * 43 + Math.floor(sim.time * (3 + i % 5))) % (ARENA.right - ARENA.left));
+      const y = ARENA.top + ((i * 71 + Math.floor(sim.time * (6 + i % 3))) % (ARENA.bottom - ARENA.top));
+      ctx.fillStyle = i % 7 === 0 ? runeColor : "#52617d";
+      ctx.globalAlpha = .12 + (i % 5) * .06;
+      ctx.fillRect(x, y, i % 4 === 0 ? 2 : 1, 1);
+    }
+    ctx.restore();
   }
 
   drawObstacle(ctx, rect, round) {
@@ -540,8 +583,8 @@ export class Renderer {
   drawFloaters(ctx, floaters) {
     for (const floater of floaters) {
       ctx.globalAlpha = clamp(floater.life / Math.min(.35, floater.maxLife), 0, 1);
-      drawText(ctx, floater.text, Math.round(floater.x), Math.round(floater.y), {
-        scale: 1, color: floater.color, align: "center", shadow: "#080a12"
+      drawHybridText(ctx, floater.text, Math.round(floater.x), Math.round(floater.y), {
+        scale: 1, size: 7, color: floater.color, align: "center", shadow: "#080a12"
       });
     }
     ctx.globalAlpha = 1;
@@ -565,8 +608,8 @@ export class Renderer {
     ctx.fillRect(0, 0, W, 3);
     ctx.fillRect(0, 37, W, 2);
 
-    drawText(ctx, "CORE", 7, 5, { color: COLORS.paper, scale: 1 });
-    drawText(ctx, String(Math.ceil(sim.coreHp)).padStart(3, "0"), 34, 5, { color: sim.coreHp < 35 ? COLORS.red : COLORS.paper, scale: 1 });
+    drawKText(ctx, "성소", 7, 4, { color: COLORS.paper, size: 7 });
+    drawText(ctx, String(Math.ceil(sim.coreHp)).padStart(3, "0"), 29, 5, { color: sim.coreHp < 35 ? COLORS.red : COLORS.paper, scale: 1 });
     const barX = 7, barY = 15, barW = 95, segments = 12;
     ctx.fillStyle = "#070910";
     ctx.fillRect(barX - 1, barY - 1, barW + 2, 8);
@@ -580,13 +623,14 @@ export class Renderer {
       }
     }
 
-    drawText(ctx, `SCORE ${Math.round(sim.score).toString().padStart(6, "0")}`, 7, 27, { color: COLORS.amber, scale: 1 });
-    drawText(ctx, `LVL ${String(sim.level).padStart(2, "0")}`, 99, 27, { color: COLORS.slate, scale: 1 });
+    drawKText(ctx, "점수", 7, 26, { color: COLORS.amber, size: 7 });
+    drawText(ctx, Math.round(sim.score).toString().padStart(6, "0"), 30, 27, { color: COLORS.amber, scale: 1 });
+    drawKText(ctx, `제 ${sim.level}구역`, 91, 26, { color: COLORS.slate, size: 7 });
 
-    drawText(ctx, "TIME", 210, 4, { color: COLORS.red, align: "right", scale: 1 });
+    drawKText(ctx, "시간", 210, 3, { color: COLORS.red, align: "right", size: 8 });
     drawText(ctx, String(Math.ceil(sim.timeLeft)).padStart(3, "0"), 210, 14, { color: COLORS.paper, align: "right", scale: 2, shadow: COLORS.redDark });
-    drawText(ctx, `${sim.speed === .5 ? "0.5" : sim.speed}X`, 162, 29, { color: COLORS.cyan, align: "center", scale: 1 });
-    drawText(ctx, meta.muted ? "MUTE" : meta.soundReady ? "SFX" : "TAP", 209, 29, { color: meta.muted ? COLORS.red : meta.soundReady ? COLORS.green : COLORS.amber, align: "right", scale: 1 });
+    drawKText(ctx, `${sim.speed === .5 ? "0.5" : sim.speed}배`, 160, 28, { color: COLORS.cyan, align: "center", size: 7 });
+    drawKText(ctx, meta.muted ? "무음" : meta.soundReady ? "소리" : "터치", 209, 28, { color: meta.muted ? COLORS.red : meta.soundReady ? COLORS.green : COLORS.amber, align: "right", size: 7 });
   }
 
   drawBottomHud(ctx, sim, meta) {
@@ -599,19 +643,21 @@ export class Renderer {
     ctx.fillRect(5, top + 6, W - 10, 14);
 
     const aiColor = sim.doctrineOverride > 0 ? COLORS.amber : COLORS.cyan;
-    drawText(ctx, sim.doctrineOverride > 0 ? "OBSERVER//" : "AUTO AI//", 9, top + 10, { color: aiColor, scale: 1 });
-    drawText(ctx, sim.doctrineReason, 73, top + 10, { color: COLORS.paper, scale: 1 });
-    drawText(ctx, `S${Math.floor(sim.scrap).toString().padStart(2, "0")}`, 208, top + 10, { color: COLORS.amber, align: "right", scale: 1 });
+    drawKText(ctx, sim.doctrineOverride > 0 ? "관전자//" : "자동지휘//", 9, top + 9, { color: aiColor, size: 7 });
+    drawKText(ctx, sim.doctrineReason, 64, top + 9, { color: COLORS.paper, size: 7 });
+    drawKText(ctx, `자원 ${Math.floor(sim.scrap).toString().padStart(2, "0")}`, 208, top + 9, { color: COLORS.amber, align: "right", size: 7 });
 
     const cardY = top + 26;
     const ids = ["seek", "bastion", "reaper"];
     ids.forEach((id, index) => this.drawDoctrineCard(ctx, sim, id, 7 + index * 70, cardY, 62, 52));
 
-    const unitCount = sim.units.length.toString().padStart(2, "0");
-    const enemyCount = sim.enemies.length.toString().padStart(2, "0");
-    drawText(ctx, `U${unitCount}`, 8, H - 7, { color: COLORS.cyan, scale: 1 });
-    drawText(ctx, `E${enemyCount}`, 48, H - 7, { color: COLORS.red, scale: 1 });
-    drawText(ctx, `${sim.wins}W ${sim.losses}L`, 208, H - 7, { color: COLORS.slate, align: "right", scale: 1 });
+    // 카드 아래에 텍스트를 겹쳐 놓지 않고, 작은 픽셀 인디케이터로 전투 밀도만 표시한다.
+    // 세로형 작은 화면에서도 카드 라벨과 하단 안전 여백이 또렷하게 유지된다.
+    const pressure = clamp(sim.enemies.length / 48, 0, 1);
+    ctx.fillStyle = "#070910";
+    ctx.fillRect(8, H - 4, W - 16, 2);
+    ctx.fillStyle = sim.enemies.length > sim.units.length * 2 ? COLORS.red : COLORS.cyan;
+    ctx.fillRect(8, H - 4, Math.round((W - 16) * pressure), 2);
   }
 
   drawDoctrineCard(ctx, sim, id, x, y, w, h) {
@@ -633,7 +679,7 @@ export class Renderer {
       ctx.globalAlpha = 1;
     }
     this.drawDoctrineIcon(ctx, doctrine.icon, x + w / 2, y + 21, active ? doctrine.color : COLORS.slate);
-    drawText(ctx, doctrine.label, x + w / 2, y + h - 10, { color: active ? doctrine.color : COLORS.frameDark, align: "center", scale: 1 });
+    drawKText(ctx, doctrine.label, x + w / 2, y + h - 12, { color: active ? doctrine.color : COLORS.frameDark, align: "center", size: 8 });
     if (pressed) {
       const fraction = clamp(sim.doctrineOverride / 11, 0, 1);
       ctx.fillStyle = doctrine.color;
@@ -698,11 +744,11 @@ export class Renderer {
     ctx.fillRect(20, 279, 176, 4);
     ctx.fillStyle = COLORS.paper;
     ctx.fillRect(24, 128, 168, 2);
-    drawText(ctx, "MINI-CAMPAIGN", 108, 143, { color: COLORS.paper, align: "center", scale: 2, shadow: COLORS.frameDark });
-    drawText(ctx, `SECTOR ${String(sim.level).padStart(2, "0")}`, 108, 169, { color: COLORS.amber, align: "center", scale: 1 });
+    drawKText(ctx, "소규모 전역", 108, 142, { color: COLORS.paper, align: "center", size: 15, shadow: COLORS.frameDark });
+    drawKText(ctx, `제 ${sim.level}구역`, 108, 169, { color: COLORS.amber, align: "center", size: 8 });
     this.drawShrineEmblem(ctx, 108, 213, sim.time);
-    drawText(ctx, "AUTO DEPLOYMENT", 108, 250, { color: COLORS.green, align: "center", scale: 1 });
-    drawText(ctx, "NO INPUT REQUIRED", 108, 263, { color: COLORS.slate, align: "center", scale: 1 });
+    drawKText(ctx, "자동 배치 개시", 108, 249, { color: COLORS.green, align: "center", size: 9 });
+    drawKText(ctx, "조작 없이 자동 진행", 108, 263, { color: COLORS.slate, align: "center", size: 7 });
     ctx.globalAlpha = 1;
   }
 
@@ -716,12 +762,14 @@ export class Renderer {
     ctx.fillRect(17, 294, 182, 5);
     ctx.fillStyle = COLORS.paper;
     ctx.fillRect(21, 118, 174, 2);
-    drawText(ctx, result.win ? "ASCENSION" : "SHRINE DOWN", 108, 137, { color: result.win ? COLORS.green : COLORS.red, align: "center", scale: 2, shadow: COLORS.frameDark });
-    drawText(ctx, result.reason, 108, 163, { color: COLORS.paper, align: "center", scale: 1 });
+    drawKText(ctx, result.win ? "승천 성공" : "성소 함락", 108, 136, { color: result.win ? COLORS.green : COLORS.red, align: "center", size: 15, shadow: COLORS.frameDark });
+    drawKText(ctx, result.reason, 108, 163, { color: COLORS.paper, align: "center", size: 8 });
     this.drawShrineEmblem(ctx, 108, 205, sim.time);
-    drawText(ctx, `SCORE ${String(result.score).padStart(6, "0")}`, 108, 240, { color: COLORS.amber, align: "center", scale: 1 });
-    drawText(ctx, `RECORD ${String(meta.bestScore || 0).padStart(6, "0")}`, 108, 253, { color: COLORS.slate, align: "center", scale: 1 });
-    drawText(ctx, `NEXT LINK ${Math.ceil(sim.phaseTimer)}`, 108, 274, { color: COLORS.paper, align: "center", scale: 1 });
+    drawKText(ctx, "점수", 72, 239, { color: COLORS.amber, align: "right", size: 7 });
+    drawText(ctx, String(result.score).padStart(6, "0"), 79, 240, { color: COLORS.amber, scale: 1 });
+    drawKText(ctx, "최고", 72, 252, { color: COLORS.slate, align: "right", size: 7 });
+    drawText(ctx, String(meta.bestScore || 0).padStart(6, "0"), 79, 253, { color: COLORS.slate, scale: 1 });
+    drawKText(ctx, `${Math.ceil(sim.phaseTimer)}초 뒤 다음 구역`, 108, 273, { color: COLORS.paper, align: "center", size: 7 });
   }
 
   drawShrineEmblem(ctx, x, y, time) {
@@ -747,8 +795,8 @@ export class Renderer {
   drawPause(ctx) {
     ctx.fillStyle = "#070910d9";
     ctx.fillRect(0, ARENA.top, W, ARENA.bottom - ARENA.top);
-    drawText(ctx, "LINK PAUSED", 108, 197, { color: COLORS.paper, align: "center", scale: 2, shadow: COLORS.frameDark });
-    drawText(ctx, "RETURN TO RESUME", 108, 222, { color: COLORS.slate, align: "center", scale: 1 });
+    drawKText(ctx, "지휘 연결 일시정지", 108, 197, { color: COLORS.paper, align: "center", size: 14, shadow: COLORS.frameDark });
+    drawKText(ctx, "화면으로 돌아오면 재개됩니다", 108, 222, { color: COLORS.slate, align: "center", size: 7 });
   }
 
   present(sim) {

@@ -1,34 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
     <meta name="theme-color" content="#10121d" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="IRON SHRINE" />
-    <meta name="description" content="An automatic pixel-art tactical siege simulation." />
+    <meta name="apple-mobile-web-app-title" content="철의 성소" />
+    <meta name="description" content="자동으로 진행되는 세로형 픽셀아트 전략 공성 시뮬레이션." />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/icon-192.png" />
     <link rel="stylesheet" href="./styles.css" />
-    <title>IRON SHRINE: AUTO SIEGE</title>
+    <title>철의 성소: 자동 공성전</title>
   </head>
   <body>
-    <main class="app" aria-label="Iron Shrine automatic strategy simulation">
+    <main class="app" aria-label="철의 성소 자동 전략 시뮬레이션">
       <section class="game-shell" id="gameShell">
-        <canvas id="game" width="216" height="468" aria-label="Automatic pixel strategy battlefield"></canvas>
-        <output id="gameStatus" class="sr-only" aria-live="polite">Automatic deployment is starting.</output>
+        <canvas id="game" width="216" height="468" aria-label="자동 픽셀 전략 전장"></canvas>
+        <output id="gameStatus" class="sr-only" aria-live="polite">자동 배치를 시작합니다.</output>
         <div class="boot" id="boot" aria-live="polite">
           <div class="boot-window">
-            <p class="boot-kicker">OBSERVATION PROGRAM // 08</p>
-            <h1>IRON<br />SHRINE</h1>
+            <p class="boot-kicker">관전 프로그램 // 08</p>
+            <h1>철의<br />성소</h1>
             <div class="boot-emblem" aria-hidden="true"><i></i><b></b><i></i></div>
-            <p class="boot-mode">AUTO SIEGE</p>
-            <p class="boot-hint">TAP ONCE FOR SOUND</p>
+            <p class="boot-mode">자동 공성전</p>
+            <p class="boot-hint">소리를 켜려면 한 번 터치</p>
           </div>
         </div>
-        <div class="rotate-note" aria-hidden="true">PORTRAIT MODE</div>
+        <div class="rotate-note" aria-hidden="true">세로 화면으로 돌려주세요</div>
       </section>
     </main>
     <script type="module" src="./js/main.js"></script>

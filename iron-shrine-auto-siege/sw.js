@@ -1,9 +1,10 @@
-const CACHE = "iron-shrine-v1";
+const CACHE = "iron-shrine-v2";
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./manifest.webmanifest",
   "./assets/icon.svg", "./assets/icon-192.png", "./assets/icon-512.png",
   "./js/constants.js", "./js/prng.js", "./js/bitmap-font.js",
   "./js/audio.js", "./js/simulation.js", "./js/renderer.js",
+  "./js/portrait-art.js", "./js/ui-scenes.js",
   "./js/input.js", "./js/main.js"
 ];
 

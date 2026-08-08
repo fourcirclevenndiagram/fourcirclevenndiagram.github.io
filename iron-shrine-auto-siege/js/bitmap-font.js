@@ -76,6 +76,28 @@ export function drawText(ctx, text, x, y, options = {}) {
   return width;
 }
 
+export function drawKText(ctx, text, x, y, options = {}) {
+  const size = options.size || 8;
+  const weight = options.weight || 800;
+  ctx.save();
+  ctx.font = `${weight} ${size}px "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif`;
+  ctx.textAlign = options.align || "left";
+  ctx.textBaseline = "top";
+  if (options.shadow) {
+    ctx.fillStyle = options.shadow;
+    ctx.fillText(String(text), Math.round(x) + 1, Math.round(y) + 1);
+  }
+  ctx.fillStyle = options.color || "#fff";
+  ctx.fillText(String(text), Math.round(x), Math.round(y));
+  ctx.restore();
+}
+
+export function drawHybridText(ctx, text, x, y, options = {}) {
+  return /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(String(text))
+    ? drawKText(ctx, text, x, y, options)
+    : drawText(ctx, text, x, y, options);
+}
+
 function drawGlyphRun(ctx, value, startX, y, scale, spacing, color) {
   let cursor = startX;
   ctx.fillStyle = color;

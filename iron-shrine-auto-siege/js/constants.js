@@ -25,9 +25,9 @@ export const COLORS = Object.freeze({
 });
 
 export const DOCTRINES = Object.freeze({
-  seek: { id: "seek", label: "ASCEND", color: COLORS.green, icon: "up" },
-  bastion: { id: "bastion", label: "BASTION", color: COLORS.amber, icon: "block" },
-  reaper: { id: "reaper", label: "REAPER", color: COLORS.red, icon: "heart" }
+  seek: { id: "seek", label: "개척", color: COLORS.green, icon: "up" },
+  bastion: { id: "bastion", label: "수호", color: COLORS.amber, icon: "block" },
+  reaper: { id: "reaper", label: "격멸", color: COLORS.red, icon: "heart" }
 });
 
 export const UNIT_SPECS = Object.freeze({
@@ -45,6 +45,23 @@ export const ENEMY_SPECS = Object.freeze({
   leech:   { hp: 32, speed: 12, damage: 5, range: 9, rate: 0.7, score: 38, color: "#8b5daa" },
   brute:   { hp: 115, speed: 6, damage: 17, range: 12, rate: 1.4, score: 90, color: "#a94b55" },
   herald:  { hp: 490, speed: 5, damage: 20, range: 15, rate: 1.25, score: 700, color: "#e44d63" }
+});
+
+export const ROLE_NAMES = Object.freeze({
+  runner: "개척병",
+  sentinel: "수호병",
+  lancer: "창포병",
+  medic: "의무병"
+});
+
+export const ENEMY_NAMES = Object.freeze({
+  gnawer: "탐식자",
+  wisp: "망령",
+  spitter: "산성포",
+  rammer: "돌격수",
+  leech: "침식체",
+  brute: "파괴수",
+  herald: "공허의 사도"
 });
 
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));

@@ -1,7 +1,7 @@
 {
-  "name": "IRON SHRINE: AUTO SIEGE",
-  "short_name": "IRON SHRINE",
-  "description": "A hands-off pixel-art tactical siege simulation.",
+  "name": "철의 성소: 자동 공성전",
+  "short_name": "철의 성소",
+  "description": "손대지 않아도 진행되는 픽셀아트 전술 공성 시뮬레이션.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
