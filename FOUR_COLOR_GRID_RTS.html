@@ -116,7 +116,8 @@
       content: "";
       pointer-events: none;
     }
-    #glCanvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    #glCanvas, #fallbackCanvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    #fallbackCanvas { position: absolute; inset: 0; display: none; image-rendering: pixelated; }
 
     .map-hud {
       position: absolute;
@@ -395,6 +396,7 @@
 
     <section class="battle-shell" id="battleShell" aria-label="80 곱하기 80 자동 전투 지도">
       <canvas id="glCanvas"></canvas>
+      <canvas id="fallbackCanvas" aria-hidden="true"></canvas>
       <div class="map-hud">
         <div class="timer"><span>TIME LEFT</span><b id="timerText">04:00</b></div>
         <div class="leader-chip"><i id="leaderDot"></i><span>선두</span><b id="leaderName">계산 중</b></div>
@@ -481,11 +483,23 @@
     var UNIT_ORDER = ["infantry", "archer", "cavalry", "builder", "expander"];
 
     var canvas = document.getElementById("glCanvas");
+    var fallbackCanvas = document.getElementById("fallbackCanvas");
+    var fallbackCtx = null;
+    var fallbackMode = false;
+    var fallbackReason = "";
+    var fallbackAnnounced = false;
     var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false });
-    if (!gl) {
-      document.getElementById("unsupported").classList.add("show");
-      return;
+
+    function activateFallback(reason) {
+      if (fallbackMode) return;
+      fallbackMode = true;
+      fallbackReason = reason && reason.message ? reason.message : String(reason || "WebGL unavailable");
+      canvas.style.display = "none";
+      fallbackCanvas.style.display = "block";
+      fallbackCtx = fallbackCanvas.getContext("2d", { alpha: false });
+      if (fallbackCtx) fallbackCtx.imageSmoothingEnabled = false;
     }
+    if (!gl) activateFallback("WebGL 2 unavailable");
 
     var state = null;
     var teams = [];
@@ -549,19 +563,24 @@
     function teamName(t) { return TEAM_DATA[t] ? TEAM_DATA[t].name : "중립"; }
 
     function makeShader(type, source) {
+      if (fallbackMode || !gl) return null;
       var sh = gl.createShader(type);
       gl.shaderSource(sh, source);
       gl.compileShader(sh);
-      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) { activateFallback(gl.getShaderInfoLog(sh) || "shader compile failed"); return null; }
       return sh;
     }
 
     function makeProgram(vs, fs) {
+      if (fallbackMode || !gl) return null;
+      var v = makeShader(gl.VERTEX_SHADER, vs);
+      var f = makeShader(gl.FRAGMENT_SHADER, fs);
+      if (!v || !f || fallbackMode) return null;
       var p = gl.createProgram();
-      gl.attachShader(p, makeShader(gl.VERTEX_SHADER, vs));
-      gl.attachShader(p, makeShader(gl.FRAGMENT_SHADER, fs));
+      gl.attachShader(p, v);
+      gl.attachShader(p, f);
       gl.linkProgram(p);
-      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { activateFallback(gl.getProgramInfoLog(p) || "shader link failed"); return null; }
       return p;
     }
 
@@ -591,28 +610,33 @@
       "else if(vKind==10){mask=(1.-smoothstep(.75,1.,d))*smoothstep(.38,.55,d);}\n" +
       "if(mask<.01)discard; float alpha=vColor.a*mask; if(uGlow>1.5){alpha*=.22*(1.-d*.48);} outColor=vec4(vColor.rgb*alpha,alpha);}");
 
-    var quadBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
-
-    var pointBuffer = gl.createBuffer();
+    var quadBuffer = null;
+    var pointBuffer = null;
     var pointStride = 8 * 4;
     var pointData = new Float32Array(8 * 1800);
     var pointCount = 0;
-
-    var mapTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, mapTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    var mapTexture = null;
+    if (!fallbackMode) {
+      quadBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+      pointBuffer = gl.createBuffer();
+      mapTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, mapTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
 
     function resize() {
-      var rect = canvas.getBoundingClientRect();
+      var rect = document.getElementById("battleShell").getBoundingClientRect();
       var dpr = Math.min(2, window.devicePixelRatio || 1);
       var w = Math.max(1, Math.round(rect.width * dpr));
       var h = Math.max(1, Math.round(rect.height * dpr));
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      if (fallbackCanvas.width !== w || fallbackCanvas.height !== h) { fallbackCanvas.width = w; fallbackCanvas.height = h; }
+      if (!fallbackMode && gl) gl.viewport(0, 0, w, h);
     }
 
     function addPoint(x, y, size, color, kind, alpha) {
@@ -625,6 +649,8 @@
     }
 
     function render() {
+      if (fallbackMode) { renderFallback(); return; }
+      try {
       resize();
       gl.disable(gl.DEPTH_TEST);
       gl.clearColor(.025, .035, .06, 1);
@@ -707,6 +733,50 @@
 
       flash *= .88;
       shake *= .84;
+      } catch (error) {
+        activateFallback(error);
+        renderFallback();
+      }
+    }
+
+    function renderFallback() {
+      resize();
+      if (!fallbackCtx) return;
+      var c = fallbackCtx, w = fallbackCanvas.width, h = fallbackCanvas.height, scale = w / GRID;
+      c.setTransform(1,0,0,1,0,0);
+      c.fillStyle = "#0b101c";
+      c.fillRect(0,0,w,h);
+      for (var y = 0; y < GRID; y++) for (var x = 0; x < GRID; x++) {
+        var owner = territory[idx(x,y)];
+        c.fillStyle = owner < 0 ? "#101827" : teamColor(owner);
+        c.globalAlpha = owner < 0 ? .82 : .34;
+        c.fillRect(x*scale,y*scale,Math.ceil(scale)+.2,Math.ceil(scale)+.2);
+      }
+      c.globalAlpha = 1;
+      if (showGrid) {
+        c.strokeStyle = "rgba(210,225,255,.13)"; c.lineWidth = Math.max(1,w/900);
+        c.beginPath();
+        for (x=0;x<=GRID;x+=4) { c.moveTo(x*scale,0); c.lineTo(x*scale,h); c.moveTo(0,x*scale); c.lineTo(w,x*scale); }
+        c.stroke();
+      }
+      for (var i=0;i<structures.length;i++) {
+        var s=structures[i]; if(s.dead) continue;
+        var size=s.type==="hq"?5:s.type==="wall"?1:3;
+        c.globalAlpha=s.team<0?.86:.95; c.fillStyle=s.team<0?"#bec8da":teamColor(s.team);
+        c.fillRect((s.x-size/2)*scale,(s.y-size/2)*scale,size*scale,size*scale);
+        c.strokeStyle=s.type==="outpost"?"rgba(255,255,255,.75)":"rgba(3,8,18,.75)"; c.lineWidth=Math.max(1,scale*.18); c.strokeRect((s.x-size/2)*scale,(s.y-size/2)*scale,size*scale,size*scale);
+      }
+      for (i=0;i<units.length;i++) {
+        var u=units[i];if(u.dead)continue;var r=Math.max(2,UNIT_TYPES[u.type].size*scale*.58);
+        c.globalAlpha=.98;c.fillStyle=teamColor(u.team);c.beginPath();
+        if(u.type==="archer"){c.moveTo(u.x*scale,(u.y-r/scale)*scale);c.lineTo((u.x+r/scale)*scale,u.y*scale);c.lineTo(u.x*scale,(u.y+r/scale)*scale);c.lineTo((u.x-r/scale)*scale,u.y*scale);}
+        else if(u.type==="cavalry"){c.moveTo(u.x*scale,(u.y-r/scale)*scale);c.lineTo((u.x+r/scale)*scale,(u.y+r/scale)*scale);c.lineTo((u.x-r/scale)*scale,(u.y+r/scale)*scale);}
+        else {c.arc(u.x*scale,u.y*scale,r,0,TAU);}
+        c.fill();
+      }
+      c.fillStyle="#f7fbff";
+      for(i=0;i<projectiles.length;i++){var p=projectiles[i];c.globalAlpha=.9;c.beginPath();c.arc(p.x*scale,p.y*scale,Math.max(1.4,scale*.22),0,TAU);c.fill();}
+      c.globalAlpha=1;
     }
 
     function updateTerritoryTexture() {
@@ -761,6 +831,10 @@
       paused = false; autoPaused = false; restartAt = 0; accumulator = 0;
       updatePauseUI();
       addEvent("새 전장 생성 · <b>23개 중립 거점</b> 활성화", -1);
+      if (fallbackMode && !fallbackAnnounced) {
+        fallbackAnnounced = true;
+        addEvent("호환 렌더러로 전환 · <b>전투 시뮬레이션은 정상 진행</b>", -1);
+      }
       updateUI(true);
     }
 
