@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#090d18">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="사색 영토전쟁 80">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <title>사색 영토전쟁 80</title>
+  <link id="dynamicManifest" rel="manifest" href="data:application/manifest+json,%7B%7D">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070a12;
+      --panel: rgba(18, 24, 40, .86);
+      --line: rgba(255, 255, 255, .09);
+      --text: #eef5ff;
+      --muted: #7f8ba3;
+      --red: #ff405d;
+      --blue: #42a5ff;
+      --yellow: #ffd447;
+      --green: #39df8f;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); }
+    body {
+      min-height: 100dvh;
+      overflow-x: hidden;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+      background:
+        radial-gradient(100% 55% at 50% 0%, rgba(41, 68, 117, .28), transparent 72%),
+        linear-gradient(180deg, #090e1b 0%, #060911 100%);
+      overscroll-behavior: none;
+      user-select: none;
+    }
+
+    button { font: inherit; }
+
+    .app {
+      width: min(100%, 560px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: max(8px, env(safe-area-inset-top)) 10px calc(74px + env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 50px;
+      padding: 0 2px;
+    }
+
+    .brand { min-width: 0; }
+    .eyebrow {
+      margin-bottom: 2px;
+      color: #71819e;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .2em;
+    }
+    h1 {
+      margin: 0;
+      overflow: hidden;
+      font-size: 19px;
+      line-height: 1.1;
+      letter-spacing: -.045em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    h1 em { color: #88a7ff; font-style: normal; }
+
+    .roundbox {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.035);
+      box-shadow: inset 0 1px rgba(255,255,255,.04);
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ff4764;
+      box-shadow: 0 0 9px #ff4764;
+      animation: pulse 1.25s ease-in-out infinite;
+    }
+    @keyframes pulse { 50% { opacity: .35; transform: scale(.72); } }
+    .roundtext { font-size: 10px; font-weight: 900; color: #b6c2d7; }
+
+    .battle-shell {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 1;
+      border: 1px solid rgba(149, 174, 220, .17);
+      border-radius: 19px;
+      background: #0b101c;
+      box-shadow: 0 18px 45px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.07);
+      isolation: isolate;
+    }
+    .battle-shell::after {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      border-radius: inherit;
+      box-shadow: inset 0 0 45px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.035);
+      content: "";
+      pointer-events: none;
+    }
+    #glCanvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+    .map-hud {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      left: 9px;
+      z-index: 5;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .timer, .leader-chip {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 11px;
+      background: rgba(5,9,17,.73);
+      box-shadow: 0 5px 15px rgba(0,0,0,.22);
+      backdrop-filter: blur(8px);
+    }
+    .timer {
+      min-width: 65px;
+      padding: 6px 8px 5px;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-align: center;
+    }
+    .timer span { display: block; margin-bottom: 1px; color: #75839d; font-size: 7px; letter-spacing: .18em; }
+    .leader-chip {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      max-width: 160px;
+      padding: 7px 9px;
+      color: #cbd5e8;
+      font-size: 9px;
+      font-weight: 850;
+    }
+    .leader-chip i { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 2px; background: #fff; box-shadow: 0 0 8px currentColor; }
+    .leader-chip b { overflow: hidden; color: #fff; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+
+    .event-log {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      left: 10px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+    .event-item {
+      max-width: 88%;
+      padding: 5px 8px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 8px;
+      background: rgba(5,9,17,.72);
+      color: #d8e2f3;
+      font-size: 9px;
+      font-weight: 750;
+      box-shadow: 0 5px 15px rgba(0,0,0,.2);
+      animation: eventIn .25s ease-out;
+      backdrop-filter: blur(6px);
+    }
+    .event-item b { color: var(--event-color, #fff); }
+    @keyframes eventIn { from { opacity: 0; transform: translateY(6px); } }
+
+    .pause-cover {
+      position: absolute;
+      inset: 0;
+      z-index: 9;
+      display: none;
+      place-items: center;
+      background: rgba(3,6,12,.68);
+      backdrop-filter: blur(5px);
+    }
+    .pause-cover.show { display: grid; }
+    .pause-card { text-align: center; }
+    .pause-card strong { display: block; font-size: 21px; letter-spacing: -.04em; }
+    .pause-card span { display: block; margin-top: 5px; color: #91a0b9; font-size: 10px; }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin: 9px 0 8px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: linear-gradient(110deg, rgba(27,36,58,.9), rgba(13,18,31,.88));
+    }
+    .status-main { min-width: 0; }
+    .status-title { overflow: hidden; font-size: 11px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+    .status-sub { margin-top: 3px; color: #7f8ca4; font-size: 9px; }
+    .status-badge {
+      padding: 5px 7px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 8px;
+      color: #aebbd1;
+      font-size: 8px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .team-card {
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--text);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--team) 12%, #121827), #0d121f 70%);
+      box-shadow: inset 0 1px rgba(255,255,255,.04);
+      text-align: left;
+      cursor: pointer;
+    }
+    .team-card::before {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 3px;
+      background: var(--team);
+      box-shadow: 0 0 13px var(--team);
+      content: "";
+    }
+    .team-card.selected { border-color: color-mix(in srgb, var(--team) 65%, white 10%); transform: translateY(-1px); }
+    .team-card.eliminated { opacity: .46; filter: grayscale(.7); }
+    .team-card-head { display: flex; align-items: center; justify-content: space-between; }
+    .team-name { display: flex; gap: 6px; align-items: center; font-size: 11px; font-weight: 950; }
+    .team-name i { width: 8px; height: 8px; border-radius: 3px; background: var(--team); box-shadow: 0 0 8px var(--team); }
+    .team-rank { color: #8f9cb3; font-size: 8px; font-weight: 900; }
+    .team-numbers { display: flex; align-items: baseline; margin-top: 6px; }
+    .territory-num { color: #f7fbff; font-size: 18px; font-weight: 950; font-variant-numeric: tabular-nums; letter-spacing: -.045em; }
+    .territory-unit { margin-left: 3px; color: #718099; font-size: 8px; font-weight: 800; }
+    .buff { margin-left: auto; color: var(--team); font-size: 8px; font-weight: 900; }
+    .territory-bar { overflow: hidden; height: 3px; margin-top: 6px; border-radius: 5px; background: rgba(255,255,255,.07); }
+    .territory-fill { width: 0; height: 100%; border-radius: inherit; background: var(--team); box-shadow: 0 0 8px var(--team); transition: width .25s ease; }
+    .team-meta { display: flex; gap: 8px; margin-top: 6px; color: #8794aa; font-size: 8px; font-weight: 750; }
+    .team-meta b { color: #c8d3e6; }
+
+    .detail-panel {
+      margin-top: 8px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(14,19,32,.82);
+    }
+    .detail-head { display: flex; align-items: center; justify-content: space-between; }
+    .detail-title { font-size: 10px; font-weight: 900; }
+    .detail-bonus { color: #9ba8bd; font-size: 8px; font-weight: 800; }
+    .unit-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 7px; }
+    .unit-chip {
+      min-width: 0;
+      padding: 6px 2px;
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 9px;
+      background: rgba(255,255,255,.025);
+      text-align: center;
+    }
+    .unit-icon { display: block; height: 14px; color: var(--selected-team); font-size: 13px; font-weight: 950; line-height: 14px; }
+    .unit-label { display: block; margin-top: 2px; color: #6f7d95; font-size: 7px; font-weight: 800; }
+    .unit-count { display: block; margin-top: 1px; color: #dfe8f7; font-size: 10px; font-weight: 950; font-variant-numeric: tabular-nums; }
+
+    .bottom-controls {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 30;
+      padding: 7px max(10px, env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+      border-top: 1px solid rgba(255,255,255,.09);
+      background: rgba(7,10,18,.88);
+      box-shadow: 0 -12px 30px rgba(0,0,0,.28);
+      backdrop-filter: blur(16px) saturate(1.2);
+    }
+    .control-inner { display: flex; gap: 6px; width: min(100%, 560px); margin: 0 auto; }
+    .control-btn {
+      display: flex;
+      flex: 1 1 0;
+      gap: 5px;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 11px;
+      color: #9dabbe;
+      background: rgba(255,255,255,.045);
+      font-size: 9px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .control-btn:active { transform: scale(.97); }
+    .control-btn.active { color: #f5f8ff; border-color: rgba(127,161,255,.42); background: rgba(84,120,225,.15); }
+    .control-btn .icon { color: #d8e2f5; font-size: 13px; }
+    #speedBtn { flex: 1.15; color: #dfe7f7; }
+
+    .result-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      place-items: center;
+      padding: 22px;
+      background: rgba(3,6,12,.72);
+      backdrop-filter: blur(10px);
+    }
+    .result-modal.show { display: grid; animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } }
+    .result-card {
+      width: min(100%, 360px);
+      overflow: hidden;
+      padding: 22px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 22px;
+      background: linear-gradient(145deg, rgba(26,34,54,.98), rgba(10,14,25,.98));
+      box-shadow: 0 30px 80px rgba(0,0,0,.5);
+      text-align: center;
+    }
+    .result-kicker { color: #7786a1; font-size: 9px; font-weight: 900; letter-spacing: .18em; }
+    .result-team { margin-top: 7px; color: var(--winner, #fff); font-size: 28px; font-weight: 950; letter-spacing: -.06em; text-shadow: 0 0 18px color-mix(in srgb, var(--winner) 65%, transparent); }
+    .result-desc { margin-top: 6px; color: #8f9db4; font-size: 10px; }
+    .result-score { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 17px; }
+    .result-stat { padding: 10px 3px; border: 1px solid rgba(255,255,255,.07); border-radius: 11px; background: rgba(255,255,255,.03); }
+    .result-stat b { display: block; font-size: 17px; }
+    .result-stat span { display: block; margin-top: 3px; color: #718099; font-size: 8px; }
+    .restart-bar { overflow: hidden; height: 4px; margin-top: 18px; border-radius: 4px; background: rgba(255,255,255,.07); }
+    .restart-fill { width: 100%; height: 100%; background: var(--winner, #fff); transform-origin: left; }
+    .restart-text { margin-top: 7px; color: #78869e; font-size: 9px; font-weight: 800; }
+
+    .unsupported {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: #070a12;
+      text-align: center;
+    }
+    .unsupported.show { display: grid; }
+    .unsupported strong { display: block; font-size: 18px; }
+    .unsupported span { display: block; max-width: 300px; margin-top: 8px; color: #8d9ab0; font-size: 11px; line-height: 1.55; }
+
+    @media (max-height: 720px) {
+      .app { padding-top: max(4px, env(safe-area-inset-top)); }
+      .topbar { height: 42px; }
+      h1 { font-size: 17px; }
+      .battle-shell { width: min(100%, 49dvh); margin: 0 auto; }
+      .status-strip { margin: 6px 0; padding: 7px 9px; }
+      .team-card { padding: 7px 8px; }
+      .detail-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="eyebrow">AUTONOMOUS GRID WARFARE</div>
+        <h1>사색 영토전쟁 <em>80</em></h1>
+      </div>
+      <div class="roundbox" role="status" aria-label="현재 라운드">
+        <span class="live-dot"></span>
+        <span class="roundtext" id="roundText">ROUND 01</span>
+      </div>
+    </header>
+
+    <section class="battle-shell" id="battleShell" aria-label="80 곱하기 80 자동 전투 지도">
+      <canvas id="glCanvas"></canvas>
+      <div class="map-hud">
+        <div class="timer"><span>TIME LEFT</span><b id="timerText">04:00</b></div>
+        <div class="leader-chip"><i id="leaderDot"></i><span>선두</span><b id="leaderName">계산 중</b></div>
+      </div>
+      <div class="event-log" id="eventLog" aria-live="polite"></div>
+      <div class="pause-cover" id="pauseCover">
+        <div class="pause-card"><strong id="pauseTitle">전투 일시정지</strong><span id="pauseSub">아래 재생 버튼을 눌러 계속하세요</span></div>
+      </div>
+    </section>
+
+    <section class="status-strip">
+      <div class="status-main">
+        <div class="status-title" id="statusTitle">23개 중립 거점을 향해 진군 중</div>
+        <div class="status-sub" id="statusSub">영토 6,000칸 달성 시 공격 +20% · 이동 +30%</div>
+      </div>
+      <div class="status-badge" id="battlePhase">개전</div>
+    </section>
+
+    <section class="team-grid" id="teamGrid" aria-label="팀별 전황"></section>
+
+    <section class="detail-panel" id="detailPanel">
+      <div class="detail-head">
+        <span class="detail-title" id="detailTitle">빨강 팀 병력 구성</span>
+        <span class="detail-bonus" id="detailBonus">공격 +0.0% · 이동 +0.0%</span>
+      </div>
+      <div class="unit-row" id="unitRow"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-controls" aria-label="관전 조작">
+    <div class="control-inner">
+      <button class="control-btn active" id="pauseBtn" type="button" aria-label="전투 일시정지"><span class="icon">Ⅱ</span><span id="pauseLabel">정지</span></button>
+      <button class="control-btn" id="speedBtn" type="button" aria-label="전투 속도 변경"><span class="icon">»</span><span id="speedLabel">1배속</span></button>
+      <button class="control-btn" id="gridBtn" type="button" aria-label="격자 표시 전환"><span class="icon">▦</span><span>격자</span></button>
+      <button class="control-btn" id="soundBtn" type="button" aria-label="음향 전환"><span class="icon">♪</span><span id="soundLabel">음향</span></button>
+      <button class="control-btn" id="fullBtn" type="button" aria-label="전체 화면"><span class="icon">⛶</span><span>전체</span></button>
+    </div>
+  </nav>
+
+  <div class="result-modal" id="resultModal">
+    <div class="result-card" id="resultCard">
+      <div class="result-kicker">BATTLE COMPLETE</div>
+      <div class="result-team" id="resultTeam">빨강 팀 승리</div>
+      <div class="result-desc" id="resultDesc">가장 넓은 영토와 거점을 확보했습니다</div>
+      <div class="result-score">
+        <div class="result-stat"><b id="resultTerritory">0</b><span>영토</span></div>
+        <div class="result-stat"><b id="resultTowers">0</b><span>점령 거점</span></div>
+        <div class="result-stat"><b id="resultKills">0</b><span>격파</span></div>
+      </div>
+      <div class="restart-bar"><div class="restart-fill" id="restartFill"></div></div>
+      <div class="restart-text">8초 뒤 새로운 전장이 자동 생성됩니다</div>
+    </div>
+  </div>
+
+  <div class="unsupported" id="unsupported">
+    <div><strong>WebGL 2를 사용할 수 없습니다</strong><span>Safari 또는 Chrome의 최신 버전에서 열어 주세요. 이 게임은 GPU 기반 렌더링을 사용합니다.</span></div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var GRID = 80;
+    var CELL_COUNT = GRID * GRID;
+    var MATCH_TIME = 240;
+    var STEP = 1 / 20;
+    var TAU = Math.PI * 2;
+    var MAX_PARTICLES = 900;
+
+    var TEAM_DATA = [
+      { name: "빨강", color: "#ff405d", rgb: [1.00, .25, .37], dark: [76, 21, 35] },
+      { name: "파랑", color: "#42a5ff", rgb: [.26, .65, 1.00], dark: [19, 55, 88] },
+      { name: "노랑", color: "#ffd447", rgb: [1.00, .83, .28], dark: [84, 67, 18] },
+      { name: "초록", color: "#39df8f", rgb: [.22, .87, .56], dark: [18, 72, 49] }
+    ];
+
+    var UNIT_TYPES = {
+      infantry: { label: "보병", glyph: "●", speed: 2.25, hp: 105, damage: 17, range: 1.25, cooldown: .72, size: .72, kind: 0 },
+      archer:   { label: "궁병", glyph: "◆", speed: 1.82, hp: 70, damage: 13, range: 7.5, cooldown: 1.05, size: .68, kind: 1 },
+      cavalry:  { label: "기병", glyph: "▲", speed: 3.40, hp: 145, damage: 29, range: 1.45, cooldown: 1.15, size: .88, kind: 2 },
+      builder:  { label: "건설병", glyph: "■", speed: 1.75, hp: 88, damage: 6, range: 1.0, cooldown: 1.15, size: .7, kind: 3 },
+      expander: { label: "확장병", glyph: "◎", speed: 2.65, hp: 82, damage: 7, range: 1.1, cooldown: .95, size: .75, kind: 4 }
+    };
+    var UNIT_ORDER = ["infantry", "archer", "cavalry", "builder", "expander"];
+
+    var canvas = document.getElementById("glCanvas");
+    var gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false });
+    if (!gl) {
+      document.getElementById("unsupported").classList.add("show");
+      return;
+    }
+
+    var state = null;
+    var teams = [];
+    var units = [];
+    var structures = [];
+    var projectiles = [];
+    var particles = [];
+    var territory = new Int8Array(CELL_COUNT);
+    var territoryPixels = new Uint8Array(CELL_COUNT * 4);
+    var territoryDirty = true;
+    var occupation = new Int16Array(CELL_COUNT);
+    var nextId = 1;
+    var roundNo = 1;
+    var selectedTeam = 0;
+    var paused = false;
+    var autoPaused = false;
+    var speedIndex = 0;
+    var speeds = [1, 2, 4];
+    var showGrid = false;
+    var soundOn = false;
+    var audio = null;
+    var lastTime = performance.now();
+    var accumulator = 0;
+    var uiClock = 0;
+    var flash = 0;
+    var shake = 0;
+    var restartAt = 0;
+    var rng = Math.random;
+
+    var statsStore = loadStats();
+    roundNo = statsStore.rounds + 1;
+
+    function loadStats() {
+      try {
+        var v = JSON.parse(localStorage.getItem("fourColorGridRtsStats") || "null");
+        if (v && Array.isArray(v.wins) && v.wins.length === 4) return v;
+      } catch (e) {}
+      return { rounds: 0, wins: [0, 0, 0, 0] };
+    }
+
+    function saveStats() {
+      try { localStorage.setItem("fourColorGridRtsStats", JSON.stringify(statsStore)); } catch (e) {}
+    }
+
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0;
+        seed = seed + 0x6D2B79F5 | 0;
+        var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function dist2(a, b, c, d) { var x = a - c, y = b - d; return x * x + y * y; }
+    function idx(x, y) { return (y | 0) * GRID + (x | 0); }
+    function validCell(x, y) { return x >= 0 && y >= 0 && x < GRID && y < GRID; }
+    function teamColor(t) { return TEAM_DATA[t] ? TEAM_DATA[t].color : "#b8c1d1"; }
+    function teamName(t) { return TEAM_DATA[t] ? TEAM_DATA[t].name : "중립"; }
+
+    function makeShader(type, source) {
+      var sh = gl.createShader(type);
+      gl.shaderSource(sh, source);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+      return sh;
+    }
+
+    function makeProgram(vs, fs) {
+      var p = gl.createProgram();
+      gl.attachShader(p, makeShader(gl.VERTEX_SHADER, vs));
+      gl.attachShader(p, makeShader(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+      return p;
+    }
+
+    var mapProgram = makeProgram(
+      "#version 300 es\n" +
+      "in vec2 aPos; out vec2 vUv; uniform vec2 uShake;\n" +
+      "void main(){vUv=vec2(aPos.x*.5+.5, .5-aPos.y*.5); gl_Position=vec4(aPos+uShake,0.,1.);}",
+      "#version 300 es\nprecision mediump float; in vec2 vUv; out vec4 outColor; uniform sampler2D uMap; uniform float uGrid; uniform float uFlash;\n" +
+      "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n" +
+      "void main(){vec3 c=texture(uMap,vUv).rgb; vec2 cell=vUv*80.; vec2 f=fract(cell); float edge=step(f.x,.055)+step(f.y,.055); c*=1.-min(edge,1.)*.15*uGrid; float n=hash(floor(cell))*.035; c+=n; float vign=1.-smoothstep(.52,.78,length(vUv-.5)); c*=.72+.28*vign; c+=uFlash*.13; outColor=vec4(c,1.);}");
+
+    var pointProgram = makeProgram(
+      "#version 300 es\nprecision highp float; in vec2 aPos; in float aSize; in vec4 aColor; in float aKind; out vec4 vColor; flat out int vKind; uniform float uScale; uniform float uGlow; uniform vec2 uShake;\n" +
+      "void main(){vec2 p=vec2(aPos.x/40.-1.,1.-aPos.y/40.); gl_Position=vec4(p+uShake,0.,1.); gl_PointSize=max(1.,aSize*uScale*uGlow); vColor=aColor; vKind=int(aKind+.5);}",
+      "#version 300 es\nprecision mediump float; in vec4 vColor; flat in int vKind; out vec4 outColor; uniform float uGlow;\n" +
+      "void main(){vec2 p=gl_PointCoord*2.-1.; float d=length(p); float mask=1.;\n" +
+      "if(vKind==0){mask=1.-smoothstep(.72,.98,d);}\n" +
+      "else if(vKind==1){float q=abs(p.x)+abs(p.y);mask=1.-smoothstep(.92,1.08,q);}\n" +
+      "else if(vKind==2){float tri=max(abs(p.x)*.78+p.y*.35,-p.y);mask=1.-smoothstep(.66,.86,tri);}\n" +
+      "else if(vKind==3){mask=1.-smoothstep(.78,.96,max(abs(p.x),abs(p.y))); if(uGlow<1.5 && (abs(p.x)<.13||abs(p.y)<.13)) mask=1.;}\n" +
+      "else if(vKind==4){float ring=1.-smoothstep(.78,.96,d); if(uGlow<1.5) ring*=smoothstep(.32,.48,d); mask=ring;}\n" +
+      "else if(vKind==5){float q=max(abs(p.x),abs(p.y));mask=1.-smoothstep(.80,.98,q); if(uGlow<1.5 && d<.34) mask=.25;}\n" +
+      "else if(vKind==6){mask=1.-smoothstep(.68,.94,max(abs(p.x),abs(p.y)));}\n" +
+      "else if(vKind==7){float q=max(abs(p.x),abs(p.y));mask=1.-smoothstep(.82,.98,q); if(uGlow<1.5 && (abs(p.x)<.12||abs(p.y)<.12)) mask=1.;}\n" +
+      "else if(vKind==8){float q=max(abs(p.x),abs(p.y));mask=1.-smoothstep(.81,.98,q); if(uGlow<1.5){float r=smoothstep(.25,.34,d)* (1.-smoothstep(.53,.61,d));mask=max(mask*.55,r);}}\n" +
+      "else if(vKind==9){mask=1.-smoothstep(.15,1.,d);}\n" +
+      "else if(vKind==10){mask=(1.-smoothstep(.75,1.,d))*smoothstep(.38,.55,d);}\n" +
+      "if(mask<.01)discard; float alpha=vColor.a*mask; if(uGlow>1.5){alpha*=.22*(1.-d*.48);} outColor=vec4(vColor.rgb*alpha,alpha);}");
+
+    var quadBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+
+    var pointBuffer = gl.createBuffer();
+    var pointStride = 8 * 4;
+    var pointData = new Float32Array(8 * 1800);
+    var pointCount = 0;
+
+    var mapTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, mapTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      var w = Math.max(1, Math.round(rect.width * dpr));
+      var h = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+    }
+
+    function addPoint(x, y, size, color, kind, alpha) {
+      if (pointCount >= pointData.length / 8) return;
+      var o = pointCount * 8;
+      pointData[o] = x; pointData[o + 1] = y; pointData[o + 2] = size;
+      pointData[o + 3] = color[0]; pointData[o + 4] = color[1]; pointData[o + 5] = color[2]; pointData[o + 6] = alpha == null ? 1 : alpha;
+      pointData[o + 7] = kind;
+      pointCount++;
+    }
+
+    function render() {
+      resize();
+      gl.disable(gl.DEPTH_TEST);
+      gl.clearColor(.025, .035, .06, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      if (territoryDirty) updateTerritoryTexture();
+
+      var sx = 0, sy = 0;
+      if (shake > .02) { sx = (Math.random() - .5) * shake / 500; sy = (Math.random() - .5) * shake / 500; }
+
+      gl.useProgram(mapProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+      var mapPos = gl.getAttribLocation(mapProgram, "aPos");
+      gl.enableVertexAttribArray(mapPos);
+      gl.vertexAttribPointer(mapPos, 2, gl.FLOAT, false, 0, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, mapTexture);
+      gl.uniform1i(gl.getUniformLocation(mapProgram, "uMap"), 0);
+      gl.uniform1f(gl.getUniformLocation(mapProgram, "uGrid"), showGrid ? 1 : 0);
+      gl.uniform1f(gl.getUniformLocation(mapProgram, "uFlash"), flash);
+      gl.uniform2f(gl.getUniformLocation(mapProgram, "uShake"), sx, sy);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      pointCount = 0;
+      var i, s, u, p;
+
+      for (i = 0; i < structures.length; i++) {
+        s = structures[i];
+        if (s.dead) continue;
+        var sc = s.team >= 0 ? TEAM_DATA[s.team].rgb : [.58, .64, .74];
+        var sk = s.type === "wall" ? 6 : (s.type === "hq" ? 7 : (s.type === "outpost" ? 8 : 5));
+        var ss = s.type === "wall" ? 1.25 : (s.type === "hq" ? 5.5 : 3.25);
+        addPoint(s.x, s.y, ss, sc, sk, s.team >= 0 ? .95 : .78);
+        var hpRatio = clamp(s.hp / s.maxHp, 0, 1);
+        if (hpRatio < .99) {
+          addPoint(s.x - ss * .38 + hpRatio * ss * .38, s.y - ss * .64, Math.max(.35, ss * hpRatio * .72), sc, 6, .9);
+        }
+      }
+
+      for (i = 0; i < units.length; i++) {
+        u = units[i];
+        if (u.dead) continue;
+        var uc = TEAM_DATA[u.team].rgb;
+        var alpha = teams[u.team].alive ? .98 : .25;
+        addPoint(u.x, u.y, UNIT_TYPES[u.type].size, uc, UNIT_TYPES[u.type].kind, alpha);
+        if (u.team === selectedTeam) addPoint(u.x, u.y, UNIT_TYPES[u.type].size * 1.55, uc, 10, .32);
+      }
+
+      for (i = 0; i < projectiles.length; i++) {
+        p = projectiles[i];
+        addPoint(p.x, p.y, p.kind === "tower" ? .55 : .38, TEAM_DATA[p.team].rgb, 9, .95);
+      }
+
+      for (i = 0; i < particles.length; i++) {
+        p = particles[i];
+        addPoint(p.x, p.y, p.size * (p.life / p.maxLife), p.color, p.ring ? 10 : 9, clamp(p.life / p.maxLife, 0, 1) * p.alpha);
+      }
+
+      gl.useProgram(pointProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, pointData.subarray(0, pointCount * 8), gl.DYNAMIC_DRAW);
+      var attrs = ["aPos", "aSize", "aColor", "aKind"];
+      var offsets = [0, 2, 3, 7];
+      var sizesA = [2, 1, 4, 1];
+      for (i = 0; i < attrs.length; i++) {
+        var loc = gl.getAttribLocation(pointProgram, attrs[i]);
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, sizesA[i], gl.FLOAT, false, pointStride, offsets[i] * 4);
+      }
+      gl.uniform1f(gl.getUniformLocation(pointProgram, "uScale"), canvas.width / GRID);
+      gl.uniform2f(gl.getUniformLocation(pointProgram, "uShake"), sx, sy);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE);
+      gl.uniform1f(gl.getUniformLocation(pointProgram, "uGlow"), 2.6);
+      gl.drawArrays(gl.POINTS, 0, pointCount);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      gl.uniform1f(gl.getUniformLocation(pointProgram, "uGlow"), 1.0);
+      gl.drawArrays(gl.POINTS, 0, pointCount);
+      gl.disable(gl.BLEND);
+
+      flash *= .88;
+      shake *= .84;
+    }
+
+    function updateTerritoryTexture() {
+      var i, o, t, base, noise;
+      for (i = 0; i < CELL_COUNT; i++) {
+        o = i * 4;
+        t = territory[i];
+        noise = ((i * 17 + (i / GRID | 0) * 23) % 11) - 5;
+        if (t < 0) base = [15, 21, 34];
+        else base = TEAM_DATA[t].dark;
+        territoryPixels[o] = clamp(base[0] + noise, 0, 255);
+        territoryPixels[o + 1] = clamp(base[1] + noise, 0, 255);
+        territoryPixels[o + 2] = clamp(base[2] + noise, 0, 255);
+        territoryPixels[o + 3] = 255;
+      }
+      gl.bindTexture(gl.TEXTURE_2D, mapTexture);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GRID, GRID, 0, gl.RGBA, gl.UNSIGNED_BYTE, territoryPixels);
+      territoryDirty = false;
+    }
+
+    function resetGame() {
+      rng = mulberry32((Date.now() ^ (roundNo * 2654435761)) >>> 0);
+      units.length = 0; structures.length = 0; projectiles.length = 0; particles.length = 0;
+      territory.fill(-1); occupation.fill(0); nextId = 1;
+      state = { time: MATCH_TIME, ended: false, phase: "개전", strategicClock: 0, reinforcements: 5, towerCount: 23 };
+      teams = [];
+      for (var t = 0; t < 4; t++) {
+        teams.push({ id: t, alive: true, territory: 0, outposts: 0, builtTowers: 0, walls: 0, kills: 0, lost: 0, hq: null, attackMul: 1, moveMul: 1, strategicTarget: null, tacticClock: 0, reinforcement: 5 + rng() * 2 });
+      }
+
+      var bases = [[7,7], [73,7], [7,73], [73,73]];
+      for (t = 0; t < 4; t++) {
+        paintDisk(bases[t][0], bases[t][1], 7, t, 1);
+        teams[t].hq = addStructure("hq", bases[t][0], bases[t][1], t);
+      }
+
+      createNeutralOutposts();
+
+      var initial = { infantry: 16, archer: 9, cavalry: 7, builder: 5, expander: 9 };
+      for (t = 0; t < 4; t++) {
+        for (var key in initial) {
+          for (var n = 0; n < initial[key]; n++) spawnUnit(t, key, true);
+        }
+      }
+
+      recountTerritory();
+      rebuildOccupation();
+      assignStrategies(true);
+      document.getElementById("resultModal").classList.remove("show");
+      document.getElementById("roundText").textContent = "ROUND " + String(roundNo).padStart(2, "0");
+      paused = false; autoPaused = false; restartAt = 0; accumulator = 0;
+      updatePauseUI();
+      addEvent("새 전장 생성 · <b>23개 중립 거점</b> 활성화", -1);
+      updateUI(true);
+    }
+
+    function createNeutralOutposts() {
+      var pts = [[40,40]];
+      var tries = 0;
+      while (pts.length < 23 && tries++ < 5000) {
+        var x = 11 + Math.floor(rng() * 58);
+        var y = 11 + Math.floor(rng() * 58);
+        var mx = GRID - x;
+        var my = GRID - y;
+        var ok = true;
+        for (var i = 0; i < pts.length; i++) {
+          if (dist2(x,y,pts[i][0],pts[i][1]) < 48 || dist2(mx,my,pts[i][0],pts[i][1]) < 48) { ok = false; break; }
+        }
+        if (ok && dist2(x,y,40,40) > 35) { pts.push([x,y]); if (pts.length < 23) pts.push([mx,my]); }
+      }
+      for (var p = 0; p < pts.length && p < 23; p++) addStructure("outpost", pts[p][0], pts[p][1], -1);
+    }
+
+    function addStructure(type, x, y, team) {
+      var props = type === "hq" ? [2600, 0] : type === "outpost" ? [520, 1.45] : type === "tower" ? [440, 1.75] : [135, 0];
+      var s = { id: nextId++, type: type, x: x, y: y, team: team, hp: props[0], maxHp: props[0], fireCd: rng() * props[1], dead: false, lastHitTeam: team, age: 0 };
+      structures.push(s);
+      if (type === "hq" && team >= 0) teams[team].hq = s;
+      return s;
+    }
+
+    function spawnUnit(team, type, initial) {
+      if (!teams[team] || !teams[team].alive || !teams[team].hq || teams[team].hq.dead) return null;
+      var hq = teams[team].hq;
+      var a = rng() * TAU, r = initial ? 2.5 + rng() * 4.5 : 1.8 + rng() * 3;
+      var def = UNIT_TYPES[type];
+      var u = {
+        id: nextId++, team: team, type: type,
+        x: clamp(hq.x + Math.cos(a) * r, 1, 79), y: clamp(hq.y + Math.sin(a) * r, 1, 79),
+        vx: 0, vy: 0, hp: def.hp, maxHp: def.hp, cooldown: rng() * def.cooldown,
+        think: rng() * .5, goalX: 40, goalY: 40, target: null, targetKind: null,
+        dead: false, paintCd: rng() * .1, buildCd: 3 + rng() * 9, buildProgress: 0,
+        charge: 0, stuck: 0, lastX: 0, lastY: 0
+      };
+      units.push(u);
+      pickGoal(u, true);
+      return u;
+    }
+
+    function paintCell(x, y, team) {
+      x = x | 0; y = y | 0;
+      if (!validCell(x, y)) return false;
+      var i = idx(x, y);
+      if (territory[i] === team) return false;
+      territory[i] = team;
+      territoryDirty = true;
+      return true;
+    }
+
+    function paintDisk(cx, cy, radius, team, chance) {
+      var rr = radius * radius;
+      for (var y = Math.floor(cy - radius); y <= Math.ceil(cy + radius); y++) {
+        for (var x = Math.floor(cx - radius); x <= Math.ceil(cx + radius); x++) {
+          if (validCell(x,y) && dist2(x+.5,y+.5,cx,cy) <= rr && rng() <= chance) paintCell(x,y,team);
+        }
+      }
+    }
+
+    function rebuildOccupation() {
+      occupation.fill(0);
+      for (var i = 0; i < structures.length; i++) {
+        var s = structures[i];
+        if (s.dead) continue;
+        var r = s.type === "wall" ? 0 : (s.type === "hq" ? 2 : 1);
+        for (var y = Math.floor(s.y-r); y <= Math.floor(s.y+r); y++) {
+          for (var x = Math.floor(s.x-r); x <= Math.floor(s.x+r); x++) if (validCell(x,y)) occupation[idx(x,y)] = s.id;
+        }
+      }
+    }
+
+    function getStructureById(id) {
+      for (var i = 0; i < structures.length; i++) if (structures[i].id === id && !structures[i].dead) return structures[i];
+      return null;
+    }
+
+    function getUnitById(id) {
+      for (var i = 0; i < units.length; i++) if (units[i].id === id && !units[i].dead) return units[i];
+      return null;
+    }
+
+    function recountTerritory() {
+      for (var t = 0; t < 4; t++) { teams[t].territory = 0; teams[t].outposts = 0; teams[t].builtTowers = 0; teams[t].walls = 0; }
+      for (var i = 0; i < CELL_COUNT; i++) if (territory[i] >= 0) teams[territory[i]].territory++;
+      for (i = 0; i < structures.length; i++) {
+        var s = structures[i];
+        if (s.dead || s.team < 0) continue;
+        if (s.type === "outpost") teams[s.team].outposts++;
+        else if (s.type === "tower") teams[s.team].builtTowers++;
+        else if (s.type === "wall") teams[s.team].walls++;
+      }
+      for (t = 0; t < 4; t++) {
+        var f = clamp(teams[t].territory / 6000, 0, 1);
+        teams[t].attackMul = 1 + f * .20;
+        teams[t].moveMul = 1 + f * .30;
+      }
+    }
+
+    function assignStrategies(force) {
+      for (var t = 0; t < 4; t++) {
+        var tm = teams[t];
+        if (!tm.alive) continue;
+        tm.tacticClock -= force ? 999 : 1;
+        if (tm.tacticClock > 0 && tm.strategicTarget && !tm.strategicTarget.dead && tm.strategicTarget.team !== t) continue;
+        tm.tacticClock = 8 + rng() * 7;
+        var best = null, bestScore = Infinity;
+        for (var i = 0; i < structures.length; i++) {
+          var s = structures[i];
+          if (s.dead || s.type !== "outpost" || s.team === t) continue;
+          var score = dist2(tm.hq.x, tm.hq.y, s.x, s.y) * (.65 + rng() * .7);
+          if (s.team >= 0) score *= .82;
+          if (score < bestScore) { bestScore = score; best = s; }
+        }
+        tm.strategicTarget = best;
+      }
+    }
+
+    function pickGoal(u, immediate) {
+      var tm = teams[u.team];
+      u.target = null; u.targetKind = null;
+      if (!tm.alive) return;
+
+      if (u.type === "expander") {
+        var bestX = 40, bestY = 40, best = -999;
+        for (var i = 0; i < 34; i++) {
+          var x = 2 + rng() * 76, y = 2 + rng() * 76;
+          var owner = territory[idx(x|0,y|0)];
+          var score = owner === u.team ? -12 : (owner < 0 ? 7 : 13);
+          score -= Math.sqrt(dist2(u.x,u.y,x,y)) * .09;
+          score += rng() * 7;
+          if (score > best) { best = score; bestX = x; bestY = y; }
+        }
+        u.goalX = bestX; u.goalY = bestY;
+      } else if (u.type === "builder") {
+        var target = tm.strategicTarget;
+        if (target && rng() < .65) {
+          var ang = rng() * TAU, rad = 6 + rng() * 10;
+          u.goalX = clamp(target.x + Math.cos(ang) * rad, 3, 77);
+          u.goalY = clamp(target.y + Math.sin(ang) * rad, 3, 77);
+        } else {
+          u.goalX = clamp(tm.hq.x + (40 - tm.hq.x) * (.3 + rng() * .45) + (rng()-.5)*16, 3, 77);
+          u.goalY = clamp(tm.hq.y + (40 - tm.hq.y) * (.3 + rng() * .45) + (rng()-.5)*16, 3, 77);
+        }
+      } else {
+        var roll = rng();
+        var strat = tm.strategicTarget;
+        if (strat && roll < .62) {
+          u.goalX = strat.x + (rng()-.5)*5; u.goalY = strat.y + (rng()-.5)*5;
+          u.target = strat.id; u.targetKind = "structure";
+        } else {
+          var enemyHq = chooseEnemyHq(u.team, u.x, u.y);
+          if (enemyHq && roll < .84) {
+            u.goalX = enemyHq.x + (rng()-.5)*6; u.goalY = enemyHq.y + (rng()-.5)*6;
+          } else {
+            u.goalX = 8 + rng() * 64; u.goalY = 8 + rng() * 64;
+          }
+        }
+      }
+      u.think = immediate ? .1 + rng()*.2 : .65 + rng()*.65;
+    }
+
+    function chooseEnemyHq(team, x, y) {
+      var best = null, score = Infinity;
+      for (var t = 0; t < 4; t++) {
+        if (t === team || !teams[t].alive || !teams[t].hq || teams[t].hq.dead) continue;
+        var s = dist2(x,y,teams[t].hq.x,teams[t].hq.y) * (.8 + rng()*.45);
+        if (s < score) { score = s; best = teams[t].hq; }
+      }
+      return best;
+    }
+
+    function update(dt) {
+      if (!state || state.ended) return;
+      state.time -= dt;
+      state.strategicClock -= dt;
+      if (state.strategicClock <= 0) { state.strategicClock = 1; assignStrategies(false); recountTerritory(); updatePhase(); }
+
+      updateStructures(dt);
+      updateUnits(dt);
+      updateProjectiles(dt);
+      updateParticles(dt);
+      reinforce(dt);
+      cleanDead();
+
+      var living = 0, last = -1;
+      for (var t = 0; t < 4; t++) if (teams[t].alive) { living++; last = t; }
+      if (living <= 1 || state.time <= 0) finishGame(living === 1 ? last : getRankedTeams()[0].id);
+    }
+
+    function updatePhase() {
+      var elapsed = MATCH_TIME - state.time;
+      if (elapsed < 40) state.phase = "개전";
+      else if (elapsed < 145) state.phase = "거점전";
+      else if (elapsed < 205) state.phase = "총력전";
+      else state.phase = "최종전";
+    }
+
+    function updateUnits(dt) {
+      for (var i = 0; i < units.length; i++) {
+        var u = units[i];
+        if (u.dead || !teams[u.team].alive) continue;
+        var def = UNIT_TYPES[u.type];
+        u.cooldown -= dt; u.think -= dt; u.buildCd -= dt; u.paintCd -= dt;
+
+        var target = findCombatTarget(u, def.range + (u.type === "archer" ? 1.5 : .55));
+        var acted = false;
+        if (target) {
+          var d = Math.sqrt(dist2(u.x,u.y,target.x,target.y));
+          if (d <= def.range + targetRadius(target)) {
+            if (u.cooldown <= 0) attack(u, target, target.hp != null && target.type && UNIT_TYPES[target.type] ? "unit" : "structure");
+            acted = true;
+          } else if (d < def.range + 3.5) {
+            u.goalX = target.x; u.goalY = target.y;
+          }
+        }
+
+        if (u.think <= 0 || dist2(u.x,u.y,u.goalX,u.goalY) < 2.5) pickGoal(u, false);
+
+        if (u.type === "builder" && u.buildCd <= 0 && territory[idx(clamp(u.x|0,0,79),clamp(u.y|0,0,79))] === u.team) {
+          if (canBuildAt(u.x,u.y)) {
+            u.buildProgress += dt;
+            acted = true;
+            if (u.buildProgress >= 1.5) {
+              buildStructure(u);
+              u.buildProgress = 0;
+              u.buildCd = 10 + rng() * 10;
+              pickGoal(u, true);
+            }
+          } else { u.buildCd = 2 + rng()*3; u.buildProgress = 0; pickGoal(u, true); }
+        } else if (u.type === "builder") u.buildProgress = Math.max(0, u.buildProgress - dt * .5);
+
+        if (!acted) moveUnit(u, def, dt);
+
+        if (u.type === "expander" && u.paintCd <= 0) {
+          u.paintCd = .10;
+          paintCell(u.x|0,u.y|0,u.team);
+          if (rng() < .23) paintCell((u.x + (rng()-.5)*2)|0,(u.y + (rng()-.5)*2)|0,u.team);
+        }
+      }
+    }
+
+    function targetRadius(target) {
+      if (!target.type || UNIT_TYPES[target.type]) return .45;
+      return target.type === "hq" ? 2.4 : (target.type === "wall" ? .55 : 1.45);
+    }
+
+    function findCombatTarget(u, searchRange) {
+      var best = null, bestD = searchRange * searchRange;
+      for (var i = 0; i < units.length; i++) {
+        var e = units[i];
+        if (e.dead || e.team === u.team || !teams[e.team].alive) continue;
+        var d = dist2(u.x,u.y,e.x,e.y);
+        if (d < bestD) { bestD = d; best = e; }
+      }
+      for (i = 0; i < structures.length; i++) {
+        var s = structures[i];
+        if (s.dead || s.team === u.team || (s.team < 0 && s.type !== "outpost")) continue;
+        var extra = targetRadius(s);
+        var dd = dist2(u.x,u.y,s.x,s.y);
+        var limit = (searchRange + extra) * (searchRange + extra);
+        if (dd < Math.min(bestD, limit)) { bestD = dd; best = s; }
+      }
+      return best;
+    }
+
+    function attack(u, target, kind) {
+      var def = UNIT_TYPES[u.type];
+      u.cooldown = def.cooldown * (.86 + rng()*.28);
+      var damage = def.damage * teams[u.team].attackMul * (.9 + rng()*.2);
+      if (u.type === "archer") {
+        launchProjectile(u.x,u.y,target,u.team,damage,"arrow",false);
+        playSound("shot", u.team);
+      } else {
+        if (u.type === "cavalry" && u.charge > .7) { damage *= 1.6; u.charge = 0; shake = Math.max(shake, 1.8); }
+        hurtTarget(target, damage, u.team, kind);
+        burst(target.x,target.y,u.team,3,.5,false);
+        playSound("hit",u.team);
+      }
+    }
+
+    function moveUnit(u, def, dt) {
+      var dx = u.goalX - u.x, dy = u.goalY - u.y;
+      var d = Math.sqrt(dx*dx+dy*dy) || 1;
+      dx /= d; dy /= d;
+
+      var avoidX = 0, avoidY = 0;
+      for (var j = 0; j < units.length; j++) {
+        var o = units[j];
+        if (o === u || o.dead || o.team !== u.team) continue;
+        var ddx = u.x-o.x, ddy=u.y-o.y, dd=ddx*ddx+ddy*ddy;
+        if (dd > .01 && dd < 1.35) { avoidX += ddx/dd*.16; avoidY += ddy/dd*.16; }
+      }
+
+      var own = territory[idx(clamp(u.x|0,0,79),clamp(u.y|0,0,79))] === u.team;
+      var mult = teams[u.team].moveMul * (own ? 1.20 : 1);
+      var speed = def.speed * mult;
+      if (u.type === "cavalry") u.charge = clamp(u.charge + dt*.32, 0, 1);
+
+      u.vx = lerp(u.vx, (dx+avoidX)*speed, .18);
+      u.vy = lerp(u.vy, (dy+avoidY)*speed, .18);
+      var nx = clamp(u.x + u.vx*dt, .45, 79.55);
+      var ny = clamp(u.y + u.vy*dt, .45, 79.55);
+
+      var occ = occupation[idx(nx|0,ny|0)];
+      if (occ) {
+        var s = getStructureById(occ);
+        if (s && s.team === u.team) {
+          var side = ((u.id&1)?1:-1);
+          u.vx += -dy * side * speed * .55;
+          u.vy += dx * side * speed * .55;
+          nx = clamp(u.x+u.vx*dt,.45,79.55); ny=clamp(u.y+u.vy*dt,.45,79.55);
+        } else if (s) {
+          u.goalX = s.x; u.goalY = s.y;
+          nx = u.x; ny = u.y;
+        }
+      }
+
+      u.x = nx; u.y = ny;
+    }
+
+    function canBuildAt(x,y) {
+      var xi=x|0, yi=y|0;
+      if (xi<3||yi<3||xi>76||yi>76) return false;
+      if (occupation[idx(xi,yi)] !== 0) return false;
+      for (var yy=yi-2;yy<=yi+2;yy++) for(var xx=xi-2;xx<=xi+2;xx++) if(occupation[idx(xx,yy)]!==0) return false;
+      return true;
+    }
+
+    function buildStructure(u) {
+      var tm = teams[u.team];
+      var wantTower = rng() < .30 && tm.builtTowers < 10;
+      var type = wantTower ? "tower" : "wall";
+      if (!wantTower && tm.walls >= 34) type = "tower";
+      var bx = clamp(Math.round(u.x),2,77), by=clamp(Math.round(u.y),2,77);
+      var s = addStructure(type,bx,by,u.team);
+      if (type === "wall") { s.maxHp=135; s.hp=135; }
+      paintDisk(bx,by,type==="tower"?2:1,u.team,.7);
+      rebuildOccupation();
+      burst(bx,by,u.team,type==="tower"?16:7,type==="tower"?2.2:1.1,true);
+      if (type === "tower") addEvent("<b>"+teamName(u.team)+" 팀</b>이 방어 타워를 건설",u.team);
+      playSound("build",u.team);
+    }
+
+    function updateStructures(dt) {
+      for (var i=0;i<structures.length;i++) {
+        var s=structures[i];
+        if(s.dead)continue;
+        s.age+=dt; s.fireCd-=dt;
+        if(s.team<0||s.type==="wall")continue;
+        var range=s.type==="hq"?13:(s.type==="outpost"?12:10);
+        if(s.fireCd<=0){
+          var target=nearestEnemyUnit(s.team,s.x,s.y,range);
+          if(target){
+            var damage=(s.type==="hq"?21:(s.type==="outpost"?18:16))*teams[s.team].attackMul;
+            launchProjectile(s.x,s.y,target,s.team,damage,"tower",s.type==="outpost");
+            s.fireCd=s.type==="hq"?.92:(s.type==="outpost"?1.38:1.65);
+            playSound("tower",s.team);
+          }else s.fireCd=.25+rng()*.35;
+        }
+      }
+    }
+
+    function nearestEnemyUnit(team,x,y,range){
+      var best=null,bestD=range*range;
+      for(var i=0;i<units.length;i++){
+        var u=units[i];if(u.dead||u.team===team||!teams[u.team].alive)continue;
+        var d=dist2(x,y,u.x,u.y);if(d<bestD){bestD=d;best=u;}
+      }
+      return best;
+    }
+
+    function launchProjectile(x,y,target,team,damage,kind,paint){
+      var dx=target.x-x,dy=target.y-y,d=Math.sqrt(dx*dx+dy*dy)||1;
+      var sp=kind==="tower"?22:16;
+      projectiles.push({id:nextId++,x:x,y:y,vx:dx/d*sp,vy:dy/d*sp,team:team,damage:damage,kind:kind,paint:paint,targetId:target.id,targetKind:target.type&&UNIT_TYPES[target.type]?"unit":"structure",life:1.25,paintCd:.05});
+    }
+
+    function updateProjectiles(dt){
+      for(var i=0;i<projectiles.length;i++){
+        var p=projectiles[i];
+        p.life-=dt;p.paintCd-=dt;
+        var target=p.targetKind==="unit"?getUnitById(p.targetId):getStructureById(p.targetId);
+        if(target){
+          var dx=target.x-p.x,dy=target.y-p.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+          var turn=clamp(dt*7,0,1);var sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+          p.vx=lerp(p.vx,dx/d*sp,turn);p.vy=lerp(p.vy,dy/d*sp,turn);
+        }
+        p.x+=p.vx*dt;p.y+=p.vy*dt;
+        if(p.paint&&p.paintCd<=0){p.paintCd=.16;if(rng()<.16)paintCell(p.x|0,p.y|0,p.team);}
+        if(target&&dist2(p.x,p.y,target.x,target.y)<(targetRadius(target)+.35)*(targetRadius(target)+.35)){
+          hurtTarget(target,p.damage,p.team,p.targetKind);
+          if(p.paint)paintDisk(p.x,p.y,1.2,p.team,.58);
+          burst(p.x,p.y,p.team,p.kind==="tower"?7:4,p.kind==="tower"?1:.65,false);
+          p.life=-1;playSound("hit",p.team);
+        }
+        if(p.x<0||p.y<0||p.x>80||p.y>80)p.life=-1;
+      }
+    }
+
+    function hurtTarget(target,damage,attackerTeam,kind){
+      if(!target||target.dead)return;
+      target.hp-=damage;target.lastHitTeam=attackerTeam;
+      if(target.hp<=0){
+        if(kind==="unit"||UNIT_TYPES[target.type])killUnit(target,attackerTeam);
+        else destroyStructure(target,attackerTeam);
+      }
+    }
+
+    function killUnit(u,killer){
+      if(u.dead)return;u.dead=true;teams[u.team].lost++;if(killer>=0&&killer!==u.team)teams[killer].kills++;
+      burst(u.x,u.y,u.team,7,1.35,false);
+    }
+
+    function destroyStructure(s,attacker){
+      if(s.dead)return;
+      if(s.type==="outpost"){
+        var previous=s.team;s.team=attacker;s.hp=s.maxHp;s.lastHitTeam=attacker;s.fireCd=.55;
+        paintDisk(s.x,s.y,2.6,attacker,.85);flash=.8;shake=4;
+        burst(s.x,s.y,attacker,34,3.2,true);
+        addEvent("<b>"+teamName(attacker)+" 팀</b>이 중립 거점 점령"+(previous>=0?" · "+teamName(previous)+"에게 탈취":""),attacker);
+        playSound("capture",attacker);if(navigator.vibrate)navigator.vibrate(24);
+      }else if(s.type==="hq"){
+        s.dead=true;teams[s.team].alive=false;flash=1;shake=7;
+        burst(s.x,s.y,s.team,70,5,true);
+        addEvent("<b>"+teamName(attacker)+" 팀</b>이 "+teamName(s.team)+" 본진 파괴",attacker);
+        for(var i=0;i<units.length;i++)if(units[i].team===s.team&&!units[i].dead)killUnit(units[i],attacker);
+        for(i=0;i<structures.length;i++)if(structures[i].team===s.team&&structures[i]!==s&&structures[i].type!=="outpost")structures[i].dead=true;
+        playSound("hq",attacker);if(navigator.vibrate)navigator.vibrate([35,35,70]);
+        rebuildOccupation();
+      }else{
+        s.dead=true;shake=Math.max(shake,s.type==="tower"?3:1.2);
+        burst(s.x,s.y,s.team,s.type==="tower"?24:9,s.type==="tower"?2.5:1.1,true);
+        rebuildOccupation();
+      }
+    }
+
+    function burst(x,y,team,count,power,ring){
+      var color=TEAM_DATA[team>=0?team:0].rgb;
+      for(var i=0;i<count&&particles.length<MAX_PARTICLES;i++){
+        var a=rng()*TAU,sp=power*(.25+rng());
+        particles.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:.35+rng()*.65,maxLife:1,size:.25+rng()*.65,color:color,alpha:.65+rng()*.3,ring:ring&&i<3});
+      }
+    }
+
+    function updateParticles(dt){
+      for(var i=0;i<particles.length;i++){
+        var p=particles[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.95;p.vy*=.95;
+        if(p.ring)p.size+=dt*4;
+      }
+    }
+
+    function reinforce(dt){
+      for(var t=0;t<4;t++){
+        var tm=teams[t];if(!tm.alive)continue;
+        tm.reinforcement-=dt;
+        if(tm.reinforcement<=0){
+          var count=0;for(var i=0;i<units.length;i++)if(!units[i].dead&&units[i].team===t)count++;
+          var cap=46+Math.floor(tm.territory/700)+tm.outposts*2;
+          if(count<Math.min(66,cap)){
+            var roll=rng(),type=roll<.34?"infantry":roll<.56?"archer":roll<.73?"cavalry":roll<.84?"builder":"expander";
+            spawnUnit(t,type,false);
+          }
+          tm.reinforcement=4.8+rng()*2.8-Math.min(1.6,tm.outposts*.08);
+        }
+      }
+    }
+
+    function cleanDead(){
+      if(units.length>300)units=units.filter(function(u){return !u.dead;});
+      projectiles=projectiles.filter(function(p){return p.life>0;});
+      particles=particles.filter(function(p){return p.life>0;});
+    }
+
+    function getTeamScore(t){
+      var tm=teams[t];var hq=tm.hq&&!tm.hq.dead?tm.hq.hp/tm.hq.maxHp*220:0;
+      return tm.territory+tm.outposts*110+tm.builtTowers*25+tm.kills*4+hq+(tm.alive?180:0);
+    }
+
+    function getRankedTeams(){
+      return teams.slice().sort(function(a,b){return getTeamScore(b.id)-getTeamScore(a.id);});
+    }
+
+    function finishGame(winner){
+      if(state.ended)return;state.ended=true;recountTerritory();
+      statsStore.rounds++;statsStore.wins[winner]++;saveStats();
+      var tm=teams[winner];
+      var card=document.getElementById("resultCard");card.style.setProperty("--winner",TEAM_DATA[winner].color);
+      document.getElementById("resultTeam").textContent=teamName(winner)+" 팀 승리";
+      document.getElementById("resultDesc").textContent=tm.alive?"가장 넓은 영토와 핵심 거점을 확보했습니다":"최종 점수에서 우위를 차지했습니다";
+      document.getElementById("resultTerritory").textContent=tm.territory.toLocaleString("ko-KR");
+      document.getElementById("resultTowers").textContent=tm.outposts;
+      document.getElementById("resultKills").textContent=tm.kills;
+      document.getElementById("resultModal").classList.add("show");
+      var fill=document.getElementById("restartFill");fill.style.transition="none";fill.style.transform="scaleX(1)";
+      requestAnimationFrame(function(){requestAnimationFrame(function(){fill.style.transition="transform 8s linear";fill.style.transform="scaleX(0)";});});
+      restartAt=performance.now()+8000;flash=1;shake=5;playSound("win",winner);
+    }
+
+    function addEvent(html,team){
+      var log=document.getElementById("eventLog");
+      var item=document.createElement("div");item.className="event-item";item.innerHTML=html;item.style.setProperty("--event-color",team>=0?TEAM_DATA[team].color:"#dce6f8");
+      log.appendChild(item);while(log.children.length>3)log.removeChild(log.firstChild);
+      setTimeout(function(){if(item.parentNode)item.parentNode.removeChild(item);},5200);
+    }
+
+    function createTeamCards(){
+      var grid=document.getElementById("teamGrid");grid.innerHTML="";
+      for(var t=0;t<4;t++){
+        var btn=document.createElement("button");btn.type="button";btn.className="team-card";btn.id="teamCard"+t;btn.dataset.team=t;btn.style.setProperty("--team",TEAM_DATA[t].color);
+        btn.innerHTML="<div class=\"team-card-head\"><span class=\"team-name\"><i></i>"+TEAM_DATA[t].name+" 팀</span><span class=\"team-rank\" id=\"rank"+t+"\">-</span></div>"+
+          "<div class=\"team-numbers\"><strong class=\"territory-num\" id=\"territory"+t+"\">0</strong><span class=\"territory-unit\">칸</span><span class=\"buff\" id=\"buff"+t+"\">공격 +0%</span></div>"+
+          "<div class=\"territory-bar\"><div class=\"territory-fill\" id=\"bar"+t+"\"></div></div>"+
+          "<div class=\"team-meta\"><span>병력 <b id=\"units"+t+"\">0</b></span><span>거점 <b id=\"posts"+t+"\">0</b></span><span>승 <b>"+statsStore.wins[t]+"</b></span></div>";
+        btn.addEventListener("click",function(){selectedTeam=Number(this.dataset.team);updateUI(true);resumeAudioContext();});
+        grid.appendChild(btn);
+      }
+    }
+
+    function updateUI(force){
+      if(!state)return;
+      var time=Math.max(0,state.time);var min=Math.floor(time/60),sec=Math.floor(time%60);
+      document.getElementById("timerText").textContent=String(min).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+      document.getElementById("battlePhase").textContent=state.phase;
+      var ranked=getRankedTeams();var leader=ranked[0];
+      document.getElementById("leaderName").textContent=teamName(leader.id)+" "+leader.territory.toLocaleString("ko-KR")+"칸";
+      document.getElementById("leaderDot").style.background=TEAM_DATA[leader.id].color;
+      document.getElementById("leaderDot").style.color=TEAM_DATA[leader.id].color;
+      var captured=0;for(var tt=0;tt<4;tt++)captured+=teams[tt].outposts;
+      document.getElementById("statusTitle").textContent=captured<23?"중립 거점 "+captured+"/23 점령 · "+teamName(leader.id)+" 팀 선두":"23개 거점이 모두 전투에 편입 · 재점령전 진행 중";
+      document.getElementById("statusSub").textContent="영토 6,000칸: 공격 +20% · 이동 +30% · 자국 영토 안에서 이동 +20%";
+
+      var counts=[{}, {}, {}, {}];
+      for(tt=0;tt<4;tt++)for(var k=0;k<UNIT_ORDER.length;k++)counts[tt][UNIT_ORDER[k]]=0;
+      for(var i=0;i<units.length;i++)if(!units[i].dead)counts[units[i].team][units[i].type]++;
+      for(tt=0;tt<4;tt++){
+        var tm=teams[tt],rank=ranked.findIndex(function(x){return x.id===tt;})+1;
+        document.getElementById("rank"+tt).textContent=tm.alive?rank+"위":"본진 함락";
+        document.getElementById("territory"+tt).textContent=tm.territory.toLocaleString("ko-KR");
+        document.getElementById("buff"+tt).textContent="공격 +"+((tm.attackMul-1)*100).toFixed(1)+"%";
+        document.getElementById("bar"+tt).style.width=(tm.territory/CELL_COUNT*100).toFixed(1)+"%";
+        var total=0;for(k=0;k<UNIT_ORDER.length;k++)total+=counts[tt][UNIT_ORDER[k]];
+        document.getElementById("units"+tt).textContent=total;
+        document.getElementById("posts"+tt).textContent=tm.outposts;
+        var card=document.getElementById("teamCard"+tt);card.classList.toggle("selected",tt===selectedTeam);card.classList.toggle("eliminated",!tm.alive);
+      }
+
+      var sm=teams[selectedTeam];document.getElementById("detailPanel").style.setProperty("--selected-team",TEAM_DATA[selectedTeam].color);
+      document.getElementById("detailTitle").textContent=teamName(selectedTeam)+" 팀 병력 구성";
+      document.getElementById("detailBonus").textContent="공격 +"+((sm.attackMul-1)*100).toFixed(1)+"% · 이동 +"+((sm.moveMul-1)*100).toFixed(1)+"%";
+      var row=document.getElementById("unitRow");row.innerHTML="";
+      for(k=0;k<UNIT_ORDER.length;k++){
+        var type=UNIT_ORDER[k],def=UNIT_TYPES[type],chip=document.createElement("div");chip.className="unit-chip";
+        chip.innerHTML="<span class=\"unit-icon\">"+def.glyph+"</span><span class=\"unit-label\">"+def.label+"</span><span class=\"unit-count\">"+counts[selectedTeam][type]+"</span>";row.appendChild(chip);
+      }
+    }
+
+    function setupAudio(){
+      if(audio)return;
+      try{audio=new(window.AudioContext||window.webkitAudioContext)();}catch(e){audio=null;}
+    }
+
+    function resumeAudioContext(){if(soundOn&&audio&&audio.state==="suspended")audio.resume();}
+    var lastSound=0;
+    function playSound(kind,team){
+      if(!soundOn||!audio)return;var now=audio.currentTime;if(kind!=="capture"&&kind!=="hq"&&kind!=="win"&&now-lastSound<.045)return;lastSound=now;
+      var osc=audio.createOscillator(),gain=audio.createGain(),freq=kind==="shot"?420:kind==="tower"?180:kind==="hit"?90:kind==="build"?260:kind==="capture"?520:kind==="hq"?55:660;
+      osc.type=kind==="capture"||kind==="win"?"triangle":kind==="hq"?"sawtooth":"square";
+      osc.frequency.setValueAtTime(freq*(1+team*.045),now);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(38,freq*(kind==="capture"||kind==="win"?1.7:.45)),now+(kind==="hq"?.55:.11));
+      gain.gain.setValueAtTime(kind==="hq"?.08:.025,now);gain.gain.exponentialRampToValueAtTime(.0001,now+(kind==="capture"||kind==="win"?.34:kind==="hq"?.58:.12));
+      osc.connect(gain);gain.connect(audio.destination);osc.start(now);osc.stop(now+.62);
+    }
+
+    function updatePauseUI(){
+      document.getElementById("pauseCover").classList.toggle("show",paused||autoPaused);
+      document.getElementById("pauseTitle").textContent=autoPaused?"다른 화면을 보는 동안 정지됨":"전투 일시정지";
+      document.getElementById("pauseSub").textContent=autoPaused?"돌아오면 자동으로 계속됩니다":"아래 재생 버튼을 눌러 계속하세요";
+      document.getElementById("pauseBtn").classList.toggle("active",!paused);
+      document.querySelector("#pauseBtn .icon").textContent=paused?"▶":"Ⅱ";
+      document.getElementById("pauseLabel").textContent=paused?"재생":"정지";
+    }
+
+    document.getElementById("pauseBtn").addEventListener("click",function(){paused=!paused;updatePauseUI();resumeAudioContext();});
+    document.getElementById("speedBtn").addEventListener("click",function(){speedIndex=(speedIndex+1)%speeds.length;document.getElementById("speedLabel").textContent=speeds[speedIndex]+"배속";this.classList.toggle("active",speedIndex>0);resumeAudioContext();});
+    document.getElementById("gridBtn").addEventListener("click",function(){showGrid=!showGrid;this.classList.toggle("active",showGrid);resumeAudioContext();});
+    document.getElementById("soundBtn").addEventListener("click",function(){soundOn=!soundOn;if(soundOn){setupAudio();resumeAudioContext();playSound("capture",selectedTeam);}this.classList.toggle("active",soundOn);document.getElementById("soundLabel").textContent=soundOn?"음향 켬":"음향";});
+    document.getElementById("fullBtn").addEventListener("click",function(){var el=document.documentElement;if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(function(){});else if(document.exitFullscreen)document.exitFullscreen();});
+
+    canvas.addEventListener("pointerdown",function(ev){
+      var r=canvas.getBoundingClientRect();var x=(ev.clientX-r.left)/r.width*80,y=(ev.clientY-r.top)/r.height*80;
+      var best=-1,bd=36;
+      for(var t=0;t<4;t++){if(!teams[t].alive)continue;var d=dist2(x,y,teams[t].hq.x,teams[t].hq.y);if(d<bd){bd=d;best=t;}}
+      if(best<0){for(var i=0;i<units.length;i++){var u=units[i];if(u.dead)continue;d=dist2(x,y,u.x,u.y);if(d<bd){bd=d;best=u.team;}}}
+      if(best>=0){selectedTeam=best;updateUI(true);}resumeAudioContext();
+    });
+
+    document.addEventListener("visibilitychange",function(){autoPaused=document.hidden;updatePauseUI();lastTime=performance.now();});
+    window.addEventListener("resize",resize,{passive:true});
+
+    function installManifest(){
+      try{
+        var svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='108' fill='#090d18'/><path d='M42 42h202v202H42z' fill='#ff405d'/><path d='M268 42h202v202H268z' fill='#42a5ff'/><path d='M42 268h202v202H42z' fill='#ffd447'/><path d='M268 268h202v202H268z' fill='#39df8f'/><circle cx='256' cy='256' r='72' fill='#0b1020' stroke='white' stroke-width='18'/></svg>";
+        var icon="data:image/svg+xml,"+encodeURIComponent(svg);
+        var manifest={name:"사색 영토전쟁 80",short_name:"영토전쟁80",start_url:".",display:"standalone",orientation:"portrait",background_color:"#070a12",theme_color:"#090d18",icons:[{src:icon,sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
+        document.getElementById("dynamicManifest").href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));
+        var touch=document.createElement("link");touch.rel="apple-touch-icon";touch.href=icon;document.head.appendChild(touch);
+      }catch(e){}
+    }
+
+    function frame(now){
+      var real=Math.min(.1,(now-lastTime)/1000);lastTime=now;
+      if(state&&state.ended&&restartAt&&now>=restartAt){roundNo++;resetGame();}
+      if(!paused&&!autoPaused&&state&&!state.ended){
+        accumulator+=real*speeds[speedIndex];var loops=0;
+        while(accumulator>=STEP&&loops<10){update(STEP);accumulator-=STEP;loops++;}
+      }
+      uiClock+=real;if(uiClock>.25){uiClock=0;updateUI(false);}
+      render();requestAnimationFrame(frame);
+    }
+
+    createTeamCards();installManifest();resetGame();resize();requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
