@@ -684,6 +684,17 @@
         var sk = s.type === "wall" ? 6 : (s.type === "hq" ? 7 : (s.type === "outpost" ? 8 : 5));
         var ss = s.type === "wall" ? 1.25 : (s.type === "hq" ? 5.5 : 3.25);
         addPoint(s.x, s.y, ss, sc, sk, s.team >= 0 ? .95 : .78);
+        if (s.type === "hq") {
+          addPoint(s.x, s.y, ss * .64, [1,1,1], 7, .28);
+          addPoint(s.x, s.y - ss * .56, ss * .34, sc, 9, .95);
+          addPoint(s.x - ss*.78, s.y - ss*.28, ss*.28, sc, 5, .9);
+          addPoint(s.x + ss*.78, s.y - ss*.28, ss*.28, sc, 5, .9);
+        } else if (s.type === "outpost") {
+          addPoint(s.x, s.y, ss * .68, s.team >= 0 ? sc : [.82,.87,.95], 8, .34);
+          addPoint(s.x, s.y - ss*.58, ss*.36, s.team >= 0 ? sc : [.95,.96,1], 9, .96);
+          addPoint(s.x - ss*.7, s.y + ss*.35, ss*.22, s.team >= 0 ? sc : [.75,.8,.9], 5, .82);
+          addPoint(s.x + ss*.7, s.y + ss*.35, ss*.22, s.team >= 0 ? sc : [.75,.8,.9], 5, .82);
+        }
         var hpRatio = clamp(s.hp / s.maxHp, 0, 1);
         if (hpRatio < .99) {
           addPoint(s.x - ss * .38 + hpRatio * ss * .38, s.y - ss * .64, Math.max(.35, ss * hpRatio * .72), sc, 6, .9);
@@ -765,6 +776,14 @@
         c.globalAlpha=s.team<0?.86:.95; c.fillStyle=s.team<0?"#bec8da":teamColor(s.team);
         c.fillRect((s.x-size/2)*scale,(s.y-size/2)*scale,size*scale,size*scale);
         c.strokeStyle=s.type==="outpost"?"rgba(255,255,255,.75)":"rgba(3,8,18,.75)"; c.lineWidth=Math.max(1,scale*.18); c.strokeRect((s.x-size/2)*scale,(s.y-size/2)*scale,size*scale,size*scale);
+        if(s.type==="hq"||s.type==="outpost"){
+          var cc=s.team<0?"#eef5ff":teamColor(s.team), cx=s.x*scale, cy=s.y*scale;
+          c.fillStyle="rgba(5,10,20,.75)"; c.fillRect(cx-size*scale*.28,cy-size*scale*.12,size*scale*.56,size*scale*.48);
+          c.fillStyle=cc; c.globalAlpha=.95; c.beginPath(); c.arc(cx,cy-size*scale*.14,Math.max(2,size*scale*.16),0,TAU);c.fill();
+          c.fillRect(cx-size*scale*.68,cy-size*scale*.56,size*scale*.13,size*scale*.55);
+          c.beginPath();c.moveTo(cx-size*scale*.55,cy-size*scale*.56);c.lineTo(cx-size*scale*.18,cy-size*scale*.44);c.lineTo(cx-size*scale*.55,cy-size*scale*.31);c.fill();
+          if(s.type==="hq"){c.fillRect(cx+size*scale*.55,cy-size*scale*.56,size*scale*.13,size*scale*.55);c.beginPath();c.moveTo(cx+size*scale*.68,cy-size*scale*.56);c.lineTo(cx+size*scale*.98,cy-size*scale*.44);c.lineTo(cx+size*scale*.68,cy-size*scale*.31);c.fill();}
+        }
       }
       for (i=0;i<units.length;i++) {
         var u=units[i];if(u.dead)continue;var r=Math.max(2,UNIT_TYPES[u.type].size*scale*.58);
