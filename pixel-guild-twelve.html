@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0d1322">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="픽셀 원정대">
+<title>픽셀 원정대: 12인의 길드 — PIXEL GUILD: TWELVE</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#05070c;overflow:hidden;overscroll-behavior:none}
+body{font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;color:#e6dcc3;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;touch-action:manipulation}
+img,canvas{display:block}
+.pix{image-rendering:pixelated;image-rendering:crisp-edges}
+#app{position:relative;margin:0 auto;max-width:430px;height:100dvh;display:flex;flex-direction:column;background:#0d1322;overflow:hidden;box-shadow:0 0 0 2px #1b2438,0 0 40px #000}
+/* ---- 픽셀 프레임 ---- */
+.pf{background:#131a2c;border:2px solid #4a3b26;box-shadow:0 0 0 2px #080b13,inset 0 0 0 1px #281f11}
+.pf2{background:#1a1408;border:2px solid #6b5230;box-shadow:0 0 0 2px #080b13,inset 0 0 0 1px #362a16}
+/* ---- 상단바 ---- */
+#topbar{flex:none;display:flex;align-items:center;gap:6px;padding:4px 8px;padding-top:calc(4px + env(safe-area-inset-top));background:#191122;background:linear-gradient(#221830,#150f1e);border-bottom:2px solid #4a3b26;box-shadow:0 2px 0 #080b13}
+#tbTitle{font-size:11px;font-weight:800;letter-spacing:1px;color:#e8a33d;line-height:1.1}
+#tbTitle span{display:block;font-size:9px;color:#8d7a55;letter-spacing:3px}
+#tbInfo{flex:1;display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding-left:4px}
+#tbQ{font-size:12px;color:#f0e6cd;font-weight:700}
+#tbPhase{font-size:10px;color:#9aa7c4;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tbtn{min-width:44px;min-height:40px;font-size:11px;font-weight:700;color:#d8cba6;background:#241b30;border:2px solid #4a3b26;box-shadow:0 2px 0 #080b13}
+.tbtn:active{transform:translateY(1px)}
+.tbtn.on{color:#0d1322;background:#e8a33d;border-color:#f4c86e}
+/* ---- 메인 장면 ---- */
+#sceneWrap{position:relative;flex:none;height:43%;min-height:190px;background:#000;overflow:hidden;border-bottom:2px solid #4a3b26}
+#cv{width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+#bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bub{position:absolute;transform:translate(-50%,-100%);max-width:60%;background:#f4ecd8;color:#2a2318;font-size:10px;line-height:1.25;padding:3px 6px;border:2px solid #2a2318;box-shadow:2px 2px 0 rgba(0,0,0,.5);white-space:normal;animation:bubIn .15s steps(2)}
+.bub:after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-3px;border:3px solid transparent;border-top-color:#2a2318}
+@keyframes bubIn{from{opacity:0}to{opacity:1}}
+#sceneTag{position:absolute;left:6px;top:6px;font-size:10px;color:#f0e6cd;background:rgba(10,12,20,.72);padding:2px 6px;border:1px solid #4a3b26;pointer-events:none}
+/* ---- 진행 영역 ---- */
+#prog{flex:none;max-height:36%;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch}
+.selHead{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#c9b98d}
+.selHead b{color:#e8a33d}
+.tbar{height:6px;background:#080b13;border:1px solid #3a2f1e;position:relative;overflow:hidden}
+.tbar i{position:absolute;left:0;top:0;bottom:0;background:#e8a33d;transition:width .2s linear}
+.qcard{display:block;width:100%;text-align:left;padding:7px 8px;min-height:64px}
+.qcard:active{filter:brightness(1.2)}
+.qcTop{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.qcTitle{font-size:12.5px;font-weight:800;color:#f0e6cd}
+.tag{font-size:9.5px;padding:1px 5px;border:1px solid #4a3b26;background:#080b13;color:#c9b98d;white-space:nowrap}
+.tag.dif{color:#e88a5a;border-color:#6b3a26}
+.qcMid{margin-top:3px;font-size:10.5px;color:#9aa7c4;display:flex;gap:8px;flex-wrap:wrap}
+.qcMid b{color:#7fd0a0;font-weight:600}
+.qcMid em{color:#e07a6a;font-style:normal}
+.qcMid u{color:#c9a4e8;text-decoration:none}
+.runBox{padding:8px}
+.runTitle{font-size:12.5px;font-weight:800;color:#f0e6cd;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.runTitle span{font-size:11px;color:#e8a33d;white-space:nowrap}
+.runSub{font-size:10.5px;color:#9aa7c4;margin:3px 0 5px}
+.pRow{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.pRow img{width:32px;height:32px;border:2px solid #4a3b26;background:#080b13}
+.resBox{padding:8px;display:flex;align-items:center;gap:10px}
+.gradeBig{font-size:34px;font-weight:900;width:56px;height:56px;display:flex;align-items:center;justify-content:center;border:3px solid;flex:none}
+.g_S{color:#f2b93b;border-color:#f2b93b;text-shadow:0 0 8px #f2b93b88}
+.g_A{color:#b06ae8;border-color:#b06ae8}
+.g_B{color:#4aa3e8;border-color:#4aa3e8}
+.g_C{color:#58c05a;border-color:#58c05a}
+.g_F{color:#e05a5a;border-color:#e05a5a}
+.resInfo{flex:1;min-width:0;font-size:11px;color:#c9b98d;line-height:1.5}
+.resInfo b{color:#f0e6cd}
+.mini{min-height:32px;min-width:44px;padding:2px 8px;font-size:10.5px;font-weight:700;background:#241b30;border:2px solid #4a3b26;color:#d8cba6}
+.mini:active{transform:translateY(1px)}
+/* ---- 로그 ---- */
+#logWrap{flex:1;min-height:0;display:flex;flex-direction:column;border-top:2px solid #2a2213;background:#0a0e1a}
+#logWrap.fold #logList{display:none}
+#logWrap.fold{flex:none}
+#logHead{flex:none;display:flex;justify-content:space-between;align-items:center;padding:3px 8px;font-size:10.5px;color:#8d7a55;letter-spacing:1px}
+#logList{flex:1;min-height:0;overflow-y:auto;padding:0 8px 8px;-webkit-overflow-scrolling:touch}
+.lg{display:flex;gap:5px;align-items:flex-start;font-size:11px;line-height:1.45;padding:2px 0;color:#b8c2d8;animation:lgIn .18s steps(3)}
+@keyframes lgIn{from{opacity:0;transform:translateY(3px)}to{opacity:1}}
+.lg img{width:14px;height:14px;margin-top:2px;flex:none}
+.lg.t_대화{color:#d8cba6}.lg.t_대화 .nm{color:#e8a33d}
+.lg.t_전투{color:#e8a08a}
+.lg.t_발견{color:#8ad0e8}
+.lg.t_위기{color:#e05a5a;font-weight:600}
+.lg.t_특수능력{color:#c9a4e8;font-weight:600}
+.lg.t_전리품{color:#f2c96e}
+.lg.t_시스템{color:#7d8ba8;font-size:10.5px}
+/* ---- 하단 메뉴 ---- */
+#nav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);background:#160f20;border-top:2px solid #4a3b26;padding-bottom:env(safe-area-inset-bottom)}
+#nav button{position:relative;min-height:52px;font-size:11px;font-weight:700;color:#9a8c68;border-right:1px solid #080b13}
+#nav button:last-child{border-right:none}
+#nav button.cur{color:#e8a33d;background:#241b30}
+#nav .dot{position:absolute;top:8px;right:16%;width:7px;height:7px;background:#e05a5a;border:1px solid #fff;display:none}
+#nav .dot.on{display:block}
+/* ---- 바텀시트 ---- */
+#sheet{position:absolute;inset:0;z-index:40;display:none}
+#sheet.open{display:block}
+#sheetBk{position:absolute;inset:0;background:rgba(3,5,10,.6)}
+#sheetBox{position:absolute;left:0;right:0;bottom:0;height:85%;display:flex;flex-direction:column;animation:up .18s ease-out;padding-bottom:env(safe-area-inset-bottom)}
+@keyframes up{from{transform:translateY(30%)}to{transform:translateY(0)}}
+#sheetTop{flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid #2a2213}
+#sheetLive{flex:1;font-size:10.5px;color:#7fd0a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sheetTitle{flex:none;padding:5px 10px 3px;font-size:13px;font-weight:800;color:#e8a33d;display:flex;align-items:center;gap:8px}
+#sheetBody{flex:1;min-height:0;overflow-y:auto;padding:6px 10px 14px;-webkit-overflow-scrolling:touch}
+.tabRow{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.tabRow button{min-height:34px;padding:2px 10px;font-size:11px;font-weight:700;background:#0e1424;border:2px solid #2c2a3a;color:#9aa7c4}
+.tabRow button.cur{background:#e8a33d;color:#171207;border-color:#f4c86e}
+.tabRowScroll{display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.tabRowScroll button{position:relative;flex:none;min-height:34px;padding:2px 8px;font-size:10.5px;font-weight:700;background:#0e1424;border:2px solid #2c2a3a;color:#9aa7c4;white-space:nowrap}
+.tabRowScroll button.cur{background:#e8a33d;color:#171207;border-color:#f4c86e}
+.tabRowScroll .dot{position:absolute;top:-2px;right:-2px;width:7px;height:7px;background:#e05a5a;border:1px solid #fff}
+.filterRow{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.filterRow select{min-height:34px;font-size:11px;background:#0e1424;color:#c9b98d;border:2px solid #2c2a3a;padding:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mcard{display:flex;gap:6px;padding:6px;align-items:center;text-align:left;min-height:60px}
+.mcard:active{filter:brightness(1.25)}
+.mcard img{width:40px;height:40px;flex:none;border:2px solid #4a3b26;background:#080b13}
+.mcInfo{flex:1;min-width:0;font-size:10px;color:#9aa7c4;line-height:1.35}
+.mcInfo b{display:block;font-size:11.5px;color:#f0e6cd}
+.itRow{display:flex;gap:8px;padding:6px;align-items:center;width:100%;text-align:left;margin-bottom:5px}
+.itRow:active{filter:brightness(1.25)}
+.itRow img{width:40px;height:40px;flex:none;border:2px solid;background:#080b13}
+.itInfo{flex:1;min-width:0;font-size:10px;color:#9aa7c4;line-height:1.4}
+.itInfo b{display:block;font-size:11.5px}
+.badge{font-size:9px;padding:0 4px;border:1px solid;margin-left:4px}
+.r0{color:#a8adb5;border-color:#5a5f68}.r1{color:#6bd06d;border-color:#3a7a3c}.r2{color:#5eb2f0;border-color:#2c6a9c}.r3{color:#c084f2;border-color:#7a44a8}.r4{color:#f2b93b;border-color:#a87a1c}
+.br0{border-color:#5a5f68}.br1{border-color:#3a7a3c}.br2{border-color:#2c6a9c}.br3{border-color:#7a44a8}.br4{border-color:#f2b93b;box-shadow:0 0 6px #f2b93b66}
+.colGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.colCell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#0a0e1a;border:2px solid #2c2a3a;padding:2px}
+.colCell img{width:100%;height:100%;object-fit:contain}
+.colCell.unk{opacity:.85}
+.colCell .nb{position:absolute;top:1px;right:1px;width:7px;height:7px;background:#e05a5a;border:1px solid #fff}
+.statLine{display:flex;align-items:center;gap:6px;font-size:11px;margin:3px 0}
+.statLine .sn{width:30px;color:#9aa7c4;flex:none}
+.statLine .sv{width:64px;text-align:right;color:#f0e6cd;flex:none;font-variant-numeric:tabular-nums}
+.statLine .sv b{color:#7fd0a0;font-weight:600}
+.sbar{flex:1;height:8px;background:#080b13;border:1px solid #2c2a3a;position:relative}
+.sbar i{position:absolute;left:0;top:0;bottom:0;background:#4aa3e8}
+.sbar i.eq{background:#7fd0a0}
+.kv{display:flex;justify-content:space-between;font-size:11px;padding:2.5px 0;border-bottom:1px dashed #1e2436;color:#9aa7c4}
+.kv b{color:#f0e6cd;font-weight:600}
+.abChip{display:inline-block;font-size:10px;color:#c9a4e8;border:1px solid #5a3d7a;background:#160f22;padding:2px 6px;margin:2px 3px 2px 0}
+.secT{font-size:11px;font-weight:800;color:#8d7a55;letter-spacing:1px;margin:10px 0 4px}
+.btnRow{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.btn{min-height:44px;padding:6px 12px;font-size:12px;font-weight:800;background:#241b30;border:2px solid #4a3b26;color:#e6dcc3;box-shadow:0 2px 0 #080b13}
+.btn:active{transform:translateY(1px)}
+.btn.warn{border-color:#7a2c2c;color:#e05a5a}
+.btn.gold{background:#e8a33d;color:#171207;border-color:#f4c86e}
+.backBtn{font-size:11px;font-weight:700;color:#9aa7c4;background:#0e1424;border:2px solid #2c2a3a;min-height:34px;padding:0 10px}
+/* ---- 오버레이 ---- */
+#ovl{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(4,6,12,.78);padding:16px}
+#ovl.open{display:flex}
+.ovBox{width:100%;max-height:88%;overflow-y:auto;padding:12px 10px;text-align:center;-webkit-overflow-scrolling:touch}
+.ovTitle{font-size:13px;font-weight:900;color:#e8a33d;letter-spacing:2px;margin-bottom:2px}
+.ovSub{font-size:10.5px;color:#9aa7c4;margin-bottom:10px}
+.pgrid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pcard{width:64px;perspective:400px}
+.pcard .in{position:relative;width:64px;height:82px;transform:rotateY(90deg);animation:flip .4s ease forwards;animation-delay:var(--d);background:#0e1424;border:2px solid #4a3b26;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+@keyframes flip{to{transform:rotateY(0)}}
+.pcard img{width:48px;height:48px}
+.pcard span{font-size:10px;font-weight:700;color:#f0e6cd}
+.lootList{display:flex;flex-direction:column;gap:6px;text-align:left}
+.lootIt{display:flex;gap:8px;align-items:center;padding:6px;background:#10162a;border:2px solid;animation:lootIn .3s steps(4)}
+@keyframes lootIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.lootIt img{width:40px;height:40px;flex:none;background:#080b13}
+.lootIt .li{flex:1;min-width:0;font-size:10px;color:#9aa7c4;line-height:1.4}
+.lootIt .li b{display:block;font-size:11.5px}
+.newTag{color:#e05a5a;font-weight:800;font-size:9px;margin-left:4px}
+.lgd{animation:lgdGlow 1s steps(4) infinite alternate}
+@keyframes lgdGlow{from{box-shadow:0 0 4px #f2b93b66}to{box-shadow:0 0 14px #f2b93bcc}}
+.cfBox{max-width:300px;padding:14px;text-align:center}
+.cfBox p{font-size:12px;color:#c9b98d;line-height:1.6;margin-bottom:12px}
+@media(min-width:431px){#app{margin-top:0}}
+</style>
+</head>
+<body>
+<div id="app">
+ <header id="topbar">
+  <div id="tbTitle">PIXEL GUILD<span>TWELVE</span></div>
+  <div id="tbInfo"><b id="tbQ">퀘스트 0회</b><i id="tbPhase">준비 중</i></div>
+  <div id="tbBtns" style="display:flex;gap:4px">
+   <button id="btnSnd" class="tbtn">소리</button>
+   <button id="btnPause" class="tbtn">정지</button>
+   <button id="btnSpd" class="tbtn">×1</button>
+  </div>
+ </header>
+ <div id="sceneWrap">
+  <canvas id="cv" class="pix"></canvas>
+  <div id="bubbles"></div>
+  <div id="sceneTag"></div>
+ </div>
+ <section id="prog"></section>
+ <section id="logWrap">
+  <div id="logHead"><span>실시간 로그</span><button id="logTgl" class="mini">접기</button></div>
+  <div id="logList"></div>
+ </section>
+ <nav id="nav">
+  <button data-t="ctrl">관제실</button>
+  <button data-t="mem">멤버</button>
+  <button data-t="loot">전리품</button>
+  <button data-t="col">수집품<i class="dot" id="dotCol"></i></button>
+  <button data-t="rec">기록</button>
+ </nav>
+ <div id="sheet"><div id="sheetBk"></div><div id="sheetBox" class="pf">
+  <div id="sheetTop"><div id="sheetLive"></div><button id="sheetX" class="mini">닫기</button></div>
+  <div id="sheetTitle"></div>
+  <div id="sheetBody"></div>
+ </div></div>
+ <div id="ovl"></div>
+</div>
+<script>
+'use strict';
+/* ================================================================
+   상수와 데이터 정의
+================================================================ */
+const SAVE_KEY='PGT12_SAVE', SAVE_VER=1;
+const ST=['전투','방어','기동','지식','감지','행운'];
+const RAR=['일반','고급','희귀','영웅','전설'];
+
+/* ---- 결정론적 난수 생성기 ---- */
+function mulberry(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let RSEED=((Date.now()%2147483647)^0x9e3779b9)|0;
+let rng=mulberry(RSEED);
+const R01=()=>rng();
+const RI=(a,b)=>a+Math.floor(rng()*(b-a+1));
+const RP=a=>a[Math.floor(rng()*a.length)];
+const pad3=n=>String(n).padStart(3,'0');
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const r1=v=>Math.round(v*10)/10;
+function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a} // Fisher-Yates
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ---- 특수능력 데이터 (정확히 20종) ---- */
+const ABIL_LIST=[
+ {id:'A01',name:'선봉 본능',desc:'전투 중심 퀘스트에서 전투 기여도 증가. 첫 전투 사건에서 추가 보너스.'},
+ {id:'A02',name:'철벽 수비',desc:'방어 기여도 증가. 파티가 받는 부정적 사건 피해 감소.'},
+ {id:'A03',name:'매의 눈',desc:'감지 기여도 증가. 매복·함정 발견 확률 증가.'},
+ {id:'A04',name:'경로 개척',desc:'기동 기여도 증가. 이동·추적 사건의 실패 페널티 감소.'},
+ {id:'A05',name:'현장 응급처치',desc:'한 번의 부상 또는 큰 페널티를 완화. 치유 로그 발생.'},
+ {id:'A06',name:'유물 감정',desc:'수집품 등급 판정 보너스. 첫 발견 수집품의 설명 해금.'},
+ {id:'A07',name:'보급 달인',desc:'소모품 효과 증가. 일정 확률로 소모품 수량이 줄지 않음.'},
+ {id:'A08',name:'조율 지휘',desc:'출동 인원이 많을수록 파티 시너지 증가. 멤버 충돌 사건 감소.'},
+ {id:'A09',name:'기계 해독',desc:'공장·폐허·자동인형·기계 장치 퀘스트 보너스.'},
+ {id:'A10',name:'마력 공명',desc:'마법·저주·고대 유적 퀘스트 보너스.'},
+ {id:'A11',name:'독성 내성',desc:'늪지·독·포자 페널티 감소.'},
+ {id:'A12',name:'화염 친화',desc:'화산·용광로·고온 지형 보너스.'},
+ {id:'A13',name:'설원 생존',desc:'설산·혹한·눈보라 지형 보너스.'},
+ {id:'A14',name:'야행성',desc:'밤과 지하 퀘스트 보너스.'},
+ {id:'A15',name:'흥정술',desc:'협상 퀘스트 보너스. 소모품 보상량 증가.'},
+ {id:'A16',name:'보물 후각',desc:'추가 전리품 슬롯 등장 확률 증가.'},
+ {id:'A17',name:'연쇄 공격',desc:'토벌·방어 퀘스트의 전투 사건에서 추가 공격 발생.'},
+ {id:'A18',name:'행운의 역전',desc:'퀘스트당 한 번, 실패 직전의 결과에 재판정 기회.'},
+ {id:'A19',name:'분위기 메이커',desc:'사기 저하와 파티 갈등 완화. 대화 이벤트 증가.'},
+ {id:'A20',name:'수집 강박',desc:'수집품 드롭 확률 증가. 중복 획득 확률 증가.'}
+];
+const ABIL={};ABIL_LIST.forEach(a=>ABIL[a.id]=a);
+
+/* ---- 12명의 고정 멤버 ----
+   sp: 스프라이트 설정 / quotes: 고유 대사 템플릿 (6개 이상) */
+const MEMBERS=[
+ {name:'아린',title:'붉은 선봉대장',desc:'붉은 망토를 두른 선봉대장. 성급하지만 누구보다 책임감이 강하다.',
+  stats:[86,72,64,48,56,58],ab:['A01','A08','A17','A19'],
+  sp:{skin:'#e8b48a',hair:'#7a4a2a',hairs:'short',c1:'#8a2a22',c2:'#5a1c16',acc:'#d8d8e0',cape:'#b03428',wpn:'sword'},
+  quotes:['돌격 준비. 내가 앞장선다.','머뭇거릴 시간 없다!','전원, 나를 따르라!','이 정도는 가볍지.','책임은 내가 진다.','좋아, 정면 돌파다!']},
+ {name:'브릭',title:'청동 방패의 수호자',desc:'거대한 청동 방패를 든 드워프. 무뚝뚝하지만 동료의 등 뒤를 지킨다.',
+  stats:[65,96,31,43,48,36],ab:['A02','A05','A13'],
+  sp:{skin:'#e0a878',hair:'#b8763a',hairs:'beard',c1:'#8a6a34',c2:'#4a3a1c',acc:'#c89a4a',helm:1,shield:1,small:1,wpn:'hammer'},
+  quotes:['...뒤에 서라.','내 방패는 안 뚫린다.','흥.','버틴다. 그게 전부다.','돌은 정직하지.','끝났나. 돌아가자.']},
+ {name:'실바',title:'숲의 은빛 정찰자',desc:'초록 후드의 정찰자. 바람의 방향만으로 적의 수를 읽는다.',
+  stats:[56,40,93,64,96,61],ab:['A03','A04','A11','A14','A16','A20'],
+  sp:{skin:'#e8c8a0',hair:'#cfd4dc',hairs:'long',c1:'#2c5a34',c2:'#1a3a22',acc:'#8fae5c',hood:1,wpn:'bow'},
+  quotes:['바람 방향이 바뀌었어.','발자국... 셋. 조용히.','저 풀숲, 방금 움직였어.','길은 내가 찾을게.','활시위는 이미 당겨져 있어.','서두르면 흔적을 놓쳐.']},
+ {name:'모라',title:'호박빛 연금술사',desc:'물약 가방을 멘 연금술사. 폭발도 계획의 일부라고 우긴다.',
+  stats:[34,52,58,92,68,74],ab:['A05','A07','A09','A10','A11','A15','A19'],
+  sp:{skin:'#f0c8a8',hair:'#c06a34',hairs:'bun',c1:'#c8862c',c2:'#8a5a1c',acc:'#5cc8b0',glasses:1,wpn:'flask'},
+  quotes:['오오, 이 반응은?!','섞어보면 알겠지!','좋은 실험 재료다!','음... 끓는점이 이상한데.','이 냄새, 기록해야 해.','폭발은... 계획의 일부야.']},
+ {name:'카인',title:'검은 화약의 사수',desc:'검은 코트의 저격수. 말은 짧고 총성은 더 짧다.',
+  stats:[92,43,78,60,82,42],ab:['A03','A17'],
+  sp:{skin:'#d8b090',hair:'#2a2a34',hairs:'over',c1:'#22222c',c2:'#141419',acc:'#8a2a22',wpn:'gun'},
+  quotes:['...조준.','끝.','방해하지 마.','한 발이면 돼.','...뒤쪽이다.','시끄럽군.']},
+ {name:'루미',title:'별빛 도서관의 마도학자',desc:'떠다니는 마도서와 함께하는 학자. 세상 모든 일이 연구 대상이다.',
+  stats:[76,37,54,99,73,67],ab:['A05','A09','A10','A12','A14','A15','A18','A20'],
+  sp:{skin:'#f0d0b8',hair:'#b8a4e8',hairs:'long',c1:'#5a3d8a',c2:'#3a2760',acc:'#e8d44a',book:1,wpn:'staff'},
+  quotes:['흥미로운 마력 파동이군요.','이 문양은 제3기 왕조 양식.','가설을 검증할 시간입니다.','지식은 최강의 무기죠.','기록에 없는 술식이라...','계산대로군요.']},
+ {name:'네브',title:'설원의 늑대 창병',desc:'흰 늑대 귀의 창병. 눈 냄새를 맡으면 신이 나서 달린다.',
+  stats:[84,69,89,39,78,54],ab:['A01','A04','A11','A13','A17'],
+  sp:{skin:'#e8c0a0',hair:'#e8ecf2',hairs:'short',c1:'#7a8ba0',c2:'#4a5a70',acc:'#3a7ac8',ears:'wolf',tail:'#e8ecf2',wpn:'spear'},
+  quotes:['먼저 가는 쪽이 이기는 거야!','좋아, 몸이 풀린다!','눈 냄새다! 신난다!','승부다!','내 창이 제일 빨라!','지는 건 딱 질색이야!']},
+ {name:'틱',title:'톱니바퀴 기술자',desc:'고글을 쓴 고블린 기술자. 기계를 보면 일단 분해하고 싶어한다.',
+  stats:[45,55,64,95,71,50],ab:['A03','A04','A06','A07','A09','A12','A15','A16','A20'],
+  sp:{skin:'#8fae5c',hair:'#4a6a2c',hairs:'short',c1:'#6a5a3c',c2:'#443a26',acc:'#c8862c',goggles:1,small:1,wpn:'wrench'},
+  quotes:['분해하고싶다분해하고싶다...','톱니가 3개 모자라!','이 구조, 천재적인데?!','이 나사, 가져가도 되지?','수리 완료! 아마도!','기계는 거짓말을 안 해!']},
+ {name:'유노',title:'황금 꼬리 도적',desc:'노란 고양이 귀의 도적. 반짝이는 것은 전부 자기 것이라 믿는다.',
+  stats:[51,35,98,56,90,97],ab:['A03','A04','A06','A07','A11','A14','A15','A16','A18','A19','A20'],
+  sp:{skin:'#f0c8a0',hair:'#e8c02c',hairs:'short',c1:'#8a6a2c',c2:'#5a4420',acc:'#e8c02c',ears:'cat',tail:'#e8c02c',wpn:'daggers'},
+  quotes:['반짝이는 건 다 내 거야~','어라? 주머니가 무거워졌네?','보물 냄새가 솔솔~','걱정 마, 절반만 가질게.','자물쇠? 그런 건 장식이지.','오늘도 수확이 좋네~']},
+ {name:'바실',title:'청록빛 유랑 악사',desc:'깃털 모자의 악사. 칼보다 한 곡이 빠를 때가 있다고 믿는다.',
+  stats:[41,58,66,85,60,87],ab:['A08','A15','A18','A19'],
+  sp:{skin:'#e8bc98',hair:'#3a2c22',hairs:'long',c1:'#1c7a72',c2:'#124a46',acc:'#e8d44a',hat:1,wpn:'lute'},
+  quotes:['바람도 노래를 부르는군.','칼보다 한 곡이 빠를 때가 있지.','자, 박자를 맞춰볼까.','이야기 하나가 또 태어나는군.','분위기가 무거우면 줄이 우는 법.','황금은 좋은 청중이지.']},
+ {name:'오르',title:'깊은물의 치유사',desc:'물방울 지팡이의 사제. 온화하고 헌신적이지만 길눈이 어둡다.',
+  stats:[32,75,44,96,74,69],ab:['A05'],
+  sp:{skin:'#f0d4bc',hair:'#7ab0d8',hairs:'long',c1:'#e8ecf2',c2:'#2c3a6a',acc:'#5cc8e8',wpn:'staff'},
+  quotes:['다치면 바로 말씀하세요.','깊은 물의 가호를...','저, 길이... 이쪽 맞나요?','무리하지 마세요, 제발.','치유의 물이여, 흐르라.','모두 무사해서 다행이에요.']},
+ {name:'제로',title:'가면 쓴 유물 사냥꾼',desc:'흰 가면의 수집가. 과거를 말하지 않지만 유물 앞에선 수다스러워진다.',
+  stats:[73,62,77,83,92,80],ab:['A03','A04','A06','A09','A10','A12','A13','A14','A16','A20'],
+  sp:{skin:'#d8c0a8',hair:'#6a6a74',hairs:'short',c1:'#54545e',c2:'#34343c',acc:'#c8b48a',mask:1,wpn:'chain'},
+  quotes:['...그 유물, 만지지 마라.','과거는 묻지 마.','기록에 없는 물건이군.','가면 아래는 비밀이다.','...수집할 가치가 있군.','진품이다. 틀림없이.']}
+];
+
+/* ---- 무기 15종 ---- */
+const WKINDS=['한손검','대검','쌍검','창','도끼','망치','활','석궁','장총','지팡이','마도서','채찍','단검','건틀릿','부메랑'];
+const WPRE=['예리한','묵직한','기민한','총명한','빛나는','낡은','고요한','검은','서리 맺힌','태엽 감긴','축복받은','굶주린'];
+const WORI=['달빛의','설원 수호자의','잊힌 왕국의','별 관측자의','심해 순례자의','용암 대장간의','황금 사막의','달빛 늪의','태엽 장인의','부유섬의','첫 새벽의','오래된 맹세의'];
+
+/* ---- 방어구 세트 25종 ---- */
+const ASETS=['가죽 추적자 세트','철갑 수호자 세트','청동 기병 세트','유리사막 방랑자 세트','설원 사냥꾼 세트','심해 잠수자 세트','맹독 방호 세트','폐허 기술자 세트','성목 수호자 세트','월광 암살자 세트','태양 기사 세트','별 점술사 세트','화산 대장장이 세트','풍뢰 유랑자 세트','왕실 근위대 세트','검은 도서관 세트','황혼 사제 세트','버섯 채집가 세트','용비늘 투사 세트','자동인형 조종사 세트','유령선 선원 세트','수정광부 세트','고대제국 집행관 세트','잿빛 순례자 세트','축제 광대 세트'];
+
+/* ---- 소모품 12종 ---- */
+const CONS=[
+ {id:'c01',name:'붉은 치유 물약',desc:'부상 사건의 페널티를 크게 줄인다.',use:'부상·전투 위기 시 자동 사용',tags:['부상'],col:'#e05a5a'},
+ {id:'c02',name:'푸른 집중 차',desc:'조사·지식 판정에 집중 보너스를 준다.',use:'조사·협상 퀘스트 시작 시',tags:['조사','협상'],col:'#5eb2f0'},
+ {id:'c03',name:'바람 비스킷',desc:'이동 사건에서 파티의 발걸음을 가볍게 한다.',use:'이동·추적 사건 시',tags:['이동'],col:'#e8d44a'},
+ {id:'c04',name:'독 해독제',desc:'독성 사건 하나를 무효화한다.',use:'독 지형 위기 시 자동 사용',tags:['독'],col:'#6bd06d'},
+ {id:'c05',name:'연막탄',desc:'전투 위기에서 안전하게 거리를 벌린다.',use:'전투 위기 시 자동 사용',tags:['전투위기'],col:'#a8adb5'},
+ {id:'c06',name:'야전 수리도구',desc:'기계 장치 사건에 보너스를 준다.',use:'기계 지형에서 자동 사용',tags:['기계'],col:'#c8862c'},
+ {id:'c07',name:'행운 사탕',desc:'전리품 희귀도를 소폭 끌어올린다.',use:'전리품 정산 시 자동 사용',tags:['정산'],col:'#f2b93b'},
+ {id:'c08',name:'야간 탐사용 등불',desc:'밤·지하 페널티를 줄인다.',use:'밤 지형에서 자동 사용',tags:['밤'],col:'#f2c96e'},
+ {id:'c09',name:'방한 수프',desc:'혹한 페널티를 줄인다.',use:'설원 위기 시 자동 사용',tags:['한파'],col:'#cfe4f2'},
+ {id:'c10',name:'냉각 젤',desc:'고온 페널티를 줄인다.',use:'화산 위기 시 자동 사용',tags:['고온'],col:'#5cc8e8'},
+ {id:'c11',name:'응급 야영 텐트',desc:'실패 직전의 점수를 보정한다.',use:'최종 위기에서 자동 사용',tags:['최종'],col:'#8a6a34'},
+ {id:'c12',name:'복제 탐사지도',desc:'수집품을 추가로 획득할 수 있다.',use:'조사·수집 퀘스트 정산 시',tags:['지도'],col:'#c8b48a'}
+];
+const CONSMAP={};CONS.forEach(c=>CONSMAP[c.id]=c);
+
+/* ---- 수집품 도감 생성기: 12테마 × 25종 = 정확히 300종 (C001~C300) ---- */
+const CTHEMES=[
+ {name:'잊힌 왕국의 동전',noun:' 동전',mats:['구리','은','금','흑요석','미스릴'],forms:['닳은 ','금 간 ','쌍두 ','왕가의 ','축복받은 '],lore:'잊힌 왕국의 조폐소에서 주조된 화폐다.'},
+ {name:'고대 생물 화석',noun:' 화석',mats:['갑각룡','심해어','거대양치','뿔사슴','시조새'],forms:['부서진 ','온전한 ','호박 속 ','석화된 ','빛나는 '],lore:'대붕괴 이전 시대의 생물이 남긴 흔적이다.'},
+ {name:'야행성 곤충',noun:' 표본',mats:['반딧불이','달나방','흑요석 딱정벌레','유리날개 매미','별빛 거미'],forms:['어린 ','성체 ','변이 ','왕 ','유령 '],lore:'달빛 아래에서만 모습을 드러내는 곤충이다.'},
+ {name:'고산지대 꽃',noun:'',mats:['에델룬','서리방울꽃','바람나리','태양이끼꽃','달맞이별꽃'],forms:['시든 ','만개한 ','씨앗 상태의 ','압화된 ','수정화된 '],lore:'구름보다 높은 곳에서만 피는 꽃이다.'},
+ {name:'의식용 가면',noun:' 가면',mats:['늑대','까마귀','태양','달','뱀'],forms:['목제 ','채색 ','금박 ','균열 ','저주받은 '],lore:'옛 부족의 의식에 쓰이던 가면이다.'},
+ {name:'사라진 마을의 엽서',noun:' 엽서',mats:['항구','풍차','축제','설원','등대'],forms:['빛바랜 ','미발송 ','잉크 번진 ','기념 ','마지막 '],lore:'지도에서 지워진 마을의 풍경이 담겨 있다.'},
+ {name:'작은 오르골',noun:' 오르골',mats:['자장가','행진곡','왈츠','뱃노래','진혼곡'],forms:['태엽 빠진 ','은세공 ','목제 ','수정 ','금세공 '],lore:'태엽을 감으면 오래된 선율이 흘러나온다.'},
+ {name:'몬스터 목각인형',noun:' 목각인형',mats:['슬라임','고블린','와이번','골렘','해파리'],forms:['투박한 ','채색된 ','움직이는 ','명장의 ','축소된 '],lore:'떠돌이 목수가 깎았다는 몬스터 인형이다.'},
+ {name:'별자리 파편',noun:' 파편',mats:['방패자리','늑대자리','저울자리','등불자리','고래자리'],forms:['흐린 ','반짝이는 ','쌍둥이 ','떨어진 ','노래하는 '],lore:'하늘에서 떨어진 별자리의 조각이라 전해진다.'},
+ {name:'심해 조개',noun:' 조개',mats:['진주','나선','가시','야광','왕관'],forms:['새끼 ','성체 ','화석 ','쌍둥이 ','심연의 '],lore:'빛이 닿지 않는 바다 밑에서 자라는 조개다.'},
+ {name:'태엽시계 부품',noun:'',mats:['톱니','태엽','진자','문자판','유리덮개'],forms:['녹슨 ','반짝이는 ','정밀 ','거장의 ','영구기관 '],lore:'멈춘 공장의 거대한 시계에서 나온 부품이다.'},
+ {name:'여행자의 비밀 조리법',noun:' 조리법',mats:['스튜','빵','차','잼','파이'],forms:['얼룩진 ','암호화된 ','왕실 ','뒷골목 ','전설의 '],lore:'이름 없는 여행자가 남긴 요리 기록이다.'}
+];
+const COLLECT=[];
+(function(){
+ const rarByK=k=>k<10?0:k<17?1:k<22?2:k<24?3:4;
+ for(let t=0;t<12;t++){const th=CTHEMES[t];
+  for(let f=0;f<5;f++)for(let m=0;m<5;m++){
+   const k=f*5+m, idx=t*25+k+1, id='C'+pad3(idx);
+   const name=th.forms[f]+th.mats[m]+th.noun;
+   COLLECT.push({id,idx,theme:t,name,rar:rarByK(k),seed:idx*7919+t*13,
+    desc:name+'. '+th.lore+(k>=22?' 도감에서도 손꼽히는 진귀한 물건이다.':k>=17?' 좀처럼 보기 힘든 물건이다.':'')});
+  }}
+})();
+const COLBYID={};COLLECT.forEach(c=>COLBYID[c.id]=c);
+
+/* ---- 지역 10종 ---- */
+const REGIONS=[
+ {name:'이끼 낀 숲의 폐허',short:'이끼 폐허',weather:'rain',night:0,tags:['숲','함정','마력'],hazards:['덩굴 함정','무너진 석벽','독안개'],enemies:['이끼 골렘','가시멧돼지','폐허 살쾡이'],pal:{sky:'#22301f',mid:'#2c3d26',gnd:'#1a2818',ac:'#7fae5c',prop:'#3a5230'},themes:[1,2,0],lootN:'이끼 낀 유물'},
+ {name:'붉은 용암 광산',short:'용암 광산',weather:'ember',night:0,tags:['고온','붕괴'],hazards:['용암 분출','낙석','숨막히는 열기'],enemies:['화염 도마뱀','용암 슬라임','재의 박쥐'],pal:{sky:'#3a1512',mid:'#2c1210',gnd:'#201010',ac:'#e2622b',prop:'#4a1e14'},themes:[1,10,0],lootN:'달궈진 광석'},
+ {name:'눈보라 고개',short:'눈보라 고개',weather:'snow',night:0,tags:['한파','미로'],hazards:['눈사태','살을 에는 혹한','화이트아웃'],enemies:['설원 늑대','서리 하피','얼음 정령'],pal:{sky:'#31404f',mid:'#3a4c5e',gnd:'#4a5c6e',ac:'#cfe4f2',prop:'#26323e'},themes:[3,7,11],lootN:'얼어붙은 보급품'},
+ {name:'버려진 왕도',short:'옛 왕도',weather:'dust',night:1,tags:['밤','함정','협상'],hazards:['붕괴된 첨탑','유령의 속삭임','도굴꾼의 덫'],enemies:['왕도 유령','석상 병사','도굴꾼'],pal:{sky:'#23233a',mid:'#2b2b44',gnd:'#1c1c2a',ac:'#b9a26a',prop:'#34344e'},themes:[0,4,5],lootN:'왕가의 유품'},
+ {name:'심해 사원',short:'심해 사원',weather:'drip',night:1,tags:['마력','밤'],hazards:['무거운 수압','저주 문양','예측 못 한 급류'],enemies:['심해 무어','사원 수호상','전기 해파리'],pal:{sky:'#0e2740',mid:'#0c2035',gnd:'#0a1b30',ac:'#3fb8a8',prop:'#123048'},themes:[9,4,6],lootN:'물에 젖은 성물'},
+ {name:'황금 사막 교역로',short:'사막 교역로',weather:'sand',night:0,tags:['협상','미로'],hazards:['모래폭풍','신기루','발밑의 유사'],enemies:['사막 전갈','모래 상어','도적 무리'],pal:{sky:'#7a5a2b',mid:'#8a6a34',gnd:'#5d4420',ac:'#e9c46a',prop:'#4a3618'},themes:[0,5,11],lootN:'교역 상자'},
+ {name:'거대 버섯 동굴',short:'버섯 동굴',weather:'spore',night:1,tags:['독','밤'],hazards:['환각 포자','독습지','미끄러운 균사'],enemies:['포자 벌레','거대 달팽이','버섯 트롤'],pal:{sky:'#2a1f38',mid:'#241a32',gnd:'#1d1530',ac:'#b06ae8',prop:'#3a2a50'},themes:[2,7,3],lootN:'발광 버섯 꾸러미'},
+ {name:'태엽 인형 공장',short:'태엽 공장',weather:'steam',night:1,tags:['기계','함정'],hazards:['압착 프레스','증기 분출','폭주하는 톱니'],enemies:['폭주 자동인형','감시 드론','태엽 거미'],pal:{sky:'#33302b',mid:'#2b2823',gnd:'#221f1c',ac:'#b0803c',prop:'#3e382e'},themes:[10,6,7],lootN:'봉인된 부품 상자'},
+ {name:'달빛 늪지',short:'달빛 늪지',weather:'moon',night:1,tags:['독','밤','마력'],hazards:['늪수렁','홀리는 도깨비불','독가스'],enemies:['늪 하운드','도깨비불','가시 개구리'],pal:{sky:'#1c2b26',mid:'#182622',gnd:'#12201c',ac:'#79d6b1',prop:'#243a32'},themes:[2,8,4],lootN:'늪에 잠긴 궤짝'},
+ {name:'부유섬 유적',short:'부유섬',weather:'dust',night:0,tags:['마력','붕괴','미로'],hazards:['거센 돌풍','붕괴하는 발판','고대 결계'],enemies:['바람 정령','유적 파수꾼','하늘 뱀'],pal:{sky:'#26324a',mid:'#2e3c56',gnd:'#1a2438',ac:'#8fb7e8',prop:'#36486a'},themes:[8,6,5],lootN:'하늘빛 유물'}
+];
+
+/* ---- 퀘스트 유형 8종 (가중치: 전/방/기/지/감/운) ---- */
+const QTYPES=[
+ {name:'토벌',w:[.40,.30,.10,0,.15,.05],battle:1,tt:r=>RP(r.enemies)+' 무리 토벌'},
+ {name:'구조',w:[.10,.10,.30,.05,.35,.10],battle:0,tt:r=>'실종된 '+RP(['상인','조사대','견습 기사','약초꾼'])+' 구조'},
+ {name:'호위',w:[.20,.35,.25,0,.10,.10],battle:1,tt:r=>RP(['보급 마차','순례자','유물 상자','사절단'])+' 호위'},
+ {name:'조사',w:[.05,.05,.10,.40,.35,.05],battle:0,tt:r=>r.short+' '+RP(['이상 마력','붕괴 원인','고대 문헌','수상한 소문'])+' 조사'},
+ {name:'수집',w:[.05,.05,.20,.10,.35,.25],battle:0,tt:r=>RP(['희귀 광석','약초','유물 파편','표본'])+' 수집'},
+ {name:'방어',w:[.35,.40,.05,.05,.10,.05],battle:1,tt:r=>RP(['전초기지','보급로','피난 캠프','관문'])+' 방어전'},
+ {name:'협상',w:[0,.10,.05,.40,.10,.35],battle:0,tt:r=>RP(['상인 조합','토착 부족','몰락 귀족','도적단'])+'과의 협상'},
+ {name:'운반',w:[.10,.35,.35,.05,.10,.05],battle:0,tt:r=>RP(['위험 물자','봉인 상자','연금술 재료','태엽 부품'])+' 운반'}
+];
+
+/* ================================================================
+   게임 상태
+================================================================ */
+let G=null;
+function defaultState(){
+ const mem=MEMBERS.map(()=>({lvl:1,exp:0,w:null,a:null,rec:{go:0,ok:0,fail:0,s:0,mvp:0,contrib:0,found:0,cons:0},recent:[]}));
+ return {v:SAVE_VER,seed:RSEED,qid:0,uid:0,phase:'BOOT',remain:0,speed:1,mute:true,paused:false,
+  cands:null,run:null,mem,invW:[],invA:[],
+  cons:{c01:3,c02:2,c03:2,c04:1,c05:1,c06:1,c07:1,c08:1,c09:1,c10:1,c11:1,c12:1},
+  consLog:{},col:{},colNew:[],recs:[],logs:[],
+  stats:{q:0,S:0,A:0,B:0,C:0,F:0,wGot:0,aGot:0,consUsed:0,legend:0,cleaned:0},
+  fold:false,lastSave:0};
+}
+function initState(){G=defaultState();return G}
+
+/* ---- 장비 보너스 ---- */
+function itemByUid(uid){if(uid==null)return null;return G.invW.find(x=>x.uid===uid)||G.invA.find(x=>x.uid===uid)||null}
+function equipBonus(mi){const b=[0,0,0,0,0,0];const s=G.mem[mi];
+ for(const uid of [s.w,s.a]){const it=itemByUid(uid);if(it)for(const k in it.bon)b[+k]+=it.bon[k]}
+ return b}
+function effStats(mi){const b=equipBonus(mi);return MEMBERS[mi].stats.map((v,i)=>v+b[i])}
+function tendency(mi){const st=MEMBERS[mi].stats,sum=st.reduce((a,b)=>a+b,0);return st.map(v=>v/sum)}
+
+/* ================================================================
+   퀘스트 생성기
+================================================================ */
+function makeQuest(exclR,exclT){
+ let ri,ti,guard=0;
+ do{ri=RI(0,REGIONS.length-1);ti=RI(0,QTYPES.length-1);guard++}while(guard<60&&(exclR.includes(ri)||exclT.includes(ti)));
+ const reg=REGIONS[ri],qt=QTYPES[ti];
+ const diff=clamp(Math.round(1+R01()*R01()*9+R01()*3),1,10);
+ // 가중치: 유형 기반 + 지역 지터, 합=1
+ let w=qt.w.map(v=>Math.max(0,v+(R01()*.08-.04)));
+ const sum=w.reduce((a,b)=>a+b,0);w=w.map(v=>v/sum);
+ const focus=w.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v).filter(x=>x.v>=.12).slice(0,4).map(x=>x.i);
+ const dur=RI(10,20);
+ const fame=Math.min(16,Math.sqrt(G.stats.q||0)*1.6); // 길드 명성: 장비 성장과 균형
+ const target=Math.round(63+diff*3.4+fame+RI(-3,3));
+ const hz=shuffle(reg.hazards).slice(0,RI(1,2));
+ const lootHint=[reg.lootN,CTHEMES[reg.themes[0]].name].join(' · ');
+ G.qid++;
+ return {id:'Q'+G.qid,title:qt.tt(reg),type:qt.name,ti,ri,diff,w,focus,hz,dur,target,battle:qt.battle,
+  desc:reg.name+'에서 들어온 의뢰. '+hz[0]+'에 주의하라는 경고가 붙어 있다.',lootHint,tags:reg.tags};
+}
+function genCandidates(){
+ const out=[],er=[],et=[];
+ for(let i=0;i<3;i++){const q=makeQuest(er,et);er.push(q.ri);et.push(q.ti);out.push(q)}
+ return out;
+}
+
+/* ---- 완전 무작위 소집 (Fisher-Yates) ---- */
+function rollParty(){
+ const n=RI(3,8);
+ return shuffle([0,1,2,3,4,5,6,7,8,9,10,11]).slice(0,n);
+}
+
+/* ================================================================
+   특수능력 엔진
+================================================================ */
+function abilMemberBonus(id,q){ // 개인 기여 보너스
+ const t=q.tags, ty=q.type, w=q.w;
+ switch(id){
+  case 'A01':return (ty==='토벌'||ty==='방어'||ty==='호위')?5:0;
+  case 'A02':return w[1]>=.25?4:0;
+  case 'A03':return w[4]>=.2?4:0;
+  case 'A04':return w[2]>=.2?4:0;
+  case 'A09':return t.includes('기계')?6:0;
+  case 'A10':return t.includes('마력')?6:0;
+  case 'A12':return t.includes('고온')?6:0;
+  case 'A13':return t.includes('한파')?6:0;
+  case 'A14':return t.includes('밤')?5:0;
+  case 'A15':return ty==='협상'?7:0;
+  default:return 0;
+ }
+}
+function holdersOf(party,id){return party.filter(i=>MEMBERS[i].ab.includes(id))}
+function stackMul(n){return n<=0?0:n===1?1:1.5} // 중첩 상한
+
+/* ================================================================
+   퀘스트 판정 엔진 + 실시간 로그 스크립트
+================================================================ */
+const recentLines=[];
+function remember(s){recentLines.push(s);if(recentLines.length>24)recentLines.shift()}
+function pickFresh(arr){for(let k=0;k<6;k++){const s=RP(arr);if(!recentLines.includes(s)){remember(s);return s}}const s=RP(arr);remember(s);return s}
+function mQuote(mi){return pickFresh(MEMBERS[mi].quotes)}
+function useCons(cid,who,why,evs,mul){ // 소모품 자동 사용
+ if(!G.cons[cid]||G.cons[cid]<=0)return 0;
+ const a7=mul>0?stackMul(mul):0;
+ const keep=mul>0&&R01()<0.4; // A07 보급 달인: 수량 유지 확률
+ if(!keep)G.cons[cid]--;
+ G.stats.consUsed++;G.mem[who].rec.cons++;
+ const c=CONSMAP[cid];
+ (G.consLog[cid]=G.consLog[cid]||[]).unshift({t:Date.now(),txt:MEMBERS[who].name+' — '+why});
+ if(G.consLog[cid].length>5)G.consLog[cid].length=5;
+ evs.push({tp:'시스템',txt:MEMBERS[who].name+'이(가) 「'+c.name+'」'+(keep?'을(를) 아껴 쓰며':'을(를) 사용해')+' '+why,delta:0});
+ return 1+(a7>1?0.5:0);
+}
+function simulateQuest(q,party){
+ const w=q.w,n=party.length;
+ const hc=id=>holdersOf(party,id).length;
+ const hFirst=id=>holdersOf(party,id)[0];
+ let statSum=0,eqSum=0,abilSum=0;
+ const contribs=[];
+ for(const i of party){
+  const m=MEMBERS[i],eq=equipBonus(i);
+  let s=0,e=0;for(let k=0;k<6;k++){s+=m.stats[k]*w[k];e+=eq[k]*w[k]}
+  let ab=0;for(const id of m.ab)ab+=abilMemberBonus(id,q);
+  const c=s+e+ab+G.mem[i].lvl*0.5+(R01()*8-4);
+  contribs.push({i,c:r1(c)});statSum+=s;eqSum+=e;abilSum+=ab;
+ }
+ let stat=statSum/n,equip=eqSum/n,abil=abilSum/n;
+ if(hc('A08'))abil+=Math.min(8,n*0.7*stackMul(hc('A08')));
+ const size=(n-3)*1.5;
+ /* ---- 사건 스크립트 ---- */
+ const evs=[];let evSum=0;let a05Left=hc('A05')?1:0;let firstBattle=true;
+ const push=(tp,txt,delta)=>{evs.push({tp,txt,delta:delta||0});evSum+=delta||0};
+ const reg=REGIONS[q.ri];
+ push('시스템','파티가 길드를 출발, '+reg.name+'(으)로 향한다.');
+ // 이동
+ if(q.type==='운반'||q.type==='호위'||R01()<.5){
+  let d=0;
+  if(hc('A04')){d+=2*stackMul(hc('A04'));push('특수능력',MEMBERS[hFirst('A04')].name+'의 「경로 개척」이 지름길을 찾아냈다.',r1(d))}
+  else if(G.cons.c03>0&&R01()<.5){const eff=useCons('c03',party[RI(0,n-1)],'험로를 가볍게 넘었다.',evs,hc('A07'));evSum+=3*eff;evs[evs.length-1].delta=r1(3*eff)}
+  else push('일반',RP(['좁은 산길을 따라 조심스럽게 나아간다.','바람이 방향을 바꾸며 파티를 스쳐 간다.','발밑의 흔적을 살피며 이동한다.']));
+ } else push('일반',RP(['목적지의 윤곽이 서서히 드러난다.','파티가 대열을 정비하며 나아간다.','낯선 공기가 파티를 감싼다.']));
+ // 첫 번째 문제: 지형 위기
+ {
+  const hz=q.hz[0];let d=-(3+q.diff*0.6+R01()*4);let solved=false;
+  const tagFix=[['독','A11','c04'],['한파','A13','c09'],['고온','A12','c10'],['기계','A09','c06'],['밤','A14','c08']];
+  for(const[tag,aid,cid]of tagFix){
+   if(!q.tags.includes(tag))continue;
+   if(hc(aid)){d=d*0.25;push('특수능력',MEMBERS[hFirst(aid)].name+'의 「'+ABIL[aid].name+'」이 '+hz+'을(를) 버텨냈다.',r1(d));solved=true;break}
+   if(G.cons[cid]>0){const eff=useCons(cid,party[RI(0,n-1)],hz+'에 대비했다.',evs,hc('A07'));d=d*0.3/eff;evs[evs.length-1].delta=r1(d);evSum+=d;solved=true;break}
+  }
+  if(!solved){
+   if(hc('A03')&&R01()<.55){d=2+R01()*3;push('특수능력',MEMBERS[hFirst('A03')].name+'의 「매의 눈」이 '+hz+'을(를) 미리 발견했다.',r1(d))}
+   else if(hc('A02')){d*=0.5;push('특수능력',MEMBERS[hFirst('A02')].name+'이(가) 「철벽 수비」로 '+hz+'을(를) 막아냈다.',r1(d))}
+   else push('위기',hz+'이(가) 파티를 덮쳤다!',r1(d));
+  }
+ }
+ // 핵심 사건 3~6개
+ const coreN=RI(3,6);
+ for(let k=0;k<coreN;k++){
+  const roll=R01();
+  if(q.battle&&roll<.42){
+   const en=RP(reg.enemies);const atk=party[RI(0,n-1)];
+   let d=2+R01()*3+MEMBERS[atk].stats[0]*0.02;
+   if(firstBattle&&hc('A01')){d+=3*stackMul(hc('A01'));push('특수능력',MEMBERS[hFirst('A01')].name+'의 「선봉 본능」! 선제 공격이 적중했다.',r1(d));firstBattle=false;continue}
+   firstBattle=false;
+   push('전투',MEMBERS[atk].name+'이(가) '+en+'을(를) '+RP(['베어 넘겼다','밀어냈다','정확히 명중시켰다','붙잡아 제압했다'])+'.',r1(d));
+   if(hc('A17')&&R01()<.5){const d2=3*stackMul(hc('A17'));push('특수능력',MEMBERS[hFirst('A17')].name+'의 「연쇄 공격」이 이어졌다!',r1(d2))}
+  } else if(roll<.6){
+   const f=party[RI(0,n-1)];
+   push('발견',MEMBERS[f].name+'이(가) '+RP(['수상한 표식','오래된 통로','희미한 발자국','숨겨진 지렛대'])+'을(를) 발견했다.',r1(1.5+R01()*2.5));
+  } else if(roll<.8||hc('A19')&&roll<.9){
+   const sp=party[RI(0,n-1)];
+   push('대화','<b class="nm">'+MEMBERS[sp].name+'</b> “'+mQuote(sp)+'”');
+  } else {
+   let d=-(2+R01()*4);
+   if(a05Left>0&&d<-3.5){a05Left--;const h=hFirst('A05');d*=0.3;push('특수능력',MEMBERS[h].name+'의 「현장 응급처치」가 부상을 수습했다.',r1(d))}
+   else if(G.cons.c01>0&&d<-3.5&&R01()<.6){const eff=useCons('c01',party[RI(0,n-1)],'상처를 치료했다.',evs,hc('A07'));d*=0.35/eff;evs[evs.length-1].delta=r1(d);evSum+=d}
+   else if(G.cons.c05>0&&q.battle&&R01()<.4){const eff=useCons('c05',party[RI(0,n-1)],'연막 속으로 물러났다.',evs,hc('A07'));d*=0.4;evs[evs.length-1].delta=r1(d);evSum+=d}
+   else push('위기',RP(['좁은 길목에서 매복에 걸렸다!','발판이 무너져 대열이 흐트러졌다!','짙은 안개에 방향을 잃었다!'])+'',r1(d));
+  }
+ }
+ // 조사/협상 집중 차
+ if((q.type==='조사'||q.type==='협상')&&G.cons.c02>0&&R01()<.6){
+  const eff=useCons('c02',party[RI(0,n-1)],'차를 나누며 집중력을 끌어올렸다.',evs,hc('A07'));
+  const d=3*eff;evs[evs.length-1].delta=r1(d);evSum+=d;
+ }
+ // 돌발 사건
+ if(R01()<.55){
+  if(R01()<.5){const f=party[RI(0,n-1)];let d=2+R01()*3;
+   if(hc('A16')&&R01()<.6){d+=2;push('특수능력',MEMBERS[hFirst('A16')].name+'의 「보물 후각」이 숨겨진 상자를 찾아냈다!',r1(d))}
+   else push('발견',MEMBERS[f].name+'이(가) '+reg.lootN+'을(를) 우연히 발견했다!',r1(d));
+  } else {let d=-(2+R01()*5);
+   if(hc('A19')&&R01()<.6){d*=0.3;push('특수능력',MEMBERS[hFirst('A19')].name+'의 「분위기 메이커」가 동요를 가라앉혔다.',r1(d))}
+   else push('위기',RP(['갑작스런 '+RP(reg.hazards)+'!','예상 못 한 '+RP(reg.enemies)+'의 습격!']),r1(d));
+  }
+ }
+ // 최종 문제
+ {
+  let d=(R01()<.5?1:-1)*(3+q.diff*0.5+R01()*4);
+  if(d<-5&&G.cons.c11>0){const eff=useCons('c11',party[RI(0,n-1)],'야영지를 세우고 전열을 가다듬었다.',evs,hc('A07'));d=Math.abs(d)*0.3;evs[evs.length-1].delta=r1(d);evSum+=d}
+  else if(d>0)push(q.battle?'전투':'발견',RP(['마지막 고비를 정면으로 돌파했다!','핵심 목표에 도달했다!']),r1(d));
+  else push('위기','최후의 관문이 파티를 시험한다...',r1(d));
+ }
+ /* ---- 최종 판정 ---- */
+ let rand=Math.round(R01()*24-12);
+ const calc=()=>Math.round(stat+equip+abil+size+evSum+rand);
+ let final=calc(),a18=false;
+ if(final<q.target-8&&hc('A18')){
+  const r2=Math.round(R01()*24-12);
+  if(r2>rand){rand=r2;final=calc();a18=true;
+   push('특수능력',MEMBERS[hFirst('A18')].name+'의 「행운의 역전」! 운명이 다시 굴러간다...',0)}
+ }
+ const grade=gradeFor(final,q.target);
+ push('시스템',grade==='S'?'압도적인 성과. 목표를 크게 뛰어넘었다!':grade==='A'?'훌륭한 성과로 임무를 마쳤다.':grade==='B'?'무사히 목표를 달성했다.':grade==='C'?'가까스로... 임무를 완수했다.':'임무에 실패했다. 파티가 철수한다.');
+ push('시스템','파티가 길드로 귀환한다.');
+ // 시간 배치 (0.8~1.8초 간격, 8~16개 유지)
+ while(evs.length>16){
+  let idx=evs.findIndex(e=>e.tp==='대화');
+  if(idx<0)idx=evs.findIndex(e=>e.tp==='일반');
+  if(idx<0)idx=evs.findIndex(e=>e.tp==='발견');
+  if(idx<0)idx=2;
+  evs.splice(idx,1);
+ }
+ const durMs=q.dur*1000,m=evs.length;
+ const span=durMs-1200,gap=span/Math.max(1,m-1);
+ evs.forEach((e,i)=>{e.t=Math.round(400+i*gap+(i>0&&i<m-1?(R01()*300-150):0))});
+ evs[m-1].t=durMs-260;
+ const bd={stat:r1(stat),equip:r1(equip),abil:r1(abil),size:r1(size),events:r1(evSum),rand,final,target:q.target};
+ contribs.sort((a,b)=>b.c-a.c);
+ const mvp=contribs[0].i;
+ return {q,party,evs,bd,grade,mvp,contribs,a18};
+}
+function gradeFor(final,target){const d=final-target;return d>=20?'S':d>=10?'A':d>=0?'B':d>=-10?'C':'F'}
+
+/* ================================================================
+   전리품 생성기
+================================================================ */
+function rollRarity(boost){
+ const r=R01()+ (boost||0);
+ return r>0.99?4:r>0.95?3:r>0.85?2:r>0.6?1:0;
+}
+function statBon(rar,ilvl){
+ const cnt=RI(1,Math.min(3,1+rar));const b={};
+ const idxs=shuffle([0,1,2,3,4,5]).slice(0,cnt);
+ for(const i of idxs)b[i]=RI(1,3)+rar*2+Math.floor(ilvl/3);
+ return b;
+}
+function bonText(b){return Object.keys(b).map(k=>ST[k]+' +'+b[k]).join(' · ')}
+function makeWeapon(q,rar){
+ const kind=RI(0,14),ilvl=clamp(q.diff+RI(0,3)+rar*2,1,30);
+ G.uid++;
+ return {uid:G.uid,cat:'w',kind,name:RP(WPRE)+' '+RP(WORI)+' '+WKINDS[kind],rar,ilvl,bon:statBon(rar,ilvl),
+  desc:REGIONS[q.ri].short+'에서 발견된 '+WKINDS[kind]+'. 손에 익으면 제법 쓸 만하다.',
+  fromQ:q.title,t:Date.now(),owner:null,lock:false,seed:(G.uid*2654435761)>>>0};
+}
+function makeArmor(q,rar){
+ const set=RI(0,24),ilvl=clamp(q.diff+RI(0,3)+rar*2,1,30);
+ G.uid++;
+ return {uid:G.uid,cat:'a',set,name:RP(WPRE)+' '+ASETS[set],rar,ilvl,bon:statBon(rar,ilvl),
+  desc:ASETS[set].replace(' 세트','')+' 일습. 투구부터 장화까지 한 벌이다.',
+  fromQ:q.title,t:Date.now(),owner:null,lock:false,seed:(G.uid*40503)>>>0};
+}
+function pickCollectible(q,rarBoost,dupBoost){
+ const reg=REGIONS[q.ri];
+ const th=R01()<.7?RP(reg.themes):RI(0,11);
+ const band=rollRarity(rarBoost);
+ const pool=COLLECT.filter(c=>c.theme===th&&c.rar===band);
+ const pool2=pool.length?pool:COLLECT.filter(c=>c.theme===th);
+ let c=RP(pool2);
+ if(!dupBoost&&G.col[c.id]&&R01()<.5){ // 미발견 우선 약간
+  const un=pool2.filter(x=>!G.col[x.id]);if(un.length)c=RP(un);
+ }
+ return c;
+}
+function genLoot(q,grade,party,extraLogs){
+ const hc=id=>holdersOf(party,id).length;
+ let cnt=grade==='S'?4:grade==='A'?3:grade==='B'?3:grade==='C'?2:(R01()<.5?1:0);
+ let extra=0;
+ if(hc('A16')&&R01()<.12*Math.min(hc('A16'),2))extra++;
+ if(hc('A16')>1&&R01()<.12)extra++;
+ cnt=Math.min(cnt+extra,6);
+ if(extra)extraLogs.push({tp:'전리품',txt:'「보물 후각」 덕분에 전리품 자루가 더 두둑해졌다!'});
+ let rarBoost=q.diff*0.008+(grade==='S'?0.06:grade==='A'?0.03:0);
+ if(G.cons.c07>0&&cnt>0&&R01()<.6){
+  G.cons.c07--;G.stats.consUsed++;
+  (G.consLog.c07=G.consLog.c07||[]).unshift({t:Date.now(),txt:'정산 — 파티가 나눠 먹음'});
+  extraLogs.push({tp:'시스템',txt:'파티가 「행운 사탕」을 나눠 먹었다. 왠지 좋은 예감이 든다.'});
+  rarBoost+=0.05;
+ }
+ const items=[];
+ for(let i=0;i<cnt;i++){
+  const roll=R01();
+  let colBoost=hc('A20')?0.12*stackMul(hc('A20')):0;
+  if(roll<.2)items.push({it:makeWeapon(q,rollRarity(rarBoost))});
+  else if(roll<.36)items.push({it:makeArmor(q,rollRarity(rarBoost))});
+  else if(roll<.66-colBoost){
+   const pool=CONS.filter(c=>c.id!=='c07'||R01()<.3);
+   const c=RP(pool);const qty=1+(hc('A15')&&R01()<.5?1:0)+(grade==='S'?1:0);
+   items.push({cons:c.id,qty:Math.min(qty,3)});
+  } else {
+   const c=pickCollectible(q,rarBoost+(hc('A06')?0.04*stackMul(hc('A06')):0),hc('A20')&&R01()<.3);
+   items.push({col:c.id});
+  }
+ }
+ // 복제 탐사지도
+ if((q.type==='조사'||q.type==='수집')&&G.cons.c12>0&&grade!=='F'&&R01()<.55){
+  G.cons.c12--;G.stats.consUsed++;
+  (G.consLog.c12=G.consLog.c12||[]).unshift({t:Date.now(),txt:q.title+' — 추가 탐사'});
+  extraLogs.push({tp:'시스템',txt:'「복제 탐사지도」의 표시를 따라가 수집품을 하나 더 찾아냈다!'});
+  items.push({col:pickCollectible(q,rarBoost,false).id});
+ }
+ return items;
+}
+
+/* ---- 전리품 적용 (자동 배치 포함) ---- */
+function evalItemFor(mi,it){const td=tendency(mi);let s=0;for(const k in it.bon)s+=it.bon[k]*(0.5+td[k]*3);return s+it.ilvl*0.15}
+function autoEquip(it,sysLogs){
+ let best=-1,bestGain=0.001;
+ for(let mi=0;mi<12;mi++){
+  const cur=itemByUid(it.cat==='w'?G.mem[mi].w:G.mem[mi].a);
+  if(cur&&cur.lock)continue;
+  const gain=evalItemFor(mi,it)-(cur?evalItemFor(mi,cur):0);
+  if(gain>bestGain){bestGain=gain;best=mi}
+ }
+ if(best>=0){
+  const slot=it.cat==='w'?'w':'a';
+  const old=itemByUid(G.mem[best][slot]);
+  if(old)old.owner=null;
+  G.mem[best][slot]=it.uid;it.owner=best;
+  sysLogs.push({tp:'시스템',txt:MEMBERS[best].name+'이(가) 「'+it.name+'」을(를) 장착했다. '+bonText(it.bon)});
+  return best;
+ }
+ sysLogs.push({tp:'시스템',txt:'「'+it.name+'」은(는) 보관함에 정리했다.'});
+ return -1;
+}
+function storeItem(it){
+ (it.cat==='w'?G.invW:G.invA).push(it);
+ trimInventory();
+}
+function trimInventory(){
+ while(G.invW.length+G.invA.length>300){
+  const all=[...G.invW,...G.invA].filter(x=>x.owner===null&&!x.lock);
+  if(!all.length)break;
+  all.sort((a,b)=>a.rar-b.rar||a.ilvl-b.ilvl||a.t-b.t);
+  const rm=all[0];
+  const arr=rm.cat==='w'?G.invW:G.invA;
+  arr.splice(arr.indexOf(rm),1);
+  G.stats.cleaned++;
+ }
+}
+function applyLoot(run){
+ const sys=[];
+ for(const l of run.loot){
+  if(l.it){
+   if(l.it.cat==='w')G.stats.wGot++;else G.stats.aGot++;
+   if(l.it.rar===4)G.stats.legend++;
+   storeItem(l.it);
+   l.eq=autoEquip(l.it,sys);
+  } else if(l.cons){
+   G.cons[l.cons]=Math.min(99,(G.cons[l.cons]||0)+l.qty);
+  } else if(l.col){
+   const c=COLBYID[l.col];
+   if(!G.col[l.col]){G.col[l.col]={n:1,t:Date.now(),q:run.q.title};l.isNew=true;
+    if(!G.colNew.includes(l.col))G.colNew.push(l.col);
+    G.mem[run.mvp].rec.found++;
+   } else G.col[l.col].n++;
+   if(c.rar===4)G.stats.legend++;
+  }
+ }
+ run.sysLogs=(run.sysLogs||[]).concat(sys);
+}
+
+/* ================================================================
+   저장과 시간 복구
+================================================================ */
+function saveState(){
+ if(!G)return;
+ try{G.lastSave=Date.now();G.savedAt=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(G))}catch(e){}
+}
+function loadState(){
+ try{
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw)return false;
+  const d=JSON.parse(raw);
+  if(!d||d.v!==SAVE_VER||!Array.isArray(d.mem)||d.mem.length!==12)return false;
+  G=Object.assign(defaultState(),d);
+  rng=mulberry((d.seed+d.qid*97)|0);
+  return true;
+ }catch(e){return false}
+}
+
+/* ================================================================
+   픽셀 스프라이트 생성기 (런타임 아틀라스)
+================================================================ */
+const ANIMS={idle:2,walk:4,work:3,hurt:2,win:3,sit:2};
+let AT=null,FR={},ICON_CACHE={};
+function buildAtlas(){
+ AT=document.createElement('canvas');AT.width=512;AT.height=512;
+ const g=AT.getContext('2d');g.imageSmoothingEnabled=false;
+ // 흰 텍셀 (사각형 렌더링용)
+ g.fillStyle='#fff';g.fillRect(504,504,8,8);FR._white={x:506,y:506,w:2,h:2};
+ let col=0,row=0;
+ for(let mi=0;mi<12;mi++){
+  for(const an in ANIMS){
+   for(let f=0;f<ANIMS[an];f++){
+    const x=col*24,y=row*32;
+    drawChar(g,x,y,MEMBERS[mi].sp,an,f);
+    FR['c'+mi+'_'+an+f]={x,y,w:24,h:32};
+    col++;if(col>=21){col=0;row++}
+   }
+  }
+ }
+}
+function drawChar(g,ox,oy,sp,an,f){
+ const P=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(ox+x,oy+y,w,h)};
+ const small=sp.small?4:0;
+ let dy=0,lo=0,armPose=0,sit=false,blink=false,tilt=0,weaponUp=false,wave=false;
+ if(an==='idle'){dy=f===1?1:0;blink=f===1&&((ox+oy)%3===0)}
+ else if(an==='walk'){lo=[0,1,0,2][f];dy=f%2}
+ else if(an==='work'){armPose=[1,2,1][f];dy=f===1?1:0}
+ else if(an==='hurt'){tilt=1;dy=f}
+ else if(an==='win'){weaponUp=true;wave=true;dy=[0,-1,0][f]}
+ else if(an==='sit'){sit=true;dy=f}
+ const gy=dy+small; // 전체 y 오프셋
+ const HY=6+gy,BY=14+gy,LY=24+gy; // 머리/몸/다리 기준
+ const legH=sit?3:8-small;
+ const tx=tilt; // 기울기 → x 시프트
+ // ---- 꼬리 (뒤) ----
+ if(sp.tail)P(2,BY+6,4,2,sp.tail),P(1,BY+4,2,3,sp.tail);
+ // ---- 망토 (뒤) ----
+ if(sp.cape)P(5+tx,BY,14,12+(an==='walk'?lo:0),sp.cape);
+ // ---- 다리 ----
+ if(!sit){
+  P(8+tx,LY+small,3,legH-lo,sp.c2);P(13+tx,LY+small,3,legH-(an==='walk'?(2-lo):0),sp.c2);
+  P(8+tx,LY+small+legH-lo-1,3,2,sp.acc);P(13+tx,LY+small+legH-(an==='walk'?(2-lo):0)-1,3,2,sp.acc);
+ } else {P(7+tx,LY+small+3,10,3,sp.c2)}
+ // ---- 몸통 ----
+ P(7+tx,BY,10,10-small,sp.c1);
+ P(7+tx,BY+7-small,10,2,sp.c2); // 벨트
+ P(9+tx,BY+2,2,2,sp.acc); // 장식
+ // ---- 팔 ----
+ const armY=BY+2;
+ if(weaponUp||wave){P(17+tx,armY-6,2,8,sp.c1)}
+ else if(armPose===2){P(17+tx,armY+1,6,2,sp.c1)}
+ else {P(5+tx,armY,2,7,sp.c1);P(17+tx,armY+(armPose?1:0),2,7,sp.c1)}
+ // ---- 머리 ----
+ P(8+tx,HY,8,8,sp.skin);
+ if(!blink&&an!=='hurt'){P(10+tx,HY+4,1,1,'#1a1410');P(13+tx,HY+4,1,1,'#1a1410')}
+ else {P(10+tx,HY+4,2,1,'#1a1410');P(13+tx,HY+4,1,1,'#1a1410')}
+ // ---- 머리카락 / 헬멧 / 후드 ----
+ if(sp.mask){P(8+tx,HY+1,8,7,'#e8e8ec');P(10+tx,HY+4,1,1,'#1a1410');P(13+tx,HY+4,1,1,'#1a1410');P(8+tx,HY,8,2,sp.hair)}
+ else if(sp.helm){P(7+tx,HY-1,10,4,sp.acc);P(6+tx,HY-3,2,3,'#e8e8ec');P(16+tx,HY-3,2,3,'#e8e8ec')}
+ else if(sp.hood){P(7+tx,HY-1,10,5,sp.c1);P(7+tx,HY-1,2,9,sp.c1);P(15+tx,HY-1,2,9,sp.c1)}
+ else{
+  P(8+tx,HY-1,8,3,sp.hair);
+  if(sp.hairs==='long'){P(7+tx,HY,2,9,sp.hair);P(15+tx,HY,2,9,sp.hair)}
+  if(sp.hairs==='over'){P(8+tx,HY,4,5,sp.hair)}
+  if(sp.hairs==='bun'){P(11+tx,HY-3,3,3,sp.hair)}
+  if(sp.hairs==='beard'){P(8+tx,HY+6,8,4,sp.hair)}
+ }
+ if(sp.ears==='wolf'){P(7+tx,HY-3,2,3,sp.hair);P(15+tx,HY-3,2,3,sp.hair)}
+ if(sp.ears==='cat'){P(8+tx,HY-3,2,3,sp.hair);P(14+tx,HY-3,2,3,sp.hair)}
+ if(sp.glasses){P(9+tx,HY+3,3,3,'rgba(120,200,220,.85)');P(13+tx,HY+3,3,3,'rgba(120,200,220,.85)')}
+ if(sp.goggles){P(8+tx,HY+2,8,1,sp.acc);P(9+tx,HY+2,3,3,'#7ac8dc');P(13+tx,HY+2,3,3,'#7ac8dc')}
+ if(sp.hat){P(6+tx,HY-1,12,2,sp.c2);P(8+tx,HY-4,8,3,sp.c2);P(15+tx,HY-6,2,4,sp.acc)}
+ // ---- 방패 ----
+ if(sp.shield){P(1+tx,BY-2,6,13,'#b0803c');P(2+tx,BY,4,9,'#c89a4a');P(3+tx,BY+3,2,2,'#8a5c24')}
+ // ---- 무기 ----
+ const wx=17+tx,wy=weaponUp?HY-6:armY;
+ const W=sp.wpn;
+ g.fillStyle='#d8d8e0';
+ const M=(x,y,w,h,c)=>{g.fillStyle=c||'#d8d8e0';g.fillRect(ox+x,oy+y,w,h)};
+ if(W==='sword'){armPose===2?M(19,armY+1,7,2):M(wx+2,wy-7,2,9);M(armPose===2?19:wx+1,armPose===2?armY:wy+2,armPose===2?1:4,armPose===2?4:1,'#8a6a34')}
+ else if(W==='hammer'){M(wx+2,wy-4,2,7,'#8a6a34');M(wx,wy-7,6,4,'#b0b4bc')}
+ else if(W==='bow'){M(wx+3,wy-6,1,12,'#8a6a34');M(wx+2,wy-6,1,1,'#8a6a34');M(wx+2,wy+5,1,1,'#8a6a34');M(wx+4,wy-5,1,10,'#e8e8ec')}
+ else if(W==='gun'){armPose===2?M(19,armY,8,2,'#3a3a44'):M(wx+1,wy-6,2,9,'#3a3a44');M(wx,wy+2,3,2,'#8a6a34')}
+ else if(W==='spear'){M(wx+2,wy-10,2,15,'#8a6a34');M(wx+2,wy-12,2,3,'#d8d8e0')}
+ else if(W==='staff'){M(wx+2,wy-8,2,12,'#6a4a2c');M(wx+1,wy-10,4,3,sp.acc)}
+ else if(W==='wrench'){M(wx+2,wy-4,2,7,'#b0b4bc');M(wx+1,wy-6,4,2,'#b0b4bc');M(wx+1,wy-5,1,1,'#3a3a44')}
+ else if(W==='daggers'){M(wx+1,wy-4,2,5);M(4,armY-2,2,5)}
+ else if(W==='lute'){M(9,BY+3,6,5,'#8a5c24');M(11,BY-1,2,5,'#6a4a2c');M(11,BY+4,2,2,'#3a2a16')}
+ else if(W==='chain'){M(wx+1,wy,1,2,sp.acc);M(wx+3,wy+2,1,2,sp.acc);M(wx+1,wy+4,1,2,sp.acc)}
+ else if(W==='flask'){M(wx+1,wy+2,3,4,'#5cc8b0');M(wx+2,wy,1,2,'#c8b48a')}
+ if(sp.book){M(19,HY+2,4,5,'#5a3d8a');M(20,HY+3,2,1,'#e8d44a')}
+}
+
+/* ---- 초상화 ---- */
+function portraitURL(mi){
+ const key='pt'+mi;
+ if(ICON_CACHE[key])return ICON_CACHE[key];
+ const c=document.createElement('canvas');c.width=40;c.height=40;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ const fr=FR['c'+mi+'_idle0'];
+ g.drawImage(AT,fr.x+2,fr.y+2,20,20,0,0,40,40);
+ return ICON_CACHE[key]=c.toDataURL();
+}
+/* ---- 아이템 픽셀 아이콘 (24×24 → 데이터URL) ---- */
+function iconURL(key,fn){
+ if(ICON_CACHE[key])return ICON_CACHE[key];
+ const c=document.createElement('canvas');c.width=24;c.height=24;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ fn(g);
+ return ICON_CACHE[key]=c.toDataURL();
+}
+const RARCOL=['#a8adb5','#6bd06d','#5eb2f0','#c084f2','#f2b93b'];
+function sparkle(g,sr,rar){
+ if(rar<2)return;
+ for(let i=0;i<2+rar;i++){const x=Math.floor(sr()*22)+1,y=Math.floor(sr()*22)+1;
+  g.fillStyle=rar===4?'#f2e29b':'#e8f4ff';g.fillRect(x,y,1,1)}
+}
+function weaponIconURL(it){
+ return iconURL('w'+it.kind+'_'+it.rar+'_'+(it.seed%97),g=>{
+  const sr=mulberry(it.seed);const base=RARCOL[it.rar];
+  const M=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+  const met='#c8ccd4',wood='#8a6a34',k=it.kind;
+  if(k===0){M(11,3,2,12,met);M(10,4,1,10,'#e8ecf2');M(8,15,8,2,wood);M(11,17,2,4,wood)}
+  else if(k===1){M(10,2,4,13,met);M(9,3,1,11,'#e8ecf2');M(7,15,10,2,wood);M(11,17,2,5,wood)}
+  else if(k===2){M(6,4,2,10,met);M(16,4,2,10,met);M(5,14,4,2,wood);M(15,14,4,2,wood)}
+  else if(k===3){M(11,2,2,18,wood);M(10,2,4,4,met)}
+  else if(k===4){M(11,4,2,16,wood);M(7,3,6,5,met);M(6,4,2,3,'#e8ecf2')}
+  else if(k===5){M(11,6,2,14,wood);M(7,2,10,5,'#b0b4bc');M(8,3,3,3,'#d8dce4')}
+  else if(k===6){M(7,3,2,18,wood);M(9,4,1,16,'#e8ecf2');M(6,2,2,2,wood);M(6,20,2,2,wood)}
+  else if(k===7){M(6,10,12,3,wood);M(10,4,3,14,met);M(5,9,2,5,met)}
+  else if(k===8){M(4,10,14,3,'#3a3a44');M(16,9,4,2,met);M(6,13,3,5,wood)}
+  else if(k===9){M(11,4,2,17,wood);M(9,2,6,5,base)}
+  else if(k===10){M(6,4,12,15,'#5a3d8a');M(8,6,8,2,'#e8d44a');M(8,10,8,1,'#c8b48a');M(8,13,6,1,'#c8b48a')}
+  else if(k===11){M(6,17,4,3,wood);for(let i=0;i<8;i++)M(9+i,15-i*1.4,2,2,'#8a5c24')}
+  else if(k===12){M(11,6,2,8,met);M(10,14,4,2,wood);M(11,16,2,3,wood)}
+  else if(k===13){M(7,8,10,9,met);M(8,9,8,4,'#d8dce4');M(9,17,6,3,wood)}
+  else {M(6,6,10,3,wood);M(14,8,3,8,wood);M(6,5,3,2,base)}
+  M(2,2,2,1,base);M(20,21,2,1,base);
+  sparkle(g,sr,it.rar);
+ });
+}
+function armorIconURL(it){
+ return iconURL('a'+it.set+'_'+it.rar+'_'+(it.seed%97),g=>{
+  const sr=mulberry(it.seed+it.set*31);
+  const hue=['#8a6a44','#7a828e','#b0803c','#d8c88a','#9ab4c8','#3a6a8a','#5a8a4a','#8a7a5a','#4a7a4a','#5a5a74','#c8a44a','#6a5a9a','#8a4a34','#6a8a9a','#b0a06a','#3a3a4a','#7a5a7a','#8a6a8a','#8a3a3a','#8a8258','#4a5a6a','#7ac8dc','#a08a4a','#6e6e6e','#c86a8a'][it.set];
+  const M=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+  // 마네킹: 투구 + 상체 갑옷
+  M(11,20,2,3,'#4a3b26'); // 스탠드
+  M(8,19,8,1,'#4a3b26');
+  M(7,9,10,10,hue); // 몸통
+  M(7,12,10,1,'rgba(0,0,0,.3)');
+  M(9,10,2,2,RARCOL[it.rar]); // 문장
+  M(5,9,2,6,hue);M(17,9,2,6,hue); // 어깨
+  M(9,2,6,6,hue); // 투구
+  M(10,4,4,2,'#141821'); // 안면
+  if(it.set%3===0)M(8,1,8,1,'#e8ecf2');
+  if(it.set%4===1){M(8,0,2,2,'#e8ecf2');M(14,0,2,2,'#e8ecf2')}
+  sparkle(g,sr,it.rar);
+ });
+}
+function consIconURL(cid){
+ return iconURL('cons'+cid,g=>{
+  const c=CONSMAP[cid];const M=(x,y,w,h,cl)=>{g.fillStyle=cl;g.fillRect(x,y,w,h)};
+  const i=+cid.slice(1);
+  if(i===1||i===2){M(9,6,6,3,'#c8b48a');M(8,9,8,11,'#3a4152');M(9,11,6,8,c.col);M(10,12,1,2,'#fff')}
+  else if(i===3){M(6,9,12,8,'#c89a4a');M(8,11,2,2,'#8a5c24');M(13,13,2,2,'#8a5c24')}
+  else if(i===4){M(9,5,6,4,'#c8b48a');M(8,9,8,10,'#2c3a2c');M(9,11,6,6,c.col)}
+  else if(i===5){M(8,8,8,10,'#4a4f5a');M(10,5,4,3,'#8a2a22');M(11,3,2,2,'#e8d44a')}
+  else if(i===6){M(6,8,12,9,'#6a5a3c');M(8,10,8,5,'#c8862c');M(10,6,4,2,'#b0b4bc')}
+  else if(i===7){M(8,8,8,8,c.col);M(5,10,3,4,'#e8ecf2');M(16,10,3,4,'#e8ecf2');M(10,10,2,2,'#fff')}
+  else if(i===8){M(9,4,6,2,'#8a6a34');M(8,6,8,12,'#3a3a2c');M(10,8,4,8,c.col)}
+  else if(i===9){M(6,10,12,8,'#8a5c34');M(7,8,10,3,c.col);M(9,5,2,3,'#e8ecf2');M(13,5,2,3,'#e8ecf2')}
+  else if(i===10){M(8,7,8,12,'#e8ecf2');M(9,9,6,9,c.col);M(11,5,2,2,'#a8adb5')}
+  else if(i===11){M(4,16,16,3,'#5a4a2c');M(6,8,12,8,c.col);M(11,6,2,10,'#4a3a1c')}
+  else {M(6,5,12,14,'#e0d4b0');M(8,8,8,1,'#8a5c24');M(8,11,6,1,'#8a5c24');M(13,14,4,3,'#c85a4a')}
+ });
+}
+function colIconURL(c,silhouette){
+ return iconURL('col'+c.id+(silhouette?'s':''),g=>{
+  const sr=mulberry(c.seed);
+  const M=(x,y,w,h,cl)=>{g.fillStyle=cl;g.fillRect(x,y,w,h)};
+  const th=c.theme,vi=(c.idx-1)%25;
+  const matC=['#c88a5a','#c8ccd4','#e8c02c','#3a3a44','#9ad4e8'][vi%5];
+  const acc=RARCOL[c.rar];
+  const flip=sr()<.5;
+  const D=(x,y,w,h,cl)=>M(flip?24-x-w:x,y,w,h,silhouette?'#10141f':cl);
+  if(th===0){D(7,7,10,10,matC);D(9,9,6,6,'#00000033');D(10,10,3,3,matC);if(vi%5===1)D(6,6,2,2,'#10141f')}
+  else if(th===1){D(6,14,12,4,'#8a7a5a');for(let i=0;i<4;i++)D(8+i*2,8+((i%2)*2),2,6,'#d8ccb0');D(6,6,4,4,'#d8ccb0')}
+  else if(th===2){D(10,8,4,10,matC);D(6,9,4,6,'#e8f4ff88');D(14,9,4,6,'#e8f4ff88');D(11,5,1,3,'#3a3a44');D(13,5,1,3,'#3a3a44')}
+  else if(th===3){D(11,10,2,10,'#4a7a3a');D(8,5,8,6,matC);D(10,7,4,3,'#fff5')}
+  else if(th===4){D(6,5,12,14,matC);D(9,9,2,3,'#141821');D(13,9,2,3,'#141821');D(10,14,4,2,'#141821');if(vi%3===0)D(5,3,3,3,acc)}
+  else if(th===5){D(5,5,14,14,'#e8e0c8');D(7,8,10,1,matC);D(7,11,8,1,matC);D(7,14,10,1,matC);D(15,6,3,3,'#c85a4a')}
+  else if(th===6){D(6,8,12,10,matC);D(8,5,8,4,'#8a6a34');D(11,10,2,2,acc);D(9,12,6,1,'#00000033')}
+  else if(th===7){D(8,8,8,10,matC);D(9,5,6,4,'#4a7a3a');D(10,10,2,2,'#141821');D(13,12,2,2,'#141821')}
+  else if(th===8){D(9,9,6,6,acc);D(11,4,2,4,'#e8f4ff');D(11,16,2,4,'#e8f4ff');D(4,11,4,2,'#e8f4ff');D(16,11,4,2,'#e8f4ff')}
+  else if(th===9){D(6,10,12,9,matC);D(8,8,8,3,'#e8e0d0');D(10,13,4,3,'#fff8');for(let i=0;i<3;i++)D(8+i*3,11,1,6,'#00000022')}
+  else if(th===10){D(7,7,10,10,'#b0803c');for(let a=0;a<4;a++)D(11+Math.round(Math.cos(a*1.57)*6),11+Math.round(Math.sin(a*1.57)*6),3,3,'#b0803c');D(10,10,4,4,matC)}
+  else {D(5,4,14,16,'#e8dcc0');D(7,7,10,1,'#8a5c24');D(7,10,8,1,'#8a5c24');D(7,13,10,1,'#8a5c24');D(8,16,5,2,matC)}
+  // 파손/장식/발광 (시드 기반)
+  if(!silhouette){
+   if(sr()<.4)M(5+Math.floor(sr()*14),5+Math.floor(sr()*14),2,1,'#10141f');
+   if(c.rar>=2)for(let i=0;i<c.rar;i++)M(2+Math.floor(sr()*20),2+Math.floor(sr()*20),1,1,acc);
+  } else {g.fillStyle='#5a627a';g.font='bold 10px monospace';g.fillText('?',9,16)}
+ });
+}
+function logIconURL(tp){
+ return iconURL('lg'+tp,g=>{
+  const M=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+  if(tp==='대화'){M(4,6,16,10,'#e8dcc0');M(8,16,4,3,'#e8dcc0');M(7,9,2,2,'#3a2c1c');M(12,9,2,2,'#3a2c1c')}
+  else if(tp==='전투'){M(5,5,3,3,'#c8ccd4');M(8,8,3,3,'#c8ccd4');M(11,11,3,3,'#c8ccd4');M(14,14,3,3,'#c8ccd4');M(16,5,3,3,'#e8a08a');M(13,8,3,3,'#e8a08a');M(7,14,3,3,'#e8a08a')}
+  else if(tp==='발견'){M(6,6,8,8,'#0000');g.strokeStyle='#8ad0e8';g.lineWidth=2;g.strokeRect(6,6,8,8);M(14,14,5,3,'#8ad0e8')}
+  else if(tp==='위기'){M(10,4,4,10,'#e05a5a');M(10,16,4,4,'#e05a5a')}
+  else if(tp==='특수능력'){M(10,3,4,4,'#c9a4e8');M(6,9,4,4,'#c9a4e8');M(14,9,4,4,'#c9a4e8');M(10,15,4,4,'#c9a4e8');M(10,9,4,4,'#e8d44a')}
+  else if(tp==='전리품'){M(5,9,14,10,'#8a5c24');M(5,7,14,4,'#b0803c');M(10,10,4,4,'#e8c02c')}
+  else if(tp==='시스템'){M(9,9,6,6,'#7d8ba8');M(10,4,4,3,'#7d8ba8');M(10,17,4,3,'#7d8ba8');M(4,10,3,4,'#7d8ba8');M(17,10,3,4,'#7d8ba8')}
+  else {M(10,10,4,4,'#b8c2d8')}
+ });
+}
+function appIconURL(){
+ return iconURL('appicon',g=>{
+  const M=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+  M(0,0,24,24,'#0d1322');M(2,2,20,20,'#221830');
+  M(7,4,10,12,'#e8a33d');M(9,6,6,8,'#8a2a22');M(11,8,2,4,'#f0e6cd');
+  M(6,18,12,2,'#4a3b26');
+ });
+}
+
+/* ================================================================
+   WebGL2 렌더러 (+ Canvas 2D 폴백)
+================================================================ */
+let IW=320,IH=280,cvEl=null,Rdr=null;
+function hexRGB(h){const n=parseInt(h.slice(1),16);return[(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]}
+function makeGLRenderer(cv){
+ const gl=cv.getContext('webgl2',{antialias:false,alpha:false});
+ if(!gl)return null;
+ const vsS='#version 300 es\nlayout(location=0) in vec2 aP;layout(location=1) in vec2 aT;layout(location=2) in vec4 aC;uniform vec2 uR;out vec2 vT;out vec4 vC;void main(){vec2 p=aP/uR*2.0-1.0;gl_Position=vec4(p.x,-p.y,0.,1.);vT=aT;vC=aC;}';
+ const fsS='#version 300 es\nprecision mediump float;uniform sampler2D uS;in vec2 vT;in vec4 vC;out vec4 o;void main(){o=texture(uS,vT)*vC;}';
+ function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x}
+ const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vsS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fsS));gl.linkProgram(pr);
+ if(!gl.getProgramParameter(pr,gl.LINK_STATUS))return null;
+ gl.useProgram(pr);
+ const uR=gl.getUniformLocation(pr,'uR');
+ const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,AT);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+ const MAXQ=2200,buf=new Float32Array(MAXQ*6*8);let qn=0;
+ const vbo=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+ gl.bufferData(gl.ARRAY_BUFFER,buf.byteLength,gl.DYNAMIC_DRAW);
+ gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,32,0);
+ gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,2,gl.FLOAT,false,32,8);
+ gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,4,gl.FLOAT,false,32,16);
+ const AW=512;
+ function quad(x,y,w,h,u0,v0,u1,v1,r,g2,b,a){
+  if(qn>=MAXQ)return;
+  let o=qn*48;
+  const put=(px,py,u,v)=>{buf[o++]=px;buf[o++]=py;buf[o++]=u;buf[o++]=v;buf[o++]=r;buf[o++]=g2;buf[o++]=b;buf[o++]=a};
+  put(x,y,u0,v0);put(x+w,y,u1,v0);put(x,y+h,u0,v1);
+  put(x+w,y,u1,v0);put(x+w,y+h,u1,v1);put(x,y+h,u0,v1);
+  qn++;
+ }
+ return {
+  gl2:true,
+  resize(){gl.viewport(0,0,cv.width,cv.height)},
+  begin(){qn=0;const bg=hexRGB('#0a0e18');gl.clearColor(bg[0],bg[1],bg[2],1);gl.clear(gl.COLOR_BUFFER_BIT)},
+  rect(x,y,w,h,hex,a){const c=hexRGB(hex);const f=FR._white;
+   quad(Math.round(x),Math.round(y),w,h,(f.x+.5)/AW,(f.y+.5)/AW,(f.x+1)/AW,(f.y+1)/AW,c[0],c[1],c[2],a==null?1:a)},
+  spr(fr,x,y,flip,a){const f=FR[fr];if(!f)return;
+   const u0=(flip?f.x+f.w:f.x)/AW,u1=(flip?f.x:f.x+f.w)/AW;
+   quad(Math.round(x),Math.round(y),f.w,f.h,u0,f.y/AW,u1,(f.y+f.h)/AW,1,1,1,a==null?1:a)},
+  end(){gl.uniform2f(uR,cv.width,cv.height);
+   gl.bufferSubData(gl.ARRAY_BUFFER,0,buf.subarray(0,qn*48));
+   gl.drawArrays(gl.TRIANGLES,0,qn*6)}
+ };
+}
+function make2DRenderer(cv){
+ const g=cv.getContext('2d');
+ return {
+  gl2:false,
+  resize(){g.imageSmoothingEnabled=false},
+  begin(){g.imageSmoothingEnabled=false;g.globalAlpha=1;g.fillStyle='#0a0e18';g.fillRect(0,0,cv.width,cv.height)},
+  rect(x,y,w,h,hex,a){g.globalAlpha=a==null?1:a;g.fillStyle=hex;g.fillRect(Math.round(x),Math.round(y),w,h);g.globalAlpha=1},
+  spr(fr,x,y,flip,a){const f=FR[fr];if(!f)return;g.globalAlpha=a==null?1:a;
+   if(flip){g.save();g.translate(Math.round(x)+f.w,Math.round(y));g.scale(-1,1);g.drawImage(AT,f.x,f.y,f.w,f.h,0,0,f.w,f.h);g.restore()}
+   else g.drawImage(AT,f.x,f.y,f.w,f.h,Math.round(x),Math.round(y),f.w,f.h);
+   g.globalAlpha=1},
+  end(){}
+ };
+}
+function setupCanvas(){
+ const wrap=document.getElementById('sceneWrap');
+ const cw=wrap.clientWidth||390,ch=wrap.clientHeight||300;
+ IH=clamp(Math.round(IW*ch/cw),200,420);
+ cvEl.width=IW;cvEl.height=IH;
+ if(Rdr)Rdr.resize();
+}
+
+/* ================================================================
+   장면: 길드 본부 + 퀘스트 디오라마
+================================================================ */
+const SCN={cam:0,shake:0,flash:0,zoom:0,parts:[],ents:[],bubT:2500,day:0};
+const ANCHORS=[
+ {x:48,y:0,act:'board'},{x:292,y:0,act:'door'},{x:88,y:0,act:'chest'},
+ {x:132,y:0,act:'alch'},{x:190,y:0,act:'table'},{x:196,y:0,act:'table'},
+ {x:250,y:0,act:'fire'},{x:24,y:0,act:'shelf'},{x:226,y:0,act:'train'},
+ {x:160,y:0,act:'window'},{x:110,y:0,act:'wander'},{x:70,y:0,act:'wander'},
+ {x:210,y:0,act:'wander'},{x:150,y:0,act:'wander'},{x:270,y:0,act:'wander'}
+];
+function floorY(){return IH-24}
+function initEnts(){
+ SCN.ents=MEMBERS.map((m,i)=>({i,x:40+((i*23)%240),y:floorY()-((i*13)%36)-4,tx:0,ty:0,st:'idle',anim:'idle',f:0,ft:0,wt:800+i*400,flip:false,anchor:-1,away:false,waveT:0}));
+}
+function freeAnchor(){
+ const used=SCN.ents.map(e=>e.anchor);
+ const idxs=ANCHORS.map((a,i)=>i).filter(i=>!used.includes(i));
+ return idxs.length?idxs[Math.floor(Math.random()*idxs.length)]:-1;
+}
+function entUpdate(dt){
+ const fy=floorY();
+ for(const e of SCN.ents){
+  if(e.away)continue;
+  e.ft+=dt;
+  const spd=e.st==='walk'||e.st==='exit'||e.st==='enter'?0.028:0;
+  if(spd>0){
+   const dx=e.tx-e.x,dy=e.ty-e.y,d=Math.hypot(dx,dy);
+   if(d<2){
+    if(e.st==='exit'){e.away=true;continue}
+    e.st='act';e.anim=['fire','table'].includes(e.actName)?'sit':(e.actName==='train'?'work':(e.actName==='alch'?'work':'idle'));
+    e.wt=2500+Math.random()*5000;
+   } else {e.x+=dx/d*spd*dt;e.y+=dy/d*spd*dt;e.flip=dx<0;e.anim='walk'}
+  } else {
+   e.wt-=dt;
+   if(e.waveT>0){e.waveT-=dt;e.anim='win'}
+   if(e.wt<=0&&e.st!=='exit'){
+    if(e.anchor>=0)e.anchor=-1;
+    const ai=freeAnchor();
+    if(ai>=0){e.anchor=ai;e.actName=ANCHORS[ai].act;
+     e.tx=ANCHORS[ai].x+(Math.random()*10-5);
+     e.ty=e.actName==='wander'?fy-4-Math.random()*34:fy-4-Math.random()*8;
+     e.st='walk'}
+    else e.wt=2000;
+   }
+  }
+  const fc=ANIMS[e.anim]||2;
+  if(e.ft>(e.anim==='walk'?140:e.anim==='work'?180:420)){e.ft=0;e.f=(e.f+1)%fc}
+ }
+}
+function sendPartyToDoor(party){
+ for(const e of SCN.ents){
+  if(party.includes(e.i)){e.st='exit';e.anchor=-1;e.tx=292;e.ty=floorY()-6;e.anim='walk'}
+  else if(Math.random()<.6)e.waveT=1200;
+ }
+}
+function returnParty(party){
+ let k=0;
+ for(const e of SCN.ents){
+  if(party.includes(e.i)){e.away=false;e.x=292;e.y=floorY()-6;e.anchor=-1;e.st='walk';e.actName='table';
+   e.tx=176+k*10;e.ty=floorY()-8-(k%2)*6;k++}
+ }
+}
+function spawnPart(x,y,vx,vy,life,col,sz){
+ if(SCN.parts.length>220)return;
+ SCN.parts.push({x,y,vx,vy,l:life,l0:life,c:col,s:sz||1});
+}
+function partsUpdate(dt){
+ for(let i=SCN.parts.length-1;i>=0;i--){const p=SCN.parts[i];
+  p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt;
+  if(p.l<=0)SCN.parts.splice(i,1)}
+}
+function weatherSpawn(w,dt){
+ const n=Math.random()<dt/60?1:0;
+ for(let i=0;i<n;i++){
+  const x=Math.random()*IW;
+  if(w==='rain')spawnPart(x,-4,-0.01,0.16,1400,'#7ab0d8',1);
+  else if(w==='snow')spawnPart(x,-4,(Math.random()-.5)*0.015,0.03,5000,'#e8f0f8',2);
+  else if(w==='sand')spawnPart(-4,Math.random()*IH*.7,0.12,0.008,2400,'#d8b46a',1);
+  else if(w==='spore')spawnPart(x,IH*.3+Math.random()*IH*.5,(Math.random()-.5)*0.01,-0.012,5000,'#c084f2',2);
+  else if(w==='ember')spawnPart(x,IH-30,(Math.random()-.5)*0.02,-0.05,2200,Math.random()<.5?'#e2622b':'#e8a33d',2);
+  else if(w==='drip')spawnPart(x,-4,0,0.05,3500,'#3fb8a8',1);
+  else if(w==='dust')spawnPart(-4,Math.random()*IH,0.03,0,6000,'#8a8468',1);
+  else if(w==='moon')spawnPart(x,IH*.4+Math.random()*IH*.4,(Math.random()-.5)*0.008,-0.008,6000,'#79d6b1',1);
+  else if(w==='steam')spawnPart(x,IH-30,(Math.random()-.5)*0.01,-0.04,2600,'#b8bcc4',2);
+ }
+}
+function sceneReact(tp){
+ if(tp==='전투'){SCN.shake=200;questAnim('work')}
+ else if(tp==='위기'){SCN.shake=320;SCN.flash=200;questAnim('hurt')}
+ else if(tp==='발견'||tp==='전리품'){SCN.zoom=400;sparkleAt(IW/2+30,IH-46)}
+ else if(tp==='특수능력'){sparkleAt(IW/2,IH-56);questAnim('work')}
+}
+function sparkleAt(x,y){for(let i=0;i<8;i++)spawnPart(x+Math.random()*20-10,y+Math.random()*16-8,(Math.random()-.5)*0.04,-0.03,700,'#e8d44a',1)}
+function questAnim(anim){
+ for(const e of SCN.qents){if(Math.random()<.7){e.anim=anim;e.at=700}}
+}
+SCN.qents=[];
+function initQuestEnts(party){
+ SCN.qents=party.map((mi,k)=>({i:mi,x0:60+k*26,bob:Math.random()*6.28,anim:'walk',at:0,f:0,ft:0}));
+ SCN.cam=0;SCN.parts.length=0;
+}
+/* ---- 길드 렌더 ---- */
+function drawGuild(now,dt){
+ const R=Rdr,fy=floorY();
+ // 벽/바닥
+ R.rect(0,0,IW,fy-40,'#2a1f16');
+ for(let x=0;x<IW;x+=32)R.rect(x,0,1,fy-40,'#231a12');
+ R.rect(0,fy-40,IW,40,'#3a2c1e');
+ for(let y=fy-40;y<IH;y+=8)for(let x=((y/8)%2)*8;x<IW;x+=16)R.rect(x,y,8,8,y<fy?'#43331f':'#3a2c1e');
+ R.rect(0,fy-42,IW,2,'#1a120b');
+ // 창문 (낮/밤)
+ const day=(Math.sin(now/60000)+1)/2;
+ const skyC=day>.5?'#7ab0d8':'#1c2440';
+ R.rect(152,20,20,18,'#1a120b');R.rect(154,22,16,14,skyC);R.rect(161,22,2,14,'#1a120b');R.rect(154,28,16,2,'#1a120b');
+ if(day<=.5){R.rect(157,24,2,2,'#e8e0a0')}
+ // 구름
+ const cx=(now/300)%(IW+60)-30;
+ if(day>.5)R.rect(154+((cx/8)%12),24,5,2,'#e8f0f8',.6);
+ // 게시판
+ R.rect(38,fy-70,28,24,'#6a4a2c');R.rect(40,fy-68,24,20,'#8a6a3c');
+ R.rect(43,fy-66+((now/900|0)%2),6,8,'#e0d4b0');R.rect(52,fy-65,7,9,'#d0c4a0');
+ // 출입문
+ R.rect(284,fy-76,26,52,'#1a120b');R.rect(286,fy-74,22,50,'#5a3c22');R.rect(288,fy-50,3,4,'#c8a44a');
+ // 장비 보관함(궤짝)
+ R.rect(80,fy-52,20,14,'#6a4a2c');R.rect(80,fy-56,20,6,'#8a6a3c');R.rect(88,fy-52,4,4,'#c8a44a');
+ // 연금술 작업대
+ R.rect(124,fy-54,24,16,'#4a3a26');R.rect(128,fy-62,5,8,'#5cc8b0');R.rect(137,fy-60,4,6,'#c084f2');
+ if(Math.random()<dt/300)spawnPart(130,fy-62,0,-0.02,900,'#5cc8b0',1);
+ // 긴 식탁
+ R.rect(170,fy-46,44,10,'#6a4a2c');R.rect(172,fy-36,4,8,'#4a3218');R.rect(208,fy-36,4,8,'#4a3218');
+ R.rect(178,fy-49,6,3,'#c8a44a');R.rect(194,fy-49,6,3,'#e0d4b0');
+ // 벽난로
+ R.rect(238,fy-66,30,40,'#4a4038');R.rect(244,fy-52,18,24,'#1a0e08');
+ const ff=(now/120|0)%3;
+ R.rect(248,fy-42-ff,10,10+ff,'#e2622b');R.rect(250,fy-38-ff,6,6,'#e8a33d');
+ if(Math.random()<dt/140)spawnPart(252,fy-44,(Math.random()-.5)*0.01,-0.03,900,'#e8a33d',1);
+ // 수집품 진열장
+ const colN=Object.keys(G.col).length;
+ R.rect(12,fy-74,26,32,'#3a2c1e');R.rect(14,fy-72,22,28,'#251a10');
+ for(let s=0;s<3;s++){R.rect(14,fy-64+s*9,22,1,'#4a3a26');
+  for(let d=0;d<5;d++){const idx=s*5+d;
+   if(colN>idx*20)R.rect(16+d*4,fy-68+s*9,2,2,RARCOL[(idx*7)%5])}}
+ // 훈련 공간
+ R.rect(222,fy-40,12,4,'#4a3a26');R.rect(226,fy-56,4,16,'#8a6a3c');R.rect(224,fy-58,8,6,'#c8b48a');
+ // 멤버 (y 정렬)
+ const es=SCN.ents.filter(e=>!e.away).sort((a,b)=>a.y-b.y);
+ for(const e of es)R.spr('c'+e.i+'_'+e.anim+e.f,e.x-12,e.y-30,e.flip);
+}
+/* ---- 퀘스트 장면 렌더 ---- */
+function drawQuest(now,dt,q){
+ const R=Rdr,reg=REGIONS[q.ri],fy=IH-28;
+ SCN.cam+=dt*0.012;
+ const cam=SCN.cam;
+ R.rect(0,0,IW,IH,reg.pal.sky);
+ if(reg.night||reg.weather==='moon'){R.rect(IW-60,16,14,14,'#e8e8d0');R.rect(IW-58,18,4,4,reg.pal.sky)}
+ // 원경
+ for(let i=0;i<6;i++){const px=((i*90-cam*0.3)%(IW+80)+IW+80)%(IW+80)-40;
+  R.rect(px,fy-64+((i*17)%22),56,70,reg.pal.mid)}
+ // 지면
+ R.rect(0,fy,IW,IH-fy,reg.pal.gnd);
+ for(let x=0;x<IW+16;x+=16){const gx=x-((cam)%16);R.rect(gx,fy,15,2,reg.pal.ac,.25)}
+ // 소품
+ for(let i=0;i<7;i++){const px=((i*67-cam)%(IW+60)+IW+60)%(IW+60)-30;const s=(i*13)%3;
+  if(s===0){R.rect(px,fy-18,4,18,reg.pal.prop);R.rect(px-4,fy-26,12,10,reg.pal.ac,.8)}
+  else if(s===1)R.rect(px,fy-8,10,8,reg.pal.prop);
+  else {R.rect(px,fy-14,3,14,reg.pal.prop);R.rect(px-3,fy-16,9,4,reg.pal.prop)}
+ }
+ weatherSpawn(reg.weather,dt);
+ // 파티
+ for(const e of SCN.qents){
+  e.ft+=dt;e.bob+=dt*0.01;
+  if(e.at>0){e.at-=dt;if(e.at<=0)e.anim='walk'}
+  const fc=ANIMS[e.anim]||2;
+  if(e.ft>(e.anim==='walk'?150:200)){e.ft=0;e.f=(e.f+1)%fc}
+  const y=fy-30+Math.round(Math.sin(e.bob)*1.2);
+  R.spr('c'+e.i+'_'+e.anim+e.f,e.x0,y,false);
+ }
+}
+function drawScene(now,dt){
+ if(!Rdr)return;
+ Rdr.begin();
+ const sx=SCN.shake>0?Math.round((Math.random()*2-1)*2):0;
+ const sy=SCN.shake>0?Math.round(Math.random()*2-1):0;
+ if(SCN.shake>0)SCN.shake-=dt;
+ if(SCN.flash>0)SCN.flash-=dt;
+ if(SCN.zoom>0)SCN.zoom-=dt;
+ const ph=G?G.phase:'';
+ const inQuest=(ph==='QUEST_RUNNING'||ph==='QUEST_RESULT')&&G.run;
+ // 흔들림: 오프셋 렉트 방식(카메라 시프트)
+ if(sx||sy){/* 화면 흔들림은 개체 좌표에 반영 */}
+ if(inQuest)drawQuest(now,dt,G.run.q);else drawGuild(now,dt);
+ partsUpdate(dt);
+ for(const p of SCN.parts)Rdr.rect(p.x+sx,p.y+sy,p.s,p.s,p.c,Math.min(1,p.l/p.l0+.2));
+ if(SCN.flash>0)Rdr.rect(0,0,IW,IH,'#ffffff',SCN.flash/900);
+ Rdr.end();
+}
+/* ---- 말풍선 ---- */
+function showBubble(x,y,txt){
+ const holder=document.getElementById('bubbles');
+ if(holder.children.length>3)holder.removeChild(holder.firstChild);
+ const d=document.createElement('div');d.className='bub';d.textContent=txt;
+ d.style.left=(x/IW*100)+'%';d.style.top=(y/IH*100)+'%';
+ holder.appendChild(d);
+ setTimeout(()=>{if(d.parentNode)d.parentNode.removeChild(d)},2200);
+}
+function guildChatter(dt){
+ if(G.phase==='QUEST_RUNNING'||G.phase==='QUEST_RESULT')return;
+ SCN.bubT-=dt;
+ if(SCN.bubT<=0){
+  SCN.bubT=4000+Math.random()*4000;
+  const alive=SCN.ents.filter(e=>!e.away);
+  if(alive.length){const e=alive[Math.floor(Math.random()*alive.length)];
+   showBubble(e.x,e.y-32,pickFresh(MEMBERS[e.i].quotes))}
+ }
+}
+
+/* ================================================================
+   WebAudio 8비트 효과음
+================================================================ */
+let AC=null,audioReady=false;
+function unlockAudio(){
+ if(audioReady)return;
+ try{AC=new (window.AudioContext||window.webkitAudioContext)();audioReady=true}catch(e){}
+}
+function beep(f,dur,type,vol,delay,slide){
+ if(!audioReady||!AC||G.mute)return;
+ try{
+  const t=AC.currentTime+(delay||0);
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type||'square';o.frequency.setValueAtTime(f,t);
+  if(slide)o.frequency.linearRampToValueAtTime(slide,t+dur);
+  g.gain.setValueAtTime(vol||0.03,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.connect(g);g.connect(AC.destination);
+  o.start(t);o.stop(t+dur+.02);
+ }catch(e){}
+}
+const SFX={
+ tap(){beep(660,.05,'square',.025)},
+ pick(){beep(520,.07,'square',.03);beep(780,.09,'square',.03,.07)},
+ summon(){[440,554,660,880].forEach((f,i)=>beep(f,.08,'square',.028,i*.07))},
+ depart(){beep(330,.1,'triangle',.03);beep(440,.12,'triangle',.03,.1)},
+ attack(){beep(180,.06,'sawtooth',.03,0,120)},
+ trap(){beep(320,.18,'sawtooth',.035,0,110)},
+ abil(){beep(720,.08,'triangle',.03,0,1040)},
+ loot0(){beep(620,.06,'square',.025);beep(830,.08,'square',.025,.06)},
+ loot2(){[660,830,990].forEach((f,i)=>beep(f,.08,'square',.03,i*.06))},
+ loot4(){[523,659,784,1046,1318].forEach((f,i)=>beep(f,.1,'square',.032,i*.08))},
+ win(){[523,659,784,1046].forEach((f,i)=>beep(f,.11,'square',.032,i*.09))},
+ fail(){[440,392,330,262].forEach((f,i)=>beep(f,.13,'triangle',.03,i*.11))}
+};
+
+/* ================================================================
+   게임 상태 머신
+   QUEST_SELECT → PARTY_REVEAL → DEPART → QUEST_RUNNING
+   → QUEST_RESULT → LOOT_REVEAL → RETURNING → (반복)
+================================================================ */
+const PHASE_LABEL={QUEST_SELECT:'퀘스트 선택 대기',PARTY_REVEAL:'멤버 소집 중',DEPART:'출동 준비',QUEST_RUNNING:'퀘스트 진행 중',QUEST_RESULT:'결과 정산',LOOT_REVEAL:'전리품 정산 중',RETURNING:'길드 귀환 중'};
+let uiLock=false;
+function setPhase(ph,ms){
+ G.phase=ph;G.remain=ms;
+ renderProg();updateTopbar();
+}
+function startSelect(){
+ G.run=null;G.cands=genCandidates();
+ setPhase('QUEST_SELECT',20000);
+ saveState();
+}
+function chooseQuest(i,auto){
+ if(G.phase!=='QUEST_SELECT'||uiLock)return;
+ uiLock=true;
+ const q=G.cands[i];
+ addLog('시스템',(auto?'[자동 선택] ':'')+'퀘스트 수락: 「'+q.title+'」 ('+REGIONS[q.ri].short+' · 난이도 '+q.diff+')');
+ SFX.pick();
+ const party=rollParty();
+ const run=simulateQuest(q,party);
+ run.emitted=0;run.lootShown=0;run.extraLogs=[];
+ run.loot=genLoot(q,run.grade,party,run.extraLogs);
+ G.run=run;G.cands=null;
+ setPhase('PARTY_REVEAL',2000);
+ showPartyReveal(run);
+ SFX.summon();
+ saveState();
+ setTimeout(()=>uiLock=false,300);
+}
+function beginDepart(){
+ hideOverlay();
+ setPhase('DEPART',1300);
+ sendPartyToDoor(G.run.party);
+ SFX.depart();
+ addLog('시스템','완전 무작위 소집 완료 — '+G.run.party.map(i=>MEMBERS[i].name).join(', ')+' ('+G.run.party.length+'명)');
+ saveState();
+}
+function beginRunning(){
+ setPhase('QUEST_RUNNING',G.run.q.dur*1000);
+ initQuestEnts(G.run.party);
+ document.getElementById('sceneTag').textContent=REGIONS[G.run.q.ri].name+' · '+G.run.q.type;
+}
+function emitLogs(elapsed,instant){
+ const run=G.run;if(!run)return;
+ while(run.emitted<run.evs.length&&run.evs[run.emitted].t<=elapsed){
+  const e=run.evs[run.emitted++];
+  addLog(e.tp,e.txt,instant);
+  if(!instant){
+   sceneReact(e.tp);
+   if(e.tp==='전투')SFX.attack();
+   else if(e.tp==='위기')SFX.trap();
+   else if(e.tp==='특수능력')SFX.abil();
+  }
+ }
+}
+function finishRunning(){
+ emitLogs(1e9,true);
+ const run=G.run;
+ // 통계 반영
+ G.stats.q++;G.stats[run.grade]++;
+ const ok=run.grade!=='F';
+ for(const mi of run.party){
+  const s=G.mem[mi];s.rec.go++;
+  if(ok)s.rec.ok++;else s.rec.fail++;
+  if(run.grade==='S')s.rec.s++;
+  const c=run.contribs.find(x=>x.i===mi);
+  s.rec.contrib=r1(s.rec.contrib+(c?c.c:0));
+  s.exp+=run.q.diff*(run.grade==='S'?3:run.grade==='A'?2.5:run.grade==='B'?2:run.grade==='C'?1.2:0.6);
+  while(s.exp>=s.lvl*10&&s.lvl<99){s.exp-=s.lvl*10;s.lvl++}
+  s.recent.unshift({t:run.q.title,g:run.grade});if(s.recent.length>5)s.recent.length=5;
+ }
+ G.mem[run.mvp].rec.mvp++;
+ applyLoot(run);
+ // 기록 저장
+ G.recs.unshift({t:Date.now(),title:run.q.title,type:run.q.type,ri:run.q.ri,diff:run.q.diff,dur:run.q.dur,
+  party:run.party.slice(),grade:run.grade,mvp:run.mvp,bd:run.bd,
+  logs:run.evs.map(e=>({tp:e.tp,txt:e.txt})).concat((run.extraLogs||[]).map(e=>({tp:e.tp,txt:e.txt}))),
+  loot:run.loot.map(l=>l.it?{n:l.it.name,r:l.it.rar,c:l.it.cat}:l.cons?{n:CONSMAP[l.cons].name+' ×'+l.qty,r:0,c:'c'}:{n:COLBYID[l.col].name,r:COLBYID[l.col].rar,c:'col',isNew:l.isNew})});
+ if(G.recs.length>100)G.recs.length=100;
+ setPhase('QUEST_RESULT',3200);
+ if(run.grade==='F')SFX.fail();else SFX.win();
+ saveState();
+ updateNavDots();
+}
+function beginLoot(){
+ const run=G.run;
+ for(const e of run.extraLogs)addLog(e.tp,e.txt);
+ for(const e of (run.sysLogs||[]))addLog(e.tp,e.txt);
+ const ms=Math.max(1400,run.loot.length*550+900);
+ setPhase('LOOT_REVEAL',ms);
+ showLootOverlay(run);
+ saveState();
+}
+function beginReturn(){
+ hideOverlay();
+ setPhase('RETURNING',2000);
+ document.getElementById('sceneTag').textContent='길드 본부';
+ returnParty(G.run.party);
+ saveState();
+}
+function advancePhase(){
+ switch(G.phase){
+  case 'QUEST_SELECT':chooseQuest(RI(0,2),true);break;
+  case 'PARTY_REVEAL':beginDepart();break;
+  case 'DEPART':beginRunning();break;
+  case 'QUEST_RUNNING':finishRunning();break;
+  case 'QUEST_RESULT':beginLoot();break;
+  case 'LOOT_REVEAL':beginReturn();break;
+  case 'RETURNING':startSelect();break;
+  default:startSelect();
+ }
+}
+/* ---- 백그라운드 복귀: 실제 타임스탬프 기준 복구 (현재 사이클까지만) ---- */
+function fastForward(ms){
+ let cycled=false,guard=0;
+ while(ms>0&&guard++<12){
+  if(G.phase==='QUEST_SELECT'&&cycled)break;
+  if(G.remain>ms){
+   G.remain-=ms;
+   if(G.phase==='QUEST_RUNNING')emitLogs(G.run.q.dur*1000-G.remain,true);
+   ms=0;
+  } else {
+   ms-=G.remain;
+   if(G.phase==='RETURNING'||G.phase==='LOOT_REVEAL')cycled=true;
+   hideOverlay();
+   const ph=G.phase;
+   if(ph==='QUEST_SELECT')chooseQuest(RI(0,2),true);
+   else if(ph==='PARTY_REVEAL'){hideOverlay();setPhase('DEPART',1);sendPartyToDoor(G.run.party)}
+   else if(ph==='DEPART')beginRunning();
+   else if(ph==='QUEST_RUNNING')finishRunning();
+   else if(ph==='QUEST_RESULT'){for(const e of G.run.extraLogs)addLog(e.tp,e.txt,true);applySilentLoot();setPhase('LOOT_REVEAL',1)}
+   else if(ph==='LOOT_REVEAL')beginReturn();
+   else if(ph==='RETURNING'){startSelect();cycled=true}
+   else startSelect();
+  }
+ }
+ renderProg();updateTopbar();
+}
+function applySilentLoot(){
+ const run=G.run;
+ for(const e of (run.sysLogs||[]))addLog(e.tp,e.txt,true);
+}
+/* ================================================================
+   메인 루프
+================================================================ */
+let lastT=0,saveT=0,uiT=0;
+function loop(now){
+ requestAnimationFrame(loop);
+ if(!lastT)lastT=now;
+ let dt=Math.min(now-lastT,120);lastT=now;
+ const gdt=G.paused?0:dt*G.speed;
+ if(gdt>0){
+  G.remain-=gdt;
+  if(G.phase==='QUEST_RUNNING'&&G.run)emitLogs(G.run.q.dur*1000-G.remain);
+  if(G.phase==='LOOT_REVEAL'&&G.run)lootTick(G.run.q.dur*0+((Math.max(1400,G.run.loot.length*550+900))-G.remain));
+  if(G.remain<=0)advancePhase();
+  entUpdate(gdt);
+  guildChatter(gdt);
+ }
+ drawScene(now,gdt||dt*0.15);
+ uiT+=dt;
+ if(uiT>240){uiT=0;tickUI()}
+ saveT+=dt;
+ if(saveT>10000){saveT=0;saveState()}
+}
+
+/* ================================================================
+   UI 렌더링
+================================================================ */
+const $=id=>document.getElementById(id);
+function fmtT(ms){return Math.max(0,Math.ceil(ms/1000))+'초'}
+function liveLine(){
+ const ph=G.phase;
+ if(ph==='QUEST_SELECT')return '퀘스트 선택 대기 · '+fmtT(G.remain)+' 남음';
+ if(ph==='QUEST_RUNNING'&&G.run)return REGIONS[G.run.q.ri].short+' '+G.run.q.type+' 중 · '+fmtT(G.remain)+' 남음';
+ if(ph==='LOOT_REVEAL')return '전리품 정산 중';
+ if(ph==='QUEST_RESULT'&&G.run)return '결과: '+G.run.grade+'등급';
+ return PHASE_LABEL[ph]||'대기';
+}
+function updateTopbar(){
+ $('tbQ').textContent='퀘스트 '+G.stats.q+'회';
+ $('tbPhase').textContent=(G.paused?'[일시정지] ':'')+(PHASE_LABEL[G.phase]||'준비');
+ $('btnSnd').classList.toggle('on',!G.mute);
+ $('btnPause').classList.toggle('on',G.paused);
+ $('btnPause').textContent=G.paused?'재개':'정지';
+ $('btnSpd').textContent='×'+G.speed;
+}
+function tickUI(){
+ // 타이머/게이지 갱신
+ const tb=$('progTbar');if(tb&&G.phase==='QUEST_SELECT')tb.style.width=(G.remain/20000*100)+'%';
+ const tt=$('progTtxt');if(tt&&G.phase==='QUEST_SELECT')tt.textContent=fmtT(G.remain);
+ const rb=$('runTbar');if(rb&&G.phase==='QUEST_RUNNING'&&G.run)rb.style.width=(100-G.remain/(G.run.q.dur*10))+'%';
+ const rt=$('runTtxt');if(rt&&G.phase==='QUEST_RUNNING')rt.textContent=fmtT(G.remain);
+ const lv=$('sheetLive');if(lv&&$('sheet').classList.contains('open'))lv.textContent=liveLine();
+ if(G.phase!=='QUEST_SELECT'&&G.phase!=='QUEST_RUNNING')updateTopbar();
+}
+/* ---- 진행 영역 ---- */
+function renderProg(){
+ const p=$('prog');
+ const ph=G.phase;
+ if(ph==='QUEST_SELECT'&&G.cands){
+  p.innerHTML='<div class="selHead"><span>퀘스트 게시판 — 하나를 고르세요</span><b id="progTtxt">'+fmtT(G.remain)+'</b></div>'+
+  '<div class="tbar"><i id="progTbar" style="width:100%"></i></div>'+
+  G.cands.map((q,i)=>{
+   const focus=q.focus.slice(0,3).map(k=>ST[k]).join('·');
+   return '<button class="qcard pf" data-q="'+i+'">'+
+    '<div class="qcTop"><span class="qcTitle">'+esc(q.title)+'</span>'+
+    '<span class="tag">'+q.type+'</span><span class="tag">'+REGIONS[q.ri].short+'</span><span class="tag dif">난이도 '+q.diff+'</span></div>'+
+    '<div class="qcMid"><b>권장 '+focus+'</b><em>⚠ '+esc(q.hz[0])+'</em><u>'+esc(q.lootHint)+'</u></div>'+
+    '</button>';
+  }).join('');
+  p.querySelectorAll('.qcard').forEach(b=>b.addEventListener('click',()=>{SFX.tap();chooseQuest(+b.dataset.q,false)}));
+ }
+ else if(ph==='PARTY_REVEAL'||ph==='DEPART'){
+  p.innerHTML='<div class="runBox pf"><div class="runTitle">'+esc(G.run.q.title)+'<span>소집 중...</span></div>'+
+   '<div class="runSub">완전 무작위 소집 — 능력치 보정 없음</div></div>';
+ }
+ else if(ph==='QUEST_RUNNING'&&G.run){
+  const q=G.run.q;
+  p.innerHTML='<div class="runBox pf"><div class="runTitle">'+esc(q.title)+'<span id="runTtxt">'+fmtT(G.remain)+'</span></div>'+
+   '<div class="runSub">'+REGIONS[q.ri].name+' · '+q.type+' · 난이도 '+q.diff+' · 목표 '+q.target+'점</div>'+
+   '<div class="tbar"><i id="runTbar" style="width:0%"></i></div>'+
+   '<div class="pRow">'+G.run.party.map(mi=>'<img class="pix" alt="'+MEMBERS[mi].name+'" src="'+portraitURL(mi)+'">').join('')+'</div></div>';
+ }
+ else if(ph==='QUEST_RESULT'&&G.run){
+  const r=G.run;
+  p.innerHTML='<div class="resBox pf"><div class="gradeBig g_'+r.grade+'">'+(r.grade==='F'?'실패':r.grade)+'</div>'+
+   '<div class="resInfo"><b>'+esc(r.q.title)+'</b><br>최종 <b>'+r.bd.final+'점</b> / 목표 '+r.bd.target+'점<br>MVP: <b>'+MEMBERS[r.mvp].name+'</b> (기여 '+r.contribs[0].c+')</div>'+
+   '<button class="mini" id="bdBtn">상세</button></div>';
+  $('bdBtn').addEventListener('click',()=>{SFX.tap();openSheet('rec');setTimeout(()=>showRecDetail(0),50)});
+ }
+ else if(ph==='LOOT_REVEAL'){
+  p.innerHTML='<div class="runBox pf"><div class="runTitle">전리품 정산 중...</div><div class="runSub">화면을 누르면 빠르게 넘어갑니다</div></div>';
+ }
+ else if(ph==='RETURNING'){
+  p.innerHTML='<div class="runBox pf"><div class="runTitle">길드 귀환 중...</div><div class="runSub">잠시 후 새 퀘스트가 게시됩니다</div></div>';
+ }
+ else p.innerHTML='';
+}
+/* ---- 로그 ---- */
+let logStick=true;
+function addLog(tp,txt,instant){
+ const list=$('logList');
+ const d=document.createElement('div');
+ d.className='lg t_'+tp;
+ d.innerHTML='<img class="pix" src="'+logIconURL(tp)+'" alt=""><span>'+(tp==='대화'?txt:esc(txt).replace(/「(.+?)」/g,'「<b>$1</b>」'))+'</span>';
+ list.appendChild(d);
+ while(list.children.length>120)list.removeChild(list.firstChild);
+ if(logStick)list.scrollTop=list.scrollHeight;
+}
+/* ---- 오버레이: 소집 / 전리품 / 확인 ---- */
+function hideOverlay(){$('ovl').classList.remove('open');$('ovl').innerHTML=''}
+function showPartyReveal(run){
+ const o=$('ovl');
+ o.innerHTML='<div class="ovBox pf2"><div class="ovTitle">완전 무작위 소집</div>'+
+  '<div class="ovSub">'+esc(run.q.title)+' — '+run.party.length+'명 출동</div>'+
+  '<div class="pgrid">'+run.party.map((mi,k)=>'<div class="pcard"><div class="in" style="--d:'+(k*0.12)+'s"><img class="pix" src="'+portraitURL(mi)+'"><span>'+MEMBERS[mi].name+'</span></div></div>').join('')+'</div></div>';
+ o.classList.add('open');
+}
+function showLootOverlay(run){
+ const o=$('ovl');
+ o.innerHTML='<div class="ovBox pf2" id="lootBox"><div class="ovTitle">전리품</div>'+
+  '<div class="ovSub">'+(run.loot.length?run.q.title:'아쉽지만 빈손이다...')+'</div>'+
+  '<div class="lootList" id="lootList"></div></div>';
+ o.classList.add('open');
+ run.lootShown=0;
+ o.addEventListener('click',()=>{if(G.phase==='LOOT_REVEAL'){G.remain=Math.min(G.remain,1)}});
+}
+function lootItemHTML(l){
+ if(l.it){
+  const it=l.it;
+  return '<div class="lootIt br'+it.rar+(it.rar===4?' lgd':'')+'"><img class="pix" src="'+(it.cat==='w'?weaponIconURL(it):armorIconURL(it))+'">'+
+   '<div class="li"><b class="r'+it.rar+'">'+esc(it.name)+'</b>'+(it.cat==='w'?'무기':'방어구')+' · '+RAR[it.rar]+' · Lv'+it.ilvl+'<br>'+bonText(it.bon)+
+   (l.eq>=0?' <span style="color:#7fd0a0">'+MEMBERS[l.eq].name+' 장착</span>':' <span style="color:#7d8ba8">보관</span>')+'</div></div>';
+ }
+ if(l.cons){const c=CONSMAP[l.cons];
+  return '<div class="lootIt br0"><img class="pix" src="'+consIconURL(l.cons)+'"><div class="li"><b class="r1">'+c.name+' ×'+l.qty+'</b>소모품 · '+esc(c.desc)+'</div></div>';}
+ const c=COLBYID[l.col];
+ return '<div class="lootIt br'+c.rar+(c.rar===4?' lgd':'')+'"><img class="pix" src="'+colIconURL(c,false)+'"><div class="li"><b class="r'+c.rar+'">'+esc(c.name)+(l.isNew?'<span class="newTag">NEW!</span>':'')+'</b>수집품 · '+CTHEMES[c.theme].name+' · '+RAR[c.rar]+(l.isNew?'<br>도감에 새로 등록되었다!':'<br>중복 획득 ('+(G.col[l.col]?G.col[l.col].n:1)+'회)')+'</div></div>';
+}
+function lootTick(elapsed){
+ const run=G.run,list=$('lootList');
+ if(!list||!run)return;
+ const should=Math.min(run.loot.length,Math.floor(elapsed/550)+ (G.remain<=1?99:0));
+ while(run.lootShown<Math.min(run.loot.length,should)){
+  const l=run.loot[run.lootShown++];
+  list.insertAdjacentHTML('beforeend',lootItemHTML(l));
+  const rar=l.it?l.it.rar:l.col?COLBYID[l.col].rar:0;
+  if(rar>=4)SFX.loot4();else if(rar>=2)SFX.loot2();else SFX.loot0();
+ }
+}
+function confirmBox(msg,okTxt,cb){
+ const o=$('ovl');
+ o.innerHTML='<div class="cfBox pf2"><p>'+msg+'</p><div class="btnRow" style="justify-content:center"><button class="btn warn" id="cfOk">'+okTxt+'</button><button class="btn" id="cfNo">취소</button></div></div>';
+ o.classList.add('open');
+ $('cfOk').addEventListener('click',()=>{hideOverlay();cb()});
+ $('cfNo').addEventListener('click',hideOverlay);
+}
+
+/* ================================================================
+   바텀시트 패널 (관제실 / 멤버 / 전리품 / 수집품 / 기록)
+================================================================ */
+let curTab=null,lootTab='w',colTab=0,lootFilter={rar:-1,sort:'new',eq:'all'};
+function openSheet(tab){
+ curTab=tab;
+ $('sheet').classList.add('open');
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('cur',b.dataset.t===tab));
+ $('sheetLive').textContent=liveLine();
+ buildSheet();
+}
+function closeSheet(){
+ $('sheet').classList.remove('open');curTab=null;
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('cur'));
+}
+function buildSheet(){
+ const T={ctrl:'관제실',mem:'멤버',loot:'전리품',col:'수집품 도감',rec:'기록'};
+ $('sheetTitle').innerHTML=T[curTab]||'';
+ if(curTab==='ctrl')buildCtrl();
+ else if(curTab==='mem')buildMembers();
+ else if(curTab==='loot')buildLoot();
+ else if(curTab==='col')buildCollect();
+ else if(curTab==='rec')buildRecords();
+}
+/* ---- 관제실 ---- */
+let deferredPrompt=null;
+function buildCtrl(){
+ const s=G.stats;
+ const inv=G.invW.length+G.invA.length;
+ $('sheetBody').innerHTML=
+  '<div class="secT">현재 상황</div><div class="kv"><span>진행 단계</span><b>'+(PHASE_LABEL[G.phase]||'-')+'</b></div>'+
+  '<div class="kv"><span>누적 퀘스트</span><b>'+s.q+'회</b></div>'+
+  '<div class="kv"><span>장비 보관</span><b>'+inv+' / 300</b></div>'+
+  '<div class="kv"><span>수집품 도감</span><b>'+Object.keys(G.col).length+' / 300</b></div>'+
+  '<div class="kv"><span>마지막 자동 저장</span><b>'+(G.lastSave?new Date(G.lastSave).toLocaleTimeString('ko-KR'):'-')+'</b></div>'+
+  '<div class="secT">조작</div><div class="btnRow">'+
+  '<button class="btn" id="cSnd">'+(G.mute?'소리 켜기':'소리 끄기')+'</button>'+
+  '<button class="btn" id="cPause">'+(G.paused?'게임 재개':'일시정지')+'</button>'+
+  '<button class="btn" id="cSpd">배속 ×'+G.speed+'</button>'+
+  '<button class="btn" id="cLog">'+(G.fold?'로그 펼치기':'로그 접기')+'</button></div>'+
+  (deferredPrompt?'<div class="secT">앱 설치</div><div class="btnRow"><button class="btn gold" id="cInstall">홈 화면에 설치</button></div>':'')+
+  '<div class="secT">데이터</div><div class="btnRow">'+
+  '<button class="btn" id="cSave">지금 저장</button>'+
+  '<button class="btn warn" id="cReset">데이터 초기화</button></div>'+
+  '<div style="font-size:10px;color:#5a627a;margin-top:10px">픽셀 원정대: 12인의 길드 v'+SAVE_VER+' · 저장은 이 기기의 브라우저에만 보관됩니다.</div>';
+ $('cSnd').addEventListener('click',()=>{toggleSound();buildCtrl()});
+ $('cPause').addEventListener('click',()=>{togglePause();buildCtrl()});
+ $('cSpd').addEventListener('click',()=>{toggleSpeed();buildCtrl()});
+ $('cLog').addEventListener('click',()=>{toggleFold();buildCtrl()});
+ $('cSave').addEventListener('click',()=>{SFX.tap();saveState();buildCtrl()});
+ $('cReset').addEventListener('click',()=>{
+  confirmBox('모든 진행 데이터를 삭제할까요?<br>이 작업은 되돌릴 수 없습니다.','계속',()=>{
+   confirmBox('<b style="color:#e05a5a">정말로 초기화합니다.</b><br>장비·수집품·기록이 모두 사라집니다.','정말 초기화',()=>{
+    try{localStorage.removeItem(SAVE_KEY)}catch(e){}
+    location.reload();
+   });
+  });
+ });
+ const ib=$('cInstall');
+ if(ib)ib.addEventListener('click',async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  try{await deferredPrompt.userChoice}catch(e){}
+  deferredPrompt=null;buildCtrl();
+ });
+}
+/* ---- 멤버 ---- */
+function buildMembers(){
+ $('sheetBody').innerHTML='<div class="grid2">'+MEMBERS.map((m,i)=>{
+  const s=G.mem[i],ok=s.rec.go?Math.round(s.rec.ok/s.rec.go*100):0;
+  const w=itemByUid(s.w);
+  return '<button class="mcard pf" data-m="'+i+'"><img class="pix" src="'+portraitURL(i)+'">'+
+   '<span class="mcInfo"><b>'+m.name+' <span style="color:#8d7a55;font-weight:400">Lv'+s.lvl+'</span></b>'+
+   m.title+'<br>출동 '+s.rec.go+' · 성공률 '+ok+'%<br>'+(w?'<span class="r'+w.rar+'">'+esc(WKINDS[w.kind])+'</span>':'맨손')+'</span></button>';
+ }).join('')+'</div>';
+ $('sheetBody').querySelectorAll('.mcard').forEach(b=>b.addEventListener('click',()=>{SFX.tap();showMember(+b.dataset.m)}));
+}
+function showMember(mi){
+ const m=MEMBERS[mi],s=G.mem[mi],eff=effStats(mi),eq=equipBonus(mi);
+ const w=itemByUid(s.w),a=itemByUid(s.a);
+ $('sheetBody').innerHTML=
+  '<button class="backBtn" id="bk">← 멤버 목록</button>'+
+  '<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><img class="pix" style="width:64px;height:64px;border:2px solid #4a3b26;background:#080b13" src="'+portraitURL(mi)+'">'+
+  '<div style="font-size:11px;color:#9aa7c4;line-height:1.5"><b style="font-size:14px;color:#f0e6cd">'+m.name+'</b> <span style="color:#e8a33d">'+m.title+'</span> · Lv'+s.lvl+'<br>'+esc(m.desc)+'</div></div>'+
+  '<div class="secT">스탯 (기본 → 장비 적용)</div>'+
+  ST.map((n,k)=>'<div class="statLine"><span class="sn">'+n+'</span><div class="sbar"><i style="width:'+Math.min(100,eff[k]/1.3)+'%"></i><i class="eq" style="width:'+Math.min(100,m.stats[k]/1.3)+'%"></i></div><span class="sv">'+m.stats[k]+' → <b>'+eff[k]+'</b></span></div>').join('')+
+  '<div class="secT">특수능력 ('+m.ab.length+')</div><div>'+m.ab.map(id=>'<span class="abChip" title="'+esc(ABIL[id].desc)+'">'+ABIL[id].name+'</span>').join('')+'</div>'+
+  '<div style="font-size:10px;color:#7d8ba8;margin-top:2px">'+m.ab.map(id=>'· '+ABIL[id].name+': '+esc(ABIL[id].desc)).join('<br>')+'</div>'+
+  '<div class="secT">장비</div>'+
+  (w?'<button class="itRow pf br'+w.rar+'" data-it="'+w.uid+'"><img class="pix br'+w.rar+'" src="'+weaponIconURL(w)+'"><span class="itInfo"><b class="r'+w.rar+'">'+esc(w.name)+'</b>Lv'+w.ilvl+' · '+bonText(w.bon)+'</span></button>':'<div class="kv"><span>무기</span><b>없음</b></div>')+
+  (a?'<button class="itRow pf br'+a.rar+'" data-it="'+a.uid+'"><img class="pix br'+a.rar+'" src="'+armorIconURL(a)+'"><span class="itInfo"><b class="r'+a.rar+'">'+esc(a.name)+'</b>Lv'+a.ilvl+' · '+bonText(a.bon)+'</span></button>':'<div class="kv"><span>방어구</span><b>없음</b></div>')+
+  '<div class="secT">출동 기록</div>'+
+  '<div class="kv"><span>출동 / 성공 / 실패</span><b>'+s.rec.go+' / '+s.rec.ok+' / '+s.rec.fail+'</b></div>'+
+  '<div class="kv"><span>S등급 / MVP</span><b>'+s.rec.s+' / '+s.rec.mvp+'</b></div>'+
+  '<div class="kv"><span>누적 기여도</span><b>'+Math.round(s.rec.contrib)+'</b></div>'+
+  '<div class="kv"><span>발견 수집품 / 사용 소모품</span><b>'+s.rec.found+' / '+s.rec.cons+'</b></div>'+
+  '<div class="secT">최근 출동</div>'+
+  (s.recent.length?s.recent.map(r=>'<div class="kv"><span>'+esc(r.t)+'</span><b class="g_'+r.g+'" style="border:none">'+(r.g==='F'?'실패':r.g)+'</b></div>').join(''):'<div class="kv"><span>아직 출동 기록이 없습니다</span></div>')+
+  '<div class="secT">한마디</div><div style="font-size:11.5px;color:#d8cba6">“'+m.quotes[0]+'”</div>';
+ $('bk').addEventListener('click',()=>{SFX.tap();buildMembers()});
+ $('sheetBody').querySelectorAll('[data-it]').forEach(b=>b.addEventListener('click',()=>{SFX.tap();showItem(+b.dataset.it,()=>showMember(mi))}));
+}
+/* ---- 전리품 ---- */
+function buildLoot(){
+ const tabs=[['w','무기'],['a','방어구'],['c','소모품']];
+ let html='<div class="tabRow">'+tabs.map(t=>'<button data-lt="'+t[0]+'" class="'+(lootTab===t[0]?'cur':'')+'">'+t[1]+'</button>').join('')+'</div>';
+ if(lootTab!=='c'){
+  html+='<div class="filterRow">'+
+   '<select id="fRar"><option value="-1">희귀도 전체</option>'+RAR.map((r,i)=>'<option value="'+i+'" '+(lootFilter.rar===i?'selected':'')+'>'+r+'</option>').join('')+'</select>'+
+   '<select id="fSort"><option value="new" '+(lootFilter.sort==='new'?'selected':'')+'>최신순</option><option value="rar" '+(lootFilter.sort==='rar'?'selected':'')+'>희귀도순</option><option value="lvl" '+(lootFilter.sort==='lvl'?'selected':'')+'>레벨순</option></select>'+
+   '<select id="fEq"><option value="all">전체</option><option value="eq" '+(lootFilter.eq==='eq'?'selected':'')+'>장착 중</option><option value="lock" '+(lootFilter.eq==='lock'?'selected':'')+'>잠금</option><option value="free" '+(lootFilter.eq==='free'?'selected':'')+'>보관 중</option></select></div>';
+  let arr=(lootTab==='w'?G.invW:G.invA).slice();
+  if(lootFilter.rar>=0)arr=arr.filter(x=>x.rar===lootFilter.rar);
+  if(lootFilter.eq==='eq')arr=arr.filter(x=>x.owner!==null);
+  if(lootFilter.eq==='lock')arr=arr.filter(x=>x.lock);
+  if(lootFilter.eq==='free')arr=arr.filter(x=>x.owner===null&&!x.lock);
+  arr.sort((a,b)=>lootFilter.sort==='rar'?b.rar-a.rar||b.ilvl-a.ilvl:lootFilter.sort==='lvl'?b.ilvl-a.ilvl:b.t-a.t);
+  html+='<div style="font-size:10px;color:#7d8ba8;margin-bottom:4px">'+arr.length+'개 표시 · 보관 총 '+(G.invW.length+G.invA.length)+'/300</div>';
+  html+=arr.length?arr.slice(0,80).map(it=>'<button class="itRow pf br'+it.rar+'" data-it="'+it.uid+'"><img class="pix br'+it.rar+'" src="'+(it.cat==='w'?weaponIconURL(it):armorIconURL(it))+'"><span class="itInfo"><b class="r'+it.rar+'">'+esc(it.name)+'</b>Lv'+it.ilvl+' · '+bonText(it.bon)+(it.owner!==null?' · <span style="color:#7fd0a0">'+MEMBERS[it.owner].name+'</span>':'')+(it.lock?' · <span style="color:#e8a33d">잠금</span>':'')+'</span></button>').join(''):'<div class="kv"><span>보관 중인 장비가 없습니다. 퀘스트로 획득하세요.</span></div>';
+ } else {
+  html+=CONS.map(c=>'<button class="itRow pf br0" data-cs="'+c.id+'"><img class="pix" src="'+consIconURL(c.id)+'"><span class="itInfo"><b class="r1">'+c.name+' <span style="color:#f0e6cd">×'+(G.cons[c.id]||0)+'</span></b>'+esc(c.desc)+'</span></button>').join('');
+ }
+ $('sheetBody').innerHTML=html;
+ $('sheetBody').querySelectorAll('[data-lt]').forEach(b=>b.addEventListener('click',()=>{SFX.tap();lootTab=b.dataset.lt;buildLoot()}));
+ const fr=$('fRar');if(fr)fr.addEventListener('change',()=>{lootFilter.rar=+fr.value;buildLoot()});
+ const fs=$('fSort');if(fs)fs.addEventListener('change',()=>{lootFilter.sort=fs.value;buildLoot()});
+ const fe=$('fEq');if(fe)fe.addEventListener('change',()=>{lootFilter.eq=fe.value;buildLoot()});
+ $('sheetBody').querySelectorAll('[data-it]').forEach(b=>b.addEventListener('click',()=>{SFX.tap();showItem(+b.dataset.it,buildLoot)}));
+ $('sheetBody').querySelectorAll('[data-cs]').forEach(b=>b.addEventListener('click',()=>{SFX.tap();showCons(b.dataset.cs)}));
+}
+function recommendFor(it){
+ let best=0,bs=-1;
+ for(let i=0;i<12;i++){const v=evalItemFor(i,it);if(v>bs){bs=v;best=i}}
+ return best;
+}
+function showItem(uid,back){
+ const it=itemByUid(uid);
+ if(!it){back();return}
+ const rec=recommendFor(it);
+ $('sheetBody').innerHTML=
+  '<button class="backBtn" id="bk">← 돌아가기</button>'+
+  '<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><img class="pix br'+it.rar+'" style="width:56px;height:56px;border-width:2px;border-style:solid;background:#080b13" src="'+(it.cat==='w'?weaponIconURL(it):armorIconURL(it))+'">'+
+  '<div style="font-size:11px;color:#9aa7c4;line-height:1.5"><b style="font-size:13px" class="r'+it.rar+'">'+esc(it.name)+'</b><br>'+(it.cat==='w'?'무기 · '+WKINDS[it.kind]:'방어구 세트')+' · '+RAR[it.rar]+' · Lv'+it.ilvl+'</div></div>'+
+  '<div class="kv"><span>스탯 보너스</span><b>'+bonText(it.bon)+'</b></div>'+
+  '<div class="kv"><span>설명</span><b style="font-weight:400">'+esc(it.desc)+'</b></div>'+
+  '<div class="kv"><span>획득 퀘스트</span><b>'+esc(it.fromQ)+'</b></div>'+
+  '<div class="kv"><span>획득 시각</span><b>'+new Date(it.t).toLocaleString('ko-KR')+'</b></div>'+
+  '<div class="kv"><span>현재 착용</span><b>'+(it.owner!==null?MEMBERS[it.owner].name:'없음')+'</b></div>'+
+  '<div class="kv"><span>추천 멤버</span><b style="color:#7fd0a0">'+MEMBERS[rec].name+'</b></div>'+
+  '<div class="btnRow"><button class="btn" id="lk">'+(it.lock?'잠금 해제':'잠금 (자동 정리 제외)')+'</button></div>'+
+  '<div class="secT">직접 장착</div><div class="pgrid" style="justify-content:flex-start">'+
+  Array.from({length:12},(x,i)=>'<button data-eq="'+i+'" style="width:52px;border:2px solid '+(i===rec?'#7fd0a0':'#2c2a3a')+';background:#0e1424;padding:2px"><img class="pix" style="width:100%" src="'+portraitURL(i)+'"><span style="font-size:9px;color:#c9b98d">'+MEMBERS[i].name+'</span></button>').join('')+'</div>';
+ $('bk').addEventListener('click',()=>{SFX.tap();back()});
+ $('lk').addEventListener('click',()=>{SFX.tap();it.lock=!it.lock;saveState();showItem(uid,back)});
+ $('sheetBody').querySelectorAll('[data-eq]').forEach(b=>b.addEventListener('click',()=>{
+  SFX.pick();
+  const mi=+b.dataset.eq,slot=it.cat==='w'?'w':'a';
+  if(it.owner!==null)G.mem[it.owner][slot]=null;
+  const old=itemByUid(G.mem[mi][slot]);if(old)old.owner=null;
+  G.mem[mi][slot]=it.uid;it.owner=mi;
+  addLog('시스템',MEMBERS[mi].name+'이(가) 「'+it.name+'」을(를) 장착했다. '+bonText(it.bon));
+  saveState();showItem(uid,back);
+ }));
+}
+function showCons(cid){
+ const c=CONSMAP[cid],logs=G.consLog[cid]||[];
+ $('sheetBody').innerHTML=
+  '<button class="backBtn" id="bk">← 소모품 목록</button>'+
+  '<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><img class="pix" style="width:56px;height:56px;border:2px solid #2c2a3a;background:#080b13" src="'+consIconURL(cid)+'">'+
+  '<div style="font-size:11px;color:#9aa7c4;line-height:1.5"><b style="font-size:13px;color:#f0e6cd">'+c.name+'</b><br>보유 ×'+(G.cons[cid]||0)+' (최대 99)</div></div>'+
+  '<div class="kv"><span>효과</span><b style="font-weight:400">'+esc(c.desc)+'</b></div>'+
+  '<div class="kv"><span>사용 시점</span><b style="font-weight:400">'+esc(c.use)+'</b></div>'+
+  '<div class="secT">최근 사용 기록</div>'+
+  (logs.length?logs.map(l=>'<div class="kv"><span>'+esc(l.txt)+'</span><b>'+new Date(l.t).toLocaleTimeString('ko-KR')+'</b></div>').join(''):'<div class="kv"><span>아직 사용 기록이 없습니다</span></div>');
+ $('bk').addEventListener('click',()=>{SFX.tap();buildLoot()});
+}
+/* ---- 수집품 도감 ---- */
+function buildCollect(){
+ const found=Object.keys(G.col).length;
+ // 열람한 테마의 NEW 제거
+ G.colNew=G.colNew.filter(id=>COLBYID[id].theme!==colTab);
+ updateNavDots();
+ let html='<div style="font-size:11px;color:#c9b98d;margin-bottom:5px">전체 <b style="color:#e8a33d">'+pad3(found)+'</b> / 300</div>';
+ html+='<div class="tabRowScroll">'+CTHEMES.map((t,i)=>{
+  const cnt=COLLECT.filter(c=>c.theme===i&&G.col[c.id]).length;
+  const hasNew=G.colNew.some(id=>COLBYID[id].theme===i);
+  return '<button data-ct="'+i+'" class="'+(colTab===i?'cur':'')+'">'+t.name+' '+cnt+'/25'+(hasNew?'<i class="dot"></i>':'')+'</button>';
+ }).join('')+'</div>';
+ const items=COLLECT.filter(c=>c.theme===colTab);
+ html+='<div class="colGrid">'+items.map(c=>{
+  const f=G.col[c.id];
+  return '<button class="colCell '+(f?'br'+c.rar:'unk')+'" data-cc="'+c.id+'">'+
+   '<img class="pix" src="'+colIconURL(c,!f)+'">'+(f&&G.colNew.includes(c.id)?'<i class="nb"></i>':'')+'</button>';
+ }).join('')+'</div><div id="colDetail" style="margin-top:8px"></div>';
+ $('sheetBody').innerHTML=html;
+ $('sheetBody').querySelectorAll('[data-ct]').forEach(b=>b.addEventListener('click',()=>{SFX.tap();colTab=+b.dataset.ct;buildCollect()}));
+ $('sheetBody').querySelectorAll('[data-cc]').forEach(b=>b.addEventListener('click',()=>{SFX.tap();showCol(b.dataset.cc)}));
+}
+function showCol(id){
+ const c=COLBYID[id],f=G.col[id],d=$('colDetail');
+ if(!f){d.innerHTML='<div class="kv"><span>??? — 아직 발견하지 못한 수집품</span><b>'+c.id+'</b></div>';return}
+ d.innerHTML='<div class="pf" style="padding:8px;display:flex;gap:10px;align-items:center">'+
+  '<img class="pix br'+c.rar+'" style="width:56px;height:56px;border-width:2px;border-style:solid;background:#080b13" src="'+colIconURL(c,false)+'">'+
+  '<div style="font-size:10.5px;color:#9aa7c4;line-height:1.5;flex:1"><b style="font-size:12.5px" class="r'+c.rar+'">'+esc(c.name)+'</b> <span class="badge r'+c.rar+'">'+RAR[c.rar]+'</span><br>'+
+  esc(c.desc)+'<br>최초 발견: '+esc(f.q)+' · '+new Date(f.t).toLocaleDateString('ko-KR')+' · 획득 '+f.n+'회</div></div>';
+}
+/* ---- 기록 ---- */
+function buildRecords(){
+ const s=G.stats;
+ const okN=s.S+s.A+s.B+s.C;
+ const most=G.mem.map((m,i)=>({i,go:m.rec.go,mvp:m.rec.mvp})).sort((a,b)=>b.go-a.go);
+ const least=most.slice().sort((a,b)=>a.go-b.go);
+ const mvpTop=most.slice().sort((a,b)=>b.mvp-a.mvp)[0];
+ const hardOk=G.recs.filter(r=>r.grade!=='F').sort((a,b)=>b.diff-a.diff)[0];
+ const bigFail=G.recs.filter(r=>r.grade==='F').sort((a,b)=>(a.bd.final-a.bd.target)-(b.bd.final-b.bd.target))[0];
+ $('sheetBody').innerHTML=
+  '<div class="secT">길드 통계</div>'+
+  '<div class="kv"><span>누적 퀘스트 / 성공률</span><b>'+s.q+'회 / '+(s.q?Math.round(okN/s.q*100):0)+'%</b></div>'+
+  '<div class="kv"><span>S / A / B / C / 실패</span><b><span class="g_S" style="border:none">'+s.S+'</span> / '+s.A+' / '+s.B+' / '+s.C+' / <span style="color:#e05a5a">'+s.F+'</span></b></div>'+
+  '<div class="kv"><span>최다 출동</span><b>'+MEMBERS[most[0].i].name+' ('+most[0].go+'회)</b></div>'+
+  '<div class="kv"><span>최소 출동</span><b>'+MEMBERS[least[0].i].name+' ('+least[0].go+'회)</b></div>'+
+  '<div class="kv"><span>최다 MVP</span><b>'+MEMBERS[mvpTop.i].name+' ('+mvpTop.mvp+'회)</b></div>'+
+  '<div class="kv"><span>가장 어려웠던 성공</span><b>'+(hardOk?esc(hardOk.title)+' (난이도 '+hardOk.diff+')':'-')+'</b></div>'+
+  '<div class="kv"><span>가장 뼈아픈 실패</span><b>'+(bigFail?esc(bigFail.title)+' ('+(bigFail.bd.final-bigFail.bd.target)+'점 차)':'-')+'</b></div>'+
+  '<div class="kv"><span>획득 무기 / 방어구</span><b>'+s.wGot+' / '+s.aGot+'</b></div>'+
+  '<div class="kv"><span>사용한 소모품</span><b>'+s.consUsed+'</b></div>'+
+  '<div class="kv"><span>수집품 완성도</span><b>'+Object.keys(G.col).length+' / 300</b></div>'+
+  '<div class="kv"><span>전설 획득 / 자동 정리 장비</span><b>'+s.legend+' / '+s.cleaned+'</b></div>'+
+  '<div class="secT">최근 퀘스트 (최대 100)</div>'+
+  (G.recs.length?G.recs.map((r,i)=>'<button class="itRow pf" data-r="'+i+'"><span class="gradeBig g_'+r.grade+'" style="width:34px;height:34px;font-size:16px;border-width:2px">'+(r.grade==='F'?'✕':r.grade)+'</span><span class="itInfo"><b style="color:#f0e6cd">'+esc(r.title)+'</b>'+REGIONS[r.ri].short+' · '+r.type+' · 난이도 '+r.diff+' · '+new Date(r.t).toLocaleTimeString('ko-KR')+'</span></button>').join(''):'<div class="kv"><span>아직 완료한 퀘스트가 없습니다</span></div>');
+ $('sheetBody').querySelectorAll('[data-r]').forEach(b=>b.addEventListener('click',()=>{SFX.tap();showRecDetail(+b.dataset.r)}));
+}
+function showRecDetail(i){
+ const r=G.recs[i];
+ if(!r){buildRecords();return}
+ const bd=r.bd;
+ $('sheetBody').innerHTML=
+  '<button class="backBtn" id="bk">← 기록 목록</button>'+
+  '<div style="margin:8px 0"><b style="font-size:13px;color:#f0e6cd">'+esc(r.title)+'</b> <span class="badge g_'+r.grade+'" style="border-color:currentColor">'+(r.grade==='F'?'실패':r.grade+'등급')+'</span><br>'+
+  '<span style="font-size:10.5px;color:#9aa7c4">'+REGIONS[r.ri].name+' · '+r.type+' · 난이도 '+r.diff+' · '+r.dur+'초 · '+new Date(r.t).toLocaleString('ko-KR')+'</span></div>'+
+  '<div class="pRow">'+r.party.map(mi=>'<img class="pix" src="'+portraitURL(mi)+'" alt="'+MEMBERS[mi].name+'">').join('')+'</div>'+
+  '<div style="font-size:10px;color:#7d8ba8;margin-top:2px">출동: '+r.party.map(mi=>MEMBERS[mi].name).join(', ')+' · MVP '+MEMBERS[r.mvp].name+'</div>'+
+  '<div class="secT">점수 계산</div>'+
+  '<div class="kv"><span>파티 기본 (스탯)</span><b>'+bd.stat+'</b></div>'+
+  '<div class="kv"><span>장비 보너스</span><b>+'+bd.equip+'</b></div>'+
+  '<div class="kv"><span>특수능력·시너지</span><b>+'+bd.abil+'</b></div>'+
+  '<div class="kv"><span>인원 보너스</span><b>+'+bd.size+'</b></div>'+
+  '<div class="kv"><span>사건 보너스·페널티</span><b>'+(bd.events>=0?'+':'')+bd.events+'</b></div>'+
+  '<div class="kv"><span>난수</span><b>'+(bd.rand>=0?'+':'')+bd.rand+'</b></div>'+
+  '<div class="kv"><span>최종 / 목표</span><b>'+bd.final+' / '+bd.target+'</b></div>'+
+  '<div class="secT">퀘스트 로그</div>'+
+  r.logs.map(l=>'<div class="lg t_'+l.tp+'"><img class="pix" src="'+logIconURL(l.tp)+'"><span>'+(l.tp==='대화'?l.txt:esc(l.txt))+'</span></div>').join('')+
+  '<div class="secT">획득 전리품</div>'+
+  (r.loot.length?r.loot.map(l=>'<div class="kv"><span class="r'+l.r+'">'+esc(l.n)+(l.isNew?'<span class="newTag">NEW</span>':'')+'</span><b>'+(l.c==='w'?'무기':l.c==='a'?'방어구':l.c==='c'?'소모품':'수집품')+'</b></div>').join(''):'<div class="kv"><span>획득한 전리품 없음</span></div>');
+ $('bk').addEventListener('click',()=>{SFX.tap();buildRecords()});
+}
+function updateNavDots(){
+ $('dotCol').classList.toggle('on',G.colNew.length>0);
+}
+/* ---- 토글 ---- */
+function toggleSound(){unlockAudio();G.mute=!G.mute;updateTopbar();SFX.tap();saveState()}
+function togglePause(){G.paused=!G.paused;updateTopbar();renderProg();SFX.tap();saveState()}
+function toggleSpeed(){G.speed=G.speed===1?2:1;updateTopbar();SFX.tap();saveState()}
+function toggleFold(){G.fold=!G.fold;$('logWrap').classList.toggle('fold',G.fold);$('logTgl').textContent=G.fold?'펼치기':'접기';saveState()}
+
+/* ================================================================
+   초기화 코드
+================================================================ */
+function boot(){
+ buildAtlas();
+ cvEl=$('cv');
+ Rdr=makeGLRenderer(cvEl)||make2DRenderer(cvEl);
+ setupCanvas();
+ initEnts();
+ const loaded=loadState();
+ if(!loaded||!G)initState();
+ // 앱 아이콘 (런타임 데이터 URL)
+ try{
+  const url=appIconURL();
+  const l1=document.createElement('link');l1.rel='icon';l1.href=url;document.head.appendChild(l1);
+  const l2=document.createElement('link');l2.rel='apple-touch-icon';l2.href=url;document.head.appendChild(l2);
+ }catch(e){}
+ // 입력
+ $('btnSnd').addEventListener('click',toggleSound);
+ $('btnPause').addEventListener('click',togglePause);
+ $('btnSpd').addEventListener('click',toggleSpeed);
+ $('logTgl').addEventListener('click',toggleFold);
+ $('sheetX').addEventListener('click',()=>{SFX.tap();closeSheet()});
+ $('sheetBk').addEventListener('click',closeSheet);
+ document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
+  SFX.tap();
+  if(curTab===b.dataset.t)closeSheet();else openSheet(b.dataset.t);
+ }));
+ const ll=$('logList');
+ ll.addEventListener('scroll',()=>{logStick=ll.scrollHeight-ll.scrollTop-ll.clientHeight<40});
+ document.addEventListener('pointerdown',unlockAudio,{once:true});
+ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(curTab==='ctrl')buildCtrl()});
+ // 회전/리사이즈
+ let rzT=null;
+ window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{setupCanvas();initEntsKeep()},150)});
+ window.addEventListener('orientationchange',()=>{setTimeout(()=>{setupCanvas();initEntsKeep()},300)});
+ // 백그라운드 복귀
+ let hideT=0;
+ document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){hideT=Date.now();saveState()}
+  else if(hideT&&!G.paused){const gap=(Date.now()-hideT)*G.speed;hideT=0;lastT=0;if(gap>500)fastForward(gap)}
+ });
+ window.addEventListener('pagehide',saveState);
+ // 상태 시작
+ if(G.fold){$('logWrap').classList.add('fold');$('logTgl').textContent='펼치기'}
+ $('sceneTag').textContent='길드 본부';
+ if(loaded&&G.phase&&G.phase!=='BOOT'){
+  addLog('시스템','저장된 원정 기록을 불러왔다. (퀘스트 '+G.stats.q+'회 진행됨)');
+  const gap=G.savedAt?Date.now()-G.savedAt:0;
+  if(G.phase==='QUEST_SELECT'&&G.cands&&gap<G.remain){renderProg()}
+  else if(G.run&&['PARTY_REVEAL','DEPART','QUEST_RUNNING','QUEST_RESULT','LOOT_REVEAL','RETURNING'].includes(G.phase)){
+   // 진행하던 사이클 정리 후 정상 복귀
+   if(G.phase==='QUEST_RUNNING'){beginRunning();G.remain=Math.max(600,G.remain-gap);emitLogs(G.run.q.dur*1000-G.remain,true)}
+   else startSelect();
+  }
+  else startSelect();
+ } else {
+  addLog('시스템','《픽셀 원정대: 12인의 길드》에 오신 것을 환영합니다.');
+  addLog('시스템','12명의 멤버가 완전 무작위로 소집되어 퀘스트를 수행합니다. 지켜보기만 해도 게임은 계속됩니다.');
+  startSelect();
+ }
+ updateTopbar();updateNavDots();
+ requestAnimationFrame(loop);
+}
+function initEntsKeep(){
+ const fy=floorY();
+ for(const e of SCN.ents){e.y=Math.min(e.y,fy-4);e.ty=Math.min(e.ty,fy-4)}
+}
+if(typeof window!=='undefined'&&typeof document!=='undefined'){
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+ else boot();
+} else if(typeof globalThis!=='undefined'){
+ globalThis.__PG={ABIL_LIST,MEMBERS,WKINDS,ASETS,CONS,COLLECT,REGIONS,QTYPES,ANIMS,
+  initState,genCandidates,rollParty,simulateQuest,genLoot,gradeFor,applyLoot,trimInventory,makeWeapon,makeArmor,
+  getG:()=>G};
+}
+</script>
+</body>
+</html>
