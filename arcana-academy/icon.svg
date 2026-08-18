@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ARCANA ACADEMY 아이콘</title>
+  <desc id="desc">청보라 밤하늘 속 금빛 별 마법진과 작은 마법학교 탑</desc>
+  <defs>
+    <radialGradient id="bg" cx="48%" cy="36%" r="70%">
+      <stop offset="0" stop-color="#4a3f82"/>
+      <stop offset="0.58" stop-color="#201b44"/>
+      <stop offset="1" stop-color="#0b0b1c"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff0a5"/>
+      <stop offset="0.5" stop-color="#e6bd58"/>
+      <stop offset="1" stop-color="#9f6d29"/>
+    </linearGradient>
+    <linearGradient id="tower" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#b9a7ff"/>
+      <stop offset="1" stop-color="#554a88"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="250" r="177" fill="none" stroke="#dbc36f" stroke-opacity=".35" stroke-width="7"/>
+  <circle cx="256" cy="250" r="142" fill="none" stroke="#9b8be5" stroke-opacity=".5" stroke-width="5" stroke-dasharray="10 16"/>
+  <path d="M256 76l34 103 108-1-87 64 34 103-89-62-89 62 34-103-87-64 108 1z" fill="none" stroke="url(#gold)" stroke-width="13" stroke-linejoin="round" filter="url(#glow)"/>
+  <g stroke="#17142f" stroke-width="8" stroke-linejoin="round">
+    <path d="M156 387V266h72v121z" fill="url(#tower)"/>
+    <path d="M284 387V229h73v158z" fill="url(#tower)"/>
+    <path d="M208 387V191h96v196z" fill="#7566ad"/>
+    <path d="M200 199l56-92 56 92z" fill="url(#gold)"/>
+    <path d="M277 237l43-72 44 72z" fill="#d8b658"/>
+    <path d="M149 274l43-69 44 69z" fill="#d8b658"/>
+    <path d="M118 402h276v32H118z" fill="#c69b45"/>
+  </g>
+  <g fill="#fff0a5" filter="url(#glow)">
+    <rect x="238" y="234" width="36" height="55" rx="18"/>
+    <rect x="173" y="301" width="26" height="39" rx="13"/>
+    <rect x="307" y="273" width="26" height="42" rx="13"/>
+  </g>
+  <path d="M256 316c27 0 48 21 48 48v23h-96v-23c0-27 21-48 48-48z" fill="#17142f"/>
+  <g fill="#fff3b0"><circle cx="95" cy="129" r="10"/><circle cx="414" cy="119" r="8"/><circle cx="416" cy="344" r="11"/><circle cx="101" cy="360" r="7"/></g>
+</svg>
