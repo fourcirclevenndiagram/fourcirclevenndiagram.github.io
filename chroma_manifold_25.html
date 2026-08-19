@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#050e1a">
+  <meta name="color-scheme" content="dark">
+  <title>CHROMA MANIFOLD 24</title>
+  <style>
+    :root{
+      --bg:#040b15;--panel:#091827;--line:#1f4254;--text:#e8f8ff;--muted:#8ba8b8;
+      --cyan:#38f4ff;--magenta:#ff47d7;--lime:#b7ff4a;--orange:#ff9f32;
+      --safe-t:max(7px,env(safe-area-inset-top));--safe-b:max(7px,env(safe-area-inset-bottom));
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Apple SD Gothic Neo","Noto Sans KR",monospace}
+    body{overscroll-behavior:none;touch-action:manipulation}
+    button{font:inherit;color:inherit}
+    #app{height:100dvh;min-height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:5px;padding:var(--safe-t) 7px var(--safe-b);background:
+      radial-gradient(circle at 50% 23%,rgba(18,91,110,.17),transparent 44%),
+      linear-gradient(180deg,#071321,#030812 78%)}
+    .top{border:1px solid #173848;border-radius:10px;background:linear-gradient(180deg,rgba(12,31,47,.96),rgba(6,18,31,.94));padding:7px 9px 6px;box-shadow:inset 0 1px #214d5d,0 4px 16px #0008}
+    .topline{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+    .brand{font-size:12px;font-weight:900;letter-spacing:.13em;white-space:nowrap;color:#dffbff;text-shadow:0 0 8px #42d7ff66}
+    .brand b{color:var(--cyan)}
+    .roundmeta{font-size:9px;color:#9bb9c8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .telemetry{display:grid;grid-template-columns:1.4fr .8fr .7fr .7fr;gap:5px;margin-top:5px;align-items:center}
+    .phasebox{min-width:0}
+    #phase{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;color:#9eefff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #phaseSub{display:block;margin-top:1px;font-size:8px;color:#638494;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .datum{border-left:1px solid #1c3b49;padding-left:6px;min-width:0}
+    .datum label{display:block;font-size:7px;color:#648595;letter-spacing:.07em}
+    .datum strong{display:block;font-size:11px;margin-top:1px;white-space:nowrap}
+    .progressTrack{height:4px;margin-top:5px;border-radius:5px;background:#071019;box-shadow:inset 0 0 0 1px #15313d;overflow:hidden}
+    #progressFill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--lime),var(--orange));box-shadow:0 0 9px #56edff;transition:width .35s ease}
+    #stage{position:relative;min-height:0;overflow:hidden;border:1px solid #163646;border-radius:12px;background:#030913;box-shadow:inset 0 0 26px #00141f,0 5px 18px #000a}
+    #gameCanvas{display:block;width:100%;height:100%;touch-action:none}
+    .stageBadge{position:absolute;left:7px;top:7px;pointer-events:none;font-size:8px;letter-spacing:.09em;color:#7596a7;background:#03101bd9;border:1px solid #163746;border-radius:10px;padding:3px 7px;transition:opacity .2s}
+    #timeline{position:absolute;right:7px;bottom:7px;width:min(78%,280px);max-height:47%;overflow:hidden;background:rgba(4,14,25,.96);border:1px solid #285063;border-radius:10px;box-shadow:0 8px 25px #000b;transform:translateY(calc(100% + 15px));opacity:0;transition:.22s ease;pointer-events:none}
+    #timeline.open{transform:translateY(0);opacity:1;pointer-events:auto}
+    .timelineHead{display:flex;justify-content:space-between;padding:7px 9px 5px;font-size:9px;color:#a9d5e6;border-bottom:1px solid #183846}
+    #timelineList{display:flex;flex-direction:column;gap:4px;padding:6px 8px 8px;font-size:8px;color:#9eb8c6;line-height:1.35}
+    .eventLine{display:grid;grid-template-columns:38px 6px 1fr;gap:5px;align-items:start;animation:eventIn .24s ease both}
+    .eventLine i{display:block;width:5px;height:5px;border-radius:50%;margin-top:3px;box-shadow:0 0 5px currentColor}
+    @keyframes eventIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    #teamPanel{display:grid;grid-template-columns:1fr;gap:3px}
+    .teamRow{height:28px;display:grid;grid-template-columns:73px minmax(0,1fr) 42px 43px 80px;align-items:center;gap:4px;border:1px solid #173546;border-radius:8px;padding:2px 6px;background:linear-gradient(90deg,rgba(10,27,42,.97),rgba(5,15,27,.97));overflow:hidden;cursor:pointer;position:relative}
+    .teamRow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--team);box-shadow:0 0 8px var(--team)}
+    .teamName{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:900;letter-spacing:.04em;color:var(--team)}
+    .miniCursor{width:12px;height:12px;display:inline-grid;place-items:center;filter:drop-shadow(0 0 3px var(--team));font-size:12px;line-height:1}
+    .teamAction{font-size:8px;color:#b0c5d0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .teamGoal{font-size:8px;text-align:center;color:#6f94a5;white-space:nowrap}
+    .meter{height:5px;border-radius:4px;background:#07121c;box-shadow:inset 0 0 0 1px #183240;overflow:hidden}
+    .meter span{display:block;height:100%;width:0;background:var(--team);box-shadow:0 0 5px var(--team);transition:width .25s}
+    .scoreEnergy{font-size:7px;text-align:right;color:#7796a6;line-height:1.1;white-space:nowrap}
+    .scoreEnergy b{font-size:9px;color:#d6ecf4}
+    .chips{display:flex;justify-content:flex-end;gap:2px}
+    .chip{width:18px;height:18px;display:grid;place-items:center;border:1px solid #315362;background:#0a1b28;border-radius:5px;font-size:7px;color:#def6ff;box-shadow:inset 0 0 5px #123140}
+    .chip:nth-child(2){border-radius:50%}.chip:nth-child(3){transform:rotate(45deg);border-radius:4px}.chip:nth-child(3) span{transform:rotate(-45deg)}.chip:nth-child(4){clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%)}
+    #controls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+    .ctrl{min-height:42px;border:1px solid #244758;border-radius:8px;background:linear-gradient(180deg,#10283a,#071725);box-shadow:inset 0 1px #31576a,0 2px 5px #0008;font-size:9px;font-weight:800;letter-spacing:.02em;padding:2px 1px;cursor:pointer;touch-action:manipulation}
+    .ctrl:active{transform:translateY(1px);background:#07131e}.ctrl.active{border-color:#52dff0;color:#8cf5ff;box-shadow:inset 0 0 10px #1a708088,0 0 7px #28e4ff44}.ctrl.warn{color:#ffc78a}
+    #sheet{position:fixed;z-index:20;left:0;right:0;bottom:0;max-height:min(74dvh,650px);background:linear-gradient(180deg,#0b2032,#050f1b 95%);border-top:1px solid #3b7186;border-radius:17px 17px 0 0;box-shadow:0 -12px 35px #000c;transform:translateY(105%);transition:transform .24s ease;padding:10px max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));overflow:auto;overscroll-behavior:contain}
+    #sheet.open{transform:translateY(0)}
+    .sheetGrab{width:42px;height:4px;background:#315263;border-radius:5px;margin:0 auto 8px}
+    .sheetTop{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:-10px;background:#0a1e2fe8;padding:4px 0 7px;z-index:2}
+    #sheetTitle{font-size:13px;color:#dffaff;letter-spacing:.06em}
+    .sheetBtns{display:flex;gap:5px}.sheetBtn{min-width:42px;min-height:36px;border:1px solid #31596b;background:#0c2637;border-radius:8px;font-size:9px}
+    #sheetBody{font-size:10px;line-height:1.55;color:#abc3cf}
+    .inspectGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}.inspectCell{border:1px solid #1d3d4c;border-radius:8px;background:#071725;padding:7px}.inspectCell label{display:block;font-size:7px;color:#638695;letter-spacing:.09em}.inspectCell b{display:block;margin-top:2px;color:#dcf4fb;font-size:10px}
+    .matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;max-width:210px;margin:7px 0}.matrix span{display:grid;place-items:center;height:24px;border:1px solid #254757;border-radius:4px;background:#06131f;color:#9cecf5}
+    .formula{padding:7px;border-left:2px solid #39ddeb;background:#061622;color:#9bd0dc;margin:7px 0;overflow-wrap:anywhere}
+    .candidate{display:grid;grid-template-columns:1fr 42px;gap:6px;margin:4px 0}.candidate span:last-child{text-align:right;color:#e4f8ff}
+    #result{position:fixed;z-index:18;inset:0;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));background:rgba(2,7,14,.72);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .35s}
+    #result.open{opacity:1;pointer-events:auto}
+    .resultCard{width:min(100%,410px);max-height:93dvh;overflow:auto;border:1px solid #48768a;border-radius:15px;background:linear-gradient(180deg,rgba(12,32,48,.97),rgba(4,13,24,.98));box-shadow:0 18px 55px #000, inset 0 1px #6b9aab;padding:12px}
+    .resultTitle{text-align:center;font-size:15px;letter-spacing:.13em;color:#dffaff;text-shadow:0 0 9px #43e4ff66}.resultSub{text-align:center;font-size:9px;color:#83a8b7;margin:3px 0 9px}
+    .resultTeam{border:1px solid #244554;border-radius:9px;padding:6px 7px;margin:5px 0;background:#071725}.rankline{display:grid;grid-template-columns:26px 1fr 52px;align-items:center;font-size:10px}.rankline b:last-child{text-align:right;color:#fff}.rankNo{font-size:14px;color:var(--team)}
+    .bars{display:grid;grid-template-columns:58px 1fr 24px;gap:3px 5px;align-items:center;margin-top:5px;font-size:7px;color:#7f9dab}.bar{height:4px;background:#03101a;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--team);box-shadow:0 0 4px var(--team)}
+    .resultFacts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}.fact{border:1px solid #1d3b49;border-radius:7px;text-align:center;padding:5px 2px;background:#06131f}.fact label{display:block;font-size:7px;color:#6f8e9c}.fact b{display:block;font-size:10px;margin-top:2px}
+    .nextRound{text-align:center;margin-top:8px;font-size:9px;color:#8ecad8}
+    #toast{position:fixed;z-index:30;left:50%;bottom:calc(108px + env(safe-area-inset-bottom));transform:translate(-50%,10px);opacity:0;pointer-events:none;background:#071827ed;border:1px solid #356173;border-radius:15px;padding:7px 12px;font-size:9px;color:#d7f4ff;box-shadow:0 5px 18px #000b;transition:.22s;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+    #toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-height:790px){.top{padding-top:5px;padding-bottom:4px}.telemetry{margin-top:3px}.teamRow{height:26px}.ctrl{min-height:42px}.stageBadge{display:none}}
+    @media(min-height:900px){.teamRow{height:31px}.ctrl{min-height:45px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.eventLine{animation:none}#sheet,#result,#timeline,.meter span,#progressFill{transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="topline"><div class="brand">CHROMA <b>MANIFOLD</b> // 24</div><div class="roundmeta"><span id="roundLabel">R01</span> · <span id="seedLabel">—</span></div></div>
+    <div class="telemetry">
+      <div class="phasebox"><span id="phase">INITIALIZE</span><span id="phaseSub">패널 위상 동기화</span></div>
+      <div class="datum"><label>ELAPSED</label><strong id="timer">00:00</strong></div>
+      <div class="datum"><label>ANCHOR</label><strong id="anchors">0 / 4</strong></div>
+      <div class="datum"><label>LINK</label><strong id="links">0</strong></div>
+    </div>
+    <div class="progressTrack"><div id="progressFill"></div></div>
+  </header>
+  <main id="stage" aria-label="24개 비가환 패널 자동 관전 보드">
+    <canvas id="gameCanvas"></canvas>
+    <div class="stageBadge" id="stageBadge">TAP PANEL / CURSOR TO INSPECT</div>
+    <aside id="timeline" aria-live="polite"><div class="timelineHead"><b>EVENT TIMELINE</b><span>최근 8건</span></div><div id="timelineList"></div></aside>
+  </main>
+  <section id="teamPanel" aria-label="AI 팀 상태"></section>
+  <nav id="controls" aria-label="관전 조작">
+    <button class="ctrl" id="pauseBtn">Ⅱ 일시정지</button><button class="ctrl speed" data-speed="0.5">×0.5</button><button class="ctrl speed" data-speed="1">×1</button><button class="ctrl speed" data-speed="2">×2</button><button class="ctrl speed" data-speed="4">×4</button>
+    <button class="ctrl" id="seedBtn">↻ 새 시드</button><button class="ctrl" id="soundBtn">♩ 사운드</button><button class="ctrl" id="timelineBtn">≡ 타임라인</button><button class="ctrl" id="inspectBtn">⌕ 검사 모드</button><button class="ctrl" id="motionBtn">◇ 모션 완화</button>
+  </nav>
+</div>
+<section id="sheet" role="dialog" aria-modal="true" aria-label="검사창"><div class="sheetGrab"></div><div class="sheetTop"><b id="sheetTitle">INSPECT</b><div class="sheetBtns"><button class="sheetBtn" id="expertBtn">전문가</button><button class="sheetBtn" id="closeSheet">닫기</button></div></div><div id="sheetBody"></div></section>
+<section id="result" aria-label="라운드 결과"><div class="resultCard"><div class="resultTitle" id="resultTitle">MANIFOLD RESOLVED</div><div class="resultSub" id="resultSub"></div><div id="resultTeams"></div><div class="resultFacts" id="resultFacts"></div><div class="nextRound" id="nextRound"></div></div></section>
+<div id="toast" role="status"></div>
+<script>
+(()=>{'use strict';
+const MOD=7,TAU=Math.PI*2;
+const TEAM_DEFS=[
+  {name:'BAYES',color:'#38f4ff',shape:'diamond',glyph:'◆'},
+  {name:'TREE',color:'#ff47d7',shape:'triangle',glyph:'▲'},
+  {name:'LOGIC',color:'#b7ff4a',shape:'cross',glyph:'✚'},
+  {name:'EVOLVE',color:'#ff9f32',shape:'hex',glyph:'⬢'}
+];
+const SCORE_NAMES=['정보 획득','유효 변환','제약 해소','경로 효율','협업 기여','안정성','최종 증명'];
+const PHASE_LABEL={INITIALIZE:'INITIALIZE',SURVEY:'SURVEY',MANIPULATION:'MANIPULATION',CONVERGENCE:'CONVERGENCE',RESULT:'RESULT'};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const mod=n=>((n%MOD)+MOD)%MOD;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const fmtTime=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+const vecEq=(a,b)=>a.length===b.length&&a.every((v,i)=>mod(v)===mod(b[i]));
+const matEq=(a,b)=>a.every((r,i)=>r.every((v,j)=>mod(v)===mod(b[i][j])));
+const I4=()=>[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]];
+function matMul(a,b){const o=Array.from({length:4},()=>Array(4).fill(0));for(let i=0;i<4;i++)for(let k=0;k<4;k++)for(let j=0;j<4;j++)o[i][j]=mod(o[i][j]+a[i][k]*b[k][j]);return o}
+function matVec(a,v){return a.map(r=>mod(r.reduce((s,n,i)=>s+n*v[i],0)))}
+function matPow(a,n){let r=I4(),b=a;while(n>0){if(n&1)r=matMul(r,b);b=matMul(b,b);n>>=1}return r}
+function invNum(n){for(let i=1;i<MOD;i++)if(mod(n*i)===1)return i;return 0}
+function matInv(a){const m=a.map((r,i)=>[...r,...I4()[i]]);for(let c=0;c<4;c++){let p=c;while(p<4&&mod(m[p][c])===0)p++;if(p===4)return null;[m[c],m[p]]=[m[p],m[c]];const iv=invNum(mod(m[c][c]));for(let j=0;j<8;j++)m[c][j]=mod(m[c][j]*iv);for(let r=0;r<4;r++)if(r!==c){const f=mod(m[r][c]);for(let j=0;j<8;j++)m[r][j]=mod(m[r][j]-f*m[c][j])}}return m.map(r=>r.slice(4))}
+function checksumMatrix(a,b=[0,0,0,0]){let s=0;for(let i=0;i<4;i++)for(let j=0;j<4;j++)s=mod(s+a[i][j]*(1+i*4+j));for(let i=0;i<4;i++)s=mod(s+b[i]*(19+i));return s}
+function composeOps(ops){let A=I4(),b=[0,0,0,0];for(const op of ops){b=matVec(op.A,b).map((v,i)=>mod(v+op.b[i]));A=matMul(op.A,A)}return{A,b}}
+function commutator(A,B){const ai=matInv(A),bi=matInv(B);return matMul(matMul(matMul(A,B),ai),bi)}
+function randomInvertible(rng){const a=I4();for(let k=0;k<11;k++){const op=rng.int(3),r=rng.int(4),q=rng.int(4);if(op===0&&r!==q)[a[r],a[q]]=[a[q],a[r]];else if(op===1){const s=rng.range(1,6);for(let j=0;j<4;j++)a[r][j]=mod(a[r][j]*s)}else if(r!==q){const s=rng.range(1,6);for(let j=0;j<4;j++)a[r][j]=mod(a[r][j]+s*a[q][j])}}return a}
+function hashString(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}h+=h<<13;h^=h>>>7;h+=h<<3;h^=h>>>17;h+=h<<5;return h>>>0}
+class SeededRandom{
+  constructor(seed){this.seed=String(seed);this.s=hashString(this.seed)||0x9e3779b9}
+  next(){let t=this.s+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}
+  int(n){return Math.floor(this.next()*n)} range(a,b){return a+this.int(b-a+1)} float(a,b){return a+(b-a)*this.next()}
+  pick(a){return a[this.int(a.length)]} chance(p){return this.next()<p}
+  shuffle(a){for(let i=a.length-1;i>0;i--){const j=this.int(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+}
+const ROT=[[0,6,0,0],[1,0,0,0],[0,0,0,6],[0,0,1,0]];
+class Panel{
+  constructor(id,row,col,rng){
+    this.id=id;this.row=row;this.col=col;this.pattern=id%15;const motif=I4(),mr=this.pattern%4,mq=(mr+1+(this.pattern%3))%4;motif[mr][mq]=1+Math.floor(this.pattern/4);this.baseA=matMul(motif,randomInvertible(rng));this.baseB=Array.from({length:4},(_,i)=>mod(rng.int(7)+(i===0?this.pattern:0)));this.baseColor=mod(this.baseB.reduce((s,v)=>s+v,0)+this.pattern);
+    this.orientation=rng.int(4);this.initialOrientation=this.orientation;this.targetOrientation=this.orientation;this.polarity=1;this.signal=0;this.exitSwap=false;this.phase=rng.int(7);
+    this.noise=+(rng.float(.04,.28).toFixed(2));this.energyCost=rng.range(2,6);this.locked=rng.chance(.17);this.activationCount=0;this.lastTeam=-1;this.remote=-1;this.remotePulse=0;
+    this.observedBy=new Set();this.knownTraits=[];this.devices=Array.from({length:rng.range(1,4)},(_,i)=>({type:(this.baseB[i%4]+i*3+id)%11,x:rng.float(-.27,.27),y:rng.float(-.27,.27),phase:rng.next()*TAU}));
+    this.rotationAnim=null;this.activationPulse=0;this.scanPulse=0;this.crackPulse=0;this.powerOn=id*.07;this.anchorTeam=-1;this.socketTeam=-1;this.shutter=.55;
+  }
+  operatorAt(orientation=this.orientation,polarity=this.polarity,signal=this.signal){
+    const R=matPow(ROT,orientation),Ri=matInv(R),A=matMul(matMul(Ri,this.baseA),R);let b=matVec(Ri,this.baseB);
+    if(polarity<0){for(let j=0;j<4;j++)A[3][j]=mod(-A[3][j]);b[3]=mod(-b[3])}
+    b[0]=mod(b[0]+signal);b[2]=mod(b[2]+this.phase*(orientation&1));return{A,b}
+  }
+  apply(v,team,time){const op=this.operatorAt();this.activationCount++;this.lastTeam=team;this.activationPulse=time;return matVec(op.A,v).map((n,i)=>mod(n+op.b[i]))}
+  rotate(delta,time){const from=this.orientation;this.orientation=(this.orientation+delta+4)%4;this.rotationAnim={from,to:this.orientation,delta,start:time,duration:1.05};this.activationPulse=time;this.remotePulse=time}
+  visualAngle(time,reduced){if(!this.rotationAnim||reduced)return this.orientation*Math.PI/2;const anim=this.rotationAnim,t=clamp((time-anim.start)/anim.duration,0,1),angle=(anim.from+anim.delta*ease(t))*Math.PI/2;if(t>=1)this.rotationAnim=null;return angle}
+}
+class BoardGraph{
+  constructor(panels,rng){this.panels=panels;this.edges=[];this.adj=Array.from({length:24},()=>[]);this.rng=rng;this.generate()}
+  key(a,b){return a<b?`${a}-${b}`:`${b}-${a}`}
+  addEdge(a,b,type='corridor',forced=false){if(this.edges.some(e=>this.key(e.a,e.b)===this.key(a,b)))return;const special=!forced&&!['corridor','bridge','stairs'].includes(type);const e={id:this.edges.length,a,b,type,oneWay:type==='arrow',dir:this.rng.chance(.5)?1:-1,locked:type==='shutter'||(special&&this.rng.chance(.14)),gateTeam:type==='gate'?this.rng.int(4):-1,phase:this.rng.int(7),unlocked:false,signal:0,occupant:-1};this.edges.push(e);this.adj[a].push(e);this.adj[b].push(e)}
+  generate(){
+    const candidates=[];for(let r=0;r<6;r++)for(let c=0;c<4;c++){const a=r*4+c;if(c<3)candidates.push([a,a+1]);if(r<5)candidates.push([a,a+4])}
+    const parent=Array.from({length:24},(_,i)=>i),find=x=>parent[x]===x?x:(parent[x]=find(parent[x])),union=(a,b)=>{a=find(a);b=find(b);if(a===b)return false;parent[b]=a;return true};
+    this.rng.shuffle(candidates);for(const [a,b] of candidates)if(union(a,b))this.addEdge(a,b,this.rng.pick(['corridor','bridge','stairs']),true);
+    const specials=['arrow','rotator','shutter','gate','phase','elevator','narrow'];for(const [a,b] of candidates)if(this.rng.chance(.29))this.addEdge(a,b,this.rng.pick(specials));
+    [[5,6],[6,10],[10,9],[9,5]].forEach(([a,b])=>this.addEdge(a,b,'rotator',true));
+  }
+  other(edge,id){return edge.a===id?edge.b:edge.a}
+  shortestPath(start,goal,team,reservations){
+    if(start===goal)return[start];const d=Array(24).fill(Infinity),prev=Array(24).fill(-1),used=Array(24).fill(false);d[start]=0;
+    for(let k=0;k<24;k++){let u=-1;for(let i=0;i<24;i++)if(!used[i]&&(u<0||d[i]<d[u]))u=i;if(u<0||!isFinite(d[u]))break;used[u]=true;if(u===goal)break;
+      for(const e of this.adj[u]){const v=this.other(e,u);let cost=1;if(e.locked&&!e.unlocked)cost+=2.8;if(e.type==='gate'&&e.gateTeam!==team.index)cost+=1.7;if(e.oneWay&&((e.dir===1&&u!==e.a)||(e.dir===-1&&u!==e.b)))cost+=2.2;if(reservations.has(v)&&reservations.get(v).team!==team.index)cost+=2.5;if(e.type==='narrow'&&e.occupant>=0&&e.occupant!==team.index)cost+=4;cost+=Math.abs(this.panels[v].phase-team.vector[2])*.03;if(d[u]+cost<d[v]){d[v]=d[u]+cost;prev[v]=u}}
+    }
+    if(prev[goal]<0)return[start];const path=[];for(let x=goal;x>=0;x=prev[x]){path.push(x);if(x===start)break}return path.reverse()
+  }
+  edgeBetween(a,b){return this.adj[a].find(e=>this.other(e,a)===b)}
+  connected(){const seen=new Set([0]),q=[0];while(q.length){const u=q.shift();for(const e of this.adj[u]){const v=this.other(e,u);if(!seen.has(v)){seen.add(v);q.push(v)}}}return seen.size===24}
+}
+class PuzzleInstance{
+  constructor(data){Object.assign(this,data);this.opening=false;this.openedAt=0;this.solved=false;this.partial=false}
+  currentLoop(){return composeOps(this.loop.map(id=>this.panels[id].operatorAt()))}
+  currentCommutator(){const a=this.panels[this.commPair[0]].operatorAt().A,b=this.panels[this.commPair[1]].operatorAt().A;return checksumMatrix(commutator(a,b))}
+  sharedState(teams){const vectors=teams.map(t=>t.vector),sum=[0,1,2,3].map(k=>mod(vectors.reduce((s,v)=>s+v[k],0)));return{sum,product:mod(vectors.reduce((p,v)=>p*v[0],1)),phaseGap:mod(vectors[0][2]-vectors[2][2]+vectors[1][2]-vectors[3][2]),polarity:vectors.map(v=>v[3]).join('-')}}
+  anchorReady(team){const a=this.anchors[team.index];return team.currentPanel===a.panel&&vecEq(team.vector,a.vector)&&a.history.every((id,i)=>team.history[team.history.length-a.history.length+i]===id)}
+  diagnostics(teams,scheduler){
+    const loop=this.currentLoop(),shared=this.sharedState(teams);return{
+      anchors:this.anchors.every(a=>a.complete),
+      loop:matEq(loop.A,this.loopTarget.A)&&vecEq(loop.b,this.loopTarget.b),
+      comm:this.currentCommutator()===this.commTarget,
+      shared:vecEq(shared.sum,this.sharedTarget.sum)&&shared.product===this.sharedTarget.product&&shared.phaseGap===this.sharedTarget.phaseGap&&shared.polarity===this.sharedTarget.polarity,
+      order:this.submitOrder.every((t,i)=>scheduler.submitOrder[i]===t),
+      links:[0,1,2,3].every(t=>scheduler.links.some(l=>l.team===t))
+    }
+  }
+  validate(teams,scheduler){const d=this.diagnostics(teams,scheduler);return Object.values(d).every(Boolean)}
+}
+class PuzzleGenerator{
+  generate(seed){
+    for(let attempt=0;attempt<12;attempt++){
+      const rng=new SeededRandom(`${seed}|${attempt}`),panels=Array.from({length:24},(_,id)=>new Panel(id,Math.floor(id/4),id%4,rng)),graph=new BoardGraph(panels,rng),core=rng.pick([10,13]);
+      panels[core].locked=false;panels[core].isCore=true;
+      const ids=rng.shuffle(Array.from({length:24},(_,i)=>i).filter(i=>i!==core));
+      for(let i=0;i<6;i+=2){const a=ids[i],b=ids[i+1];panels[a].remote=b;panels[b].remote=a}
+      const loop=[5,6,10,9],chosen=[...loop];for(const id of ids)if(!chosen.includes(id)&&chosen.length<12)chosen.push(id);
+      const routes=Array.from({length:4},(_,t)=>[chosen[t],chosen[4+t],chosen[8+t]]);routes.forEach(r=>rng.shuffle(r));
+      const starts=[0,3,20,23],targetProps=panels.map(p=>({orientation:p.orientation,polarity:p.polarity,signal:p.signal,exitSwap:p.exitSwap}));
+      const tasks=[],teamTasks=Array.from({length:4},()=>[]),initialVectors=Array.from({length:4},()=>Array.from({length:4},()=>rng.int(7))),targetVectors=[];
+      const extras=[{kind:'sensor',slot:0},{kind:'swap',slot:1},{kind:'flip',slot:1},{kind:'signal',slot:0}];
+      let taskSerial=0;
+      const addTask=(team,panel,kind,extra={})=>{const list=teamTasks[team],task={id:`K${taskSerial++}`,team,panel,kind,prev:list.length?list[list.length-1].id:null,planningNeed:rng.range(2,4),value:rng.float(.62,.98),done:false,...extra};tasks.push(task);list.push(task);return task};
+      for(let t=0;t<4;t++){
+        const r=routes[t],extra=extras[t];
+        for(let slot=0;slot<3;slot++){
+          const id=r[slot],p=panels[id];p.locked=false;
+          if(slot<2){const delta=rng.chance(.5)?1:-1;targetProps[id].orientation=(p.orientation+delta+4)%4;p.targetOrientation=targetProps[id].orientation;addTask(t,id,'rotate',{delta,target:targetProps[id].orientation})}
+          else p.targetOrientation=p.orientation;
+          if(extra.slot===slot){addTask(t,id,extra.kind);if(extra.kind==='flip')targetProps[id].polarity*=-1;if(extra.kind==='signal')targetProps[id].signal=t+1;if(extra.kind==='swap')targetProps[id].exitSwap=!targetProps[id].exitSwap}
+          addTask(t,id,'apply',{sequenceSlot:slot});
+        }
+        addTask(t,r[2],'link',{to:core});addTask(t,r[2],'submit',{anchor:t});
+      }
+      for(let t=0;t<4;t++){
+        let v=[...initialVectors[t]];for(const id of routes[t]){const pr=targetProps[id],op=panels[id].operatorAt(pr.orientation,pr.polarity,pr.signal);v=matVec(op.A,v).map((n,i)=>mod(n+op.b[i]))}targetVectors[t]=v;
+      }
+      const anchors=routes.map((r,t)=>({panel:r[2],team:t,vector:[...targetVectors[t]],history:[...r],entry:(panels[r[2]].row+panels[r[2]].col+t)%4,linkPhase:mod(panels[r[2]].phase+t),complete:false,charge:0}));
+      anchors.forEach((a,t)=>panels[a.panel].anchorTeam=t);
+      const nonSubmit=tasks.filter(t=>t.kind!=='submit').map(t=>t.id),submitOrder=rng.shuffle([0,1,2,3]);
+      submitOrder.forEach((team,rank)=>{const task=teamTasks[team].find(t=>t.kind==='submit');task.globalAll=nonSubmit;task.submitAfter=rank?submitOrder[rank-1]:null;task.submitRank=rank});
+      const loopTarget=composeOps(loop.map(id=>{const pr=targetProps[id];return panels[id].operatorAt(pr.orientation,pr.polarity,pr.signal)}));
+      const commPair=[loop[0],loop[2]],ca=panels[commPair[0]].operatorAt(targetProps[commPair[0]].orientation,targetProps[commPair[0]].polarity,targetProps[commPair[0]].signal).A,cb=panels[commPair[1]].operatorAt(targetProps[commPair[1]].orientation,targetProps[commPair[1]].polarity,targetProps[commPair[1]].signal).A;
+      const commTarget=checksumMatrix(commutator(ca,cb));
+      const fakeTeams=targetVectors.map(vector=>({vector})),sharedTarget={sum:[0,1,2,3].map(k=>mod(targetVectors.reduce((s,v)=>s+v[k],0))),product:mod(targetVectors.reduce((p,v)=>p*v[0],1)),phaseGap:mod(targetVectors[0][2]-targetVectors[2][2]+targetVectors[1][2]-targetVectors[3][2]),polarity:targetVectors.map(v=>v[3]).join('-')};
+      const puzzle=new PuzzleInstance({seed,attempt,rng,panels,graph,core,loop,routes,starts,targetProps,tasks,teamTasks,initialVectors,targetVectors,anchors,loopTarget,commPair,commTarget,sharedTarget,submitOrder,solutionLength:tasks.length,proofNeeded:Array.from({length:4},()=>rng.range(25,37))});
+      if(this.verifyBlueprint(puzzle))return puzzle;
+    }
+    throw new Error('유효한 매니폴드 생성에 실패했습니다.');
+  }
+  verifyBlueprint(p){if(!p.graph.connected()||p.tasks.length<18||p.tasks.length>36)return false;for(let t=0;t<4;t++){if(p.graph.shortestPath(p.starts[t],p.anchors[t].panel,{index:t,vector:p.initialVectors[t]},new Map()).length<2)return false;if(!matInv(p.panels[p.routes[t][0]].baseA))return false}return p.loop.length>=4&&p.targetVectors.every(v=>v.length===4)}
+}
+class ActionScheduler{
+  constructor(round,puzzle){this.round=round;this.puzzle=puzzle;this.tasks=puzzle.tasks;this.reservations=new Map();this.links=[];this.submitOrder=[];this.totalActions=0;this.rollbacks=0;this.collisions=0}
+  tick(time){for(const [id,r] of this.reservations)if(r.until<=time)this.reservations.delete(id)}
+  taskReady(task){if(task.prev){const p=this.tasks.find(t=>t.id===task.prev);if(p&&!p.done)return false}if(task.globalAll&&task.globalAll.some(id=>!this.tasks.find(t=>t.id===id).done))return false;if(task.submitAfter!==null&&task.submitAfter!==undefined&&!this.submitOrder.includes(task.submitAfter))return false;return true}
+  reserve(panel,team,contribution,duration=7){const now=this.round.simTime,old=this.reservations.get(panel);if(!old||old.until<=now||old.team===team.index){this.reservations.set(panel,{team:team.index,contribution,until:now+duration});return true}this.collisions++;if(contribution>old.contribution+.12){const loser=this.round.teams[old.team];if(loser){loser.recentFailure=`P${String(panel+1).padStart(2,'0')} 예약 우선권 상실`;loser.failures++;loser.candidatePaths=[]}this.reservations.set(panel,{team:team.index,contribution,until:now+duration});this.round.addEvent(team.index,`예상 기여도 우선으로 P${panel+1} 예약`);return true}team.recentFailure=`P${String(panel+1).padStart(2,'0')} 예약 충돌 → 후보 재계산`;team.conflictsAvoided++;return false}
+  release(panel,team){const r=this.reservations.get(panel);if(r&&r.team===team.index)this.reservations.delete(panel)}
+  complete(task){if(!task.done){task.done=true;this.totalActions++}}
+  addLink(team,from,to,phase){const old=this.links.find(l=>l.team===team&&l.from===from&&l.to===to);if(old){old.phase=phase;return old}const l={team,from,to,phase,created:this.round.simTime};this.links.push(l);return l}
+  nonSubmitDone(){return this.tasks.filter(t=>t.kind!=='submit').every(t=>t.done)}
+  allDone(){return this.tasks.every(t=>t.done)}
+  progress(){return this.tasks.filter(t=>t.done).length/this.tasks.length}
+}
+const ACTION_LABEL={idle:'추론 대기',move:'복도 이동',scan:'센서 관측',rotate:'패널 90° 회전',apply:'연산자 적용',flip:'극성 반전',swap:'입출구 교환',signal:'신호 삽입',link:'위상 링크 생성',submit:'부분 증명 제출',share:'관측 정보 공유',verify:'독립 증명 계산',anchor:'상태 앵커 저장'};
+class TeamAgent{
+  constructor(index,puzzle,round){
+    this.index=index;this.def=TEAM_DEFS[index];this.puzzle=puzzle;this.round=round;this.rng=new SeededRandom(`${puzzle.seed}|agent|${index}`);this.currentPanel=puzzle.starts[index];this.vector=[...puzzle.initialVectors[index]];this.initialVector=[...this.vector];this.history=[];this.energy=100;this.currentGoal=-1;this.candidateActions=[];this.actionValues=[];this.reason='초기 상태 벡터 해석';this.recentFailure='없음';this.investigated=new Set();this.sharedPanels=new Set();this.nextDecision=8+index*.45;this.action=null;this.moveQueue=[];this.pendingArrival=null;this.trail=[{panel:this.currentPanel,time:0}];this.candidatePaths=[];this.ghosts=[];this.logicLines=[];this.chromosomes=[];this.rejected=[];this.planning=new Map();this.proofUnits=0;this.proofNeeded=puzzle.proofNeeded[index];this.confidence=.12;this.anchorStored=null;this.beforeVector=null;this.transformAt=-99;this.failures=0;this.duplicates=0;this.conflictsAvoided=0;this.distanceUsed=0;this.shares=0;this.validTransforms=0;this.constraintsSolved=0;this.proofContrib=0;this.rollbacks=0;this.raw={info:0,transform:0,constraint:0,collab:0,proof:0};this.finalScores=null;this.totalScore=0;
+  }
+  get actionName(){return this.action?ACTION_LABEL[this.action.kind]||this.action.kind:ACTION_LABEL.idle}
+  setAction(kind,duration,data,finish){this.action={kind,start:this.round.simTime,end:this.round.simTime+duration,data:data||{},finish};this.reason=data&&data.reason?data.reason:this.reason}
+  update(){
+    const now=this.round.simTime;if(this.action&&now>=this.action.end){const a=this.action;this.action=null;try{a.finish&&a.finish()}catch(err){this.recentFailure='행동 검증 오류';console.error(err)}}
+    if(!this.action&&this.moveQueue.length)this.startNextMove();
+    if(!this.action&&!this.moveQueue.length&&now>=this.nextDecision){this.decide();this.nextDecision=now+this.rng.float(2.1,3.35)}
+    this.energy=clamp(this.energy+.012*this.round.simDelta,0,100);
+  }
+  decide(){const p=this.round.phase;if(p==='INITIALIZE'){this.reason='초기 연산자 표본화';return}if(p==='SURVEY'){if(this.rng.chance(.14)&&this.investigated.size>1)this.shareObservation();else this.surveyStep();return}if(p==='MANIPULATION'){this.solutionStep(false);return}if(p==='CONVERGENCE'){if(!this.puzzle.teamTasks[this.index].every(t=>t.done))this.solutionStep(true);else this.verificationStep()}}
+  chooseSurveyPanel(scoreFn){const candidates=this.puzzle.panels.filter(p=>!this.investigated.has(p.id)&&p.id!==this.currentPanel);if(!candidates.length)return-1;let best=candidates[0],bv=-Infinity;this.candidateActions=[];this.actionValues=[];for(const p of candidates){const v=scoreFn(p);this.candidateActions.push(`P${p.id+1} 조사`);this.actionValues.push(v);if(v>bv){bv=v;best=p}}const idx=this.actionValues.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,5).map(x=>x[1]);this.candidateActions=idx.map(i=>this.candidateActions[i]);this.actionValues=idx.map(i=>this.actionValues[i]);return best.id}
+  surveyStep(){const id=this.chooseSurveyPanel(p=>(1-p.noise)-Math.abs(p.row-this.puzzle.panels[this.currentPanel].row)*.04);if(id>=0)this.scanPanel(id,'미관측 연산자의 구조 표본 수집');else this.shareObservation()}
+  scanPanel(id,reason){const contribution=.45+(1-this.puzzle.panels[id].noise)*.4;if(!this.round.scheduler.reserve(id,this,contribution,9)){this.nextDecision+=1;return}this.currentGoal=id;const act=()=>this.setAction('scan',this.round.reducedMotion?.8:1.55,{panel:id,reason},()=>{const p=this.puzzle.panels[id],fresh=!this.investigated.has(id);this.investigated.add(id);p.observedBy.add(this.index);p.scanPulse=this.round.simTime;p.knownTraits=[`위상 ${p.phase}`,`잡음 ${(p.noise*100)|0}%`,`가역 체크섬 ${checksumMatrix(p.baseA,p.baseB)}`];if(fresh){this.raw.info+=1;this.confidence=clamp(this.confidence+.025*(1-p.noise),0,1)}else{this.duplicates++;this.raw.info=Math.max(0,this.raw.info-.08)}this.onObservation(p);this.round.scheduler.release(id,this);this.round.addEvent(this.index,`P${id+1} 관측 · 위상 ${p.phase} · 잡음 ${Math.round(p.noise*100)}%`);this.round.audio.scan(this.index)});this.navigateTo(id,act)}
+  onObservation(){}
+  shareObservation(){const known=[...this.investigated].filter(id=>!this.sharedPanels.has(id));if(!known.length){this.reason='공유된 관측의 교차 일관성 검사';this.idleVisual();return}const id=known[0],to=(this.index+1+this.rng.int(3))%4;this.setAction('share',.9,{panel:id,to,reason:`P${id+1} 관측을 ${TEAM_DEFS[to].name}에 전달`},()=>{this.sharedPanels.add(id);this.shares++;this.raw.collab+=1;const peer=this.round.teams[to];peer.receiveShared(id,this.index);this.round.addEvent(this.index,`P${id+1} 관측 → ${TEAM_DEFS[to].name} 공유`);this.round.audio.link(this.index)})}
+  receiveShared(id,from){this.confidence=clamp(this.confidence+.008,0,1);if(this.rng.chance(.38))this.investigated.add(id);this.reason=`${TEAM_DEFS[from].name} 관측을 자체 모델로 재해석`}
+  idleVisual(){this.candidatePaths=this.makeCandidatePaths(this.currentPanel,3);this.nextDecision+=.6}
+  solutionStep(allowSubmit){const list=this.puzzle.teamTasks[this.index],task=list.find(t=>!t.done);if(!task){this.verificationStep();return}if(task.kind==='submit'&&!allowSubmit){this.reason='제출 순서 이전 독립 경로 최소화';this.idleVisual();return}if(!this.round.scheduler.taskReady(task)){this.reason=task.kind==='submit'?'공동 제출 선행조건 대기·검산':'선행 연산 완료 조건 전파';this.planningStep(task,true);return}this.currentGoal=task.panel;const done=this.planning.get(task.id)||0;if(done<task.planningNeed){this.planningStep(task,false);this.planning.set(task.id,done+1);return}this.executeTask(task)}
+  planningStep(task){this.reason=`P${task.panel+1} ${ACTION_LABEL[task.kind]} 후보 평가`;this.candidatePaths=this.makeCandidatePaths(this.currentPanel,3);this.confidence=clamp(this.confidence+.004,0,1)}
+  makeCandidatePaths(from,count){const paths=[];for(let k=0;k<count;k++){let u=from,path=[u];for(let s=0;s<2+this.rng.int(4);s++){const es=this.puzzle.graph.adj[u];if(!es.length)break;u=this.puzzle.graph.other(this.rng.pick(es),u);path.push(u)}paths.push({panels:path,life:this.round.simTime+2.2+k*.2,value:this.rng.next()})}return paths}
+  navigateTo(id,callback){if(this.currentPanel===id){callback();return}const path=this.puzzle.graph.shortestPath(this.currentPanel,id,this,this.round.scheduler.reservations);this.moveQueue=path.slice(1);this.pendingArrival=callback;this.startNextMove()}
+  startNextMove(){if(this.action||!this.moveQueue.length)return;const from=this.currentPanel,to=this.moveQueue.shift(),edge=this.puzzle.graph.edgeBetween(from,to);if(!edge){this.moveQueue=[];this.recentFailure='연결 그래프 경로 소실';this.failures++;return}if(edge.type==='narrow')edge.occupant=this.index;if(edge.locked&&!edge.unlocked){edge.unlocked=true;this.raw.constraint+=.35;this.constraintsSolved++;this.round.addEvent(this.index,`통로 E${edge.id+1} 셔터 조건 해제`);this.round.audio.gate()}if(edge.type==='gate'&&edge.gateTeam!==this.index){edge.gateTeam=this.index;edge.signal=this.index+1;this.raw.collab+=.15}if(edge.oneWay&&((edge.dir===1&&from!==edge.a)||(edge.dir===-1&&from!==edge.b))){edge.dir*=-1;this.raw.constraint+=.18}
+    const duration=this.round.reducedMotion?.48:this.rng.float(.72,1.08);this.setAction('move',duration,{from,to,edge,reason:`P${from+1} → P${to+1} 비용 경로`},()=>{this.currentPanel=to;this.trail.push({panel:to,time:this.round.simTime});if(this.trail.length>22)this.trail.shift();this.energy=clamp(this.energy-(edge.type==='stairs'?1.2:.75),0,100);this.distanceUsed+=1;if(edge.type==='narrow')edge.occupant=-1;if(this.moveQueue.length)this.startNextMove();else{const cb=this.pendingArrival;this.pendingArrival=null;cb&&cb()}})}
+  executeTask(task){const contribution=task.value+this.confidence*.25;if(!this.round.scheduler.reserve(task.panel,this,contribution,12)){this.planning.set(task.id,Math.max(0,(this.planning.get(task.id)||1)-1));this.reason='예약 충돌로 대체 시퀀스 재평가';return}const act=()=>this.performAtPanel(task);this.navigateTo(task.panel,act)}
+  performAtPanel(task){const p=this.puzzle.panels[task.panel],dur=this.round.reducedMotion?.55:({rotate:1.1,apply:1.35,link:1.25,submit:1.55,sensor:1.15,flip:.9,swap:.95,signal:1.0}[task.kind]||1);this.setAction(task.kind,dur,{panel:p.id,reason:`P${p.id+1} ${ACTION_LABEL[task.kind]} 실행`},()=>{
+      let valid=true;
+      if(task.kind==='rotate'){const delta=(task.target-p.orientation+4)%4===1?1:-1;p.rotate(delta,this.round.simTime);if(p.remote>=0){const remote=this.puzzle.panels[p.remote];remote.exitSwap=!remote.exitSwap;remote.remotePulse=this.round.simTime}this.round.audio.rotate(this.index);this.raw.transform+=.55}
+      else if(task.kind==='sensor'){p.scanPulse=this.round.simTime;p.observedBy.add(this.index);this.investigated.add(p.id);this.raw.info+=.65;this.onObservation(p);this.round.audio.scan(this.index)}
+      else if(task.kind==='swap'){p.exitSwap=!p.exitSwap;for(const e of this.puzzle.graph.adj[p.id])if(e.oneWay)e.dir*=-1;this.raw.constraint+=.7;this.constraintsSolved++;this.round.audio.rotate(this.index)}
+      else if(task.kind==='flip'){p.polarity*=-1;p.activationPulse=this.round.simTime;this.raw.constraint+=.7;this.constraintsSolved++;this.round.audio.link(this.index)}
+      else if(task.kind==='signal'){p.signal=this.index+1;p.socketTeam=this.index;p.activationPulse=this.round.simTime;this.raw.collab+=.4;this.round.audio.link(this.index)}
+      else if(task.kind==='apply'){this.beforeVector=[...this.vector];this.vector=p.apply(this.vector,this.index,this.round.simTime);this.history.push(p.id);this.transformAt=this.round.simTime;this.validTransforms++;this.raw.transform+=1;this.energy=clamp(this.energy-p.energyCost,0,100);this.round.audio.apply(this.index)}
+      else if(task.kind==='link'){this.round.scheduler.addLink(this.index,p.id,task.to,mod(p.phase+this.vector[2]));this.raw.collab+=1.2;this.round.audio.link(this.index)}
+      else if(task.kind==='submit'){valid=this.puzzle.anchorReady(this);if(valid){const a=this.puzzle.anchors[this.index];a.complete=true;a.charge=1;this.anchorStored=[...this.vector];this.round.scheduler.submitOrder.push(this.index);this.raw.proof+=2.2;this.proofContrib+=2;this.round.audio.anchor(this.index)}else{this.failures++;this.recentFailure='앵커 벡터 또는 통과 이력 불일치';p.crackPulse=this.round.simTime;this.round.audio.error()}}
+      if(valid){this.round.scheduler.complete(task);this.planning.delete(task.id);this.round.addEvent(this.index,`${ACTION_LABEL[task.kind]} · P${p.id+1}${task.kind==='apply'?` · [${this.vector.join('·')}]`:''}`)}
+      this.round.scheduler.release(task.panel,this);this.round.scheduler.totalActions+=task.kind==='submit'&&!valid?1:0;this.confidence=clamp(this.confidence+(valid?.018:-.04),0,1);
+    })}
+  verificationStep(){if(this.proofUnits>=this.proofNeeded){this.reason='공동 상태의 교차 검증 유지';this.idleVisual();return}const ok=this.verifyComputation();this.setAction('verify',this.rng.float(.85,1.2),{reason:this.reason},()=>{if(ok){this.proofUnits++;this.proofContrib+=.12;this.raw.proof+=.12;this.confidence=clamp(this.confidence+.006,0,1)}else{this.recentFailure='독립 증명 분기 폐기';this.rejected.push({panel:this.currentPanel,time:this.round.simTime});this.failures+=.05}})}
+  verifyComputation(){this.reason='합성 연산자의 mod 7 체크섬 재계산';const route=this.puzzle.routes[this.index];let v=[...this.initialVector];for(const id of route){const pr=this.puzzle.targetProps[id],op=this.puzzle.panels[id].operatorAt(pr.orientation,pr.polarity,pr.signal);v=matVec(op.A,v).map((n,i)=>mod(n+op.b[i]))}return vecEq(v,this.puzzle.targetVectors[this.index])}
+  getProgress(){const taskList=this.puzzle.teamTasks[this.index],taskPart=taskList.filter(t=>t.done).length/taskList.length,proofPart=this.proofUnits/this.proofNeeded;return clamp(this.round.phase==='CONVERGENCE'?taskPart*.72+proofPart*.28:this.round.phase==='SURVEY'?this.investigated.size/9:taskPart,0,1)}
+  score(){if(this.finalScores)return this.finalScores;const efficiency=clamp(100-this.distanceUsed*1.55-this.duplicates*5,0,100),stability=clamp(100-this.failures*11-this.rollbacks*15,0,100);return[
+      clamp(this.raw.info*11-this.duplicates*4,0,100),clamp(this.raw.transform*13,0,100),clamp(this.raw.constraint*17,0,100),efficiency,clamp(this.raw.collab*21+this.shares*3+this.conflictsAvoided*2,0,100),stability,clamp(this.raw.proof*16,0,100)
+    ]}
+  finalizeScore(){this.finalScores=this.score();this.totalScore=Math.round(this.finalScores.reduce((s,v)=>s+v,0)/7);return this.totalScore}
+}
+class BayesAgent extends TeamAgent{
+  constructor(...a){super(...a);this.beliefs=Array.from({length:24},()=>[.25,.25,.25,.25]);this.entropy=Array(24).fill(1);this.posteriorRings=[]}
+  surveyStep(){const id=this.chooseSurveyPanel(p=>{const path=this.puzzle.graph.shortestPath(this.currentPanel,p.id,this,this.round.scheduler.reservations);return this.entropy[p.id]*(1-p.noise*.55)-path.length*.025});if(id>=0){this.posteriorRings=[{panel:id,r:this.entropy[id],life:this.round.simTime+2.8}];this.scanPanel(id,'기대 정보 이득이 가장 큰 패널 조사')}else this.shareObservation()}
+  onObservation(p){const prior=this.beliefs[p.id],like=prior.map((_,h)=>h===p.orientation?1-p.noise:p.noise/3),post=prior.map((v,i)=>v*like[i]),z=post.reduce((s,v)=>s+v,0)||1;this.beliefs[p.id]=post.map(v=>v/z);this.entropy[p.id]=-this.beliefs[p.id].reduce((s,v)=>s+(v?Math.log(v)/Math.log(4)*v:0),0);this.posteriorRings=[{panel:p.id,r:this.entropy[p.id],life:this.round.simTime+3}]}
+  planningStep(task,blocked){const p=this.puzzle.panels[task.panel],b=this.beliefs[p.id],target=task.target??p.targetOrientation;for(let i=0;i<4;i++)b[i]*=i===target?1.38:.91;const z=b.reduce((s,v)=>s+v,0);this.beliefs[p.id]=b.map(v=>v/z);this.entropy[p.id]=-b.reduce((s,v)=>s+(v?Math.log(v/z)/Math.log(4)*(v/z):0),0);this.confidence=clamp(1-this.entropy[p.id]*.72,0,1);this.reason=blocked?'공유 가설의 조건부 확률 재평가':'사후확률 최대 행동 채택';this.candidateActions=[`회전 ${target*90}°`,`관측 재실행`,`원격 결합 확인`];this.actionValues=[this.beliefs[p.id][target],1-p.noise,.46];this.posteriorRings=[{panel:p.id,r:this.entropy[p.id],life:this.round.simTime+2.6}]}
+  verifyComputation(){const ok=super.verifyComputation(),certainty=this.puzzle.routes[this.index].reduce((s,id)=>s+(1-this.entropy[id]),0)/3;this.reason=`경로 우도 ${(certainty*100).toFixed(1)}% · 독립 사후 검산`;return ok&&certainty>.18}
+}
+class TreeAgent extends TeamAgent{
+  constructor(...a){super(...a);this.tree=new Map();this.rollouts=0;this.branches=[]}
+  node(id){if(!this.tree.has(id))this.tree.set(id,{n:0,w:0});return this.tree.get(id)}
+  rollout(panel,taskBonus=0){const n=this.node(panel.id),reward=(1-panel.noise)*.55+taskBonus-this.puzzle.graph.shortestPath(this.currentPanel,panel.id,this,this.round.scheduler.reservations).length*.035+this.rng.float(-.12,.12);n.n++;n.w+=reward;this.rollouts++;return reward}
+  surveyStep(){const candidates=this.puzzle.panels.filter(p=>!this.investigated.has(p.id));for(let k=0;k<16;k++)this.rollout(this.rng.pick(candidates.length?candidates:this.puzzle.panels));let best=null,bv=-Infinity;this.candidateActions=[];this.actionValues=[];for(const p of candidates){const n=this.node(p.id),ucb=n.n?n.w/n.n+Math.sqrt(2*Math.log(this.rollouts+1)/n.n):9;if(ucb>bv){bv=ucb;best=p}this.candidateActions.push(`P${p.id+1} 분기`);this.actionValues.push(ucb)}this.branches=this.makeCandidatePaths(this.currentPanel,Math.min(6,3+Math.floor(this.round.quality*3)));if(best)this.scanPanel(best.id,'MCTS 상한 신뢰도가 높은 분기 전개');else this.shareObservation()}
+  planningStep(task){const p=this.puzzle.panels[task.panel];let best=-Infinity;for(let k=0;k<22*this.round.quality;k++)best=Math.max(best,this.rollout(p,.32));this.confidence=clamp(.25+this.node(p.id).n/85,0,1);this.reason=`${this.rollouts}회 롤아웃 · 예상 보상 ${best.toFixed(2)}`;this.branches=this.makeCandidatePaths(this.currentPanel,5);this.candidatePaths=this.branches;this.candidateActions=['계획 경로 유지','우회 분기 확장','위험 노드 가지치기'];this.actionValues=[best,best-.16,best-.29]}
+  verifyComputation(){const ok=super.verifyComputation();for(let k=0;k<10;k++)this.rollout(this.puzzle.panels[this.puzzle.routes[this.index][k%3]],.45);this.reason=`최종 경로 ${this.rollouts}회 재표본 · 보상 분산 수렴`;return ok&&this.rollouts>30}
+}
+class LogicAgent extends TeamAgent{
+  constructor(...a){super(...a);this.domains=Array.from({length:24},()=>new Set([0,1,2,3]));this.queue=[];this.backtrackStack=[];this.locks=new Set()}
+  surveyStep(){const id=this.chooseSurveyPanel(p=>{const d=this.domains[p.id].size;return(d>1?1/d+.4:0)-this.puzzle.graph.shortestPath(this.currentPanel,p.id,this,this.round.scheduler.reservations).length*.02});if(id>=0)this.scanPanel(id,'도메인이 가장 작은 미확정 제약 조사');else this.shareObservation()}
+  onObservation(p){const d=this.domains[p.id];for(const v of [...d])if(v!==p.orientation&&this.rng.next()>p.noise)d.delete(v);if(!d.size){this.recentFailure=`P${p.id+1} 도메인 공집합 · 백트래킹`;this.rejected.push({panel:p.id,time:this.round.simTime});this.backtrackStack.push(p.id);d.add(p.orientation)}if(d.size===1){this.locks.add(p.id);this.raw.constraint+=.35;this.constraintsSolved++}this.refreshLogicLines(p.id)}
+  refreshLogicLines(id){this.logicLines=this.puzzle.graph.adj[id].slice(0,4).map(e=>({a:id,b:this.puzzle.graph.other(e,id),life:this.round.simTime+3,locked:this.domains[id].size===1}))}
+  planningStep(task,blocked){const d=this.domains[task.panel],target=task.target??this.puzzle.panels[task.panel].targetOrientation;let removed=0;for(const v of [...d])if(v!==target&&removed<2){d.delete(v);this.rejected.push({panel:task.panel,time:this.round.simTime});removed++}if(!d.size)d.add(target);if(d.size===1){this.locks.add(task.panel);this.raw.constraint+=.16}this.refreshLogicLines(task.panel);this.confidence=clamp(.4+(4-d.size)*.16,0,1);this.reason=blocked?'선행 제약식의 고정점 전파':'회전 도메인 제거 후 모순 감소';this.candidateActions=[...d].map(v=>`${v*90}° 허용`);this.actionValues=[...d].map(v=>v===target?.96:.34)}
+  verifyComputation(){const ok=super.verifyComputation(),fixed=this.puzzle.routes[this.index].every(id=>this.puzzle.panels[id].orientation===this.puzzle.targetProps[id].orientation);this.reason=`제약식 ${this.locks.size}개 고정 · mod 7 등식 검사`;return ok&&fixed}
+}
+class EvolutionAgent extends TeamAgent{
+  constructor(...a){super(...a);this.generation=0;this.population=[];this.popSize=Math.max(14,Math.round(30*this.round.quality));this.seedPopulation()}
+  seedPopulation(){for(let i=0;i<this.popSize;i++)this.population.push(this.rng.shuffle(Array.from({length:24},(_,j)=>j)).slice(0,8));this.evaluate()}
+  fitness(g){let fit=0,pos=this.currentPanel;for(const id of g){fit+=(this.investigated.has(id)?-.08:.25)+(1-this.puzzle.panels[id].noise)*.18;fit-=this.puzzle.graph.shortestPath(pos,id,this,this.round.scheduler.reservations).length*.018;pos=id}for(const id of this.puzzle.routes[this.index])fit+=g.includes(id)?.4:0;return fit}
+  evaluate(){this.population.sort((a,b)=>this.fitness(b)-this.fitness(a));this.chromosomes=this.population.slice(0,6).map((g,i)=>({genes:g.slice(0,6),fitness:this.fitness(g),life:this.round.simTime+2.8+i*.1}))}
+  evolve(){const elite=this.population.slice(0,Math.max(4,Math.floor(this.popSize*.25))),next=elite.map(g=>[...g]);while(next.length<this.popSize){const a=this.rng.pick(elite),b=this.rng.pick(elite),cut=this.rng.range(2,6),child=a.slice(0,cut);for(const x of b)if(!child.includes(x)&&child.length<8)child.push(x);while(child.length<8){const x=this.rng.int(24);if(!child.includes(x))child.push(x)}if(this.rng.chance(.48)){const i=this.rng.int(8),j=this.rng.int(8);[child[i],child[j]]=[child[j],child[i]]}next.push(child)}this.population=next;this.generation++;this.evaluate()}
+  surveyStep(){for(let i=0;i<2;i++)this.evolve();const best=this.population[0],id=best.find(x=>!this.investigated.has(x));this.reason=`세대 ${this.generation} 최고 적합도 ${this.fitness(best).toFixed(2)}`;if(id!==undefined)this.scanPanel(id,'최고 적합도 염색체의 선두 유전자 조사');else this.shareObservation()}
+  planningStep(task){for(let i=0;i<3;i++)this.evolve();const best=this.population[0],fit=this.fitness(best);this.confidence=clamp(.22+this.generation*.018,0,1);this.reason=`세대 ${this.generation} 교차·돌연변이 후 경로 채택`;this.candidateActions=this.population.slice(0,4).map(g=>g.slice(0,3).map(x=>`P${x+1}`).join('›'));this.actionValues=this.population.slice(0,4).map(g=>this.fitness(g));this.candidatePaths=this.population.slice(0,4).map(g=>({panels:[this.currentPanel,...g.slice(0,4)],life:this.round.simTime+2.4,value:this.fitness(g)}))}
+  verifyComputation(){this.evolve();const ok=super.verifyComputation(),contains=this.puzzle.routes[this.index].every(id=>this.population[0].includes(id));this.reason=`세대 ${this.generation} 최고 염색체로 경로 재구성`;return ok&&(contains||this.generation>18)}
+}
+class AudioManager{
+  constructor(enabled=false){this.enabled=enabled;this.ctx=null;this.master=null}
+  unlock(){if(!this.ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=.13;this.master.connect(this.ctx.destination)}if(this.ctx.state==='suspended')this.ctx.resume()}
+  setEnabled(v){this.enabled=v;if(v)this.unlock()}
+  tone(freq,dur=.08,type='sine',gain=.09,delay=0){if(!this.enabled||!this.ctx)return;const t=this.ctx.currentTime+delay,o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+dur+.02)}
+  rotate(i){this.tone(128+i*21,.055,'square',.055);this.tone(82,.045,'triangle',.04,.035)}
+  gate(){this.tone(220,.08,'triangle',.055);this.tone(330,.09,'sine',.05,.065)}
+  error(){this.tone(72,.16,'sawtooth',.045)}
+  link(i){this.tone(260+i*44,.12,'sine',.05);this.tone(520+i*31,.1,'triangle',.035,.06)}
+  scan(i){this.tone(410+i*37,.06,'sine',.025);this.tone(610+i*29,.05,'sine',.018,.045)}
+  apply(i){this.tone(175+i*35,.07,'triangle',.04);this.tone(350+i*48,.11,'sine',.035,.055)}
+  anchor(i){[0,4,7].forEach((n,k)=>this.tone(294*Math.pow(2,n/12)+i*7,.28,'sine',.04,k*.035))}
+  core(){[196,247,294,392].forEach((f,i)=>this.tone(f,.75,i%2?'triangle':'sine',.055,i*.055))}
+}
+class Renderer{
+  constructor(canvas,round){this.canvas=canvas;this.ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});this.round=round;this.dpr=1;this.w=1;this.h=1;this.panelSize=50;this.gapX=7;this.gapY=7;this.positions=[];this.particles=[];this.fps=60;this.frames=0;this.fpsAt=performance.now();this.selectedPanel=-1;this.selectedTeam=-1;this.resize=()=>this.doResize();this.ro=new ResizeObserver(this.resize);this.ro.observe(canvas.parentElement);this.doResize()}
+  doResize(){const r=this.canvas.getBoundingClientRect();this.w=Math.max(1,r.width);this.h=Math.max(1,r.height);this.dpr=Math.min(window.devicePixelRatio||1,2);this.canvas.width=Math.round(this.w*this.dpr);this.canvas.height=Math.round(this.h*this.dpr);this.ctx.setTransform(this.dpr,0,0,this.dpr,0,0);this.computeLayout()}
+  computeLayout(){const margin=14;this.gapX=clamp(this.w*.018,5,9);this.gapY=clamp(this.h*.012,4,8);this.panelSize=Math.floor(Math.min((this.w-margin*2-this.gapX*3)/4,(this.h-margin*2-this.gapY*5)/6));const bw=this.panelSize*4+this.gapX*3,bh=this.panelSize*6+this.gapY*5,ox=(this.w-bw)/2,oy=(this.h-bh)/2;this.positions=this.round.puzzle.panels.map(p=>({x:ox+p.col*(this.panelSize+this.gapX)+this.panelSize/2+Math.sin(p.id*9.17)*1.3,y:oy+p.row*(this.panelSize+this.gapY)+this.panelSize/2+Math.cos(p.id*5.73)*1.15}))}
+  pos(id){return this.positions[id]||{x:this.w/2,y:this.h/2}}
+  teamPos(team){let p=this.pos(team.currentPanel);if(team.action&&team.action.kind==='move'){const a=this.pos(team.action.data.from),b=this.pos(team.action.data.to),t=clamp((this.round.simTime-team.action.start)/(team.action.end-team.action.start),0,1);p={x:lerp(a.x,b.x,ease(t)),y:lerp(a.y,b.y,ease(t))}}if(this.round.puzzle.opening){const c=this.pos(this.round.puzzle.core),age=this.round.simTime-this.round.puzzle.openedAt,t=clamp((age-1.5)/3.5,0,1),ang=-Math.PI/2+team.index*Math.PI/2,target={x:c.x+Math.cos(ang)*this.panelSize*.68,y:c.y+Math.sin(ang)*this.panelSize*.68};p={x:lerp(p.x,target.x,ease(t)),y:lerp(p.y,target.y,ease(t))}}return p}
+  burst(id,color,count=8){if(this.round.reducedMotion)count=Math.min(2,count);const p=this.pos(id),now=this.round.simTime;for(let i=0;i<count*this.round.quality;i++){const a=Math.random()*TAU,s=Math.random()*18+6;this.particles.push({x:p.x,y:p.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,color,born:now,life:.7+Math.random()*.7})}if(this.particles.length>110)this.particles.splice(0,this.particles.length-110)}
+  rounded(x,y,w,h,r){const c=this.ctx;c.beginPath();c.roundRect(x,y,w,h,r)}
+  render(realTime){const c=this.ctx,now=this.round.simTime;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.w,this.h);this.drawBackground(realTime);c.save();const zoom=this.round.reducedMotion?1:1+Math.sin(realTime*.00019)*.006;c.translate(this.w/2,this.h/2);c.scale(zoom,zoom);c.translate(-this.w/2,-this.h/2);this.drawRemoteCouplings();this.drawCorridors(realTime);this.drawLinks(realTime);this.drawTrails();this.round.puzzle.panels.forEach(p=>this.drawPanel(p,realTime));this.drawThinking(realTime);this.drawAgents(realTime);this.drawParticles();if(this.round.puzzle.opening)this.drawCoreOpening(realTime);c.restore();this.frames++;if(realTime-this.fpsAt>1500){this.fps=this.frames*1000/(realTime-this.fpsAt);this.frames=0;this.fpsAt=realTime;if(this.fps<39)this.round.quality=Math.max(.5,this.round.quality-.1)}}
+  drawBackground(t){const c=this.ctx,g=c.createLinearGradient(0,0,0,this.h);g.addColorStop(0,'#071625');g.addColorStop(1,'#020711');c.fillStyle=g;c.fillRect(0,0,this.w,this.h);c.strokeStyle='rgba(42,111,132,.09)';c.lineWidth=1;const step=20;for(let x=(t*.004)%step;x<this.w;x+=step){c.beginPath();c.moveTo(x,0);c.lineTo(x,this.h);c.stroke()}for(let y=0;y<this.h;y+=step){c.beginPath();c.moveTo(0,y);c.lineTo(this.w,y);c.stroke()}const vg=c.createRadialGradient(this.w/2,this.h/2,20,this.w/2,this.h/2,Math.max(this.w,this.h)*.65);vg.addColorStop(0,'rgba(13,75,91,.09)');vg.addColorStop(1,'rgba(0,0,0,.35)');c.fillStyle=vg;c.fillRect(0,0,this.w,this.h)}
+  drawRemoteCouplings(){const c=this.ctx,seen=new Set(),now=this.round.simTime;for(const p of this.round.puzzle.panels){if(p.remote<0)continue;const key=p.id<p.remote?`${p.id}-${p.remote}`:`${p.remote}-${p.id}`;if(seen.has(key))continue;seen.add(key);const a=this.pos(p.id),b=this.pos(p.remote),pulse=Math.max(p.remotePulse,this.round.puzzle.panels[p.remote].remotePulse);c.save();c.setLineDash([2,5]);c.lineWidth=1;c.strokeStyle=now-pulse<1.4?'rgba(182,118,255,.7)':'rgba(91,67,127,.22)';c.beginPath();c.moveTo(a.x,a.y);c.quadraticCurveTo(this.w/2+(a.y-b.y)*.07,this.h/2+(b.x-a.x)*.05,b.x,b.y);c.stroke();c.restore()}}
+  drawCorridors(t){const c=this.ctx,core=this.pos(this.round.puzzle.core),opening=this.round.puzzle.opening;for(const e of this.round.puzzle.graph.edges){const a=this.pos(e.a),b=this.pos(e.b),dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),nx=-dy/len,ny=dx/len;c.save();c.lineCap='round';c.strokeStyle='#02070c';c.lineWidth=8;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();c.strokeStyle=e.unlocked?'#285462':'#17333f';c.lineWidth=5;c.stroke();c.strokeStyle=e.type==='phase'?'#7c4fa0':e.type==='gate'?TEAM_DEFS[Math.max(0,e.gateTeam)].color+'88':'#607a83';c.lineWidth=1;c.setLineDash(e.type==='bridge'?[4,3]:e.type==='phase'?[1,3]:[]);c.stroke();c.setLineDash([]);const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      if(e.type==='stairs'){c.strokeStyle='#9ab0b744';for(let k=-2;k<=2;k++){c.beginPath();c.moveTo(mx+dx/len*k*3+nx*3,my+dy/len*k*3+ny*3);c.lineTo(mx+dx/len*k*3-nx*3,my+dy/len*k*3-ny*3);c.stroke()}}
+      if(e.type==='shutter'||e.locked&&!e.unlocked){c.fillStyle=e.unlocked?'#39707b':'#8c504b';c.fillRect(mx-3,my-3,6,6);c.strokeStyle='#e7c5a1';c.strokeRect(mx-2,my-2,4,4)}
+      if(e.type==='gate'){c.strokeStyle=TEAM_DEFS[Math.max(0,e.gateTeam)].color;c.lineWidth=2;c.beginPath();c.arc(mx,my,4,0,TAU);c.stroke()}
+      if(e.type==='rotator'){c.strokeStyle='#8fa9b2';c.beginPath();c.arc(mx,my,3.2,0,Math.PI*1.55);c.stroke()}
+      if(e.type==='narrow'){c.strokeStyle='#d4af6c';c.beginPath();c.moveTo(mx+nx*3,my+ny*3);c.lineTo(mx-nx*3,my-ny*3);c.stroke()}
+      if(e.oneWay||opening){let dir=e.dir;if(opening){const da=dist(a,core),db=dist(b,core);dir=db<da?1:-1}const ux=dx/len*dir,uy=dy/len*dir,px=mx+ux*2,py=my+uy*2;c.fillStyle=opening?'#85ecff':e.unlocked?'#acdce5':'#647e88';c.beginPath();c.moveTo(px+ux*4,py+uy*4);c.lineTo(px-ux*3+nx*3,py-uy*3+ny*3);c.lineTo(px-ux*3-nx*3,py-uy*3-ny*3);c.closePath();c.fill()}
+      c.restore()}}
+  drawLinks(t){const c=this.ctx,now=this.round.simTime;for(const l of this.round.scheduler.links){const a=this.pos(l.from),b=this.pos(l.to),color=TEAM_DEFS[l.team].color;c.save();c.lineWidth=1.5;c.strokeStyle=color+'88';c.shadowColor=color;c.shadowBlur=4;c.beginPath();c.moveTo(a.x,a.y);c.bezierCurveTo(a.x,(a.y+b.y)/2,b.x,(a.y+b.y)/2,b.x,b.y);c.stroke();const u=((now-l.created)*.7)%1,x=lerp(a.x,b.x,u),y=lerp(a.y,b.y,u)+Math.sin(u*Math.PI)*Math.abs(b.y-a.y)*.08;c.fillStyle=color;c.beginPath();c.arc(x,y,2,0,TAU);c.fill();c.restore()}}
+  panelColor(p){const colors=[['#59272d','#b64c4e'],['#183d6b','#2c78b9'],['#68561e','#c4a83f'],['#1e563e','#36a06c'],['#6b391d','#c46b32'],['#54265f','#9a4ba7'],['#3c4a50','#788c91']];return colors[p.baseColor%colors.length]}
+  drawPanel(p,t){const c=this.ctx,pos=this.pos(p.id),s=this.panelSize,now=this.round.simTime,on=clamp((now-p.powerOn)/.55,0,1);if(on<=0)return;let angle=p.visualAngle(now,this.round.reducedMotion);if(this.round.puzzle.opening){const u=clamp((now-this.round.puzzle.openedAt-p.id*.055)/2.4,0,1);angle=lerp(angle,Math.round(angle/(Math.PI/2))*Math.PI/2,ease(u))}c.save();c.translate(pos.x,pos.y);c.scale(.82+.18*ease(on),.82+.18*ease(on));c.shadowColor='#000';c.shadowBlur=7;c.shadowOffsetY=4;c.fillStyle='#02070c';this.roundRectPath(c,-s*.49,-s*.49,s*.98,s*.98,s*.09);c.fill();c.shadowBlur=0;c.shadowOffsetY=0;
+    const active=now-p.activationPulse<1.35,selected=this.selectedPanel===p.id,anchor=p.anchorTeam>=0;c.lineWidth=selected?2.4:active?2:1.25;c.strokeStyle=selected?'#ffffff':active?(p.lastTeam>=0?TEAM_DEFS[p.lastTeam].color:'#6cecff'):anchor?TEAM_DEFS[p.anchorTeam].color+'bb':'#55717a';c.fillStyle='#182b32';this.roundRectPath(c,-s*.47,-s*.47,s*.94,s*.94,s*.075);c.fill();c.stroke();if(active){c.strokeStyle=(p.lastTeam>=0?TEAM_DEFS[p.lastTeam].color:'#7deaff')+'66';c.lineWidth=4;this.roundRectPath(c,-s*.43,-s*.43,s*.86,s*.86,s*.06);c.stroke()}
+    c.save();c.rotate(angle);this.roundRectPath(c,-s*.4,-s*.4,s*.8,s*.8,s*.035);c.clip();const [lo,hi]=this.panelColor(p),g=c.createLinearGradient(-s*.4,-s*.4,s*.4,s*.4);g.addColorStop(0,lo);g.addColorStop(1,hi);c.fillStyle=g;c.fillRect(-s*.42,-s*.42,s*.84,s*.84);this.drawPattern(p,s,lo,hi,t);for(const d of p.devices)this.drawDevice(p,d,s,t);if(p.polarity<0){c.fillStyle='rgba(16,2,26,.25)';c.fillRect(-s*.4,-s*.4,s*.8,s*.8)}c.restore();
+    if(p.locked&&!p.observedBy.size){c.fillStyle='rgba(6,13,18,.55)';c.fillRect(-s*.39,-s*.41,s*.78,s*.28);c.strokeStyle='#7f8d91';c.lineWidth=1;for(let y=-s*.38;y<-s*.15;y+=4){c.beginPath();c.moveTo(-s*.37,y);c.lineTo(s*.37,y);c.stroke()}}
+    if(p.anchorTeam>=0){const col=TEAM_DEFS[p.anchorTeam].color,charge=this.round.puzzle.anchors[p.anchorTeam].complete?1:.25;c.strokeStyle=col;c.lineWidth=1.5;c.beginPath();c.arc(0,0,s*.34,-Math.PI/2,-Math.PI/2+TAU*charge);c.stroke();for(let k=0;k<4;k++){const a=k*Math.PI/2;c.fillStyle=col;c.fillRect(Math.cos(a)*s*.34-1,Math.sin(a)*s*.34-1,2,2)}}
+    if(now-p.scanPulse<1.7){const u=clamp((now-p.scanPulse)/1.7,0,1);c.strokeStyle=(p.lastTeam>=0?TEAM_DEFS[p.lastTeam].color:'#bffaff')+(Math.round((1-u)*180)).toString(16).padStart(2,'0');c.lineWidth=1;c.beginPath();c.arc(0,0,s*(.12+.38*u),0,TAU);c.stroke()}
+    if(now-p.crackPulse<1.1){c.strokeStyle='#ff735d';c.lineWidth=1.3;c.beginPath();c.moveTo(-s*.2,-s*.2);c.lineTo(-s*.05,-s*.05);c.lineTo(-s*.15,s*.06);c.lineTo(s*.16,s*.2);c.stroke()}
+    if(p.isCore)this.drawCoreGlyph(c,s,t);c.restore();c.save();c.font=`700 ${Math.max(7,s*.11)}px ui-monospace`;c.fillStyle='#d9f5ff';c.textAlign='left';c.textBaseline='top';c.fillText(String(p.id+1).padStart(2,'0'),pos.x-s*.43,pos.y-s*.43);c.font=`${Math.max(6,s*.085)}px ui-monospace`;c.fillStyle='#9fb7bf';c.textAlign='right';c.fillText(`${p.orientation*90}°`,pos.x+s*.42,pos.y-s*.43);c.restore()}
+  roundRectPath(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
+  drawPattern(p,s,lo,hi,t){const c=this.ctx,q=s*.8,x=-q/2,y=-q/2;c.save();c.globalAlpha=.42;c.strokeStyle='#d7f8ff';c.fillStyle='#031018';c.lineWidth=Math.max(.6,s*.012);switch(p.pattern){
+      case 0:for(let i=0;i<4;i++)for(let j=0;j<4;j++)if((i+j)%2)c.fillRect(x+i*q/4,y+j*q/4,q/4,q/4);break;
+      case 1:for(let i=0;i<8;i++)for(let j=0;j<8;j++)if((i+j)%2)c.fillRect(x+i*q/8,y+j*q/8,q/8,q/8);break;
+      case 2:for(let k=-q;k<q*2;k+=q/6){c.beginPath();c.moveTo(x+k,y);c.lineTo(x+k-q,y+q);c.stroke()}break;
+      case 3:for(let k=1;k<6;k++){c.beginPath();c.moveTo(x,y+k*q/6);c.lineTo(x+q,y+k*q/6);c.stroke()}break;
+      case 4:for(let r=q*.1;r<q*.58;r+=q*.1){c.beginPath();c.arc(0,0,r,0,TAU);c.stroke()}break;
+      case 5:for(let k=0;k<7;k++){c.beginPath();c.moveTo(x+k*q/6,y);c.lineTo(x+k*q/6,y+q);c.stroke();c.beginPath();c.moveTo(x,y+k*q/6);c.quadraticCurveTo(0,y+(k+.5)*q/6,x+q,y+k*q/6);c.stroke()}break;
+      case 6:for(let i=0;i<4;i++)for(let j=0;j<4;j++)c.strokeRect(x+i*q/4+2,y+j*q/4+2,q/4-4,q/4-4);break;
+      case 7:for(let i=0;i<5;i++){c.beginPath();c.moveTo(x+i*q/4,y+q);c.lineTo(x+(i+.5)*q/4,y);c.lineTo(x+(i+1)*q/4,y+q);c.stroke()}break;
+      case 8:c.fillStyle=lo;c.fillRect(x,y,q,q);c.fillStyle=hi;c.beginPath();c.moveTo(x,y);c.lineTo(x+q,y);c.lineTo(x,y+q);c.fill();break;
+      case 9:for(let i=0;i<24;i++){const a=i*.91,r=(i%7)*q*.055;c.beginPath();c.arc(Math.cos(a)*r,Math.sin(a)*r,1+(i%3)*.25,0,TAU);c.fill()}break;
+      case 10:for(let i=0;i<7;i++){const ax=x+(i%3)*q*.32+q*.12,ay=y+Math.floor(i/3)*q*.34+q*.12;c.beginPath();c.moveTo(ax,ay);c.lineTo(ax+q*.16,ay);c.lineTo(ax+q*.16,ay+q*.13);c.stroke();c.fillRect(ax-1,ay-1,2,2)}break;
+      case 11:for(let i=0;i<14;i++){c.fillStyle=i%3?'#071119':'#9a7e64';c.fillRect(x+(i*17%Math.floor(q)),y+(i*29%Math.floor(q)),q*.2,q*.08)}break;
+      case 12:c.beginPath();for(let a=0;a<TAU*2.5;a+=.16){const r=a/TAU*q*.15;c.lineTo(Math.cos(a)*r,Math.sin(a)*r)}c.stroke();break;
+      case 13:for(let i=0;i<5;i++)c.strokeRect(-q*(.08+i*.065),-q*(.08+i*.065),q*(.16+i*.13),q*(.16+i*.13));break;
+      case 14:for(let i=0;i<13;i++){c.fillStyle=[lo,hi,'#1c2930'][i%3];const px=x+(i*23%Math.floor(q)),py=y+(i*37%Math.floor(q));c.fillRect(px,py,q*(.14+(i%3)*.05),q*(.1+(i%2)*.06))}break;
+    }c.restore()}
+  drawDevice(p,d,s,t){const c=this.ctx,x=d.x*s,y=d.y*s,r=Math.max(2.2,s*.045),col=['#7ff7ff','#ffc351','#ff6bce','#b6ff70'][p.baseB[d.type%4]%4];c.save();c.translate(x,y);c.strokeStyle='#d4edf3';c.fillStyle=col;c.lineWidth=1;switch(d.type){case 0:c.shadowColor=col;c.shadowBlur=5;c.beginPath();c.arc(0,0,r,0,TAU);c.fill();c.shadowBlur=0;break;case 1:c.fillRect(-r,-r,r*2,r*2);c.strokeRect(-r-1,-r-1,r*2+2,r*2+2);break;case 2:c.beginPath();c.arc(0,0,r*1.5,-Math.PI*.8,Math.PI*.8);c.stroke();c.rotate((p.orientation+1)*Math.PI/2);c.beginPath();c.moveTo(0,0);c.lineTo(r*1.3,0);c.stroke();break;case 3:c.fillRect(-r*.3,-r*1.7,r*.6,r*2.1);c.beginPath();c.arc(0,-r*1.7,r*.6,0,TAU);c.fill();break;case 4:c.fillStyle='#16272c';c.fillRect(-r*1.5,-r*.7,r*3,r*1.4);c.fillStyle=col;c.fillRect(-r*.9,-r*.45,r*1.8,r*.9);break;case 5:c.strokeRect(-r,-r*.8,r*2,r*1.7);c.beginPath();c.arc(0,-r*.8,r*.7,Math.PI,TAU);c.stroke();break;case 6:c.beginPath();c.moveTo(-r*1.4,0);c.lineTo(0,-r);c.lineTo(r*1.4,0);c.lineTo(0,r);c.closePath();c.fill();break;case 7:c.fillStyle='#1d3137';c.beginPath();c.arc(0,0,r*1.7,0,TAU);c.fill();c.fillStyle=col;c.beginPath();c.arc(-r*.55,0,r*.7,0,TAU);c.arc(r*.55,0,r*.7,0,TAU);c.fill();break;case 8:c.beginPath();c.arc(0,0,r*1.6,0,TAU);c.stroke();c.fillRect(Math.cos(t*.001+d.phase)*r*1.6-1,Math.sin(t*.001+d.phase)*r*1.6-1,2,2);break;case 9:c.beginPath();for(let k=0;k<6;k++){const a=-Math.PI/2+k*TAU/6;c.lineTo(Math.cos(a)*r*1.4,Math.sin(a)*r*1.4)}c.closePath();c.stroke();break;default:c.beginPath();c.moveTo(-r*1.4,0);c.lineTo(r*.5,0);c.lineTo(r*.5,-r*.8);c.lineTo(r*1.5,0);c.lineTo(r*.5,r*.8);c.lineTo(r*.5,0);c.stroke()}c.restore()}
+  drawCoreGlyph(c,s,t){c.save();c.strokeStyle='#baf8ff';c.lineWidth=1;c.globalAlpha=.8;c.rotate(t*.00018);for(let k=0;k<4;k++){c.rotate(Math.PI/2);c.strokeRect(s*.08,-s*.03,s*.16,s*.06)}c.beginPath();c.arc(0,0,s*.13,0,TAU);c.stroke();c.restore()}
+  drawTrails(){const c=this.ctx,now=this.round.simTime;for(const team of this.round.teams){const pts=team.trail.filter(v=>now-v.time<23);if(pts.length<2)continue;c.save();c.strokeStyle=team.def.color+'55';c.lineWidth=1.6;c.setLineDash([2,3]);c.beginPath();pts.forEach((v,i)=>{const p=this.pos(v.panel);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)});c.stroke();c.restore()}}
+  drawThinking(t){const c=this.ctx,now=this.round.simTime;for(const team of this.round.teams){const col=team.def.color;
+      for(const path of team.candidatePaths.filter(p=>p.life>now).slice(0,Math.max(2,Math.floor(6*this.round.quality)))){c.save();c.globalAlpha=.12+.18*clamp(path.value||.5,0,1);c.strokeStyle=col;c.lineWidth=team.index===3?2:1;c.setLineDash(team.index===1?[3,3]:[1.5,3]);c.beginPath();path.panels.forEach((id,i)=>{const p=this.pos(id);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)});c.stroke();c.restore()}
+      if(team instanceof BayesAgent)for(const r of team.posteriorRings.filter(x=>x.life>now)){const p=this.pos(r.panel),u=1-(r.life-now)/3;c.save();c.strokeStyle=col+'99';c.lineWidth=1;c.beginPath();c.arc(p.x,p.y,this.panelSize*(.27+r.r*.36+u*.12),0,TAU);c.stroke();c.restore()}
+      if(team instanceof LogicAgent)for(const l of team.logicLines.filter(x=>x.life>now)){const a=this.pos(l.a),b=this.pos(l.b);c.save();c.strokeStyle=col+(l.locked?'aa':'55');c.lineWidth=l.locked?1.4:.8;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();if(l.locked){const m={x:(a.x+b.x)/2,y:(a.y+b.y)/2};c.strokeRect(m.x-2,m.y-2,4,4)}c.restore()}
+      for(const x of team.rejected.filter(v=>now-v.time<1.4)){const p=this.pos(x.panel),a=1-(now-x.time)/1.4;c.save();c.strokeStyle=`rgba(255,92,76,${a})`;c.lineWidth=1.4;c.beginPath();c.moveTo(p.x-5,p.y-5);c.lineTo(p.x+5,p.y+5);c.moveTo(p.x+5,p.y-5);c.lineTo(p.x-5,p.y+5);c.stroke();c.restore()}
+      if(team instanceof EvolutionAgent&&team.chromosomes.length){const p=this.teamPos(team);c.save();c.globalAlpha=.58;c.strokeStyle=col;c.lineWidth=1;team.chromosomes.slice(0,4).forEach((g,row)=>g.genes.slice(0,6).forEach((gene,i)=>{const h=2+(gene%5);c.strokeRect(p.x-18+i*6,p.y-18-row*3,4,h)}));c.restore()}
+    }}
+  drawCursorShape(c,shape,size,color){c.beginPath();if(shape==='diamond'){c.moveTo(0,-size);c.lineTo(size,0);c.lineTo(0,size);c.lineTo(-size,0);c.closePath()}else if(shape==='triangle'){c.moveTo(0,-size);c.lineTo(size*.9,size*.75);c.lineTo(-size*.9,size*.75);c.closePath()}else if(shape==='cross'){const q=size*.36;c.moveTo(-q,-size);c.lineTo(q,-size);c.lineTo(q,-q);c.lineTo(size,-q);c.lineTo(size,q);c.lineTo(q,q);c.lineTo(q,size);c.lineTo(-q,size);c.lineTo(-q,q);c.lineTo(-size,q);c.lineTo(-size,-q);c.lineTo(-q,-q);c.closePath()}else{for(let i=0;i<6;i++){const a=-Math.PI/2+i*TAU/6;i?c.lineTo(Math.cos(a)*size,Math.sin(a)*size):c.moveTo(Math.cos(a)*size,Math.sin(a)*size)}c.closePath()}c.fillStyle='#061018';c.strokeStyle=color;c.lineWidth=2;c.fill();c.stroke()}
+  drawAgents(t){const c=this.ctx,now=this.round.simTime;for(const team of this.round.teams){const p=this.teamPos(team),col=team.def.color,size=clamp(this.panelSize*.11,5.5,8);c.save();c.translate(p.x,p.y);c.shadowColor=col;c.shadowBlur=7;this.drawCursorShape(c,team.def.shape,size,col);c.shadowBlur=0;const pulse=.5+.5*Math.sin(t*.004+team.index);c.strokeStyle=col+'88';c.lineWidth=1;c.beginPath();c.arc(0,0,size+3+pulse*2,0,TAU*clamp(team.confidence,.05,1));c.stroke();if(team.action&&team.action.kind==='scan'){const u=(now-team.action.start)/(team.action.end-team.action.start);c.strokeStyle=col+'88';c.beginPath();c.arc(0,0,size+5+u*8,0,TAU);c.stroke()}if(team.transformAt>now-1.2&&team.beforeVector){const u=clamp((now-team.transformAt)/1.2,0,1);for(let k=0;k<4;k++){const a=k*TAU/4+u*1.7;c.fillStyle=[col,'#dffaff'][k%2];c.fillRect(Math.cos(a)*(size+5+u*5)-1,Math.sin(a)*(size+5+u*5)-1,2,2)}}c.restore();if(this.selectedTeam===team.index){c.strokeStyle='#fff';c.lineWidth=1;c.beginPath();c.arc(p.x,p.y,size+7,0,TAU);c.stroke()}}
+  }
+  drawParticles(){const c=this.ctx,now=this.round.simTime;this.particles=this.particles.filter(p=>now-p.born<p.life);for(const p of this.particles){const a=(now-p.born)/p.life;c.globalAlpha=1-a;c.fillStyle=p.color;c.fillRect(p.x+p.vx*a,p.y+p.vy*a,1.5,1.5)}c.globalAlpha=1}
+  drawCoreOpening(t){const c=this.ctx,now=this.round.simTime,age=now-this.round.puzzle.openedAt,p=this.pos(this.round.puzzle.core),s=this.panelSize;c.save();c.translate(p.x,p.y);const u=clamp(age/4.5,0,1);c.strokeStyle='#d8fbff';c.shadowColor='#6befff';c.shadowBlur=12;c.lineWidth=1.5;for(let r=0;r<4;r++){c.save();c.rotate((r%2?1:-1)*age*.45);c.strokeRect(-s*(.18+r*.06),-s*(.18+r*.06),s*(.36+r*.12),s*(.36+r*.12));c.restore()}c.beginPath();c.arc(0,0,s*(.15+.26*u),0,TAU);c.stroke();c.shadowBlur=0;c.fillStyle=`rgba(177,248,255,${.05+.2*u})`;c.beginPath();c.arc(0,0,s*.4*u,0,TAU);c.fill();c.restore()}
+  hitTest(x,y){let team=-1,td=Infinity;for(const a of this.round.teams){const p=this.teamPos(a),d=Math.hypot(x-p.x,y-p.y);if(d<td&&d<18){td=d;team=a.index}}if(team>=0)return{type:'team',id:team};for(const p of this.round.puzzle.panels){const q=this.pos(p.id);if(Math.abs(x-q.x)<this.panelSize*.5&&Math.abs(y-q.y)<this.panelSize*.5)return{type:'panel',id:p.id}}return null}
+}
+class UIManager{
+  constructor(round){this.round=round;this.lastUpdate=0;this.timelineOpen=false;this.inspectArmed=false;this.inspectTarget=null;this.toastTimer=0;this.bindControls();this.bindCanvas()}
+  bindControls(){
+    $('#pauseBtn').addEventListener('click',()=>{this.round.audio.unlock();this.round.paused=!this.round.paused;$('#pauseBtn').textContent=this.round.paused?'▶ 계속':'Ⅱ 일시정지';$('#pauseBtn').classList.toggle('active',this.round.paused)});
+    $$('.speed').forEach(b=>b.addEventListener('click',()=>{this.round.audio.unlock();this.round.speed=Number(b.dataset.speed);this.round.store.speed=this.round.speed;this.round.saveStore();this.syncButtons();this.toast(`시뮬레이션 속도 ×${this.round.speed}`)}));
+    $('#seedBtn').addEventListener('click',()=>{this.round.audio.unlock();const suggestion=`CM-${Date.now().toString(36).toUpperCase()}`,value=window.prompt('새 시드를 입력하세요. 같은 시드는 같은 퍼즐을 만듭니다.',suggestion);if(value!==null&&String(value).trim())this.round.startRound(String(value).trim())});
+    $('#soundBtn').addEventListener('click',()=>{this.round.audio.unlock();this.round.store.sound=!this.round.store.sound;this.round.audio.setEnabled(this.round.store.sound);this.round.saveStore();this.syncButtons();this.toast(this.round.store.sound?'합성 사운드 켜짐':'사운드 꺼짐')});
+    $('#timelineBtn').addEventListener('click',()=>{this.timelineOpen=!this.timelineOpen;$('#timeline').classList.toggle('open',this.timelineOpen);$('#timelineBtn').classList.toggle('active',this.timelineOpen)});
+    $('#inspectBtn').addEventListener('click',()=>{this.inspectArmed=!this.inspectArmed;$('#inspectBtn').classList.toggle('active',this.inspectArmed);$('#stageBadge').textContent=this.inspectArmed?'SELECT PANEL OR AI':'TAP PANEL / CURSOR TO INSPECT';this.toast(this.inspectArmed?'검사할 패널이나 AI를 탭하세요':'검사 모드 해제')});
+    $('#motionBtn').addEventListener('click',()=>{this.round.reducedMotion=!this.round.reducedMotion;this.round.store.reduced=this.round.reducedMotion;this.round.saveStore();this.syncButtons();this.toast(this.round.reducedMotion?'모션 완화 켜짐':'모션 완화 꺼짐')});
+    $('#closeSheet').addEventListener('click',()=>this.closeInspector());
+    $('#expertBtn').addEventListener('click',()=>{this.round.store.expert=!this.round.store.expert;this.round.saveStore();if(this.inspectTarget)this.renderInspector();this.syncButtons()});
+    $('#teamPanel').addEventListener('click',e=>{const row=e.target.closest('.teamRow');if(row)this.openInspector('team',Number(row.dataset.team))});
+    window.addEventListener('keydown',e=>{if(e.key==='Escape')this.closeInspector()});
+    document.addEventListener('pointerdown',()=>this.round.audio.unlock(),{once:true,passive:true});
+  }
+  bindCanvas(){const canvas=$('#gameCanvas');canvas.addEventListener('pointerdown',e=>{this.round.audio.unlock();const r=canvas.getBoundingClientRect(),hit=this.round.renderer&&this.round.renderer.hitTest(e.clientX-r.left,e.clientY-r.top);if(hit)this.openInspector(hit.type,hit.id);else if(this.inspectArmed)this.toast('패널 또는 AI 커서를 정확히 탭하세요')})}
+  buildTeams(){const host=$('#teamPanel');host.innerHTML=this.round.teams.map(t=>`<div class="teamRow" data-team="${t.index}" style="--team:${t.def.color}"><div class="teamName"><span class="miniCursor">${t.def.glyph}</span><span>${t.def.name}</span></div><div class="teamAction" id="ta${t.index}">초기화</div><div class="teamGoal" id="tg${t.index}">P${t.currentPanel+1}</div><div><div class="meter"><span id="tm${t.index}"></span></div><div class="scoreEnergy"><b id="ts${t.index}">0</b> · E<span id="te${t.index}">100</span></div></div><div class="chips" id="tc${t.index}">${t.vector.map((v,i)=>`<span class="chip"><span>${'XYPC'[i]}${v}</span></span>`).join('')}</div></div>`).join('')}
+  syncButtons(){$$('.speed').forEach(b=>b.classList.toggle('active',Number(b.dataset.speed)===this.round.speed));$('#soundBtn').classList.toggle('active',this.round.store.sound);$('#soundBtn').textContent=this.round.store.sound?'♫ 사운드 ON':'♩ 사운드 OFF';$('#motionBtn').classList.toggle('active',this.round.reducedMotion);$('#expertBtn').classList.toggle('active',this.round.store.expert)}
+  update(realTime,force=false){if(!force&&realTime-this.lastUpdate<120)return;this.lastUpdate=realTime;const r=this.round,p=r.puzzle;$('#roundLabel').textContent=`R${String(r.roundNo).padStart(2,'0')}`;$('#seedLabel').textContent=`SEED ${p.seed}`;$('#timer').textContent=fmtTime(r.simTime);$('#phase').textContent=PHASE_LABEL[r.phase]||r.phase;$('#phaseSub').textContent=r.phaseDescription();$('#anchors').textContent=`${p.anchors.filter(a=>a.complete).length} / 4`;$('#links').textContent=String(r.scheduler.links.length);$('#progressFill').style.width=`${(r.progress()*100).toFixed(1)}%`;
+    for(const t of r.teams){$(`#ta${t.index}`).textContent=t.actionName;$(`#tg${t.index}`).textContent=t.currentGoal>=0?`→P${String(t.currentGoal+1).padStart(2,'0')}`:`P${String(t.currentPanel+1).padStart(2,'0')}`;$(`#tm${t.index}`).style.width=`${t.getProgress()*100}%`;$(`#ts${t.index}`).textContent=String(Math.round(t.score().reduce((s,v)=>s+v,0)/7));$(`#te${t.index}`).textContent=String(Math.round(t.energy));$(`#tc${t.index}`).innerHTML=t.vector.map((v,i)=>`<span class="chip"><span>${'XYPC'[i]}${v}</span></span>`).join('')}
+    if(this.inspectTarget&&$('#sheet').classList.contains('open'))this.renderInspector();
+  }
+  addEvent(event){const host=$('#timelineList'),events=this.round.events.slice(-8).reverse();host.innerHTML=events.map((e,i)=>`<div class="eventLine"${i?` style="animation:none"`:''}><span>${fmtTime(e.time)}</span><i style="color:${e.color};background:${e.color}"></i><span>${this.escape(e.text)}</span></div>`).join('')}
+  escape(s){return String(s).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]))}
+  toast(text){const el=$('#toast');el.textContent=text;el.classList.add('show');clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>el.classList.remove('show'),1700)}
+  openInspector(type,id){this.inspectTarget={type,id};this.round.renderer.selectedPanel=type==='panel'?id:-1;this.round.renderer.selectedTeam=type==='team'?id:-1;this.renderInspector();$('#sheet').classList.add('open')}
+  closeInspector(){$('#sheet').classList.remove('open');this.inspectTarget=null;if(this.round.renderer){this.round.renderer.selectedPanel=-1;this.round.renderer.selectedTeam=-1}}
+  matrixHTML(A){return `<div class="matrix">${A.flat().map(v=>`<span>${v}</span>`).join('')}</div>`}
+  renderInspector(){if(!this.inspectTarget)return;const expert=this.round.store.expert;$('#expertBtn').textContent=expert?'기본 보기':'전문가';if(this.inspectTarget.type==='panel')this.renderPanelInspector(this.inspectTarget.id,expert);else this.renderTeamInspector(this.inspectTarget.id,expert)}
+  renderPanelInspector(id,expert){const p=this.round.puzzle.panels[id],op=p.operatorAt(),edges=this.round.puzzle.graph.adj[id],logic=this.round.teams[2],observed=p.observedBy.size,remote=p.remote>=0?`P${String(p.remote+1).padStart(2,'0')}`:'없음';$('#sheetTitle').textContent=`PANEL ${String(id+1).padStart(2,'0')} // ${p.pattern.toString(16).toUpperCase()}`;let html=`<div class="inspectGrid"><div class="inspectCell"><label>현재 방향</label><b>${p.orientation*90}° · ${p.polarity>0?'정극성':'역극성'}</b></div><div class="inspectCell"><label>입구 / 출구</label><b>${edges.length} / ${edges.filter(e=>!e.locked||e.unlocked).length}${p.exitSwap?' · 교환됨':''}</b></div><div class="inspectCell"><label>활성화 기록</label><b>${p.activationCount}회 · ${p.lastTeam>=0?TEAM_DEFS[p.lastTeam].name:'없음'}</b></div><div class="inspectCell"><label>원격 결합</label><b>${remote} · 위상 ${p.phase}</b></div></div><div class="formula">관측 성질: ${observed?p.knownTraits.join(' / '):'미관측 — 무늬와 장치 배치로만 추정 가능'}</div><div class="inspectGrid"><div class="inspectCell"><label>숨은 규칙 추정</label><b>${observed?`${Math.round((1-p.noise)*100)}% 가역 아핀`:`${Math.round(22+(1-p.noise)*31)}% 미확정`}</b></div><div class="inspectCell"><label>연산 비용 / 잡음</label><b>E${p.energyCost} / ${Math.round(p.noise*100)}%</b></div></div>`;
+    if(expert){const composed=composeOps(this.round.puzzle.loop.filter(x=>x===id).length?[op]:this.round.puzzle.routes.flat().filter(x=>x===id).map(()=>op));const domain=logic.domains[id]?[...logic.domains[id]].map(v=>`${v*90}°`).join(', '):'—';html+=`<div class="formula">v′ = A(${p.orientation*90}°)v + b (mod 7)</div><b>실제 변환 행렬 A</b>${this.matrixHTML(op.A)}<div class="formula">b = [${op.b.join(', ')}] · checksum = ${checksumMatrix(op.A,op.b)}<br>현재 국소 합성 = ${checksumMatrix(composed.A,composed.b)} · 목표 루프 = ${checksumMatrix(this.round.puzzle.loopTarget.A,this.round.puzzle.loopTarget.b)}</div><div class="formula">관련 제약식: orientation ∈ {${domain}}<br>C′ ≡ Σ A₃ⱼvⱼ + ${op.b[3]} (mod 7)<br>remote(${remote}) phase ⊕ ${p.phase}</div>`}$('#sheetBody').innerHTML=html}
+  renderTeamInspector(id,expert){const t=this.round.teams[id],tasks=this.round.puzzle.teamTasks[id],next=tasks.find(x=>!x.done),vals=t.candidateActions.slice(0,5);$('#sheetTitle').textContent=`${t.def.name} // ${t.def.glyph}`;let html=`<div class="inspectGrid"><div class="inspectCell"><label>현재 행동</label><b>${t.actionName}</b></div><div class="inspectCell"><label>목표 패널</label><b>${t.currentGoal>=0?`P${t.currentGoal+1}`:'재계산 중'}</b></div><div class="inspectCell"><label>확신 / 탐색</label><b>${Math.round(t.confidence*100)}% · ${Math.round(t.getProgress()*100)}%</b></div><div class="inspectCell"><label>에너지 / 점수</label><b>${Math.round(t.energy)} / ${Math.round(t.score().reduce((s,v)=>s+v,0)/7)}</b></div></div><div class="formula">${this.escape(t.reason)}</div><div class="inspectGrid"><div class="inspectCell"><label>최근 실패 원인</label><b>${this.escape(t.recentFailure)}</b></div><div class="inspectCell"><label>조사 / 공유</label><b>${t.investigated.size} / ${t.shares}</b></div></div><b>후보 행동</b>${vals.length?vals.map((v,i)=>`<div class="candidate"><span>${this.escape(v)}</span><span>${Number(t.actionValues[i]||0).toFixed(2)}</span></div>`).join(''):'<div class="formula">현재 후보를 점진 계산 중</div>'}`;
+    if(expert){const algorithm=t instanceof BayesAgent?`가설 엔트로피 평균 ${(t.entropy.reduce((s,v)=>s+v,0)/24).toFixed(3)}`:t instanceof TreeAgent?`MCTS rollout ${t.rollouts} · node ${t.tree.size}`:t instanceof LogicAgent?`고정 도메인 ${t.locks.size} · 백트랙 ${t.backtrackStack.length}`:`세대 ${t.generation} · 개체군 ${t.population.length}`;html+=`<div class="formula">${algorithm}<br>상태 v = [${t.vector.join(', ')}] ∈ F₇⁴<br>다음 작업 = ${next?`${next.kind}@P${next.panel+1}`:'공동 증명 검산'}<br>증명 단위 = ${t.proofUnits}/${t.proofNeeded}<br>통과 이력 = ${t.history.map(x=>`P${x+1}`).join(' → ')||'없음'}</div>`}$('#sheetBody').innerHTML=html}
+  showResult(success){const r=this.round,ranked=[...r.teams].sort((a,b)=>b.totalScore-a.totalScore);$('#resultTitle').textContent=success?'MANIFOLD RESOLVED':'PARTIAL MANIFOLD';$('#resultSub').textContent=`SEED ${r.puzzle.seed} · ${fmtTime(r.simTime)} · 해답 ${r.puzzle.solutionLength}연산`;$('#resultTeams').innerHTML=ranked.map((t,i)=>`<div class="resultTeam" style="--team:${t.def.color}"><div class="rankline"><b class="rankNo">${i+1}</b><b style="color:${t.def.color}">${t.def.glyph} ${t.def.name}</b><b>${t.totalScore}</b></div><div class="bars">${SCORE_NAMES.map((name,k)=>`<span>${name}</span><span class="bar"><i style="width:${t.finalScores[k]}%"></i></span><b>${Math.round(t.finalScores[k])}</b>`).join('')}</div></div>`).join('');const decisive=ranked.slice().sort((a,b)=>b.finalScores[6]-a.finalScores[6])[0];$('#resultFacts').innerHTML=`<div class="fact"><label>패널 조작</label><b>${r.scheduler.totalActions}</b></div><div class="fact"><label>롤백</label><b>${r.scheduler.rollbacks}</b></div><div class="fact"><label>결정적 팀</label><b style="color:${decisive.def.color}">${decisive.def.name}</b></div><div class="fact"><label>루프 checksum</label><b>${checksumMatrix(r.puzzle.currentLoop().A,r.puzzle.currentLoop().b)}</b></div><div class="fact"><label>교환자</label><b>${r.puzzle.currentCommutator()}</b></div><div class="fact"><label>충돌 회피</label><b>${r.scheduler.collisions}</b></div>`;$('#result').classList.add('open');this.updateResultCountdown()}
+  updateResultCountdown(){$('#nextRound').textContent=`다음 시드까지 ${Math.max(0,Math.ceil(12-this.round.resultReal))}초`}
+  hideResult(){$('#result').classList.remove('open')}
+}
+class RoundManager{
+  constructor(){this.store=this.loadStore();this.speed=[.5,1,2,4].includes(Number(this.store.speed))?Number(this.store.speed):1;this.reducedMotion=typeof this.store.reduced==='boolean'?this.store.reduced:matchMedia('(prefers-reduced-motion: reduce)').matches;this.audio=new AudioManager(!!this.store.sound);this.generator=new PuzzleGenerator();this.quality=(navigator.hardwareConcurrency||4)<=4?.72:1;this.canvas=$('#gameCanvas');this.ui=new UIManager(this);this.paused=false;this.lastFrame=performance.now();this.events=[];this.startRound(this.store.lastSeed||`CM-${new Date().toISOString().slice(0,10).replaceAll('-','')}`);requestAnimationFrame(t=>this.loop(t))}
+  loadStore(){const base={sound:false,speed:1,rounds:0,wins:[0,0,0,0],averages:[0,0,0,0],fastest:null,lastSeed:'',expert:false,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches};try{const v=JSON.parse(localStorage.getItem('chromaManifold24')||'{}');if(!v||typeof v!=='object')return base;return{...base,...v,wins:Array.isArray(v.wins)&&v.wins.length===4?v.wins:base.wins,averages:Array.isArray(v.averages)&&v.averages.length===4?v.averages:base.averages}}catch{return base}}
+  saveStore(){try{localStorage.setItem('chromaManifold24',JSON.stringify(this.store))}catch{}}
+  startRound(seed){if(this.renderer&&this.renderer.ro)this.renderer.ro.disconnect();this.store.lastSeed=String(seed);this.saveStore();this.puzzle=this.generator.generate(String(seed));this.simTime=0;this.simDelta=0;this.phase='INITIALIZE';this.phaseAt=0;this.roundNo=(this.store.rounds||0)+1;this.events=[];this.resultReal=0;this.success=false;this.finished=false;this.paused=false;$('#pauseBtn').textContent='Ⅱ 일시정지';$('#pauseBtn').classList.remove('active');this.scheduler=new ActionScheduler(this,this.puzzle);this.teams=[new BayesAgent(0,this.puzzle,this),new TreeAgent(1,this.puzzle,this),new LogicAgent(2,this.puzzle,this),new EvolutionAgent(3,this.puzzle,this)];this.renderer=new Renderer(this.canvas,this);this.ui.buildTeams();this.ui.hideResult();this.ui.closeInspector();this.ui.syncButtons();this.addEvent(-1,`시드 ${seed} · 검증된 32단계 해답 생성`);this.ui.update(performance.now(),true)}
+  setPhase(phase,text){if(this.phase===phase)return;this.phase=phase;this.phaseAt=this.simTime;this.addEvent(-1,text||`${phase} 단계 진입`)}
+  phaseDescription(){if(this.phase==='INITIALIZE')return'패널·통로 위상 동기화';if(this.phase==='SURVEY')return'숨은 연산자 관측과 가설 갱신';if(this.phase==='MANIPULATION')return'비가환 순서에 따라 패널 조작';if(this.phase==='CONVERGENCE')return this.puzzle.opening?'매니폴드 코어 개방':'부분 증명과 공동 상태 수렴';return this.success?'해결 결과 집계':'부분 결과 집계'}
+  addEvent(team,text){const color=team>=0?TEAM_DEFS[team].color:'#8faab7';this.events.push({time:this.simTime,team,color,text});if(this.events.length>24)this.events.shift();this.ui.addEvent(this.events[this.events.length-1])}
+  progress(){const observations=new Set(this.teams.flatMap(t=>[...t.investigated])).size/24,task=this.scheduler.progress(),proof=this.teams.reduce((s,t)=>s+clamp(t.proofUnits/t.proofNeeded,0,1),0)/4,anchors=this.puzzle.anchors.filter(a=>a.complete).length/4;if(this.phase==='INITIALIZE')return clamp(this.simTime/8,0,1)*.08;if(this.phase==='SURVEY')return .08+observations*.22;if(this.phase==='MANIPULATION')return .3+task*.43;if(this.phase==='CONVERGENCE')return clamp(.73+task*.08+proof*.11+anchors*.08,0,.99);return 1}
+  loop(realTime){const realDt=clamp((realTime-this.lastFrame)/1000,0,.08);this.lastFrame=realTime;if(!this.paused)this.update(realDt);this.renderer.render(realTime);this.ui.update(realTime);requestAnimationFrame(t=>this.loop(t))}
+  update(realDt){if(this.phase==='RESULT'){this.resultReal+=realDt;this.ui.updateResultCountdown();if(this.resultReal>=12){const next=`${this.puzzle.seed.split('~')[0]}~${this.roundNo+1}-${hashString(this.puzzle.seed).toString(36).slice(0,4)}`;this.startRound(next)}return}this.simDelta=realDt*this.speed;this.simTime+=this.simDelta;this.scheduler.tick(this.simTime);for(const t of this.teams)t.update();
+    if(this.phase==='INITIALIZE'&&this.simTime>=8)this.setPhase('SURVEY','SURVEY · 네 AI가 서로 다른 관측 전략 개시');
+    if(this.phase==='SURVEY'){const seen=new Set(this.teams.flatMap(t=>[...t.investigated])).size;if((this.simTime>=65&&seen>=12)||this.simTime>=90)this.setPhase('MANIPULATION','MANIPULATION · 해답 연산 순서 실행')}
+    if(this.phase==='MANIPULATION'&&((this.scheduler.nonSubmitDone()&&this.simTime>=130)||this.simTime>=235))this.setPhase('CONVERGENCE','CONVERGENCE · 앵커 제출과 독립 증명');
+    if(this.phase==='CONVERGENCE'&&!this.puzzle.opening){const proof=this.teams.every(t=>t.proofUnits>=t.proofNeeded),valid=this.puzzle.validate(this.teams,this.scheduler);if(proof&&valid&&this.simTime>=180)this.beginOpening()}
+    if(this.puzzle.opening&&this.simTime-this.puzzle.openedAt>=6&&!this.finished)this.finish(true);
+    if(this.simTime>=480&&!this.finished)this.finish(false)
+  }
+  beginOpening(){this.puzzle.opening=true;this.puzzle.openedAt=this.simTime;this.puzzle.solved=true;this.addEvent(-1,'모든 앵커·홀로노미·교환자·공동 상태 검증 완료');this.audio.core();this.puzzle.panels.forEach((p,i)=>{if(i%3===0)this.renderer.burst(p.id,TEAM_DEFS[i%4].color,4)})}
+  finish(success){if(this.finished)return;this.finished=true;this.success=success;this.phase='RESULT';this.resultReal=0;for(const t of this.teams)t.finalizeScore();const ranked=[...this.teams].sort((a,b)=>b.totalScore-a.totalScore);const oldRounds=this.store.rounds||0;this.store.rounds=oldRounds+1;if(success)this.store.wins[ranked[0].index]=(this.store.wins[ranked[0].index]||0)+1;for(const t of this.teams)this.store.averages[t.index]=((this.store.averages[t.index]||0)*oldRounds+t.totalScore)/(oldRounds+1);if(success&&(this.store.fastest===null||this.simTime<this.store.fastest))this.store.fastest=Math.round(this.simTime*10)/10;this.saveStore();this.ui.showResult(success);this.addEvent(-1,success?'매니폴드 코어 해결':'8분 제한 · 최유력 공동 가설 제출')}
+}
+new RoundManager();
+})();
+</script>
+</body>
+</html>
