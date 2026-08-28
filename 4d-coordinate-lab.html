@@ -1,0 +1,2577 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <meta name="color-scheme" content="dark">
+  <title>4D Coordinate Lab</title>
+  <style>
+    :root {
+      --bg: #050914;
+      --bg-deep: #02040a;
+      --panel: rgba(9, 17, 33, 0.94);
+      --panel-2: rgba(13, 24, 45, 0.88);
+      --line: rgba(129, 173, 215, 0.2);
+      --line-strong: rgba(151, 197, 239, 0.42);
+      --text: #e9f6ff;
+      --muted: #87a2b9;
+      --cyan: #55e6ff;
+      --blue: #7293ff;
+      --pink: #ff6ec7;
+      --amber: #ffc45e;
+      --lime: #a7ff76;
+      --danger: #ff7e8a;
+      --radius: 14px;
+      --header-h: 68px;
+      --dock-collapsed: 56px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg-deep);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior: none;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(25, 73, 117, 0.18), transparent 52%),
+        linear-gradient(180deg, #070d1c 0%, #030610 100%);
+    }
+
+    button, input, select { font: inherit; }
+
+    button, select, .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--text);
+      background: rgba(22, 38, 65, 0.72);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    button:focus-visible, select:focus-visible, input:focus-visible, canvas:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    button[aria-pressed="true"], .seg-button.active, .tab-button.active {
+      border-color: rgba(85, 230, 255, 0.72);
+      color: #f4fdff;
+      background: rgba(31, 103, 132, 0.52);
+      box-shadow: inset 0 0 0 1px rgba(85, 230, 255, 0.08);
+    }
+
+    .app {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding-top: env(safe-area-inset-top);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .topbar {
+      flex: 0 0 var(--header-h);
+      min-height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px 8px 14px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(9, 18, 35, 0.98), rgba(7, 14, 29, 0.92));
+      z-index: 20;
+    }
+
+    .brand {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(15px, 4.2vw, 22px);
+      line-height: 1.05;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-meta {
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      display: inline-block;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 9px rgba(167, 255, 118, 0.75);
+    }
+
+    .live-dot.paused {
+      background: var(--amber);
+      box-shadow: none;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 7px;
+      flex: 0 0 auto;
+    }
+
+    .icon-button {
+      width: 46px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      font-size: 17px;
+    }
+
+    .stage {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 210px;
+      overflow: hidden;
+      isolation: isolate;
+      background: #030712;
+    }
+
+    #labCanvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      cursor: grab;
+    }
+
+    #labCanvas.dragging { cursor: grabbing; }
+
+    .hud-panel {
+      position: absolute;
+      z-index: 4;
+      border: 1px solid rgba(128, 183, 229, 0.24);
+      border-radius: 11px;
+      background: rgba(4, 10, 22, 0.79);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .info-panel {
+      top: 10px;
+      right: 10px;
+      width: min(326px, calc(100% - 20px));
+      max-height: min(42vh, 240px);
+      overflow: auto;
+      padding: 10px 11px 11px;
+      scrollbar-width: thin;
+    }
+
+    .info-panel.collapsed .info-body { display: none; }
+    .info-panel.collapsed { width: auto; }
+
+    .info-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 28px;
+    }
+
+    .info-title {
+      flex: 1;
+      min-width: 0;
+      color: var(--cyan);
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mini-button {
+      width: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .info-body {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 5px 8px;
+      margin-top: 8px;
+      font-size: 10.5px;
+      line-height: 1.35;
+    }
+
+    .info-body dt { margin: 0; color: var(--muted); }
+    .info-body dd {
+      margin: 0;
+      color: #e7f6ff;
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .legend-panel {
+      left: 10px;
+      bottom: 10px;
+      width: 134px;
+      padding: 8px 9px;
+      pointer-events: none;
+    }
+
+    .legend-title {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+    }
+
+    .w-gradient {
+      height: 6px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #596fff, #55e6ff 48%, #fff1a6 70%, #ff6ec7);
+      box-shadow: 0 0 10px rgba(85, 230, 255, 0.18);
+    }
+
+    .legend-range {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 3px;
+      font-size: 9px;
+      color: #aac0d1;
+    }
+
+    .axis-chips {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      margin-top: 7px;
+    }
+
+    .axis-chip {
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 5px;
+      color: #06101c;
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .formula-panel {
+      right: 10px;
+      bottom: 10px;
+      width: min(300px, 56%);
+      max-height: 105px;
+      overflow: auto;
+      padding: 8px 9px;
+      color: #b9d1e3;
+      font-size: 9.5px;
+      line-height: 1.4;
+      pointer-events: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .formula-panel strong { color: var(--cyan); }
+    .formula-panel.hidden { display: none; }
+
+    .slice-badge {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
+      z-index: 3;
+      pointer-events: none;
+      padding: 7px 10px;
+      border: 1px solid rgba(167, 255, 118, 0.32);
+      border-radius: 99px;
+      background: rgba(5, 13, 25, 0.72);
+      color: #caffb0;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .slice-badge[hidden] { display: none; }
+
+    .stage.coords-mode .legend-panel,
+    .stage.coords-mode .formula-panel,
+    .stage.coords-mode .slice-badge {
+      display: none;
+    }
+
+    .dock {
+      flex: 0 0 auto;
+      height: min(38vh, 340px);
+      height: min(38dvh, 340px);
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(9, 18, 36, 0.99), rgba(5, 10, 22, 0.995));
+      box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.26);
+      transition: height 180ms ease, min-height 180ms ease;
+      z-index: 10;
+    }
+
+    .dock.collapsed {
+      height: var(--dock-collapsed);
+      min-height: var(--dock-collapsed);
+    }
+
+    .dock.collapsed .dock-tabs,
+    .dock.collapsed .dock-content { display: none; }
+
+    .dock-head {
+      min-height: 55px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dock-label {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dock-label strong {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+    }
+
+    .dock-label span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 9px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dock-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      padding: 5px 7px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tab-button {
+      min-height: 44px;
+      padding: 0 5px;
+      font-size: 10px;
+      border-radius: 8px;
+    }
+
+    .dock-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 8px 8px calc(10px + env(safe-area-inset-bottom));
+      scrollbar-width: thin;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 8px;
+    }
+
+    .control-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(13, 25, 46, 0.62);
+      padding: 9px;
+      min-width: 0;
+    }
+
+    .control-card h2 {
+      margin: 0 0 8px;
+      color: #c7e9ff;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      font-weight: 800;
+    }
+
+    .row {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .row + .row { border-top: 1px solid rgba(129, 173, 215, 0.09); }
+
+    .row-label {
+      min-width: 78px;
+      color: #b4c9d9;
+      font-size: 10px;
+    }
+
+    .row-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .value {
+      min-width: 54px;
+      text-align: right;
+      color: var(--cyan);
+      font-size: 9.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    select {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: #0c1930;
+      color: var(--text);
+      padding: 0 34px 0 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 44px;
+      margin: 0;
+      accent-color: var(--cyan);
+    }
+
+    input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      margin: 0;
+      accent-color: var(--cyan);
+    }
+
+    .rotation-row {
+      display: grid;
+      grid-template-columns: 44px 44px minmax(76px, 1fr) 58px;
+      align-items: center;
+      gap: 6px;
+      min-height: 47px;
+      border-top: 1px solid rgba(129, 173, 215, 0.09);
+    }
+
+    .rotation-row:first-of-type { border-top: 0; }
+
+    .plane-name {
+      width: 44px;
+      min-height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #d9efff;
+    }
+
+    .plane-name input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .dir-button {
+      width: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 16px;
+    }
+
+    .rotation-meta {
+      text-align: right;
+      line-height: 1.2;
+      font-size: 9px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rotation-meta output {
+      display: block;
+      color: var(--cyan);
+      font-size: 9.5px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+    }
+
+    .seg-button {
+      min-height: 48px;
+      padding: 5px 8px;
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    .seg-button small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .switch-row {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+    }
+
+    .switch-copy strong {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .switch-copy small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.25;
+    }
+
+    .edge-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+
+    .edge-toggle {
+      min-height: 50px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 9px;
+    }
+
+    .edge-toggle input { width: 19px; height: 19px; }
+
+    details.explain {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(10, 21, 40, 0.66);
+      overflow: hidden;
+    }
+
+    details.explain summary {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      cursor: pointer;
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .explain-body {
+      padding: 0 12px 12px;
+      color: #bbcede;
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    .equation {
+      margin-top: 9px;
+      padding: 9px;
+      border-radius: 9px;
+      background: rgba(1, 6, 14, 0.65);
+      color: #d8f6ff;
+      overflow-wrap: anywhere;
+      font-size: 9px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 9.5px;
+      line-height: 1.45;
+      margin-top: 7px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (min-width: 760px) {
+      :root { --header-h: 72px; }
+      .topbar { padding-inline: 20px; }
+      .stage { min-height: 320px; }
+      .dock { height: min(34vh, 330px); height: min(34dvh, 330px); }
+      .dock-tabs { width: min(680px, 100%); margin: 0 auto; }
+      .dock-content { padding-inline: max(16px, calc((100vw - 1050px) / 2)); }
+      .legend-panel { width: 155px; padding: 10px; }
+      .info-panel { top: 14px; right: 14px; }
+      .formula-panel { right: 14px; bottom: 14px; }
+      .legend-panel { left: 14px; bottom: 14px; }
+    }
+
+    @media (max-width: 420px) {
+      .brand-meta .mode-word { max-width: 96px; overflow: hidden; text-overflow: ellipsis; }
+      .topbar { gap: 6px; padding-left: 10px; }
+      .top-actions { gap: 4px; }
+      .icon-button { width: 44px; }
+      .info-panel { max-height: 190px; }
+      .info-body { grid-template-columns: 82px 1fr; font-size: 9.5px; }
+      .formula-panel { width: 54%; font-size: 9px; max-height: 80px; }
+      .legend-panel { width: 122px; }
+      .slice-badge { left: 10px; top: auto; bottom: 86px; transform: none; }
+      .control-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-height: 620px) and (orientation: landscape) {
+      :root { --header-h: 56px; }
+      .app {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) clamp(272px, 44vw, 390px);
+        grid-template-rows: var(--header-h) minmax(0, 1fr);
+      }
+      .app.dock-collapsed { grid-template-columns: minmax(0, 1fr) 58px; }
+      .topbar { grid-column: 1 / -1; grid-row: 1; }
+      .brand-meta { margin-top: 3px; font-size: 8.5px; gap: 5px; }
+      .stage { grid-column: 1; grid-row: 2; min-height: 0; }
+      .dock { position: relative; grid-column: 2; grid-row: 2; width: auto; height: auto; min-height: 0; max-height: none; border-top: 0; border-left: 1px solid var(--line-strong); }
+      .dock.collapsed { width: auto; height: auto; min-height: 0; }
+      .dock.collapsed .dock-head { padding: 6px; }
+      .dock.collapsed .dock-label, .dock.collapsed #dockResetBtn { display: none; }
+      .dock-tabs { grid-template-columns: repeat(2, 1fr); }
+      .info-panel { left: 10px; right: auto; width: min(326px, calc(100% - 20px)); max-height: 44%; }
+      .formula-panel { right: 10px; width: min(300px, 48%); }
+      .slice-badge { left: 50%; top: auto; bottom: 112px; transform: translateX(-50%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="appRoot">
+    <header class="topbar">
+      <div class="brand">
+        <h1>4D COORDINATE LAB</h1>
+        <div class="brand-meta">
+          <span><i class="live-dot" id="liveDot"></i> <span id="renderState">LIVE · -- FPS</span></span>
+          <span>•</span>
+          <span class="mode-word" id="modeLabel">4D 투영 모드</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-button" id="playBtn" type="button" aria-label="전체 회전 일시정지" title="재생/일시정지">Ⅱ</button>
+        <button class="icon-button" id="resetBtn" type="button" aria-label="전체 초기화" title="전체 초기화">↺</button>
+      </div>
+    </header>
+
+    <main class="stage" id="stage">
+      <canvas id="labCanvas" tabindex="0" aria-label="실제 4차원 좌표로 계산된 인터랙티브 테서랙트. 드래그로 회전하고 꼭짓점을 선택하세요."></canvas>
+      <div class="sr-only" id="ariaStatus" aria-live="polite"></div>
+
+      <aside class="hud-panel info-panel" id="infoPanel" aria-label="선택한 점의 좌표 정보">
+        <div class="info-head">
+          <div class="info-title" id="selectedTitle">V0 · SELECTED POINT</div>
+          <button class="mini-button" id="infoCollapseBtn" type="button" aria-label="좌표 정보 접기" aria-expanded="true">▴</button>
+        </div>
+        <dl class="info-body">
+          <dt>원본 4D</dt><dd id="infoOriginal">—</dd>
+          <dt>회전 후 4D</dt><dd id="infoRotated">—</dd>
+          <dt>4D → 3D</dt><dd id="info3D">—</dd>
+          <dt>화면 2D</dt><dd id="info2D">—</dd>
+          <dt>현재 W</dt><dd id="infoW">—</dd>
+          <dt>카메라 깊이</dt><dd id="infoDepth">—</dd>
+        </dl>
+      </aside>
+
+      <div class="hud-panel legend-panel" aria-hidden="true">
+        <div class="legend-title">ROTATED W CUE</div>
+        <div class="w-gradient"></div>
+        <div class="legend-range"><span>−W · 작고 흐림</span><span>+W · 큼</span></div>
+        <div class="axis-chips">
+          <span class="axis-chip" style="background:#55e6ff">X</span>
+          <span class="axis-chip" style="background:#ff6ec7">Y</span>
+          <span class="axis-chip" style="background:#ffc45e">Z</span>
+          <span class="axis-chip" style="background:#a7ff76">W</span>
+        </div>
+      </div>
+
+      <div class="hud-panel formula-panel" id="formulaPanel">
+        <strong>LIVE PROJECTION</strong><br>
+        <span id="formula4D">f₄ = d₄ / (d₄ − w)</span><br>
+        <span id="formula3D">f₃ = d₃ / (d₃ − z₃)</span><br>
+        <span id="formulaScreen">screen = center + (x₃,y₃)·f₃</span>
+      </div>
+
+      <div class="slice-badge" id="sliceBadge" hidden>원본 좌표계 단면 · w = 0.00</div>
+    </main>
+
+    <section class="dock" id="controlDock" aria-label="테서랙트 조작 패널">
+      <div class="dock-head">
+        <button class="icon-button" id="dockToggleBtn" type="button" aria-label="조작 패널 접기" aria-expanded="true">⌄</button>
+        <div class="dock-label">
+          <strong>LAB CONTROLS</strong>
+          <span id="gestureHint">한 손가락/마우스: XW 회전 · 두 손가락/휠: 확대</span>
+        </div>
+        <button class="icon-button" id="dockResetBtn" type="button" aria-label="시점만 초기화" title="시점만 초기화">◎</button>
+      </div>
+
+      <nav class="dock-tabs" aria-label="조작 설정 분류" role="tablist">
+        <button class="tab-button active" id="tabButton-rotation" type="button" role="tab" aria-selected="true" aria-controls="tab-rotation" data-tab="rotation">회전</button>
+        <button class="tab-button" id="tabButton-projection" type="button" role="tab" aria-selected="false" aria-controls="tab-projection" data-tab="projection">투영·단면</button>
+        <button class="tab-button" id="tabButton-labels" type="button" role="tab" aria-selected="false" aria-controls="tab-labels" data-tab="labels">좌표</button>
+        <button class="tab-button" id="tabButton-visual" type="button" role="tab" aria-selected="false" aria-controls="tab-visual" data-tab="visual">시각·학습</button>
+      </nav>
+
+      <div class="dock-content">
+        <section class="tab-pane active" id="tab-rotation" role="tabpanel" aria-labelledby="tabButton-rotation">
+          <div class="control-grid">
+            <div class="control-card">
+              <h2>직접 조작</h2>
+              <div class="row">
+                <label class="row-label" for="manualPlane">회전 평면</label>
+                <div class="row-main">
+                  <select id="manualPlane" aria-label="드래그로 직접 조작할 회전 평면">
+                    <option value="XY">XY</option>
+                    <option value="XZ">XZ</option>
+                    <option value="XW" selected>XW</option>
+                    <option value="YZ">YZ</option>
+                    <option value="YW">YW</option>
+                    <option value="ZW">ZW</option>
+                  </select>
+                </div>
+              </div>
+              <p class="hint">드래그의 좌우 이동이 정방향, 상하 이동이 보조 방향으로 더해집니다. 직접 회전은 자동 회전이 꺼진 평면에서도 작동합니다.</p>
+            </div>
+
+            <div class="control-card">
+              <h2>6개 4D 회전 평면 · 활성 / 방향 / 속도 / 각도</h2>
+              <div id="rotationRows"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-pane" id="tab-projection" role="tabpanel" aria-labelledby="tabButton-projection">
+          <div class="control-grid">
+            <div class="control-card">
+              <h2>표현 모드</h2>
+              <div class="segmented" role="group" aria-label="표현 모드">
+                <button class="seg-button active" type="button" data-mode="projection">A · 4D 투영<small>전체 16점 / 32모서리</small></button>
+                <button class="seg-button" type="button" data-mode="slice">B · W 단면<small>w = constant 교차 큐브</small></button>
+              </div>
+              <div class="row" id="sliceControlRow" hidden>
+                <label class="row-label" for="sliceW">단면 W</label>
+                <div class="row-main">
+                  <input id="sliceW" type="range" min="-1.5" max="1.5" step="0.01" value="0" aria-label="W 단면 위치">
+                  <output class="value" id="sliceWValue">w=0.00</output>
+                </div>
+              </div>
+              <p class="hint" id="sliceHint">단면 모드에서는 원본 테서랙트의 w = constant 초평면 교차를 계산한 뒤, 그 4D 점들을 현재 회전으로 함께 투영합니다.</p>
+            </div>
+
+            <div class="control-card">
+              <h2>투영 파라미터</h2>
+              <div class="row">
+                <label class="row-label" for="distance4D">4D 거리 d₄</label>
+                <div class="row-main">
+                  <input id="distance4D" type="range" min="2.7" max="8" step="0.05" value="4.5">
+                  <output class="value" id="distance4DValue">4.50</output>
+                </div>
+              </div>
+              <div class="row">
+                <label class="row-label" for="distance3D">3D 거리 d₃</label>
+                <div class="row-main">
+                  <input id="distance3D" type="range" min="3.3" max="12" step="0.05" value="6.5">
+                  <output class="value" id="distance3DValue">6.50</output>
+                </div>
+              </div>
+              <div class="row">
+                <label class="row-label" for="zoomRange">확대 비율</label>
+                <div class="row-main">
+                  <input id="zoomRange" type="range" min="0.45" max="2.4" step="0.01" value="1">
+                  <output class="value" id="zoomValue">1.00×</output>
+                </div>
+              </div>
+              <p class="hint">분모는 0.22 아래로 내려가지 않게 안전 제한되고, 투영 배율도 유한 범위로 제한됩니다.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-pane" id="tab-labels" role="tabpanel" aria-labelledby="tabButton-labels">
+          <div class="control-grid">
+            <div class="control-card">
+              <h2>좌표 라벨 모드</h2>
+              <div class="row">
+                <label class="row-label" for="labelMode">표시 방식</label>
+                <div class="row-main">
+                  <select id="labelMode">
+                    <option value="selected">1 · 선택한 점만</option>
+                    <option value="ids">2 · 모든 꼭짓점 번호</option>
+                    <option value="coords">3 · 모든 회전 4D 좌표</option>
+                    <option value="hidden">4 · 라벨 숨기기</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <label class="row-label" for="vertexSelect">키보드 선택</label>
+                <div class="row-main">
+                  <select id="vertexSelect" aria-label="좌표를 확인할 테서랙트 꼭짓점"></select>
+                </div>
+              </div>
+              <p class="hint">전체 라벨은 여러 후보 위치를 검사해 겹침이 가장 적은 곳에 배치하며, 필요하면 얇은 연결선을 그립니다.</p>
+            </div>
+
+            <div class="control-card">
+              <h2>선택 방법</h2>
+              <p class="hint">꼭짓점 또는 단면 교차점을 터치/클릭하세요. 선택점은 큰 외곽선과 펄스로 표시되며 좌표 정보가 실시간 갱신됩니다.</p>
+              <p class="hint">빈 공간을 두 번 터치하거나 더블클릭하면 화면 이동과 확대만 초기화됩니다. 키보드에서는 ←/→ 회전, ＋/－ 확대, R 시점 초기화를 사용할 수 있습니다.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-pane" id="tab-visual" role="tabpanel" aria-labelledby="tabButton-visual">
+          <div class="control-grid">
+            <div class="control-card">
+              <h2>시각 효과</h2>
+              <label class="switch-row"><input id="toggleGlow" type="checkbox" checked><span class="switch-copy"><strong>미세 발광</strong><small>선과 선택점을 얇게 강조</small></span></label>
+              <label class="switch-row"><input id="toggleDepth" type="checkbox" checked><span class="switch-copy"><strong>깊이 단서</strong><small>카메라 깊이에 따라 투명도와 굵기 변화</small></span></label>
+              <label class="switch-row"><input id="toggleGrid" type="checkbox" checked><span class="switch-copy"><strong>3D 기준 격자</strong><small>테서랙트보다 어두운 투시 격자</small></span></label>
+              <label class="switch-row"><input id="toggleAxes" type="checkbox" checked><span class="switch-copy"><strong>4D 축</strong><small>회전·투영된 X/Y/Z/W 기저축</small></span></label>
+              <label class="switch-row"><input id="toggleFormula" type="checkbox" checked><span class="switch-copy"><strong>실시간 수식</strong><small>선택점에 적용된 실제 투영값</small></span></label>
+            </div>
+
+            <div class="control-card">
+              <h2>방향별 모서리 강조</h2>
+              <div class="edge-grid">
+                <label class="edge-toggle" style="color:#55e6ff"><input type="checkbox" data-edge-axis="X" checked>X 방향</label>
+                <label class="edge-toggle" style="color:#ff6ec7"><input type="checkbox" data-edge-axis="Y" checked>Y 방향</label>
+                <label class="edge-toggle" style="color:#ffc45e"><input type="checkbox" data-edge-axis="Z" checked>Z 방향</label>
+                <label class="edge-toggle" style="color:#a7ff76"><input type="checkbox" data-edge-axis="W" checked>W 방향</label>
+              </div>
+              <p class="hint">강조를 끈 방향은 사라지지 않고 중성색으로 표시됩니다. W 모서리는 점선·굵기·연결 구조로도 구별됩니다.</p>
+            </div>
+
+            <details class="explain">
+              <summary>4차원을 어떻게 화면에 표시하는가?</summary>
+              <div class="explain-body">
+                인간의 화면은 2차원이므로 4차원을 그대로 볼 수는 없습니다. 이 페이지는 실제 <b>(x, y, z, w)</b> 좌표를 먼저 3차원으로 원근 투영하고, 그 결과를 다시 2차원 화면에 투영합니다.
+                <div class="equation">f₄ = d₄ / (d₄ − w)<br>(x₃,y₃,z₃) = (x,y,z) · f₄<br><br>f₃ = d₃ / (d₃ − z₃)<br>(sₓ,sᵧ) = center + (x₃,y₃) · f₃ · scale</div>
+                4차원에서는 XY뿐 아니라 XW, YW, ZW 같은 회전도 가능합니다. 특히 W가 섞이는 회전에서는 안쪽·바깥쪽 큐브가 서로 통과하거나 뒤집히는 듯 보입니다. 좌표 자체는 4차원이지만, 화면 위치는 두 번의 투영으로 얻은 결과입니다.
+              </div>
+            </details>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <script>
+  "use strict";
+
+  (function () {
+    var AXES = ["X", "Y", "Z", "W"];
+    var PLANES = ["XY", "XZ", "XW", "YZ", "YW", "ZW"];
+    var AXIS_INDEX = { X: 0, Y: 1, Z: 2, W: 3 };
+    var AXIS_COLORS = {
+      X: "#55e6ff",
+      Y: "#ff6ec7",
+      Z: "#ffc45e",
+      W: "#a7ff76"
+    };
+    var TAU = Math.PI * 2;
+
+    function clamp(value, min, max) {
+      return value < min ? min : value > max ? max : value;
+    }
+
+    function safeNumber(value, fallback) {
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    function formatNumber(value, digits) {
+      if (!Number.isFinite(value)) return "—";
+      var n = Math.abs(value) < Math.pow(10, -digits) * 0.5 ? 0 : value;
+      return n.toFixed(digits);
+    }
+
+    function formatTuple(values, digits) {
+      var parts = [];
+      for (var i = 0; i < values.length; i++) parts.push(formatNumber(values[i], digits));
+      return "(" + parts.join(", ") + ")";
+    }
+
+    function formatCompactTuple(values, digits) {
+      var parts = [];
+      for (var i = 0; i < values.length; i++) parts.push(formatNumber(values[i], digits));
+      return "(" + parts.join(",") + ")";
+    }
+
+    function rgbaFromHex(hex, alpha) {
+      var value = hex.charAt(0) === "#" ? hex.slice(1) : hex;
+      var r = parseInt(value.slice(0, 2), 16);
+      var g = parseInt(value.slice(2, 4), 16);
+      var b = parseInt(value.slice(4, 6), 16);
+      return "rgba(" + r + "," + g + "," + b + "," + clamp(alpha, 0, 1) + ")";
+    }
+
+    class Vector4 {
+      constructor(x, y, z, w) {
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
+        this.w = w || 0;
+      }
+
+      set(x, y, z, w) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+        return this;
+      }
+
+      copy(other) {
+        this.x = other.x;
+        this.y = other.y;
+        this.z = other.z;
+        this.w = other.w;
+        return this;
+      }
+
+      toArray(target) {
+        target = target || [];
+        target[0] = this.x;
+        target[1] = this.y;
+        target[2] = this.z;
+        target[3] = this.w;
+        return target;
+      }
+    }
+
+    class Rotation4D {
+      constructor() {
+        this.angles = {};
+        this.speeds = {};
+        this.enabled = {};
+        this.directions = {};
+        this.cosines = new Float64Array(6);
+        this.sines = new Float64Array(6);
+        this.prepared = false;
+        this.reset();
+      }
+
+      reset() {
+        var defaults = { XY: 0, XZ: 0, XW: 13, YZ: 0, YW: 8, ZW: 5 };
+        for (var i = 0; i < PLANES.length; i++) {
+          var plane = PLANES[i];
+          this.angles[plane] = 0;
+          this.speeds[plane] = defaults[plane];
+          this.enabled[plane] = plane === "XW" || plane === "YW" || plane === "ZW";
+          this.directions[plane] = plane === "YW" ? -1 : 1;
+        }
+        this.prepared = false;
+      }
+
+      step(dt) {
+        for (var i = 0; i < PLANES.length; i++) {
+          var plane = PLANES[i];
+          if (!this.enabled[plane]) continue;
+          var speedRad = this.speeds[plane] * Math.PI / 180;
+          this.angles[plane] = (this.angles[plane] + speedRad * this.directions[plane] * dt) % TAU;
+        }
+        this.prepared = false;
+      }
+
+      addAngle(plane, delta) {
+        if (!Object.prototype.hasOwnProperty.call(this.angles, plane)) return;
+        this.angles[plane] = (this.angles[plane] + delta) % TAU;
+        this.prepared = false;
+      }
+
+      prepare() {
+        for (var i = 0; i < PLANES.length; i++) {
+          this.cosines[i] = Math.cos(this.angles[PLANES[i]]);
+          this.sines[i] = Math.sin(this.angles[PLANES[i]]);
+        }
+        this.prepared = true;
+      }
+
+      rotateInto(source, target) {
+        if (!this.prepared) this.prepare();
+        var x = source.x;
+        var y = source.y;
+        var z = source.z;
+        var w = source.w;
+        var t;
+        var c = this.cosines[0], s = this.sines[0];
+        t = x; x = t * c - y * s; y = t * s + y * c;
+        c = this.cosines[1]; s = this.sines[1];
+        t = x; x = t * c - z * s; z = t * s + z * c;
+        c = this.cosines[2]; s = this.sines[2];
+        t = x; x = t * c - w * s; w = t * s + w * c;
+        c = this.cosines[3]; s = this.sines[3];
+        t = y; y = t * c - z * s; z = t * s + z * c;
+        c = this.cosines[4]; s = this.sines[4];
+        t = y; y = t * c - w * s; w = t * s + w * c;
+        c = this.cosines[5]; s = this.sines[5];
+        t = z; z = t * c - w * s; w = t * s + w * c;
+        target.set(x, y, z, w);
+        return target;
+      }
+    }
+
+    class Tesseract {
+      constructor() {
+        this.vertices = [];
+        this.edges = [];
+        this.sectionPoints = [];
+        this.sectionEdges = [];
+        this.sectionFaces = [];
+        this.buildVertices();
+        this.buildEdges();
+        this.buildSectionTopology();
+      }
+
+      createRenderPoint(id, original, type) {
+        return {
+          id: id,
+          type: type || "vertex",
+          original: original,
+          rotated: new Vector4(),
+          p3: { x: 0, y: 0, z: 0, factor4: 1 },
+          screen: { x: 0, y: 0, factor3: 1, depth: 0, distance: 0, valid: true },
+          hitRadius: 12,
+          visible: true
+        };
+      }
+
+      buildVertices() {
+        this.vertices.length = 0;
+        for (var i = 0; i < 16; i++) {
+          var x = (i & 1) ? 1 : -1;
+          var y = (i & 2) ? 1 : -1;
+          var z = (i & 4) ? 1 : -1;
+          var w = (i & 8) ? 1 : -1;
+          this.vertices.push(this.createRenderPoint("V" + i, new Vector4(x, y, z, w), "vertex"));
+        }
+      }
+
+      buildEdges() {
+        this.edges.length = 0;
+        for (var i = 0; i < 16; i++) {
+          for (var axis = 0; axis < 4; axis++) {
+            var other = i ^ (1 << axis);
+            if (i < other) {
+              this.edges.push({
+                a: i,
+                b: other,
+                axis: AXES[axis],
+                depth: 0
+              });
+            }
+          }
+        }
+      }
+
+      buildSectionTopology() {
+        this.sectionPoints.length = 0;
+        for (var i = 0; i < 8; i++) {
+          var x = (i & 1) ? 1 : -1;
+          var y = (i & 2) ? 1 : -1;
+          var z = (i & 4) ? 1 : -1;
+          this.sectionPoints.push(this.createRenderPoint("S" + i, new Vector4(x, y, z, 0), "section"));
+        }
+
+        this.sectionEdges.length = 0;
+        for (var j = 0; j < 8; j++) {
+          for (var axis = 0; axis < 3; axis++) {
+            var other = j ^ (1 << axis);
+            if (j < other) this.sectionEdges.push({ a: j, b: other, axis: AXES[axis], depth: 0 });
+          }
+        }
+
+        this.sectionFaces.length = 0;
+        for (var fixedAxis = 0; fixedAxis < 3; fixedAxis++) {
+          var varying = [];
+          for (var va = 0; va < 3; va++) if (va !== fixedAxis) varying.push(va);
+          for (var bit = 0; bit <= 1; bit++) {
+            var indices = [];
+            var order = [[0, 0], [1, 0], [1, 1], [0, 1]];
+            for (var k = 0; k < order.length; k++) {
+              var idx = bit << fixedAxis;
+              idx |= order[k][0] << varying[0];
+              idx |= order[k][1] << varying[1];
+              indices.push(idx);
+            }
+            this.sectionFaces.push({ indices: indices, depth: 0 });
+          }
+        }
+      }
+
+      updateSection(w) {
+        var inside = w >= -1.000001 && w <= 1.000001;
+        for (var i = 0; i < this.sectionPoints.length; i++) {
+          this.sectionPoints[i].original.w = w;
+          this.sectionPoints[i].visible = inside;
+        }
+        return inside;
+      }
+
+      validate() {
+        if (this.vertices.length !== 16) return false;
+        if (this.edges.length !== 32) return false;
+        for (var i = 0; i < this.edges.length; i++) {
+          var edge = this.edges[i];
+          var a = this.vertices[edge.a].original;
+          var b = this.vertices[edge.b].original;
+          var differences = 0;
+          if (a.x !== b.x) differences++;
+          if (a.y !== b.y) differences++;
+          if (a.z !== b.z) differences++;
+          if (a.w !== b.w) differences++;
+          if (differences !== 1) return false;
+        }
+        return true;
+      }
+    }
+
+    class Projector4Dto3D {
+      constructor(distance) {
+        this.distance = distance || 4.5;
+        this.minimumDenominator = 0.22;
+        this.maximumFactor = 6;
+      }
+
+      safeDenominator(value) {
+        if (!Number.isFinite(value)) return this.minimumDenominator;
+        if (Math.abs(value) < this.minimumDenominator) {
+          return value < 0 ? -this.minimumDenominator : this.minimumDenominator;
+        }
+        return value;
+      }
+
+      project(point4, target) {
+        var denominator = this.safeDenominator(this.distance - point4.w);
+        var rawFactor = this.distance / denominator;
+        var factor = clamp(rawFactor, -this.maximumFactor, this.maximumFactor);
+        factor = safeNumber(factor, 1);
+        target.x = safeNumber(point4.x * factor, 0);
+        target.y = safeNumber(point4.y * factor, 0);
+        target.z = safeNumber(point4.z * factor, 0);
+        target.factor4 = factor;
+        target.factor4Raw = safeNumber(rawFactor, factor);
+        target.denominator4 = denominator;
+        return target;
+      }
+    }
+
+    class Camera3D {
+      constructor(distance) {
+        this.distance = distance || 6.5;
+        this.minimumDenominator = 0.22;
+        this.maximumFactor = 8;
+        this.referencePoint = { x: 0, y: 0, z: 0 };
+      }
+
+      project(point3, target, viewport, view) {
+        var rawDepth = this.distance - point3.z;
+        var denominator = rawDepth;
+        if (!Number.isFinite(denominator)) denominator = this.minimumDenominator;
+        if (Math.abs(denominator) < this.minimumDenominator) {
+          denominator = denominator < 0 ? -this.minimumDenominator : this.minimumDenominator;
+        }
+        var rawFactor = this.distance / denominator;
+        var factor = clamp(rawFactor, -this.maximumFactor, this.maximumFactor);
+        factor = safeNumber(factor, 1);
+        var baseScale = Math.min(viewport.width, viewport.height) * 0.145;
+        var scale = baseScale * view.zoom;
+        var cx = viewport.width * 0.5 + view.panX;
+        var cy = viewport.height * 0.5 + view.panY;
+        target.x = safeNumber(cx + point3.x * factor * scale, cx);
+        target.y = safeNumber(cy - point3.y * factor * scale, cy);
+        target.factor3 = factor;
+        target.factor3Raw = safeNumber(rawFactor, factor);
+        target.denominator3 = denominator;
+        target.depth = safeNumber(rawDepth, 0);
+        target.distance = safeNumber(Math.hypot(point3.x, point3.y, rawDepth), 0);
+        target.valid = Number.isFinite(target.x) && Number.isFinite(target.y);
+        return target;
+      }
+
+      projectReference(x, y, z, target, viewport, view) {
+        this.referencePoint.x = x;
+        this.referencePoint.y = y;
+        this.referencePoint.z = z;
+        return this.project(this.referencePoint, target, viewport, view);
+      }
+    }
+
+    class Renderer {
+      constructor(canvas, tesseract, rotation, projector4D, camera3D, state) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+        this.tesseract = tesseract;
+        this.rotation = rotation;
+        this.projector4D = projector4D;
+        this.camera3D = camera3D;
+        this.state = state;
+        this.viewport = { width: 1, height: 1, dpr: 1 };
+        this.backgroundGradient = null;
+        this.edgeOrder = tesseract.edges.slice();
+        this.sectionEdgeOrder = tesseract.sectionEdges.slice();
+        this.sectionFaceOrder = tesseract.sectionFaces.slice();
+        this.vertexOrder = tesseract.vertices.slice();
+        this.sectionPointOrder = tesseract.sectionPoints.slice();
+        this.referenceScratchA = { x: 0, y: 0, factor3: 1, depth: 0, distance: 0, valid: true };
+        this.referenceScratchB = { x: 0, y: 0, factor3: 1, depth: 0, distance: 0, valid: true };
+        this.labelBoxes = [];
+        this.axisOrigin = this.makeTransientPoint("O", new Vector4(0, 0, 0, 0));
+        this.axisPoints = [];
+        this.axisNegativePoints = [];
+        for (var i = 0; i < 4; i++) {
+          var p = new Vector4(0, 0, 0, 0);
+          var n = new Vector4(0, 0, 0, 0);
+          if (i === 0) { p.x = 1.55; n.x = -1.25; }
+          if (i === 1) { p.y = 1.55; n.y = -1.25; }
+          if (i === 2) { p.z = 1.55; n.z = -1.25; }
+          if (i === 3) { p.w = 1.55; n.w = -1.25; }
+          this.axisPoints.push(this.makeTransientPoint(AXES[i], p));
+          this.axisNegativePoints.push(this.makeTransientPoint("-" + AXES[i], n));
+        }
+        this.resize();
+      }
+
+      makeTransientPoint(id, original) {
+        return {
+          id: id,
+          type: "axis",
+          original: original,
+          rotated: new Vector4(),
+          p3: { x: 0, y: 0, z: 0, factor4: 1 },
+          screen: { x: 0, y: 0, factor3: 1, depth: 0, distance: 0, valid: true },
+          visible: true
+        };
+      }
+
+      resize() {
+        var rect = this.canvas.getBoundingClientRect();
+        var width = Math.max(1, Math.round(rect.width));
+        var height = Math.max(1, Math.round(rect.height));
+        var dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+        this.viewport.width = width;
+        this.viewport.height = height;
+        this.viewport.dpr = dpr;
+        var pixelWidth = Math.round(width * dpr);
+        var pixelHeight = Math.round(height * dpr);
+        if (this.canvas.width !== pixelWidth || this.canvas.height !== pixelHeight) {
+          this.canvas.width = pixelWidth;
+          this.canvas.height = pixelHeight;
+        }
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.backgroundGradient = this.ctx.createRadialGradient(
+          width * 0.5, height * 0.42, 10,
+          width * 0.5, height * 0.42, Math.max(width, height) * 0.72
+        );
+        this.backgroundGradient.addColorStop(0, "#0a1930");
+        this.backgroundGradient.addColorStop(0.55, "#050c1a");
+        this.backgroundGradient.addColorStop(1, "#02050c");
+      }
+
+      transformPoint(point) {
+        this.rotation.rotateInto(point.original, point.rotated);
+        this.projector4D.project(point.rotated, point.p3);
+        this.camera3D.project(point.p3, point.screen, this.viewport, this.state.view);
+        return point;
+      }
+
+      transformAll() {
+        this.rotation.prepare();
+        var vertices = this.tesseract.vertices;
+        for (var i = 0; i < vertices.length; i++) this.transformPoint(vertices[i]);
+        this.transformPoint(this.axisOrigin);
+        for (var a = 0; a < 4; a++) {
+          this.transformPoint(this.axisPoints[a]);
+          this.transformPoint(this.axisNegativePoints[a]);
+        }
+        if (this.state.mode === "slice") {
+          this.tesseract.updateSection(this.state.sliceW);
+          for (var s = 0; s < this.tesseract.sectionPoints.length; s++) {
+            this.transformPoint(this.tesseract.sectionPoints[s]);
+          }
+        }
+      }
+
+      drawBackground() {
+        var ctx = this.ctx;
+        ctx.save();
+        ctx.fillStyle = this.backgroundGradient || "#050914";
+        ctx.fillRect(0, 0, this.viewport.width, this.viewport.height);
+        ctx.globalAlpha = 0.06;
+        ctx.strokeStyle = "#6bb7e8";
+        ctx.lineWidth = 1;
+        var spacing = 48;
+        var offsetX = ((this.state.view.panX % spacing) + spacing) % spacing;
+        var offsetY = ((this.state.view.panY % spacing) + spacing) % spacing;
+        for (var x = offsetX; x < this.viewport.width; x += spacing) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, this.viewport.height);
+          ctx.stroke();
+        }
+        for (var y = offsetY; y < this.viewport.height; y += spacing) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(this.viewport.width, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      drawReferenceGrid() {
+        if (!this.state.effects.grid) return;
+        var ctx = this.ctx;
+        var camera = this.camera3D;
+        var view = this.state.view;
+        var viewport = this.viewport;
+        ctx.save();
+        ctx.lineWidth = 0.7;
+        for (var i = -4; i <= 4; i++) {
+          var major = i === 0;
+          ctx.strokeStyle = major ? "rgba(115,181,222,0.14)" : "rgba(115,181,222,0.055)";
+          var p1 = camera.projectReference(i * 0.72, -2.05, -2.8, this.referenceScratchA, viewport, view);
+          var p2 = camera.projectReference(i * 0.72, -2.05, 2.4, this.referenceScratchB, viewport, view);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+        for (var z = -4; z <= 4; z++) {
+          var q1 = camera.projectReference(-3.0, -2.05, z * 0.65, this.referenceScratchA, viewport, view);
+          var q2 = camera.projectReference(3.0, -2.05, z * 0.65, this.referenceScratchB, viewport, view);
+          ctx.strokeStyle = z === 0 ? "rgba(115,181,222,0.14)" : "rgba(115,181,222,0.055)";
+          ctx.beginPath();
+          ctx.moveTo(q1.x, q1.y);
+          ctx.lineTo(q2.x, q2.y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      depthStyle(depth) {
+        if (!this.state.effects.depth) return { alpha: 0.82, width: 1.35 };
+        var normalized = clamp(1 - (depth - 3.0) / 8.5, 0, 1);
+        return {
+          alpha: 0.24 + normalized * 0.72,
+          width: 0.75 + normalized * 1.45
+        };
+      }
+
+      drawAxes() {
+        if (!this.state.effects.axes) return;
+        var ctx = this.ctx;
+        var origin = this.axisOrigin.screen;
+        ctx.save();
+        ctx.font = "700 10px ui-monospace, monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (var i = 0; i < 4; i++) {
+          var axis = AXES[i];
+          var positive = this.axisPoints[i].screen;
+          var negative = this.axisNegativePoints[i].screen;
+          if (!positive.valid || !negative.valid) continue;
+          ctx.strokeStyle = rgbaFromHex(AXIS_COLORS[axis], axis === "W" ? 0.5 : 0.34);
+          ctx.lineWidth = axis === "W" ? 1.4 : 1;
+          ctx.setLineDash(axis === "W" ? [4, 4] : []);
+          ctx.beginPath();
+          ctx.moveTo(negative.x, negative.y);
+          ctx.lineTo(origin.x, origin.y);
+          ctx.lineTo(positive.x, positive.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = rgbaFromHex(AXIS_COLORS[axis], 0.9);
+          ctx.beginPath();
+          ctx.arc(positive.x, positive.y, axis === "W" ? 4.5 : 3.4, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = "#eaf9ff";
+          ctx.fillText(axis, positive.x + 10, positive.y - 8);
+        }
+        ctx.fillStyle = "rgba(215,239,255,0.6)";
+        ctx.beginPath();
+        ctx.arc(origin.x, origin.y, 2.2, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      drawMainEdges() {
+        var ctx = this.ctx;
+        var vertices = this.tesseract.vertices;
+        var sliceMode = this.state.mode === "slice";
+        var sliceW = this.state.sliceW;
+        for (var i = 0; i < this.edgeOrder.length; i++) {
+          var edge = this.edgeOrder[i];
+          edge.depth = (vertices[edge.a].screen.depth + vertices[edge.b].screen.depth) * 0.5;
+        }
+        this.edgeOrder.sort(function (a, b) { return b.depth - a.depth; });
+
+        ctx.save();
+        ctx.lineCap = "round";
+        for (var e = 0; e < this.edgeOrder.length; e++) {
+          var item = this.edgeOrder[e];
+          var a = vertices[item.a];
+          var b = vertices[item.b];
+          if (!a.screen.valid || !b.screen.valid) continue;
+          var style = this.depthStyle(item.depth);
+          var accented = this.state.edgeAccent[item.axis];
+          var color = accented ? AXIS_COLORS[item.axis] : "#8499ab";
+          var alpha = style.alpha;
+          var width = style.width;
+          if (sliceMode) {
+            alpha *= item.axis === "W" && Math.abs(sliceW) <= 1 ? 0.42 : 0.18;
+            width *= item.axis === "W" ? 1.2 : 0.78;
+          }
+          if (item.axis === "W") width += 0.7;
+          ctx.strokeStyle = rgbaFromHex(color, alpha);
+          ctx.lineWidth = width;
+          ctx.setLineDash(item.axis === "W" ? [6, 4] : []);
+          if (this.state.effects.glow && alpha > 0.35) {
+            ctx.shadowColor = rgbaFromHex(color, 0.6);
+            ctx.shadowBlur = item.axis === "W" ? 7 : 4;
+          } else {
+            ctx.shadowBlur = 0;
+          }
+          ctx.beginPath();
+          ctx.moveTo(a.screen.x, a.screen.y);
+          ctx.lineTo(b.screen.x, b.screen.y);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      drawSection() {
+        if (this.state.mode !== "slice") return;
+        if (Math.abs(this.state.sliceW) > 1.000001) {
+          var ctx = this.ctx;
+          ctx.save();
+          ctx.fillStyle = "rgba(219,236,248,0.72)";
+          ctx.font = "700 12px ui-monospace, monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("교차 없음 · |w| > 1", this.viewport.width * 0.5, this.viewport.height * 0.68);
+          ctx.restore();
+          return;
+        }
+
+        var points = this.tesseract.sectionPoints;
+        var ctx2 = this.ctx;
+        for (var f = 0; f < this.sectionFaceOrder.length; f++) {
+          var face = this.sectionFaceOrder[f];
+          var totalDepth = 0;
+          for (var fi = 0; fi < face.indices.length; fi++) totalDepth += points[face.indices[fi]].screen.depth;
+          face.depth = totalDepth / face.indices.length;
+        }
+        this.sectionFaceOrder.sort(function (a, b) { return b.depth - a.depth; });
+
+        ctx2.save();
+        for (var faceIndex = 0; faceIndex < this.sectionFaceOrder.length; faceIndex++) {
+          var currentFace = this.sectionFaceOrder[faceIndex];
+          ctx2.beginPath();
+          for (var p = 0; p < currentFace.indices.length; p++) {
+            var screen = points[currentFace.indices[p]].screen;
+            if (p === 0) ctx2.moveTo(screen.x, screen.y);
+            else ctx2.lineTo(screen.x, screen.y);
+          }
+          ctx2.closePath();
+          ctx2.fillStyle = faceIndex % 2 === 0 ? "rgba(85,230,255,0.035)" : "rgba(167,255,118,0.028)";
+          ctx2.fill();
+        }
+        ctx2.restore();
+
+        for (var i = 0; i < this.sectionEdgeOrder.length; i++) {
+          var edge = this.sectionEdgeOrder[i];
+          edge.depth = (points[edge.a].screen.depth + points[edge.b].screen.depth) * 0.5;
+        }
+        this.sectionEdgeOrder.sort(function (a, b) { return b.depth - a.depth; });
+
+        ctx2.save();
+        ctx2.lineCap = "round";
+        for (var e = 0; e < this.sectionEdgeOrder.length; e++) {
+          var item = this.sectionEdgeOrder[e];
+          var a = points[item.a].screen;
+          var b = points[item.b].screen;
+          var style = this.depthStyle(item.depth);
+          var color = this.state.edgeAccent[item.axis] ? AXIS_COLORS[item.axis] : "#e8f7ff";
+          ctx2.strokeStyle = rgbaFromHex(color, 0.72 + style.alpha * 0.22);
+          ctx2.lineWidth = 1.6 + style.width * 0.65;
+          if (this.state.effects.glow) {
+            ctx2.shadowColor = rgbaFromHex(color, 0.65);
+            ctx2.shadowBlur = 7;
+          }
+          ctx2.beginPath();
+          ctx2.moveTo(a.x, a.y);
+          ctx2.lineTo(b.x, b.y);
+          ctx2.stroke();
+        }
+        ctx2.restore();
+      }
+
+      wColor(w) {
+        var t = clamp((w + 2) / 4, 0, 1);
+        var stops = [
+          [89, 111, 255],
+          [85, 230, 255],
+          [255, 241, 166],
+          [255, 110, 199]
+        ];
+        var scaled = t * (stops.length - 1);
+        var index = Math.min(stops.length - 2, Math.floor(scaled));
+        var local = scaled - index;
+        var a = stops[index];
+        var b = stops[index + 1];
+        var r = Math.round(a[0] + (b[0] - a[0]) * local);
+        var g = Math.round(a[1] + (b[1] - a[1]) * local);
+        var blue = Math.round(a[2] + (b[2] - a[2]) * local);
+        return "rgb(" + r + "," + g + "," + blue + ")";
+      }
+
+      drawPoint(point, dimmed, now) {
+        if (!point.visible || !point.screen.valid) return;
+        var ctx = this.ctx;
+        var wNorm = clamp((point.rotated.w + 2) / 4, 0, 1);
+        var depth = this.depthStyle(point.screen.depth);
+        var radius = (point.type === "section" ? 4.8 : 4.1) + wNorm * 2.8;
+        radius *= clamp(Math.abs(point.screen.factor3), 0.72, 1.55);
+        if (dimmed) radius *= 0.78;
+        point.hitRadius = Math.max(15, radius + 10);
+        var selected = this.state.selected === point;
+        var color = point.type === "section" ? "#ecfff0" : this.wColor(point.rotated.w);
+        var alpha = dimmed ? 0.22 : 0.68 + depth.alpha * 0.28;
+
+        ctx.save();
+        if (selected) {
+          var pulse = this.state.reducedMotion ? 0 : (Math.sin(now * 0.006) + 1) * 0.5;
+          var ringRadius = radius + 6 + pulse * 3;
+          ctx.strokeStyle = rgbaFromHex("#ffffff", 0.92 - pulse * 0.18);
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.arc(point.screen.x, point.screen.y, ringRadius, 0, TAU);
+          ctx.stroke();
+          if (this.state.effects.glow) {
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 16;
+          }
+          radius += 2.5;
+        } else if (this.state.effects.glow && !dimmed) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 7;
+        }
+
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        if (point.type === "section") {
+          ctx.rect(point.screen.x - radius, point.screen.y - radius, radius * 2, radius * 2);
+        } else {
+          ctx.arc(point.screen.x, point.screen.y, radius, 0, TAU);
+        }
+        ctx.fill();
+        ctx.globalAlpha = dimmed ? 0.35 : 0.92;
+        ctx.strokeStyle = selected ? "#ffffff" : "rgba(226,247,255,0.78)";
+        ctx.lineWidth = selected ? 2.1 : 0.9;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      drawPoints(now) {
+        var vertices = this.vertexOrder;
+        vertices.sort(function (a, b) { return b.screen.depth - a.screen.depth; });
+        var sliceMode = this.state.mode === "slice";
+        for (var i = 0; i < vertices.length; i++) {
+          var nearSlice = Math.abs(vertices[i].original.w - this.state.sliceW) < 0.16;
+          this.drawPoint(vertices[i], sliceMode && !nearSlice && this.state.selected !== vertices[i], now);
+        }
+        if (sliceMode && Math.abs(this.state.sliceW) <= 1.000001) {
+          var section = this.sectionPointOrder;
+          section.sort(function (a, b) { return b.screen.depth - a.screen.depth; });
+          for (var s = 0; s < section.length; s++) this.drawPoint(section[s], false, now);
+        }
+      }
+
+      labelText(point) {
+        if (this.state.labelMode === "ids") return point.id;
+        if (this.state.labelMode === "coords") {
+          return point.id + formatCompactTuple([point.rotated.x, point.rotated.y, point.rotated.z, point.rotated.w], 2);
+        }
+        return point.id + "  w=" + formatNumber(point.rotated.w, 2);
+      }
+
+      boxesOverlap(a, b) {
+        return !(a.x + a.w + 2 < b.x || b.x + b.w + 2 < a.x || a.y + a.h + 2 < b.y || b.y + b.h + 2 < a.y);
+      }
+
+      placeLabel(point, text, placed) {
+        var ctx = this.ctx;
+        var width = Math.ceil(ctx.measureText(text).width) + 10;
+        var height = 18;
+        var x = point.screen.x;
+        var y = point.screen.y;
+        var candidates = [
+          [10, -24], [10, 9], [-width - 10, -24], [-width - 10, 9],
+          [-width * 0.5, -34], [-width * 0.5, 15],
+          [20, -7], [-width - 20, -7]
+        ];
+        var best = null;
+        var bestScore = Infinity;
+        for (var i = 0; i < candidates.length; i++) {
+          var box = { x: x + candidates[i][0], y: y + candidates[i][1], w: width, h: height };
+          var out = 0;
+          if (box.x < 4) out += (4 - box.x) * 5;
+          if (box.y < 4) out += (4 - box.y) * 5;
+          if (box.x + box.w > this.viewport.width - 4) out += (box.x + box.w - this.viewport.width + 4) * 5;
+          if (box.y + box.h > this.viewport.height - 4) out += (box.y + box.h - this.viewport.height + 4) * 5;
+          var overlap = 0;
+          for (var j = 0; j < placed.length; j++) {
+            if (this.boxesOverlap(box, placed[j])) overlap += 1000;
+          }
+          var score = out + overlap + i * 2;
+          if (score < bestScore) {
+            bestScore = score;
+            best = box;
+          }
+        }
+        best.x = clamp(best.x, 4, Math.max(4, this.viewport.width - best.w - 4));
+        best.y = clamp(best.y, 4, Math.max(4, this.viewport.height - best.h - 4));
+        best.point = point;
+        best.text = text;
+        placed.push(best);
+        return best;
+      }
+
+      drawCoordinateRailLabels() {
+        var ctx = this.ctx;
+        var ordered = this.tesseract.vertices.slice();
+        ordered.sort(function (a, b) { return a.screen.x - b.screen.x; });
+        var sides = [ordered.slice(0, 8), ordered.slice(8)];
+        var canvasRect = this.canvas.getBoundingClientRect();
+        var infoElement = document.getElementById("infoPanel");
+        var infoRect = infoElement && infoElement.offsetParent !== null ? infoElement.getBoundingClientRect() : null;
+        ctx.save();
+        ctx.font = "8.5px ui-monospace, monospace";
+        ctx.textBaseline = "middle";
+        var preliminaryWidths = [0, 0];
+        for (var widthSide = 0; widthSide < 2; widthSide++) {
+          for (var widthIndex = 0; widthIndex < sides[widthSide].length; widthIndex++) {
+            preliminaryWidths[widthSide] = Math.max(
+              preliminaryWidths[widthSide],
+              Math.ceil(ctx.measureText(this.labelText(sides[widthSide][widthIndex])).width) + 8
+            );
+          }
+        }
+        if (preliminaryWidths[0] + preliminaryWidths[1] + 12 > this.viewport.width) {
+          var fittedSize = clamp(8.5 * (this.viewport.width - 12) / (preliminaryWidths[0] + preliminaryWidths[1]), 7.5, 8.5);
+          ctx.font = fittedSize.toFixed(2) + "px ui-monospace, monospace";
+        }
+        for (var sideIndex = 0; sideIndex < 2; sideIndex++) {
+          var side = sides[sideIndex];
+          side.sort(function (a, b) { return a.screen.y - b.screen.y; });
+          var top = 12;
+          var bottom = Math.max(top, this.viewport.height - 12);
+          var maximumWidth = 0;
+          for (var measureIndex = 0; measureIndex < side.length; measureIndex++) {
+            maximumWidth = Math.max(maximumWidth, Math.ceil(ctx.measureText(this.labelText(side[measureIndex])).width) + 8);
+          }
+          var railLeft = sideIndex === 0 ? 4 : this.viewport.width - maximumWidth - 4;
+          var railRight = railLeft + maximumWidth;
+          if (infoRect) {
+            var infoLeft = infoRect.left - canvasRect.left;
+            var infoRight = infoRect.right - canvasRect.left;
+            if (infoRight > railLeft && infoLeft < railRight) {
+              top = Math.max(top, infoRect.bottom - canvasRect.top + 7);
+            }
+          }
+          var spacing = side.length > 1 ? (bottom - top) / (side.length - 1) : 0;
+          for (var i = 0; i < side.length; i++) {
+            var point = side[i];
+            var text = this.labelText(point);
+            var width = Math.ceil(ctx.measureText(text).width) + 8;
+            var height = 16;
+            var x = sideIndex === 0 ? 4 : this.viewport.width - width - 4;
+            var centerY = top + spacing * i;
+            var y = clamp(centerY - height * 0.5, 3, this.viewport.height - height - 3);
+            var targetX = sideIndex === 0 ? x + width : x;
+            ctx.strokeStyle = point === this.state.selected ? "rgba(255,255,255,0.58)" : "rgba(130,181,213,0.2)";
+            ctx.lineWidth = 0.65;
+            ctx.beginPath();
+            ctx.moveTo(point.screen.x, point.screen.y);
+            ctx.lineTo(targetX, y + height * 0.5);
+            ctx.stroke();
+            ctx.fillStyle = point === this.state.selected ? "rgba(10,29,45,0.96)" : "rgba(3,10,21,0.84)";
+            ctx.strokeStyle = point === this.state.selected ? "rgba(85,230,255,0.78)" : "rgba(121,172,207,0.25)";
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, y, width, height, 3);
+            else ctx.rect(x, y, width, height);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = point === this.state.selected ? "#effdff" : "#b8cfdf";
+            ctx.fillText(text, x + 4, y + height * 0.52);
+          }
+        }
+        ctx.restore();
+      }
+
+      drawLabels() {
+        if (this.state.labelMode === "hidden") return;
+        if (this.state.labelMode === "coords") {
+          this.drawCoordinateRailLabels();
+          return;
+        }
+        var candidates = [];
+        if (this.state.labelMode === "selected") {
+          if (this.state.selected && this.state.selected.visible) candidates.push(this.state.selected);
+        } else {
+          for (var i = 0; i < this.tesseract.vertices.length; i++) candidates.push(this.tesseract.vertices[i]);
+          if (this.state.mode === "slice" && Math.abs(this.state.sliceW) <= 1) {
+            for (var s = 0; s < this.tesseract.sectionPoints.length; s++) candidates.push(this.tesseract.sectionPoints[s]);
+          }
+        }
+        candidates.sort((function (selected) {
+          return function (a, b) {
+            if (a === selected) return -1;
+            if (b === selected) return 1;
+            return a.screen.y - b.screen.y;
+          };
+        })(this.state.selected));
+
+        var ctx = this.ctx;
+        ctx.save();
+        ctx.font = "700 10px ui-monospace, monospace";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        var placed = this.labelBoxes;
+        placed.length = 0;
+        for (var c = 0; c < candidates.length; c++) {
+          var point = candidates[c];
+          if (!point.screen.valid || !point.visible) continue;
+          var text = this.labelText(point);
+          var box = this.placeLabel(point, text, placed);
+          var lineTargetX = clamp(point.screen.x, box.x, box.x + box.w);
+          var lineTargetY = clamp(point.screen.y, box.y, box.y + box.h);
+          ctx.strokeStyle = point === this.state.selected ? "rgba(255,255,255,0.65)" : "rgba(150,196,224,0.26)";
+          ctx.lineWidth = 0.7;
+          ctx.beginPath();
+          ctx.moveTo(point.screen.x, point.screen.y);
+          ctx.lineTo(lineTargetX, lineTargetY);
+          ctx.stroke();
+          ctx.fillStyle = point === this.state.selected ? "rgba(10,29,45,0.95)" : "rgba(3,11,23,0.86)";
+          ctx.strokeStyle = point === this.state.selected ? "rgba(85,230,255,0.78)" : "rgba(121,172,207,0.3)";
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(box.x, box.y, box.w, box.h, 4);
+          else ctx.rect(box.x, box.y, box.w, box.h);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = point === this.state.selected ? "#effdff" : "#bcd4e5";
+          ctx.fillText(text, box.x + 5, box.y + box.h * 0.52);
+        }
+        ctx.restore();
+      }
+
+      render(now) {
+        this.transformAll();
+        this.drawBackground();
+        this.drawReferenceGrid();
+        this.drawAxes();
+        this.drawMainEdges();
+        this.drawSection();
+        this.drawPoints(now);
+        this.drawLabels();
+      }
+
+      getSelectablePoints() {
+        if (this.state.mode === "slice" && Math.abs(this.state.sliceW) <= 1.000001) {
+          return this.tesseract.sectionPoints.concat(this.tesseract.vertices);
+        }
+        return this.tesseract.vertices;
+      }
+
+      hitTest(x, y, pointerType) {
+        var points = this.getSelectablePoints();
+        var thresholdBoost = pointerType === "touch" ? 10 : 4;
+        var best = null;
+        var bestDistance = Infinity;
+        for (var i = 0; i < points.length; i++) {
+          var point = points[i];
+          if (!point.visible || !point.screen.valid) continue;
+          var distance = Math.hypot(point.screen.x - x, point.screen.y - y);
+          var radius = point.hitRadius + thresholdBoost;
+          if (distance <= radius && distance < bestDistance) {
+            best = point;
+            bestDistance = distance;
+          }
+        }
+        return best;
+      }
+    }
+
+    class InputController {
+      constructor(canvas, app) {
+        this.canvas = canvas;
+        this.app = app;
+        this.pointers = new Map();
+        this.primary = null;
+        this.dragging = false;
+        this.multiStart = null;
+        this.lastEmptyTapTime = 0;
+        this.lastEmptyTapX = 0;
+        this.lastEmptyTapY = 0;
+        this.bind();
+      }
+
+      localPosition(event) {
+        var rect = this.canvas.getBoundingClientRect();
+        return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      }
+
+      bind() {
+        this.canvas.addEventListener("pointerdown", this.onPointerDown.bind(this));
+        this.canvas.addEventListener("pointermove", this.onPointerMove.bind(this));
+        this.canvas.addEventListener("pointerup", this.onPointerUp.bind(this));
+        this.canvas.addEventListener("pointercancel", this.onPointerCancel.bind(this));
+        this.canvas.addEventListener("lostpointercapture", this.onPointerCancel.bind(this));
+        this.canvas.addEventListener("wheel", this.onWheel.bind(this), { passive: false });
+        this.canvas.addEventListener("dblclick", this.onDoubleClick.bind(this));
+        this.canvas.addEventListener("keydown", this.onKeyDown.bind(this));
+      }
+
+      onPointerDown(event) {
+        event.preventDefault();
+        this.canvas.setPointerCapture(event.pointerId);
+        var pos = this.localPosition(event);
+        var hit = this.app.renderer.hitTest(pos.x, pos.y, event.pointerType);
+        this.pointers.set(event.pointerId, {
+          id: event.pointerId,
+          x: pos.x,
+          y: pos.y,
+          startX: pos.x,
+          startY: pos.y,
+          lastX: pos.x,
+          lastY: pos.y,
+          pointerType: event.pointerType,
+          hit: hit,
+          moved: false,
+          suppressTap: false,
+          startTime: performance.now()
+        });
+        if (this.pointers.size === 1) {
+          this.primary = this.pointers.get(event.pointerId);
+          this.dragging = true;
+          this.canvas.classList.add("dragging");
+        } else if (this.pointers.size === 2) {
+          this.beginMultiGesture();
+        }
+      }
+
+      beginMultiGesture() {
+        var list = Array.from(this.pointers.values());
+        for (var i = 0; i < list.length; i++) {
+          list[i].moved = true;
+          list[i].suppressTap = true;
+        }
+        var a = list[0];
+        var b = list[1];
+        var dx = b.x - a.x;
+        var dy = b.y - a.y;
+        this.multiStart = {
+          distance: Math.max(20, Math.hypot(dx, dy)),
+          midX: (a.x + b.x) * 0.5,
+          midY: (a.y + b.y) * 0.5,
+          zoom: this.app.state.view.zoom,
+          panX: this.app.state.view.panX,
+          panY: this.app.state.view.panY
+        };
+      }
+
+      onPointerMove(event) {
+        var pointer = this.pointers.get(event.pointerId);
+        if (!pointer) return;
+        event.preventDefault();
+        var pos = this.localPosition(event);
+        var dx = pos.x - pointer.lastX;
+        var dy = pos.y - pointer.lastY;
+        pointer.x = pos.x;
+        pointer.y = pos.y;
+        if (Math.hypot(pos.x - pointer.startX, pos.y - pointer.startY) > 7) pointer.moved = true;
+
+        if (this.pointers.size >= 2) {
+          var list = Array.from(this.pointers.values());
+          var a = list[0];
+          var b = list[1];
+          var distance = Math.max(20, Math.hypot(b.x - a.x, b.y - a.y));
+          var midX = (a.x + b.x) * 0.5;
+          var midY = (a.y + b.y) * 0.5;
+          if (!this.multiStart) this.beginMultiGesture();
+          var start = this.multiStart;
+          this.app.setZoom(start.zoom * distance / start.distance);
+          this.app.state.view.panX = start.panX + (midX - start.midX);
+          this.app.state.view.panY = start.panY + (midY - start.midY);
+        } else if (this.dragging && pointer.moved && !pointer.suppressTap) {
+          var sensitivity = event.pointerType === "mouse" ? 0.009 : 0.008;
+          var delta = (dx - dy * 0.55) * sensitivity;
+          this.app.rotation.addAngle(this.app.state.manualPlane, delta);
+          this.app.requestUIUpdate();
+        }
+        pointer.lastX = pos.x;
+        pointer.lastY = pos.y;
+      }
+
+      onPointerUp(event) {
+        var pointer = this.pointers.get(event.pointerId);
+        if (!pointer) return;
+        event.preventDefault();
+        var duration = performance.now() - pointer.startTime;
+        if (!pointer.moved && !pointer.suppressTap && duration < 420 && this.pointers.size === 1) {
+          if (pointer.hit) {
+            this.app.selectPoint(pointer.hit);
+          } else {
+            var now = performance.now();
+            var close = Math.hypot(pointer.startX - this.lastEmptyTapX, pointer.startY - this.lastEmptyTapY) < 36;
+            if (now - this.lastEmptyTapTime < 330 && close) {
+              this.app.resetView();
+              this.lastEmptyTapTime = 0;
+            } else {
+              this.lastEmptyTapTime = now;
+              this.lastEmptyTapX = pointer.startX;
+              this.lastEmptyTapY = pointer.startY;
+            }
+          }
+        }
+        this.pointers.delete(event.pointerId);
+        if (this.pointers.size < 2) this.multiStart = null;
+        if (this.pointers.size === 0) {
+          this.dragging = false;
+          this.primary = null;
+          this.canvas.classList.remove("dragging");
+        } else {
+          this.primary = Array.from(this.pointers.values())[0];
+        }
+      }
+
+      onPointerCancel(event) {
+        var pointer = this.pointers.get(event.pointerId);
+        if (!pointer) return;
+        pointer.moved = true;
+        pointer.suppressTap = true;
+        this.onPointerUp(event);
+      }
+
+      onWheel(event) {
+        event.preventDefault();
+        var factor = Math.exp(-event.deltaY * 0.0012);
+        this.app.setZoom(this.app.state.view.zoom * factor);
+      }
+
+      onDoubleClick(event) {
+        event.preventDefault();
+        this.app.resetView();
+      }
+
+      onKeyDown(event) {
+        var handled = true;
+        if (event.key === "ArrowLeft") this.app.rotation.addAngle(this.app.state.manualPlane, -0.08);
+        else if (event.key === "ArrowRight") this.app.rotation.addAngle(this.app.state.manualPlane, 0.08);
+        else if (event.key === "ArrowUp" || event.key === "+") this.app.setZoom(this.app.state.view.zoom * 1.08);
+        else if (event.key === "ArrowDown" || event.key === "-") this.app.setZoom(this.app.state.view.zoom / 1.08);
+        else if (event.key.toLowerCase() === "r") this.app.resetView();
+        else if (event.key === " ") this.app.togglePause();
+        else handled = false;
+        if (handled) event.preventDefault();
+      }
+    }
+
+    class UIController {
+      constructor(app) {
+        this.app = app;
+        this.lastInfoUpdate = 0;
+        this.lastAnglesUpdate = 0;
+        this.anglesDirty = true;
+        this.elements = {};
+        this.cacheElements();
+        this.buildRotationRows();
+        this.buildVertexSelect();
+        this.bind();
+        this.syncAll();
+      }
+
+      cacheElements() {
+        var ids = [
+          "playBtn", "resetBtn", "dockResetBtn", "dockToggleBtn", "controlDock",
+          "renderState", "liveDot", "modeLabel", "manualPlane", "gestureHint",
+          "distance4D", "distance4DValue", "distance3D", "distance3DValue",
+          "zoomRange", "zoomValue", "sliceW", "sliceWValue", "sliceControlRow",
+          "sliceBadge", "labelMode", "vertexSelect", "ariaStatus", "infoPanel", "infoCollapseBtn", "selectedTitle",
+          "infoOriginal", "infoRotated", "info3D", "info2D", "infoW", "infoDepth",
+          "formulaPanel", "formula4D", "formula3D", "formulaScreen",
+          "toggleGlow", "toggleDepth", "toggleGrid", "toggleAxes", "toggleFormula",
+          "rotationRows"
+        ];
+        for (var i = 0; i < ids.length; i++) this.elements[ids[i]] = document.getElementById(ids[i]);
+      }
+
+      buildRotationRows() {
+        var container = this.elements.rotationRows;
+        for (var i = 0; i < PLANES.length; i++) {
+          var plane = PLANES[i];
+          var row = document.createElement("div");
+          row.className = "rotation-row";
+          row.innerHTML =
+            "<label class='plane-name' title='" + plane + " 자동 회전 활성화'>" +
+              "<input class='plane-enabled' type='checkbox' data-plane='" + plane + "' aria-label='" + plane + " 자동 회전 활성화'>" +
+              "<span aria-hidden='true'>" + plane + "</span>" +
+            "</label>" +
+            "<button class='dir-button' type='button' data-dir-plane='" + plane + "' aria-label='" + plane + " 회전 방향 변경'>↻</button>" +
+            "<input class='plane-speed' type='range' min='0' max='45' step='0.5' data-speed-plane='" + plane + "' aria-label='" + plane + " 자동 회전 속도'>" +
+            "<div class='rotation-meta'><span data-speed-value='" + plane + "'>0°/s</span><output data-angle-value='" + plane + "'>0.0°</output></div>";
+          container.appendChild(row);
+          var label = row.querySelector(".plane-name");
+          label.style.opacity = "0.68";
+          label.style.cursor = "pointer";
+        }
+      }
+
+      buildVertexSelect() {
+        var select = this.elements.vertexSelect;
+        for (var i = 0; i < this.app.tesseract.vertices.length; i++) {
+          var point = this.app.tesseract.vertices[i];
+          var option = document.createElement("option");
+          option.value = String(i);
+          option.textContent = point.id + "  " + formatTuple([
+            point.original.x, point.original.y, point.original.z, point.original.w
+          ], 0);
+          select.appendChild(option);
+        }
+      }
+
+      setDockCollapsed(collapsed) {
+        var dock = this.elements.controlDock;
+        dock.classList.toggle("collapsed", collapsed);
+        document.getElementById("appRoot").classList.toggle("dock-collapsed", collapsed);
+        this.elements.dockToggleBtn.textContent = collapsed ? "⌃" : "⌄";
+        this.elements.dockToggleBtn.setAttribute("aria-expanded", String(!collapsed));
+        this.elements.dockToggleBtn.setAttribute("aria-label", collapsed ? "조작 패널 펼치기" : "조작 패널 접기");
+        var self = this;
+        setTimeout(function () { self.app.renderer.resize(); }, 30);
+        setTimeout(function () { self.app.renderer.resize(); }, 210);
+      }
+
+      activateTab(button, moveFocus) {
+        var name = button.getAttribute("data-tab");
+        var buttons = document.querySelectorAll(".tab-button");
+        var panes = document.querySelectorAll(".tab-pane");
+        for (var b = 0; b < buttons.length; b++) {
+          var active = buttons[b] === button;
+          buttons[b].classList.toggle("active", active);
+          buttons[b].setAttribute("aria-selected", String(active));
+          buttons[b].tabIndex = active ? 0 : -1;
+        }
+        for (var p = 0; p < panes.length; p++) panes[p].classList.toggle("active", panes[p].id === "tab-" + name);
+        if (moveFocus) button.focus();
+      }
+
+      bind() {
+        var self = this;
+        this.elements.playBtn.addEventListener("click", function () { self.app.togglePause(); });
+        this.elements.resetBtn.addEventListener("click", function () { self.app.resetAll(); });
+        this.elements.dockResetBtn.addEventListener("click", function () { self.app.resetView(); });
+        this.elements.dockToggleBtn.addEventListener("click", function () {
+          self.setDockCollapsed(!self.elements.controlDock.classList.contains("collapsed"));
+        });
+
+        this.elements.infoCollapseBtn.addEventListener("click", function () {
+          var collapsed = self.elements.infoPanel.classList.toggle("collapsed");
+          self.elements.infoCollapseBtn.textContent = collapsed ? "▾" : "▴";
+          self.elements.infoCollapseBtn.setAttribute("aria-expanded", String(!collapsed));
+        });
+
+        var tabs = document.querySelectorAll(".tab-button");
+        for (var i = 0; i < tabs.length; i++) {
+          tabs[i].addEventListener("click", function () {
+            self.activateTab(this, false);
+          });
+          tabs[i].addEventListener("keydown", function (event) {
+            var all = Array.from(document.querySelectorAll(".tab-button"));
+            var index = all.indexOf(this);
+            var next = index;
+            if (event.key === "ArrowRight") next = (index + 1) % all.length;
+            else if (event.key === "ArrowLeft") next = (index - 1 + all.length) % all.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = all.length - 1;
+            else return;
+            event.preventDefault();
+            self.activateTab(all[next], true);
+          });
+        }
+        this.activateTab(tabs[0], false);
+
+        var modeButtons = document.querySelectorAll("[data-mode]");
+        for (var m = 0; m < modeButtons.length; m++) {
+          modeButtons[m].addEventListener("click", function () {
+            self.app.setMode(this.getAttribute("data-mode"));
+          });
+        }
+
+        this.elements.manualPlane.addEventListener("change", function () {
+          self.app.state.manualPlane = this.value;
+          self.updateGestureHint();
+        });
+
+        this.elements.distance4D.addEventListener("input", function () {
+          self.app.projector4D.distance = parseFloat(this.value);
+          self.elements.distance4DValue.textContent = self.app.projector4D.distance.toFixed(2);
+        });
+        this.elements.distance3D.addEventListener("input", function () {
+          self.app.camera3D.distance = parseFloat(this.value);
+          self.elements.distance3DValue.textContent = self.app.camera3D.distance.toFixed(2);
+        });
+        this.elements.zoomRange.addEventListener("input", function () {
+          self.app.setZoom(parseFloat(this.value), false);
+        });
+        this.elements.sliceW.addEventListener("input", function () {
+          self.app.state.sliceW = parseFloat(this.value);
+          self.updateSliceUI();
+          if (Math.abs(self.app.state.sliceW) > 1 && self.app.state.selected && self.app.state.selected.type === "section") {
+            self.app.selectPoint(self.app.tesseract.vertices[0]);
+          } else if (self.app.state.selected && self.app.state.selected.type === "section") {
+            self.app.state.selected.original.w = self.app.state.sliceW;
+          }
+        });
+        this.elements.labelMode.addEventListener("change", function () {
+          self.app.state.labelMode = this.value;
+          document.getElementById("stage").classList.toggle("coords-mode", this.value === "coords");
+          if (this.value === "coords") {
+            self.elements.ariaStatus.textContent = "전체 회전 4차원 좌표 모드. 좌표 가독성을 위해 캔버스 보조 패널을 잠시 숨겼습니다.";
+            self.setDockCollapsed(true);
+          }
+        });
+        this.elements.vertexSelect.addEventListener("change", function () {
+          var index = parseInt(this.value, 10);
+          if (Number.isInteger(index) && self.app.tesseract.vertices[index]) {
+            self.app.selectPoint(self.app.tesseract.vertices[index]);
+          }
+        });
+
+        this.elements.toggleGlow.addEventListener("change", function () { self.app.state.effects.glow = this.checked; });
+        this.elements.toggleDepth.addEventListener("change", function () { self.app.state.effects.depth = this.checked; });
+        this.elements.toggleGrid.addEventListener("change", function () { self.app.state.effects.grid = this.checked; });
+        this.elements.toggleAxes.addEventListener("change", function () { self.app.state.effects.axes = this.checked; });
+        this.elements.toggleFormula.addEventListener("change", function () {
+          self.app.state.effects.formula = this.checked;
+          self.elements.formulaPanel.classList.toggle("hidden", !this.checked);
+        });
+
+        var edgeToggles = document.querySelectorAll("[data-edge-axis]");
+        for (var e = 0; e < edgeToggles.length; e++) {
+          edgeToggles[e].addEventListener("change", function () {
+            self.app.state.edgeAccent[this.getAttribute("data-edge-axis")] = this.checked;
+          });
+        }
+
+        var enabledInputs = document.querySelectorAll("[data-plane]");
+        for (var pe = 0; pe < enabledInputs.length; pe++) {
+          enabledInputs[pe].addEventListener("change", function () {
+            var plane = this.getAttribute("data-plane");
+            self.app.rotation.enabled[plane] = this.checked;
+            self.syncPlaneRow(plane);
+          });
+        }
+
+        var directionButtons = document.querySelectorAll("[data-dir-plane]");
+        for (var pd = 0; pd < directionButtons.length; pd++) {
+          directionButtons[pd].addEventListener("click", function () {
+            var plane = this.getAttribute("data-dir-plane");
+            self.app.rotation.directions[plane] *= -1;
+            self.syncPlaneRow(plane);
+          });
+        }
+
+        var speedInputs = document.querySelectorAll("[data-speed-plane]");
+        for (var ps = 0; ps < speedInputs.length; ps++) {
+          speedInputs[ps].addEventListener("input", function () {
+            var plane = this.getAttribute("data-speed-plane");
+            self.app.rotation.speeds[plane] = parseFloat(this.value);
+            self.syncPlaneRow(plane);
+          });
+        }
+      }
+
+      syncPlaneRow(plane) {
+        var enabled = document.querySelector("[data-plane='" + plane + "']");
+        var direction = document.querySelector("[data-dir-plane='" + plane + "']");
+        var speed = document.querySelector("[data-speed-plane='" + plane + "']");
+        var speedValue = document.querySelector("[data-speed-value='" + plane + "']");
+        var label = enabled.closest(".plane-name");
+        enabled.checked = this.app.rotation.enabled[plane];
+        speed.value = this.app.rotation.speeds[plane];
+        direction.textContent = this.app.rotation.directions[plane] > 0 ? "↻" : "↺";
+        direction.setAttribute("aria-pressed", String(this.app.rotation.directions[plane] < 0));
+        speedValue.textContent = this.app.rotation.speeds[plane].toFixed(1).replace(".0", "") + "°/s";
+        label.style.opacity = this.app.rotation.enabled[plane] ? "1" : "0.48";
+        label.style.color = this.app.rotation.enabled[plane] ? "#e9f8ff" : "#8297aa";
+      }
+
+      syncAll() {
+        this.elements.manualPlane.value = this.app.state.manualPlane;
+        this.elements.labelMode.value = this.app.state.labelMode;
+        document.getElementById("stage").classList.toggle("coords-mode", this.app.state.labelMode === "coords");
+        if (this.app.state.selected && this.app.state.selected.type === "vertex") {
+          this.elements.vertexSelect.value = this.app.state.selected.id.slice(1);
+        }
+        this.elements.distance4D.value = this.app.projector4D.distance;
+        this.elements.distance3D.value = this.app.camera3D.distance;
+        this.elements.distance4DValue.textContent = this.app.projector4D.distance.toFixed(2);
+        this.elements.distance3DValue.textContent = this.app.camera3D.distance.toFixed(2);
+        this.elements.zoomRange.value = this.app.state.view.zoom;
+        this.elements.zoomValue.textContent = this.app.state.view.zoom.toFixed(2) + "×";
+        this.elements.sliceW.value = this.app.state.sliceW;
+        this.elements.toggleGlow.checked = this.app.state.effects.glow;
+        this.elements.toggleDepth.checked = this.app.state.effects.depth;
+        this.elements.toggleGrid.checked = this.app.state.effects.grid;
+        this.elements.toggleAxes.checked = this.app.state.effects.axes;
+        this.elements.toggleFormula.checked = this.app.state.effects.formula;
+        this.elements.formulaPanel.classList.toggle("hidden", !this.app.state.effects.formula);
+        for (var i = 0; i < PLANES.length; i++) this.syncPlaneRow(PLANES[i]);
+        var edgeToggles = document.querySelectorAll("[data-edge-axis]");
+        for (var e = 0; e < edgeToggles.length; e++) {
+          var axis = edgeToggles[e].getAttribute("data-edge-axis");
+          edgeToggles[e].checked = this.app.state.edgeAccent[axis];
+        }
+        this.updatePauseUI();
+        this.updateModeUI();
+        this.updateSliceUI();
+        this.updateGestureHint();
+        this.updateAngles(true);
+      }
+
+      updatePauseUI() {
+        var paused = this.app.state.paused;
+        this.elements.playBtn.textContent = paused ? "▶" : "Ⅱ";
+        this.elements.playBtn.setAttribute("aria-label", paused ? "전체 회전 재생" : "전체 회전 일시정지");
+        this.elements.playBtn.setAttribute("aria-pressed", String(paused));
+        this.elements.liveDot.classList.toggle("paused", paused);
+      }
+
+      updateModeUI() {
+        var slice = this.app.state.mode === "slice";
+        this.elements.modeLabel.textContent = slice ? "W 단면 모드" : "4D 투영 모드";
+        this.elements.sliceControlRow.hidden = !slice;
+        this.elements.sliceBadge.hidden = !slice;
+        var buttons = document.querySelectorAll("[data-mode]");
+        for (var i = 0; i < buttons.length; i++) {
+          var active = buttons[i].getAttribute("data-mode") === this.app.state.mode;
+          buttons[i].classList.toggle("active", active);
+          buttons[i].setAttribute("aria-pressed", String(active));
+        }
+        this.updateSliceUI();
+      }
+
+      updateSliceUI() {
+        var value = this.app.state.sliceW;
+        this.elements.sliceWValue.textContent = "w=" + (value >= 0 ? "+" : "") + value.toFixed(2);
+        this.elements.sliceBadge.textContent = "원본 좌표계 단면 · w = " + (value >= 0 ? "+" : "") + value.toFixed(2) +
+          (Math.abs(value) > 1 ? " · 교차 없음" : " · 3D 큐브");
+      }
+
+      updateGestureHint() {
+        this.elements.gestureHint.textContent = "한 손가락/마우스: " + this.app.state.manualPlane + " 회전 · 두 손가락/휠: 확대";
+      }
+
+      updateAngles(force) {
+        var now = performance.now();
+        if (!force && now - this.lastAnglesUpdate < 100) return;
+        this.lastAnglesUpdate = now;
+        for (var i = 0; i < PLANES.length; i++) {
+          var plane = PLANES[i];
+          var output = document.querySelector("[data-angle-value='" + plane + "']");
+          var degrees = ((this.app.rotation.angles[plane] * 180 / Math.PI) % 360 + 360) % 360;
+          output.textContent = degrees.toFixed(1) + "°";
+        }
+      }
+
+      updateInfo(force) {
+        var now = performance.now();
+        if (!force && now - this.lastInfoUpdate < 80) return;
+        this.lastInfoUpdate = now;
+        var point = this.app.state.selected;
+        if (!point) return;
+        this.elements.selectedTitle.textContent = point.id + (point.type === "section" ? " · W-SLICE INTERSECTION" : " · TESSERACT VERTEX");
+        this.elements.infoOriginal.textContent = formatTuple([point.original.x, point.original.y, point.original.z, point.original.w], 2);
+        this.elements.infoRotated.textContent = formatTuple([point.rotated.x, point.rotated.y, point.rotated.z, point.rotated.w], 3);
+        this.elements.info3D.textContent = formatTuple([point.p3.x, point.p3.y, point.p3.z], 3);
+        this.elements.info2D.textContent = "(" + formatNumber(point.screen.x, 2) + " px, " + formatNumber(point.screen.y, 2) + " px)";
+        this.elements.infoW.textContent = formatNumber(point.rotated.w, 3) + "  (회전 후)";
+        this.elements.infoDepth.textContent = formatNumber(point.screen.depth, 3) + "  (d₃ − z₃)";
+
+        var d4 = this.app.projector4D.distance;
+        var d3 = this.app.camera3D.distance;
+        var factor4Text = formatNumber(point.p3.factor4Raw, 3);
+        if (Math.abs(point.p3.factor4Raw - point.p3.factor4) > 0.0005) {
+          factor4Text += " → cap " + formatNumber(point.p3.factor4, 3);
+        }
+        var factor3Text = formatNumber(point.screen.factor3Raw, 3);
+        if (Math.abs(point.screen.factor3Raw - point.screen.factor3) > 0.0005) {
+          factor3Text += " → cap " + formatNumber(point.screen.factor3, 3);
+        }
+        this.elements.formula4D.textContent =
+          "f₄ = " + formatNumber(d4, 2) + "/(" + formatNumber(d4, 2) + "−" + formatNumber(point.rotated.w, 2) + ") = " + factor4Text;
+        this.elements.formula3D.textContent =
+          "f₃ = " + formatNumber(d3, 2) + "/(" + formatNumber(d3, 2) + "−" + formatNumber(point.p3.z, 2) + ") = " + factor3Text;
+        this.elements.formulaScreen.textContent =
+          "screen = (" + formatNumber(point.screen.x, 2) + ", " + formatNumber(point.screen.y, 2) + ") px";
+      }
+
+      updateFPS(fps) {
+        var prefix = this.app.state.paused ? "PAUSED" : "LIVE";
+        this.elements.renderState.textContent = prefix + " · " + Math.round(fps) + " FPS";
+      }
+    }
+
+    class App {
+      constructor() {
+        this.state = {
+          paused: false,
+          reducedMotion: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+          mode: "projection",
+          manualPlane: "XW",
+          labelMode: "selected",
+          sliceW: 0,
+          selected: null,
+          view: { zoom: 1, panX: 0, panY: 0 },
+          edgeAccent: { X: true, Y: true, Z: true, W: true },
+          effects: { glow: true, depth: true, grid: true, axes: true, formula: true }
+        };
+        if (this.state.reducedMotion) this.state.paused = true;
+        this.rotation = new Rotation4D();
+        this.tesseract = new Tesseract();
+        if (!this.tesseract.validate()) throw new Error("Tesseract topology validation failed.");
+        this.projector4D = new Projector4Dto3D(4.5);
+        this.camera3D = new Camera3D(6.5);
+        this.canvas = document.getElementById("labCanvas");
+        this.renderer = new Renderer(this.canvas, this.tesseract, this.rotation, this.projector4D, this.camera3D, this.state);
+        this.state.selected = this.tesseract.vertices[0];
+        this.input = new InputController(this.canvas, this);
+        this.ui = new UIController(this);
+        this.lastFrame = performance.now();
+        this.lastRenderTime = this.lastFrame;
+        this.fpsTime = this.lastFrame;
+        this.fpsFrames = 0;
+        this.fps = 60;
+        this.uiUpdateRequested = true;
+        this.bindResize();
+        this.loop = this.loop.bind(this);
+        requestAnimationFrame(this.loop);
+      }
+
+      bindResize() {
+        var self = this;
+        var resizeQueued = false;
+        var requestResize = function () {
+          if (resizeQueued) return;
+          resizeQueued = true;
+          requestAnimationFrame(function () {
+            resizeQueued = false;
+            self.renderer.resize();
+          });
+        };
+        window.addEventListener("resize", requestResize, { passive: true });
+        window.addEventListener("orientationchange", requestResize, { passive: true });
+        if (window.ResizeObserver) {
+          this.resizeObserver = new ResizeObserver(requestResize);
+          this.resizeObserver.observe(document.getElementById("stage"));
+        }
+      }
+
+      requestUIUpdate() {
+        this.uiUpdateRequested = true;
+      }
+
+      selectPoint(point) {
+        this.state.selected = point;
+        if (this.ui && point.type === "vertex") this.ui.elements.vertexSelect.value = point.id.slice(1);
+        this.ui.elements.infoPanel.classList.remove("collapsed");
+        this.ui.elements.infoCollapseBtn.textContent = "▴";
+        this.ui.elements.infoCollapseBtn.setAttribute("aria-expanded", "true");
+        this.ui.elements.ariaStatus.textContent = point.id + " 선택됨. 원본 4차원 좌표 " +
+          formatTuple([point.original.x, point.original.y, point.original.z, point.original.w], 2);
+        this.ui.updateInfo(true);
+      }
+
+      setMode(mode) {
+        if (mode !== "projection" && mode !== "slice") return;
+        this.state.mode = mode;
+        if (mode === "slice") {
+          this.tesseract.updateSection(this.state.sliceW);
+        } else if (this.state.selected && this.state.selected.type === "section") {
+          this.selectPoint(this.tesseract.vertices[0]);
+        }
+        this.ui.updateModeUI();
+        this.ui.updateInfo(true);
+      }
+
+      setZoom(value, syncRange) {
+        this.state.view.zoom = clamp(safeNumber(value, 1), 0.45, 2.4);
+        if (syncRange !== false && this.ui) this.ui.elements.zoomRange.value = this.state.view.zoom;
+        if (this.ui) this.ui.elements.zoomValue.textContent = this.state.view.zoom.toFixed(2) + "×";
+      }
+
+      resetView() {
+        this.state.view.zoom = 1;
+        this.state.view.panX = 0;
+        this.state.view.panY = 0;
+        this.ui.elements.zoomRange.value = "1";
+        this.ui.elements.zoomValue.textContent = "1.00×";
+      }
+
+      togglePause() {
+        this.state.paused = !this.state.paused;
+        this.ui.updatePauseUI();
+      }
+
+      resetAll() {
+        this.rotation.reset();
+        this.projector4D.distance = 4.5;
+        this.camera3D.distance = 6.5;
+        this.state.mode = "projection";
+        this.state.manualPlane = "XW";
+        this.state.labelMode = "selected";
+        this.state.sliceW = 0;
+        this.state.view.zoom = 1;
+        this.state.view.panX = 0;
+        this.state.view.panY = 0;
+        this.state.edgeAccent = { X: true, Y: true, Z: true, W: true };
+        this.state.effects = { glow: true, depth: true, grid: true, axes: true, formula: true };
+        this.state.paused = this.state.reducedMotion;
+        this.state.selected = this.tesseract.vertices[0];
+        this.ui.setDockCollapsed(false);
+        this.ui.elements.infoPanel.classList.remove("collapsed");
+        this.ui.elements.infoCollapseBtn.textContent = "▴";
+        this.ui.elements.infoCollapseBtn.setAttribute("aria-expanded", "true");
+        this.ui.syncAll();
+        this.renderer.resize();
+      }
+
+      loop(now) {
+        var dt = clamp((now - this.lastFrame) / 1000, 0, 0.05);
+        this.lastFrame = now;
+        if (this.state.paused && this.state.reducedMotion && !this.input.dragging && now - this.lastRenderTime < 100) {
+          requestAnimationFrame(this.loop);
+          return;
+        }
+        this.lastRenderTime = now;
+        if (!this.state.paused && !this.input.dragging) this.rotation.step(dt);
+        this.renderer.render(now);
+        this.ui.updateInfo(false);
+        this.ui.updateAngles(false);
+
+        this.fpsFrames++;
+        if (now - this.fpsTime >= 500) {
+          this.fps = this.fpsFrames * 1000 / (now - this.fpsTime);
+          this.fpsFrames = 0;
+          this.fpsTime = now;
+          this.ui.updateFPS(this.fps);
+        }
+        requestAnimationFrame(this.loop);
+      }
+    }
+
+    function start() {
+      try {
+        window.fourDCoordinateLab = new App();
+      } catch (error) {
+        var stage = document.getElementById("stage");
+        stage.innerHTML = "<div style='padding:24px;color:#ff9aa3;font:13px ui-monospace,monospace'>초기화 오류: " +
+          String(error && error.message ? error.message : error).replace(/[&<>]/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c];
+          }) + "</div>";
+        console.error(error);
+      }
+    }
+
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
+    else start();
+  })();
+  </script>
+</body>
+</html>
