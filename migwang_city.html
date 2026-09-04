@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10181c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2310181c'/%3E%3Cpath d='M6 6h8v8H6zm12 0h8v8h-8zM6 18h8v8H6zm12 0h8v8h-8z' fill='%23b6dfbd'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>미광시 · 빛으로 살아가는 도시</title>
+<style>
+:root{color-scheme:dark;--bg:#10181c;--panel:#172125;--line:#2b383c;--text:#eeeae0;--muted:#8faaa9;--mint:#b6dfbd;--amber:#f3c88c;--pink:#e5a7cb;--radius:18px}
+*{box-sizing:border-box}html{background:var(--bg);-webkit-text-size-adjust:100%;scrollbar-color:#435557 var(--bg)}body{margin:0;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.5;background:radial-gradient(ellipse at 25% 0%,#223130 0,transparent 54%),var(--bg);min-width:280px}button,input{font:inherit}button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}button:focus-visible,summary:focus-visible,canvas:focus-visible{outline:2px solid var(--mint);outline-offset:4px}button{cursor:pointer}button:disabled{cursor:default}button,summary{-webkit-user-select:none;user-select:none}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-variant-numeric:tabular-nums}main{width:min(1240px,100%);padding:28px 30px 20px;margin:auto;padding-top:max(25px,env(safe-area-inset-top));padding-bottom:max(22px,env(safe-area-inset-bottom))}.masthead{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:13px;min-width:0}.brand>div:last-child{min-width:0}.brandmark{display:grid;grid-template-columns:repeat(4,5px);grid-auto-rows:5px;gap:3px;transform:rotate(-2deg)}.brandmark i{background:#9dd3b3;border-radius:1px;opacity:.85}.brandmark i:nth-child(3n){opacity:.24}.brandmark i:nth-child(4n+1){background:#f4c68e}.brand h1{font-size:25px;font-weight:750;letter-spacing:-1px;margin:0;line-height:1.2}.brand .english{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px;letter-spacing:2.2px;color:var(--muted);margin-top:5px}.header-right{display:flex;align-items:center;gap:17px;flex-shrink:0}.live{font-size:11px;color:var(--mint);display:flex;gap:7px;align-items:center;white-space:nowrap}.live i{height:6px;width:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px #9debbd66}.settings{position:relative;z-index:20}.settings>summary{white-space:nowrap;font-size:11px;cursor:pointer;list-style:none;border:1px solid var(--line);padding:7px 11px;border-radius:30px;color:#b5c8c2}.settings>summary::-webkit-details-marker{display:none}.settings[open]>summary{border-color:var(--mint)}.settings-panel{position:absolute;right:0;top:42px;width:min(300px,85vw);background:#1a282cee;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:20px;border:1px solid #435456;border-radius:16px;box-shadow:0 12px 50px #0008}.settings-panel h3{font-size:13px;margin:0 0 12px}.settings-panel label{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin:14px 0;gap:10px}.settings-panel input{accent-color:var(--mint);width:17px;height:17px}.settings-panel p{font-size:11px;color:var(--muted);line-height:1.8;margin:13px 0 0}.legend{display:flex;flex-wrap:wrap;gap:7px 13px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:#b4c4c2}.legend span:before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;background:var(--c)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:24px;align-items:start}.city-column{min-width:0}.timebar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px}.time-main{display:flex;align-items:baseline;gap:12px}.clock{font-size:36px;letter-spacing:-2px;font-weight:400;line-height:1}.day-label{font-size:11px;color:var(--muted);line-height:1.7}.day-label strong{color:#c8d3cd;font-weight:500}.weather{font-size:11px;color:#c5d2cd;text-align:right}.weather-icon{display:inline-block;font-size:17px;margin-right:5px;vertical-align:-1px}.weather small{display:block;font-size:9px;letter-spacing:1.1px;color:var(--muted);margin-top:2px}.metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:12px}.metric{background:#1c292b88;border:1px solid #34414088;border-radius:9px;padding:9px 10px 8px;min-width:0;position:relative;overflow:hidden}.metric label{font-size:10px;color:var(--muted);display:block;margin-bottom:3px}.metric strong{font-size:19px;letter-spacing:-.6px;font-weight:500}.metric .unit{font-size:9px;color:#a8bfba;margin-left:2px}.metric .meter{height:2px;background:#334341;margin-top:6px;border-radius:4px}.metric .meter i{display:block;height:100%;width:60%;background:var(--mint);border-radius:4px;transition:width .8s,background .8s}.metric .trend{font-size:9px;color:var(--mint);margin-top:4px;display:block;height:6px;line-height:6px}.stage{position:relative;width:100%;aspect-ratio:1;background:#0a151b;border:1px solid #52605877;overflow:hidden;border-radius:var(--radius);box-shadow:0 18px 60px #0003,inset 0 0 40px #0005;isolation:isolate}#city{display:block;width:100%;height:100%;touch-action:manipulation;image-rendering:auto;outline-offset:-4px}.stage-top{position:absolute;top:13px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;gap:8px}.gridtag{font-size:9px;letter-spacing:1.5px;color:#d2d5c7a8;background:#101b20b8;padding:5px 8px;border:1px solid #81988733;border-radius:5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.phase-tag{font-size:10px;color:#dde4d5;text-shadow:0 1px 5px #000;background:#10202bb3;border-radius:5px;padding:4px 7px}.stage-bottom{position:absolute;left:14px;right:14px;bottom:11px;pointer-events:none;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:9px;color:#d7dfd3ae;text-shadow:0 1px 5px #000;background:linear-gradient(90deg,#07161c88,transparent);padding:3px 5px;border-radius:3px}.stage-bottom .alive{display:flex;align-items:center;gap:5px}.stage-bottom .alive i{display:inline-block;width:4px;height:4px;background:var(--mint);border-radius:50%}.event-banner{position:absolute;left:50%;top:51px;transform:translate(-50%,-8px);width:max-content;max-width:calc(100% - 38px);padding:8px 13px;border:1px solid #c6dcba66;border-radius:8px;background:#0b1d23e8;color:#edecde;font-size:11px;text-align:center;opacity:0;transition:opacity .4s,transform .4s;pointer-events:none;box-shadow:0 6px 25px #0005}.event-banner.visible{opacity:1;transform:translate(-50%,0)}.event-banner strong{font-weight:600}.event-banner span{color:#b8ccc7;font-size:10px}.inspector{position:absolute;bottom:35px;left:13px;right:13px;max-width:355px;display:none;grid-template-columns:80px 1fr;gap:12px;background:#102229ed;border:1px solid #7c999e88;border-radius:12px;padding:10px;box-shadow:0 8px 35px #0006;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:4}.inspector.visible{display:grid}#zoom{width:80px;height:80px;border-radius:7px;background:#13232a;image-rendering:pixelated;border:1px solid #667b7555}.inspect-text{min-width:0;padding-top:2px;padding-right:9px}.inspect-text .eyebrow{font-size:8px;color:var(--mint);letter-spacing:1.2px}.inspect-text h3{font-size:13px;font-weight:600;margin:4px 0}.inspect-text p{font-size:10px;color:#b2c8c3;line-height:1.7;margin:0}.close-inspector{position:absolute;right:5px;top:2px;color:#a4b9b6;border:0;background:none;font-size:19px;padding:2px 6px;line-height:1.5}.daypaper{position:absolute;right:13px;bottom:35px;width:min(330px,calc(100% - 26px));border-radius:12px;padding:18px 18px 13px;background:#e8e5d8f5;color:#233b3a;box-shadow:0 12px 40px #0006;display:none;z-index:5;pointer-events:auto}.daypaper.visible{display:block;animation:paperIn .5s ease}.paper-kicker{font-size:8px;letter-spacing:2px;border-bottom:1px solid #6c86815e;padding-bottom:8px;display:flex;justify-content:space-between}.daypaper h3{font-size:19px;letter-spacing:-.6px;line-height:1.45;margin:11px 0}.daypaper p{font-size:10px;line-height:1.8;margin:0;color:#49605b}.paper-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;border-top:1px solid #6c86813e;padding-top:10px}.paper-facts strong{font-size:15px;font-weight:600;display:block}.paper-facts span{font-size:9px;color:#576c65}.paper-time{height:2px;background:#6d867661;position:absolute;bottom:0;left:12px;right:12px;transform-origin:left center}.daypaper .close-inspector{color:#53665c}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.action{--ac:#b6dfbd;position:relative;overflow:hidden;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;text-align:left;background:#213330;color:var(--text);border:1px solid #51665699;border-radius:12px;padding:13px 8px 14px;transition:transform .15s,border-color .2s,background .2s;min-height:63px}.action:nth-child(2){--ac:#9ccbdc;background:#203137;border-color:#4a616a99}.action:nth-child(3){--ac:#dfb2d5;background:#302a37;border-color:#68586e99}.action:hover:not(:disabled){border-color:var(--ac);background:#2c3c3b}.action:active:not(:disabled){transform:scale(.98)}.action:disabled{opacity:.66}.action .icon{font-size:23px;line-height:1;color:var(--ac)}.action .text strong{font-size:12px;font-weight:600;display:block}.action .text small{font-size:9px;display:block;color:#abc0b9;margin-top:3px;white-space:nowrap}.action .cool{position:absolute;left:0;bottom:0;height:2px;background:var(--ac);width:0;transition:width .2s linear}.footnote{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:#79938e;margin-top:11px}.footnote .dot{color:#89ba9b}.sidebar{display:flex;flex-direction:column;gap:17px;padding-top:2px;min-width:0}.panel{background:#1925299c;border:1px solid #33434499;border-radius:14px;overflow:hidden}.panel-body{padding:18px}.kicker{font-size:9px;letter-spacing:1.8px;color:#8eaba6;display:flex;justify-content:space-between;align-items:center}.kicker em{font-style:normal;font-size:9px;letter-spacing:0;color:#b4cdbe}.mood-title{font-size:22px;letter-spacing:-.9px;line-height:1.5;margin:13px 0 7px;font-weight:500;word-break:keep-all}.mood-title .accent{color:var(--mint)}.mood-desc{font-size:11px;color:#9eb8b0;line-height:1.95;word-break:keep-all;margin:0}.ribbon{margin-top:16px;padding-top:11px;border-top:1px solid #3c4e4a88;display:flex;gap:8px;align-items:center;font-size:10px;color:#b7cbb9}.ribbon i{width:5px;height:5px;border-radius:50%;background:var(--mint);flex:none}.ribbon span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.district-list{margin-top:14px;display:flex;flex-direction:column;gap:12px}.district{display:grid;grid-template-columns:86px 1fr 27px;gap:8px;align-items:center}.district-name{font-size:11px;color:#c0cfca;white-space:nowrap}.district-name i{display:inline-block;width:5px;height:5px;margin-right:7px;background:var(--dc);border-radius:1px}.district-bar{height:4px;background:#30403e;border-radius:5px;overflow:hidden}.district-bar span{display:block;height:100%;background:var(--dc);width:20%;border-radius:5px;transition:width 1s}.district-count{text-align:right;color:#8faaa4;font-size:10px}.district-caption{font-size:9px;color:#758d87;margin:13px 0 0}.feed-panel .kicker{padding:17px 17px 12px}.feed{padding:0 17px 6px;display:flex;flex-direction:column;gap:0;max-height:285px;overflow:hidden}.feed-item{display:grid;grid-template-columns:32px 1fr;column-gap:9px;padding:11px 0;border-top:1px solid #33444088;animation:feedIn .4s ease}.feed-item time{font-size:9px;color:#7f9c96;line-height:1.9}.feed-item p{font-size:11px;line-height:1.7;margin:0;color:#b8cec5;word-break:keep-all}.feed-item.major p{color:#f1cea0}.feed-item .label{font-size:9px;color:#87a69a;display:block;margin-top:2px}.archive{padding:12px 17px;border-top:1px solid #34464088}.archive>summary{font-size:10px;color:#a7bcae;cursor:pointer;list-style:none;display:flex;justify-content:space-between}.archive>summary::-webkit-details-marker{display:none}.archive>summary:after{content:'＋'}.archive[open]>summary:after{content:'－'}.archives{max-height:330px;overflow-y:auto}.record{padding-top:12px;margin-top:12px;border-top:1px solid #3d514955}.record h4{font-size:11px;margin:0 0 6px;color:#e1e2cb}.record p{font-size:10px;line-height:1.9;color:#a0b6a5;margin:0}.empty-record{font-size:10px;color:#839b8e;line-height:1.9;padding:12px 0 0;margin:0}.footer{display:flex;justify-content:space-between;gap:12px;margin-top:25px;padding-top:13px;border-top:1px solid #33434066;font-size:9px;letter-spacing:.6px;color:#68827d}.notice{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:50%;transform:translate(-50%,12px);background:#dce4d6;color:#223c34;padding:10px 18px;border-radius:8px;font-size:11px;box-shadow:0 5px 25px #0006;z-index:50;max-width:90%;width:max-content;opacity:0;pointer-events:none;transition:.3s;word-break:keep-all}.notice.show{opacity:1;transform:translate(-50%,0)}@keyframes feedIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}@keyframes paperIn{from{opacity:0;transform:translateY(15px) rotate(1deg)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:1300px){main{padding-top:35px}.layout{gap:28px;grid-template-columns:minmax(0,1fr) 304px}.sidebar{gap:19px}.panel-body{padding:20px}.mood-title{font-size:25px}}
+@media(min-width:951px){main{width:min(1240px,max(800px,calc(100vh + 28px)),100%)}}
+@media(max-width:950px){main{padding:22px 20px}.layout{gap:18px;grid-template-columns:minmax(0,1fr) 240px}.metric{padding:8px 6px}.metric strong{font-size:17px}.action{gap:6px}.action .icon{font-size:18px}.action .text strong{font-size:11px}.action .text small{font-size:8px}.panel-body{padding:15px}.district{grid-template-columns:80px 1fr 22px;gap:5px}.mood-title{font-size:21px}}
+@media(max-width:740px){main{padding:18px 15px;padding-top:max(18px,env(safe-area-inset-top));padding-bottom:max(18px,env(safe-area-inset-bottom))}.masthead{margin-bottom:19px}.brand h1{font-size:23px}.brand .english{font-size:8px;letter-spacing:1.6px}.header-right{gap:10px}.live{font-size:9px}.settings>summary{padding:6px 9px;font-size:10px}.layout{display:block}.timebar{margin-bottom:11px}.clock{font-size:32px}.day-label{font-size:10px}.weather{font-size:10px}.weather small{font-size:8px}.metrics{gap:5px;margin-bottom:10px}.metric{padding:7px 5px 6px;border-radius:7px}.metric label{font-size:9px;margin-bottom:2px}.metric strong{font-size:16px}.metric .unit{font-size:8px;margin-left:1px}.metric .meter{margin-top:5px}.metric .trend{font-size:8px;margin-top:5px}.stage{border-radius:13px}.stage-top{top:9px;left:9px;right:9px}.gridtag{font-size:7px;letter-spacing:1px;padding:4px 5px}.phase-tag{font-size:8px;padding:3px 5px}.stage-bottom{left:8px;right:8px;bottom:6px;font-size:7px}.event-banner{top:38px;font-size:10px;padding:7px 10px;max-width:calc(100% - 25px)}.event-banner span{font-size:9px}.controls{gap:7px;margin-top:10px}.action{padding:12px 6px;min-height:63px;border-radius:10px;gap:8px}.action .icon{font-size:21px}.action .text strong{font-size:11px}.action .text small{font-size:8px}.footnote{font-size:9px;gap:5px}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:18px}.mood-panel{grid-column:1/-1}.mood-panel .panel-body{padding:15px 17px;display:grid;grid-template-columns:1.1fr 1fr;gap:0 15px;align-items:start}.mood-panel .kicker{grid-column:1/-1}.mood-title{font-size:21px;margin:9px 0 3px}.mood-desc{font-size:10px;margin-top:10px}.ribbon{grid-column:1/-1;margin-top:9px;padding-top:9px;font-size:9px}.district-panel{grid-column:1/-1}.district-panel .district-list{display:grid;grid-template-columns:1fr 1fr;gap:11px 20px}.district{grid-template-columns:80px 1fr 23px}.district-count{font-size:9px}.district-name{font-size:10px}.district-caption{font-size:8px}.feed-panel{grid-column:1/-1}.feed{max-height:230px}.feed-item{grid-template-columns:35px 1fr}.feed-item p{font-size:11px}.feed-item .label{display:inline;margin-left:7px}.footer{font-size:8px;margin-top:20px}.inspector{bottom:26px;left:8px;right:8px;max-width:320px;grid-template-columns:66px 1fr;gap:10px;padding:8px}#zoom{width:66px;height:66px}.inspect-text h3{font-size:11px;margin:3px 0}.inspect-text p{font-size:9px;line-height:1.65}.inspect-text .eyebrow{font-size:7px}.daypaper{bottom:26px;right:8px;width:min(290px,calc(100% - 16px));padding:13px 15px 10px}.daypaper h3{font-size:17px;margin:7px 0}.daypaper p{font-size:9px}.paper-kicker{font-size:7px;padding-bottom:6px}.paper-facts{margin:8px 0}.paper-facts strong{font-size:13px}.paper-facts span{font-size:8px}}
+@media(max-width:460px){.header-right .live{display:none}.brand .english{font-size:7.5px;letter-spacing:1.25px}}
+@media(max-width:360px){main{padding-left:10px;padding-right:10px}.live{display:none}.clock{font-size:29px}.metrics{gap:3px}.metric{padding:6px 4px}.metric strong{font-size:14px}.metric label{font-size:8px}.metric .unit{font-size:7px}.action{gap:5px}.action .text strong{font-size:10px}.action .text small{font-size:7px}.action .icon{font-size:17px}.footnote{font-size:8px}.district-panel .district-list{gap:10px}.district{grid-template-columns:72px 1fr 20px;gap:4px}.district-name{font-size:9px}.mood-title{font-size:18px}.mood-desc{font-size:9px}.time-main{gap:8px}.day-label{font-size:9px}.weather-icon{font-size:14px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<header class="masthead">
+ <div class="brand"><div class="brandmark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div><h1>미광시</h1><div class="english mono">A CITY MADE OF LITTLE LIVES</div></div></div>
+ <div class="header-right"><span class="live" id="liveLabel"><i></i>도시는 살아가는 중</span><details class="settings" id="settings"><summary aria-label="관측 설정과 도움말">관측 설정</summary><div class="settings-panel"><h3>가만히 바라봐도 괜찮아요.</h3><label>잠시 멈추기 <input id="pauseToggle" type="checkbox"></label><label>도시의 소리 <input id="soundToggle" type="checkbox"></label><label>구역 이름 표시 <input id="labelToggle" type="checkbox" checked></label><label>잔잔한 연출 · 절전 <input id="gentleToggle" type="checkbox"></label><div class="legend"><span style="--c:#f8e6bd">시민</span><span style="--c:#b4ddf0">승용차</span><span style="--c:#f6c986">택시·버스</span><span style="--c:#ff9a6a">소방</span><span style="--c:#9adbea">경찰·구급</span><span style="--c:#a6c892">공원</span><span style="--c:#edadd7">번화가</span></div><p>한 칸은 하나의 LED입니다. 시민·건물·사건을 누르면 확대 관찰할 수 있어요. 도시의 하루는 약 3분 12초, 신문은 자정에 도착합니다.</p><p>자동 대응이 기본입니다. 아래 세 버튼은 작은 개입일 뿐, 누르지 않아도 계속 살아갑니다. 교통은 혼잡도라 낮을수록 좋습니다.</p><p id="saveHint">상태와 최근 7일 기록을 이 브라우저에 보관합니다. 다른 탭으로 이동하면 시뮬레이션은 쉬어 갑니다.</p></div></details></div>
+</header>
+<div class="layout">
+<section class="city-column" aria-label="실시간 도시 시뮬레이션">
+ <div class="timebar"><div class="time-main"><span class="clock mono" id="clock">17:20</span><div class="day-label"><strong id="dayLabel">관측 01일 · 월요일</strong><br><span id="timeCaption">각자의 저녁이 시작됩니다</span></div></div><div class="weather"><span class="weather-icon" id="weatherIcon">◒</span><span id="weatherText">맑음 · 22°C</span><small class="mono" id="windText">SW 2.4 m/s</small></div></div>
+ <div class="metrics" aria-label="도시 지표">
+  <div class="metric" title="도시에 사는 실제 시민 수. 생활 여건에 따라 이사 옵니다."><label>인구</label><strong class="mono" id="population">680</strong><span class="unit">명</span><span class="trend mono" id="populationTrend">+0 오늘</span></div>
+  <div class="metric" title="경제·공원·여가·사건과 혼잡에 영향을 받습니다."><label>행복</label><strong class="mono" id="happiness">76</strong><span class="unit">%</span><div class="meter"><i id="happinessBar"></i></div></div>
+  <div class="metric" title="범죄·정전·사건 대응에 따른 치안 수준입니다."><label>치안</label><strong class="mono" id="safety">91</strong><span class="unit">%</span><div class="meter"><i id="safetyBar"></i></div></div>
+  <div class="metric" title="교통 혼잡도. 낮을수록 원활합니다."><label>교통</label><strong class="mono" id="traffic">24</strong><span class="unit">%</span><div class="meter"><i id="trafficBar"></i></div></div>
+  <div class="metric" title="상점 매출·영업 상태·공장 배송·전력의 영향을 받습니다."><label>경제</label><strong class="mono" id="economy">73</strong><span class="unit">%</span><div class="meter"><i id="economyBar"></i></div></div>
+  <div class="metric" title="발전량 대비 수요 충족률. 정전 구역은 실제로 어두워집니다."><label>전력</label><strong class="mono" id="power">100</strong><span class="unit">%</span><div class="meter"><i id="powerBar"></i></div></div>
+ </div>
+ <div class="stage" id="stage">
+  <canvas id="city" tabindex="0" aria-label="100 곱하기 100 LED 도시. 시민, 건물 또는 사건을 눌러 확대 관찰하세요."></canvas>
+  <div class="stage-top"><span class="gridtag mono">100 × 100 / LIVE DIORAMA</span><span class="phase-tag" id="phaseTag">BLUE HOUR</span></div>
+  <div class="event-banner" id="eventBanner" role="status"></div>
+  <div class="stage-bottom"><span id="mapHint">시민이나 건물을 눌러 들여다보세요</span><span class="alive mono"><i></i><span id="movingCount">0 WALKING · 0 DRIVING</span></span></div>
+  <div class="inspector" id="inspector"><canvas id="zoom" width="160" height="160" aria-label="선택한 대상 확대"></canvas><div class="inspect-text"><div class="eyebrow mono" id="inspectType">LIFE, UP CLOSE</div><h3 id="inspectTitle"></h3><p id="inspectDesc"></p></div><button class="close-inspector" id="closeInspector" aria-label="확대 관찰 닫기">×</button></div>
+  <div class="daypaper" id="daypaper"><button class="close-inspector" id="closePaper" aria-label="도시 일보 닫기">×</button><div class="paper-kicker mono"><span>THE MIGWANG DAILY</span><span id="paperDay">01호</span></div><h3 id="paperTitle"></h3><p id="paperDesc"></p><div class="paper-facts" id="paperFacts"></div><div class="paper-time" id="paperTime"></div></div>
+ </div>
+ <div class="controls" aria-label="도시에 작은 개입">
+  <button class="action" id="festivalBtn" title="한 구역에서 거리 축제를 엽니다. 주민이 모여들고 상권이 살아나지만 차가 밀릴 수 있습니다."><span class="icon" aria-hidden="true">✧</span><span class="text"><strong>거리를 무대로</strong><small id="festivalHint">거리 축제 · 재사용 65초</small></span><span class="cool" id="festivalCool"></span></button>
+  <button class="action" id="supportBtn" title="가장 시급한 사건에 추가 대응 차량을 보냅니다. 사건이 없으면 예방 순찰과 전력 점검을 합니다."><span class="icon" aria-hidden="true">✚</span><span class="text"><strong>도시 구조대</strong><small id="supportHint">복구·순찰 · 재사용 45초</small></span><span class="cool" id="supportCool"></span></button>
+  <button class="action" id="chanceBtn" title="뜻밖의 사건 하나를 불러옵니다. 작은 행운, 소동, 또는 도시 전체의 특별한 순간입니다."><span class="icon" aria-hidden="true">⁕</span><span class="text"><strong>나비효과</strong><small id="chanceHint">뜻밖의 사건 · 재사용 30초</small></span><span class="cool" id="chanceCool"></span></button>
+ </div>
+ <div class="footnote"><span>통제하지 않아도, 이야기는 이어집니다.</span><span class="mono" id="saveStatus"><span class="dot">●</span> LOCAL / OFFLINE</span></div>
+</section>
+<aside class="sidebar" aria-label="도시 이야기와 기록">
+ <section class="panel mood-panel"><div class="panel-body"><div class="kicker mono">CITY, IN THIS MOMENT <em id="seasonTag">늦여름 · 관측 중</em></div><h2 class="mood-title" id="moodTitle">서로 다른 하루가<br><span class="accent">하나의 도시로.</span></h2><p class="mood-desc" id="moodDesc">누군가는 집으로, 누군가는 아직 가게로. 수백 개의 작은 선택이 도시의 리듬을 만듭니다.</p><div class="ribbon"><i></i><span id="ribbon">불빛 하나하나에, 저마다의 이야기가 있습니다.</span></div></div></section>
+ <section class="panel district-panel"><div class="panel-body"><div class="kicker mono">NEIGHBORHOOD PULSE <em>지금 걷는 시민</em></div><div class="district-list" id="districtList"></div><p class="district-caption">구역의 막대는 실제 보행 중인 시민 수를 보여줍니다.</p></div></section>
+ <section class="panel feed-panel"><div class="kicker mono">THE CITY WIRE <em id="activeLabel">소식이 이어집니다</em></div><div class="feed" id="feed" aria-label="최근 도시 소식"></div><details class="archive"><summary>지난 도시 일보 <span id="archiveCount">0일</span></summary><div class="archives" id="archives"><p class="empty-record">첫 자정이 지나면 오늘의 이야기가 신문이 됩니다. 가장 붐빈 곳, 큰 사건, 상점의 흥망까지 기록해요.</p></div></details></section>
+</aside>
+</div>
+<footer class="footer"><span class="mono">MIGWANG / LITTLE LIGHTS, MANY LIVES</span><span>완성되지 않아서, 계속 아름다운 도시.</span></footer>
+</main>
+<div class="notice" id="notice" role="status"></div>
+<script>
+/* 미광시 — standalone, dependency-free city observatory.
+   Fixed 100×100 tile world, A* pedestrians, congestion-aware traffic,
+   responsive canvas, bounded state and storage. No network requests. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id),N=100,S=N*N,TAU=Math.PI*2;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const hash=(x,y,k=0)=>{let v=Math.imul(x+71,374761393)^Math.imul(y+19,668265263)^Math.imul(k+11,1274126177);v=Math.imul(v^(v>>>13),1274126177);return((v^(v>>>16))>>>0)/4294967296};
+class RNG{constructor(seed){this.s=seed>>>0}next(){let t=this.s=(this.s+0x6D2B79F5)>>>0;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}int(a,b){return a+Math.floor(this.next()*(b-a+1))}pick(a){return a[this.int(0,a.length-1)]}}
+const STORAGE='migwang_observatory_v1';let saved=null,canSave=true;
+try{const raw=localStorage.getItem(STORAGE);if(raw){const s=JSON.parse(raw);if(s.version===1&&Number.isFinite(s.seed)&&Array.isArray(s.records))saved=s}}catch(e){canSave=false}
+const seed=saved?saved.seed:((Date.now()^Math.floor(Math.random()*1e9))>>>0),layoutRng=new RNG(seed),rng=new RNG(seed^0xa815dea9);
+const pick=a=>rng.pick(a),rand=(a,b)=>a+rng.next()*(b-a),chance=p=>rng.next()<p;
+const C={ground:0,road:1,walk:2,water:3,park:4,building:5,plaza:6,track:7};
+const districts=[
+ {name:'서온 주택가',short:'서온',color:'#e5b989',x:15,y:15,kind:'residential',h:79},
+ {name:'중앙 상업지',short:'중앙',color:'#94cbd7',x:62,y:15,kind:'commercial',h:74},
+ {name:'달빛 번화가',short:'달빛',color:'#de9ccd',x:71,y:47,kind:'nightlife',h:76},
+ {name:'철빛 공업지',short:'철빛',color:'#cca379',x:19,y:81,kind:'industrial',h:69},
+ {name:'느루 공원',short:'느루',color:'#a7cb91',x:49,y:81,kind:'park',h:87},
+ {name:'가람 주거지',short:'가람',color:'#c3b7d4',x:24,y:49,kind:'residential',h:80},
+ {name:'물결 수변길',short:'물결',color:'#81c8b8',x:80,y:80,kind:'waterfront',h:84}
+].map(d=>({...d,walking:0,visits:0,peak:0,happiness:d.h,power:1,activity:0}));
+function districtAt(x,y){if(x>=89||(x>=68&&y>=68))return 6;if(y>=68&&x>=35&&x<68)return 4;if(y>=66&&x<35)return 3;if(y>=35&&x>=49)return 2;if(y<35&&x>=35)return 1;if(y>=35&&x<49)return 5;return 0}
+const tiles=new Uint8Array(S),tileDistrict=new Uint8Array(S),buildingAt=new Int16Array(S).fill(-1),treeAt=new Uint8Array(S),crosswalk=new Uint8Array(S),waterTiles=[],roadTiles=[],walkTiles=[];
+const roads=[6,22,38,54,70,86],centers=roads.map(x=>x+1.5),buildings=[],destinations=[];
+function inRoad(v){return roads.some(r=>v>=r&&v<=r+2)}
+function sideRoad(v){return roads.some(r=>v===r-1||v===r+3)}
+for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+ const i=y*N+x,d=districtAt(x,y);tileDistrict[i]=d;
+ const water=x>93+Math.sin(y*.12)*1.6||(y>93+Math.sin(x*.13)*1.6&&x>60);
+ let t=water?C.water:(d===4?C.park:C.ground);
+ if(inRoad(x)||inRoad(y))t=C.road;else if(sideRoad(x)||sideRoad(y))t=C.walk;
+ if(d===4&&!water&&t!==C.road&&t!==C.walk){if(x%8===0||y%8===0||Math.abs(x-51)<2)t=C.plaza;else t=C.park}
+ if(d===6&&!water&&t===C.ground&&x>=90)t=C.walk;
+ tiles[i]=t;
+ if(t===C.road){roadTiles.push(i);const nearX=roads.some(r=>Math.abs(x-r)<=2||Math.abs(x-(r+3))<=1),nearY=roads.some(r=>Math.abs(y-r)<=2||Math.abs(y-(r+3))<=1);if((inRoad(x)&&nearY&&!inRoad(y))||(inRoad(y)&&nearX&&!inRoad(x)))crosswalk[i]=1}
+ if(t===C.water)waterTiles.push(i);
+}
+const shopWords=['소금빵집','오늘의청과','작은 서점','밤의 레코드','달빛 분식','아침 커피','모퉁이 꽃집','물결 식당','여름 잡화점','별빛 극장','느린 찻집','고요한 세탁소','종이와 연필','두 번째 식탁','반달 베이커리','라디오 수리점'];
+const homeWords=['햇살빌라','별하우스','느티나무 주택','아침 아파트','온기빌라','노을 맨션','새봄 주택','여름 아파트'];
+const officeWords=['미광 디자인','중앙 오피스','물결 연구소','새빛 스튜디오','한낮 타워','도시 데이터실'];
+const factoryWords=['금속 공방','미광 물류','새벽 제과공장','빛 조립소','포장 작업장'];
+const blockRanges=[[0,4],[10,20],[26,36],[42,52],[58,68],[74,84],[90,99]];
+function addBuilding(x,y,w,h,d,type){
+ const id=buildings.length;
+ const name=type==='home'?layoutRng.pick(homeWords):type==='office'?layoutRng.pick(officeWords):type==='factory'?layoutRng.pick(factoryWords):layoutRng.pick(shopWords);
+ const b={id,x,y,w,h,cx:x+w/2,cy:y+h/2,d,type,name,health:layoutRng.int(43,91),closed:false,reopen:0,sales:0,customers:0,todaySales:0,flow:.25,lastSales:0,occupants:0,scorch:0,twinkle:layoutRng.next()*TAU,windows:[],door:0};
+ buildings.push(b);for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){const i=yy*N+xx;tiles[i]=C.building;buildingAt[i]=id;if(hash(xx,yy,id)>.24)b.windows.push({x:xx,y:yy,k:hash(xx,yy,43)})}
+ return b;
+}
+for(const [y0,y1]of blockRanges)for(const [x0,x1]of blockRanges){
+ for(let y=y0+1;y<=y1-2;y+=6)for(let x=x0+1;x<=x1-2;x+=6){
+  const d=districtAt(x+2,y+2);if(d===4)continue;
+  let w=Math.min(layoutRng.int(3,5),x1-x+1),h=Math.min(layoutRng.int(3,5),y1-y+1);let ok=true;
+  for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)if(tiles[yy*N+xx]!==C.ground)ok=false;
+  if(!ok)continue;
+  let type='home';const r=layoutRng.next();if(d===1)type=r<.55?'office':'shop';else if(d===2)type=r<.85?'shop':'home';else if(d===3)type=r<.77?'factory':'shop';else if(d===6)type=r<.8?'shop':'home';else type=r<.83?'home':'shop';
+  addBuilding(x,y,w,h,d,type);
+ }
+}
+function convertNearest(x,y,type,name){let best=null,dd=Infinity;for(const b of buildings){const v=Math.hypot(x-b.cx,y-b.cy);if(v<dd){dd=v;best=b}}if(best){best.type=type;best.name=name;best.health=100}return best}
+const stations={fire:convertNearest(31,61,'firestation','미광 소방서'),police:convertNearest(60,29,'policestation','중앙 지구대'),medical:convertNearest(16,44,'hospital','가람 병원'),power:convertNearest(14,79,'powerplant','철빛 에너지센터'),cityhall:convertNearest(44,29,'civic','미광 시민회관'),school:convertNearest(29,15,'school','서온 학교')};
+// Courtyards, small gardens and alleys connect every building to the sidewalk network.
+for(let i=0;i<S;i++){let x=i%N,y=(i/N)|0;if(tiles[i]===C.ground){tiles[i]=hash(x,y,7)<.17?C.park:C.walk}if(tiles[i]===C.park&&hash(x,y,18)>.48)treeAt[i]=1;if(tiles[i]===C.walk&&sideRoad(x)&&!sideRoad(y)&&!inRoad(y)&&hash(x,y,9)>.68)treeAt[i]=1;if(tiles[i]!==C.water&&tiles[i]!==C.building)walkTiles.push(i)}
+function nearestWalk(x,y){x=clamp(Math.floor(x),0,99);y=clamp(Math.floor(y),0,99);for(let r=0;r<12;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=100||yy>=100)continue;const i=yy*100+xx;if(tiles[i]!==C.water&&tiles[i]!==C.building&&tiles[i]!==C.road)return i}return 0}
+for(const b of buildings){const options=[];for(let xx=b.x;xx<b.x+b.w;xx++){if(b.y+b.h<100)options.push((b.y+b.h)*100+xx);if(b.y>0)options.push((b.y-1)*100+xx)}for(let yy=b.y;yy<b.y+b.h;yy++){if(b.x>0)options.push(yy*100+b.x-1);if(b.x+b.w<100)options.push(yy*100+b.x+b.w)}b.door=options.filter(i=>tiles[i]!==C.building&&tiles[i]!==C.water).sort((a,c)=>{const roadDist=i=>Math.min(...centers.map(n=>Math.abs((i%100+.5)-n)),...centers.map(n=>Math.abs(((i/100)|0)+.5-n)));return roadDist(a)-roadDist(c)})[0]??nearestWalk(b.cx,b.cy);destinations.push(b)}
+const places=[{name:'느루 잔디광장',x:49,y:79,d:4},{name:'느루 분수정원',x:60,y:90,d:4},{name:'물결 산책로',x:89,y:78,d:6},{name:'별빛 버스킹 광장',x:68,y:48,d:2},{name:'중앙 만남의 광장',x:53,y:20,d:1},{name:'가람 작은 놀이터',x:36,y:50,d:5}];
+for(const p of places){const i=nearestWalk(p.x,p.y);destinations.push({id:destinations.length,x:i%100,y:(i/100)|0,cx:i%100+.5,cy:((i/100)|0)+.5,w:1,h:1,d:p.d,type:'park',name:p.name,door:i,closed:false,occupants:0})}
+const homes=buildings.filter(b=>b.type==='home'),workplaces=buildings.filter(b=>['office','factory','shop','hospital','civic'].includes(b.type)),shops=buildings.filter(b=>b.type==='shop'),parks=destinations.filter(b=>b.type==='park');
+let sim={t:0,clock:1040,day:1,paused:false,night:.22,daylight:.75,weather:'clear',rain:0,wind:2.4,flash:0,boost:0,calm:0,population:680,happiness:77,safety:92,traffic:24,economy:74,power:100,walkers:0,movingCars:0,secondsToEvent:8,secondsToMajor:72,cooldowns:{festival:0,support:0,chance:0},deliveries:0,tradePulse:0};
+let daily={start:1040,popStart:680,accidents:0,closed:0,opened:0,fires:0,crimes:0,festivals:0,rescues:0,sales:0,events:0,biggest:'서로 다른 저녁의 시작',biggestRank:0,peaks:Array(7).fill(0),visits:Array(7).fill(0),happySum:Array(7).fill(0),samples:0};daily.biggest='서로 다른 저녁의 시작';
+let records=[],news=[],events=[],particles=[],ripples=[],selection=null,bannerTTL=0,paperTTL=0,noticeTTL=0,nextEventId=1;
+const settings={sound:false,labels:true,gentle:typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches};
+let audio=null;
+function tone(kind='small'){
+ if(!settings.sound||!audio||audio.state!=='running')return;
+ const notes=kind==='major'?[220,277.18,329.63]:kind==='good'?[392,493.88,587.33]:[293.66,369.99];
+ notes.forEach((f,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,audio.currentTime+i*.12);g.gain.linearRampToValueAtTime(.017,audio.currentTime+i*.12+.025);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+i*.12+1.3);o.connect(g);g.connect(audio.destination);o.start(audio.currentTime+i*.12);o.stop(audio.currentTime+i*.12+1.4)})
+}
+function timeText(n=sim.clock){n=((n%1440)+1440)%1440;return`${String(Math.floor(n/60)).padStart(2,'0')}:${String(Math.floor(n%60)).padStart(2,'0')}`}
+function log(text,tag='',major=false){news.unshift({text,tag,major,time:timeText(),day:sim.day});if(news.length>18)news.length=18;renderFeed()}
+function showBanner(title,subtitle='',color='#b6dfbd'){const el=$('eventBanner');el.textContent='';const st=document.createElement('strong');st.textContent=title;el.append(st);if(subtitle){el.append(document.createElement('br'));const sp=document.createElement('span');sp.textContent=subtitle;el.append(sp)}el.style.borderColor=color+'88';el.classList.add('visible');bannerTTL=5.5}
+function notice(text){$('notice').textContent=text;$('notice').classList.add('show');noticeTTL=4}
+function renderFeed(){const frag=document.createDocumentFragment();for(const item of news.slice(0,6)){const row=document.createElement('div');row.className='feed-item'+(item.major?' major':'');const time=document.createElement('time');time.className='mono';time.textContent=item.time;const p=document.createElement('p');p.textContent=item.text;if(item.tag){const s=document.createElement('span');s.className='label';s.textContent=item.tag;p.append(s)}row.append(time,p);frag.append(row)}$('feed').replaceChildren(frag)}
+// An A* search on the actual 10,000-tile walkable world. Searches are spread
+// across simulation ticks and caches are bounded for long-running sessions.
+const seen=new Int32Array(S),cost=new Float32Array(S),parent=new Int16Array(S);let searchMark=0;
+class Heap{constructor(){this.a=[]}push(n,f){let i=this.a.length;this.a.push({n,f});while(i>0){const p=(i-1)>>1;if(this.a[p].f<=f)break;this.a[i]=this.a[p];i=p}this.a[i]={n,f}}pop(){const root=this.a[0],last=this.a.pop();if(this.a.length){let i=0;while(true){let c=i*2+1;if(c>=this.a.length)break;if(c+1<this.a.length&&this.a[c+1].f<this.a[c].f)c++;if(this.a[c].f>=last.f)break;this.a[i]=this.a[c];i=c}this.a[i]=last}return root}}
+const pathCache=new Map();
+function pathfind(start,end){
+ if(start===end)return[start];const key=start+':'+end;if(pathCache.has(key))return pathCache.get(key).slice();
+ const stamp=++searchMark,heap=new Heap(),ex=end%100,ey=(end/100)|0;seen[start]=stamp;cost[start]=0;parent[start]=-1;heap.push(start,0);let it=0,found=false;
+ while(heap.a.length&&it++<10000){const cur=heap.pop().n;if(cur===end){found=true;break}const cx=cur%100,cy=(cur/100)|0;for(let k=0;k<4;k++){const nx=cx+(k===0?1:k===1?-1:0),ny=cy+(k===2?1:k===3?-1:0);if(nx<0||nx>99||ny<0||ny>99)continue;const ni=ny*100+nx,t=tiles[ni];if(t===C.building||t===C.water)continue;const c=cost[cur]+(t===C.road?(crosswalk[ni]?1.25:3.5):t===C.park?1.22:1);if(seen[ni]!==stamp||c<cost[ni]){seen[ni]=stamp;cost[ni]=c;parent[ni]=cur;heap.push(ni,c+Math.abs(nx-ex)+Math.abs(ny-ey))}}}
+ if(!found)return[];const result=[];let cur=end;while(cur!==-1){result.push(cur);cur=parent[cur]}result.reverse();if(pathCache.size>=384)pathCache.delete(pathCache.keys().next().value);pathCache.set(key,result);return result.slice();
+}
+const people=[],pathQueue=[];let personSerial=0;
+const surnames=['김','이','박','최','정','윤','임','강','오','서','한','송','배','조'];const given=['서윤','민준','지우','도윤','하린','수현','지호','은우','유진','소율','시온','다은','하준','나연','지안','예준','현우','서연','해솔','이든','연우','다온'];
+const roles=['직장인','교대 근무자','학생','야간 근무자','자유로운 주민','가게 주인','산책 애호가'];
+function addPerson(initial=false){const id=personSerial++,home=pick(homes),role=pick([0,0,0,0,1,2,3,4,4,5,6]),works=role===1?buildings.filter(b=>b.type==='factory'):role===2?[stations.school]:role===3?shops.filter(b=>b.d===2):workplaces;const work=pick(works.length?works:workplaces);let b=initial&&chance(.62)?pick(destinations):home;const p={id,name:pick(surnames)+pick(given),role,home:home.id,work:work.id,at:b.id,target:-1,x:b.door%100+.5,y:((b.door/100)|0)+.5,path:null,pi:0,walking:false,waiting:false,visible:false,wait:initial?rand(.05,9):rand(2,6),speed:rand(3.4,6),offset:rand(-1.1,1.1),color:pick(['#f1e4b8','#d9f0d5','#f3c5cc','#addce8','#d7cbee']),purpose:'잠시 쉬는 중',tired:0,first:initial,joy:rand(60,90),visitor:role===4||role===6,tripStart:sim.t};people.push(p);b.occupants=(b.occupants||0)+1;return p}
+function openShop(d=-1){const arr=shops.filter(b=>shopTrading(b)&&(d<0||b.d===d));return pick(arr.length?arr:shops.filter(b=>shopTrading(b)).length?shops.filter(b=>shopTrading(b)):shops)}
+function desiredDestination(p){
+ const h=sim.clock/60+p.offset,home=destinations[p.home],work=destinations[p.work];
+ const attraction=events.filter(e=>['festival','cityfestival','hotspot','market','music','wedding','parade','schooltrip'].includes(e.type)&&e.remaining>9);
+ if(attraction.length&&chance(.44+(p.visitor?.2:0))){const e=pick(attraction);return{dest:destinations[e.venues&&e.venues.length?pick(e.venues):e.target]||parks[0],purpose:({hotspot:'화제의 가게로',music:'버스킹 들으러',wedding:'축하하러',schooltrip:'현장 학습 중'}[e.type]||'축제 보러 가는 중'),event:e.id}}
+ if(sim.rain>.65&&p.at!==p.home&&chance(.36))return{dest:home,purpose:'비를 피해 귀가 중'};
+ if(p.visitor){const d=(h>20||h<4)?openShop(2):chance(.43)?pick(parks):openShop();return{dest:d,purpose:d.type==='park'?'산책하는 중':'동네 구경 중'}}
+ if(p.role===3){if(h>=19||h<3)return{dest:work,purpose:'야간 근무 출근 중'};if(h>=4&&h<13)return{dest:home,purpose:'늦은 잠을 청하러'};return{dest:chance(.5)?openShop():pick(parks),purpose:'한가로운 오후 산책'}}
+ if(p.role===1){if(h>=5&&h<13)return{dest:work,purpose:'작업장으로 출근 중'};if(h>=14&&h<18)return{dest:openShop(),purpose:'퇴근 후 장보는 중'};return{dest:home,purpose:'집으로 돌아가는 중'}}
+ if(p.role===2){if(h>=8&&h<15)return{dest:work,purpose:'등교하는 중'};if(h>=15&&h<19)return{dest:pick(parks),purpose:'친구 만나러 가는 중'};return{dest:home,purpose:'집으로 돌아가는 중'}}
+ if(h>=7&&h<12)return{dest:work,purpose:'출근하는 중'};
+ if(h>=12&&h<14)return{dest:openShop(p.at>=0?destinations[p.at].d:-1),purpose:'점심 먹으러 가는 중'};
+ if(h>=14&&h<17)return{dest:work,purpose:'일터로 돌아가는 중'};
+ if(h>=17&&h<20)return{dest:chance(.7)?openShop():pick(parks),purpose:chance(.65)?'퇴근 후 들르는 길':'약속 장소로 가는 중'};
+ if(h>=20&&h<22&&chance(.35))return{dest:pick(parks),purpose:'저녁 산책 중'};
+ return{dest:home,purpose:'집으로 돌아가는 중'};
+}
+function requestTrip(p,d,purpose,eventId=null){if(!d||p.waiting)return;const unsafe=events.some(e=>['fire','inferno'].includes(e.type)&&(e.target===d.id||e.secondary.includes(d.id)));if(unsafe){const safe=parks.filter(b=>Math.hypot(b.cx-d.cx,b.cy-d.cy)>20);if(safe.length){d=pick(safe);purpose='안전한 곳으로 이동 중'}}if(d.type==='shop'&&d.closed){d=openShop();purpose='다른 가게로 가는 중'}p.target=d.id;p.purpose=purpose;p.event=eventId;p.waiting=true;pathQueue.push(p)}
+function processPaths(){let budget=4;while(budget--&&pathQueue.length){const p=pathQueue.shift();p.waiting=false;const d=destinations[p.target];if(!d||p.removed)continue;const start=nearestWalk(p.x,p.y),path=pathfind(start,d.door);if(path.length<2){if(path.length===0){p.wait=rand(2,5);continue}if(p.at>=0&&p.at!==d.id)destinations[p.at].occupants=Math.max(0,(destinations[p.at].occupants||0)-1);if(p.at!==d.id)d.occupants=(d.occupants||0)+1;p.at=d.id;p.walking=false;p.path=null;p.wait=rand(2,7);p.visible=d.type==='park';continue}if(p.at>=0)destinations[p.at].occupants=Math.max(0,(destinations[p.at].occupants||0)-1);p.at=-1;p.path=path;p.pi=1;p.walking=true;p.visible=true;p.tripStart=sim.t;if(p.first){p.pi=rng.int(1,Math.max(1,path.length-1));const i=path[p.pi-1];p.x=i%100+.5;p.y=((i/100)|0)+.5;p.first=false}}}
+function arrive(p){const d=destinations[p.target];p.walking=false;p.path=null;p.at=d.id;p.visible=d.type==='park';d.occupants=(d.occupants||0)+1;districts[d.d].visits++;daily.visits[d.d]++;p.joy=clamp(p.joy+(d.type==='park'?3:d.type==='shop'?1:0),20,100);
+ if(d.type==='shop'&&shopTrading(d)&&districts[d.d].power>.25){d.sales++;d.todaySales++;d.customers++;d.health=clamp(d.health+.025,0,100);daily.sales++;if(chance(.08))addRipple(d.cx,d.cy,districts[d.d].color,2.5)}
+ const staying=d.id===p.home||d.id===p.work;p.wait=staying?rand(3,6):d.type==='park'?rand(3,9):rand(1.5,4);p.purpose=d.id===p.home?'집에서 쉬는 중':d.id===p.work?(p.role===2?'수업을 듣는 중':'일하는 중'):d.type==='park'?'풍경을 즐기는 중':'가게에 들른 중';
+}
+function updatePeople(dt){
+ for(const p of people){if(p.removed)continue;if(p.walking&&p.path){let move=p.speed*dt*(sim.rain>.65?1.2:1);while(move>0&&p.walking){const i=p.path[p.pi];if(i===undefined){arrive(p);break}const tx=i%100+.5,ty=((i/100)|0)+.5,dx=tx-p.x,dy=ty-p.y,len=Math.hypot(dx,dy);if(len<=move){p.x=tx;p.y=ty;move-=len;p.pi++;if(p.pi>=p.path.length)arrive(p)}else{p.x+=dx/len*move;p.y+=dy/len*move;move=0}}}else if(!p.waiting){p.wait-=dt;if(p.wait<=0){const choice=desiredDestination(p);if(choice.dest.id===p.at){p.wait=rand(2,5);if(p.at===p.home)p.purpose=sim.clock<360?'잠든 중':'집에서 쉬는 중'}else requestTrip(p,choice.dest,choice.purpose,choice.event)}}}
+ processPaths();
+}
+// 36 intersections; lane queues and phase-offset traffic lights.
+const nodes=[];for(let y=0;y<6;y++)for(let x=0;x<6;x++)nodes.push({id:y*6+x,x:centers[x],y:centers[y],gx:x,gy:y,phase:hash(x,y,seed)*9,neighbors:[]});
+for(const n of nodes){for(const [dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const x=n.gx+dx,y=n.gy+dy;if(x>=0&&x<6&&y>=0&&y<6)n.neighbors.push(y*6+x)}}
+const edges=new Map();for(const n of nodes)for(const nb of n.neighbors)edges.set(n.id+'-'+nb,{count:0,jam:0,block:0});
+function nearestNode(x,y){let best=0,v=Infinity;for(const n of nodes){const d=(n.x-x)**2+(n.y-y)**2;if(d<v){v=d;best=n.id}}return best}
+function routeRoad(start,end){if(start===end)end=nodes[start].neighbors[0];const costs=new Float32Array(36).fill(Infinity),prev=new Int16Array(36).fill(-1),used=new Uint8Array(36);costs[start]=0;for(let it=0;it<36;it++){let u=-1;for(let j=0;j<36;j++)if(!used[j]&&(u<0||costs[j]<costs[u]))u=j;if(u<0||u===end)break;used[u]=1;for(const v of nodes[u].neighbors){const e=edges.get(u+'-'+v),c=costs[u]+1+e.count*.22+e.block*4;if(c<costs[v]){costs[v]=c;prev[v]=u}}}const out=[];let cur=end;while(cur>=0){out.push(cur);if(cur===start)break;cur=prev[cur]}return out.reverse()}
+const cars=[];let carSerial=0;
+function carDestination(type){if(type==='truck')return pick(buildings.filter(b=>b.type==='factory'||b.type==='shop'));if(type==='bus')return pick([stations.school,stations.cityhall,...parks]);const hour=sim.clock/60;return hour>=7&&hour<10?pick(workplaces):hour>=17&&hour<20?pick(homes):pick(destinations)}
+function addCar(type='car',event=null){const b=event?(type==='fire'?stations.fire:type==='police'?stations.police:type==='ambulance'?stations.medical:stations.power):pick(destinations);const destination=carDestination(type);let start=nearestNode(b.cx,b.cy),end=event?nearestNode(event.x,event.y):nearestNode(destination.cx,destination.cy);if(start===end)end=pick(nodes[start].neighbors);const route=routeRoad(start,end),c={id:carSerial++,type,route,seg:0,u:event?0:rand(0,.8),speed:type==='bus'?6.8:type==='truck'?6.2:['fire','police','ambulance','repair'].includes(type)?11:rand(7,9.5),velocity:6,wait:0,active:true,responding:event?event.id:null,arrived:false,x:nodes[start].x,y:nodes[start].y,deliveries:0,color:{car:pick(['#b6d4de','#e9ded0','#c0c8df','#a7d0c9']),taxi:'#e8c081',bus:'#d8b070',truck:'#bba388',fire:'#ff9a6a',police:'#96d6ef',ambulance:'#daeef1',repair:'#bcd98e'}[type]||'#b6d4de'};cars.push(c);return c}
+function lightGreen(node,horizontal){const n=nodes[node],d=districtAt(n.x,n.y),black=districts[d].power<.25;if(black)return Math.floor(sim.t/3)%2===(horizontal?0:1);return((sim.t+n.phase)%10)<5===horizontal}
+function updateCars(dt){
+ for(const e of edges.values()){e.count=0;e.jam=0;e.block=0}
+ for(const ev of events)if(['traffic','accident','construction','protest','flood','parade'].includes(ev.type)){const n=nearestNode(ev.x,ev.y);for(const nb of nodes[n].neighbors){edges.get(n+'-'+nb).block+=ev.type==='accident'?2:.7;edges.get(nb+'-'+n).block+=ev.type==='accident'?2:.7}}
+ const groups=new Map();
+ for(const c of cars){if(!c.active)continue;if(c.wait>0){c.wait-=dt;if(c.wait<=0){if(c.responding){c.active=false;continue}const start=c.route[c.route.length-1],d=carDestination(c.type),end=nearestNode(d.cx,d.cy);c.route=routeRoad(start,end);c.seg=0;c.u=0;c.arrived=false}continue}const a=c.route[c.seg],b=c.route[c.seg+1];if(b===undefined)continue;const key=a+'-'+b;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(c);edges.get(key).count++}
+ for(const [key,group]of groups){group.sort((a,b)=>b.u-a.u);const edge=edges.get(key);let ahead=Infinity;for(const c of group){const a=nodes[c.route[c.seg]],b=nodes[c.route[c.seg+1]],horizontal=a.gy===b.gy,emergency=!!c.responding;let speed=c.speed/(1+edge.block*(emergency?.1:.8));if(sim.rain>.5)speed*=.78;const maxU=ahead-(c.type==='bus'?.14:.10);if(c.u+speed*dt/16>maxU)speed=Math.max(0,(maxU-c.u)*16/dt);if(!emergency&&!lightGreen(b.id,horizontal)&&c.u>.83)speed=Math.max(0,Math.min(speed,(.88-c.u)*16/dt));if(edge.block>=2&&!emergency&&c.u>.69&&c.u<.78)speed*=.3;c.velocity=lerp(c.velocity,speed,.65);c.u+=Math.max(0,speed)*dt/16;ahead=c.u;
+  if(speed<1.8)edge.jam++;
+  if(c.u>=1){c.u-=1;c.seg++;if(c.seg>=c.route.length-1){c.seg=c.route.length-2;c.u=.98;c.wait=rand(1,5);if(c.type==='truck'){sim.deliveries++;sim.tradePulse=Math.min(7,(sim.tradePulse||0)+.18);c.deliveries++;const nearby=shops.filter(s=>Math.hypot(s.cx-b.x,s.cy-b.y)<17);for(const s of nearby)s.health=Math.min(100,s.health+.25)}if(c.responding){const ev=events.find(e=>e.id===c.responding);if(ev){ev.responders=(ev.responders||0)+1;ev.responded=true;ev.vehicles.push(c.id);c.arrived=true;c.wait=ev.remaining+2;addRipple(ev.x,ev.y,'#b5e4d1',8);if(!ev.responseLogged){log(`${ev.title} 현장에 ${c.type==='fire'?'소방대':c.type==='police'?'경찰':c.type==='ambulance'?'구급대':'복구팀'}가 도착했습니다.`,districts[ev.d].name);ev.responseLogged=true}}else c.wait=1}}}
+  const aa=nodes[c.route[c.seg]],bb=nodes[c.route[c.seg+1]],dx=Math.sign(bb.x-aa.x),dy=Math.sign(bb.y-aa.y);c.x=lerp(aa.x,bb.x,clamp(c.u,0,1))-dy*.65;c.y=lerp(aa.y,bb.y,clamp(c.u,0,1))+dx*.65;
+ }}
+ for(let i=cars.length-1;i>=0;i--)if(!cars[i].active)cars.splice(i,1);
+}
+const eventDefs={
+ traffic:{title:'꼬리를 문 퇴근길',label:'정체',color:'#f2c17f',kind:'traffic',duration:[23,36],rank:2},
+ accident:{title:'교차로 접촉 사고',label:'사고',color:'#f5ac79',kind:'hazard',duration:[25,37],rank:3,unit:'ambulance'},
+ fire:{title:'건물 화재',label:'화재',color:'#ff9963',kind:'hazard',duration:[32,47],rank:4,unit:'fire'},
+ outage:{title:'구역 정전',label:'정전',color:'#b4bded',kind:'hazard',duration:[27,42],rank:4,unit:'repair'},
+ festival:{title:'작은 거리 축제',label:'축제',color:'#f0b4d4',kind:'good',duration:[35,46],rank:3},
+ construction:{title:'도로 보수 공사',label:'공사',color:'#e2c78e',kind:'traffic',duration:[30,44],rank:2,unit:'repair'},
+ crime:{title:'상가 절도 신고',label:'순찰',color:'#a0caed',kind:'hazard',duration:[23,36],rank:3,unit:'police'},
+ protest:{title:'광장 집회',label:'집회',color:'#b6cce8',kind:'traffic',duration:[25,40],rank:3,unit:'police'},
+ rain:{title:'잠깐의 소나기',label:'비',color:'#9bc9df',kind:'weather',duration:[26,42],rank:2},
+ hotspot:{title:'입소문 난 가게',label:'대기줄',color:'#f6d694',kind:'good',duration:[36,49],rank:3},
+ boom:{title:'골목 상권의 반등',label:'호황',color:'#b6dc9c',kind:'good',duration:[28,40],rank:3},
+ closure:{title:'오래된 가게의 마지막 영업',label:'폐점',color:'#b2b5bc',kind:'economy',duration:[15,22],rank:3},
+ market:{title:'주말 골목 장터',label:'장터',color:'#efca88',kind:'good',duration:[35,48],rank:3},
+ music:{title:'뜻밖의 거리 공연',label:'공연',color:'#d6b7eb',kind:'good',duration:[28,40],rank:2},
+ wedding:{title:'작은 광장 결혼식',label:'축하',color:'#edc4cc',kind:'good',duration:[27,38],rank:2},
+ parade:{title:'느린 불빛 퍼레이드',label:'행진',color:'#eac4e4',kind:'good',duration:[35,45],rank:4},
+ schooltrip:{title:'아이들의 공원 나들이',label:'소풍',color:'#b3dca0',kind:'good',duration:[29,40],rank:2},
+ lostpet:{title:'길 잃은 강아지 찾기',label:'수색',color:'#dbc39b',kind:'hazard',duration:[24,36],rank:2,unit:'police'},
+ delivery:{title:'공장 출하 물량 증가',label:'출하',color:'#d6b181',kind:'economy',duration:[25,40],rank:2},
+ garden:{title:'주민들의 나무 심기',label:'정원',color:'#a6d49a',kind:'good',duration:[26,37],rank:2},
+ heat:{title:'한낮의 열기',label:'더위',color:'#dfb988',kind:'weather',duration:[30,42],rank:3},
+ repair:{title:'변전소 예방 점검',label:'점검',color:'#b4d6a9',kind:'good',duration:[20,32],rank:2,unit:'repair'},
+ flood:{title:'낮은 도로 침수',label:'침수',color:'#80c7df',kind:'hazard',duration:[32,44],rank:4,unit:'repair'},
+ filming:{title:'골목 영화 촬영',label:'촬영',color:'#e8c19f',kind:'good',duration:[26,38],rank:3},
+ newshop:{title:'새 가게의 첫 손님',label:'개업',color:'#cce3a4',kind:'good',duration:[28,37],rank:3},
+ stargaze:{title:'옥상 별빛 관측회',label:'별빛',color:'#bdc6ed',kind:'good',duration:[35,44],rank:3},
+ train:{title:'역 앞에 도착한 여행객',label:'도착',color:'#abcbd9',kind:'good',duration:[28,40],rank:3},
+ cityfestival:{title:'도시 전체 빛 축제',label:'빛 축제',color:'#f0bbdf',kind:'good',duration:[52,65],rank:6,major:true},
+ blackout:{title:'도시 대정전',label:'대정전',color:'#a7b4e1',kind:'hazard',duration:[48,61],rank:7,major:true,unit:'repair'},
+ storm:{title:'도시를 덮친 폭우',label:'폭우',color:'#91bedf',kind:'weather',duration:[44,59],rank:6,major:true},
+ inferno:{title:'연쇄 대형 화재',label:'대형 화재',color:'#f39a6b',kind:'hazard',duration:[48,62],rank:7,major:true,unit:'fire'},
+ nightmarket:{title:'밤을 여는 도시 야시장',label:'야시장',color:'#e9c791',kind:'good',duration:[48,59],rank:5,major:true}
+};
+const majorTypes=['cityfestival','blackout','storm','inferno','nightmarket'];
+const normalTypes=['traffic','accident','fire','outage','festival','construction','crime','protest','rain','hotspot','boom','closure','market','music','wedding','parade','schooltrip','lostpet','delivery','garden','heat','repair','flood','filming','newshop','stargaze','train'];
+function addRipple(x,y,color,r=6){if(ripples.length<30)ripples.push({x,y,color,r,life:0,total:2.5})}
+function closeShop(b){if(!b||b.type!=='shop'||b.closed)return false;b.closed=true;b.health=Math.min(b.health,20);b.reopen=rand(38,72);daily.closed++;return true}
+function reopenShop(b){b.closed=false;b.health=rand(47,68);b.name=pick(shopWords);b.sales=0;b.todaySales=0;b.lastSales=0;b.flow=.23;daily.opened++;addRipple(b.cx,b.cy,'#c4dda8',5);log(`${b.name}, 불 꺼진 자리에 새 간판을 달았습니다.`,districts[b.d].name)}
+function eventTarget(type,d){
+ let list=[];
+ if(['hotspot','boom','closure','newshop','crime'].includes(type))list=shops.filter(b=>d===null||b.d===d);
+ else if(['fire','inferno'].includes(type))list=buildings.filter(b=>['home','shop','factory','office'].includes(b.type)&&(d===null||b.d===d));
+ else if(type==='delivery')list=buildings.filter(b=>b.type==='factory');
+ else if(['festival','cityfestival','market','nightmarket','music','wedding','schooltrip','garden','stargaze'].includes(type))list=parks.filter(b=>d===null||b.d===d);
+ if(!list.length)list=destinations.filter(b=>d===null||b.d===d);
+ return pick(list.length?list:destinations);
+}
+function createEvent(type,forcedD=null,source='natural'){
+ const def=eventDefs[type];if(!def)return null;
+ if(def.major&&events.some(e=>eventDefs[e.type].major))return null;
+ if(events.length>=9){const small=events.filter(e=>!eventDefs[e.type].major).sort((a,b)=>a.remaining-b.remaining)[0];if(small)finishEvent(small,true);else return null}
+ if(type==='storm'||type==='rain'){for(const e of events.filter(e=>e.type==='rain'))finishEvent(e,true)}
+ if(forcedD===null){if(['crime','hotspot','boom','filming'].includes(type))forcedD=pick([1,2,6]);if(['fire','inferno','delivery'].includes(type))forcedD=pick([3,3,0,5]);if(type==='flood')forcedD=6;if(type==='schooltrip'||type==='garden')forcedD=4}
+ let target=eventTarget(type,forcedD);
+ if(type==='closure'){const open=shops.filter(b=>!b.closed);if(!open.length)return null;target=open.sort((a,b)=>a.health-b.health)[rng.int(0,Math.min(7,open.length-1))]}
+ if(type==='newshop'){const closed=shops.filter(b=>b.closed);if(closed.length)target=pick(closed)}
+ const e={id:nextEventId++,type,title:def.title,d:target.d,x:target.cx,y:target.cy,target:target.id,remaining:rand(...def.duration),total:0,elapsed:0,responders:0,responded:false,dispatched:false,responseLogged:false,vehicles:[],source,extraDone:false,secondary:[],venues:[],spark:0};e.total=e.remaining;
+ if(type==='cityfestival'||type==='nightmarket')e.venues=[...parks.map(p=>p.id),...shops.filter(b=>b.d===1||b.d===2).slice(0,6).map(b=>b.id)];
+ if(type==='inferno'){e.secondary=buildings.filter(b=>b.id!==target.id&&Math.hypot(b.cx-e.x,b.cy-e.y)<16).slice(0,5).map(b=>b.id)}
+ events.push(e);daily.events++;if(def.rank>daily.biggestRank){daily.biggest=def.title;daily.biggestType=type;daily.biggestRank=def.rank}
+ if(type==='accident')daily.accidents++;if(type==='fire'||type==='inferno')daily.fires++;if(type==='crime')daily.crimes++;if(['festival','cityfestival','nightmarket'].includes(type))daily.festivals++;
+ if(type==='closure')closeShop(target);
+ if(type==='newshop'&&target.closed)reopenShop(target);
+ if(type==='boom')for(const b of shops.filter(b=>b.d===e.d&&!b.closed))b.health=clamp(b.health+rand(4,9),0,100);
+ if(type==='hotspot')target.health=clamp(target.health+12,0,100);
+ if(type==='delivery')for(let i=0;i<3&&cars.length<165;i++)addCar('truck');
+ if(type==='garden')for(let i=0;i<60;i++){const x=clamp(Math.round(e.x+rand(-9,9)),0,99),y=clamp(Math.round(e.y+rand(-9,9)),0,99),n=y*100+x;if(tiles[n]===C.park)treeAt[n]=1} // extra living trees are rendered dynamically below.
+ if(['fire','inferno','flood'].includes(type))evacuate(e);
+ if(def.kind==='good')attract(e,def.major?130:55);
+ log(type==='closure'?`${target.name}, 잠시 문을 닫습니다. 새 주인을 기다립니다.`:type==='hotspot'?`${target.name} 앞에 손님들의 발길이 이어집니다.`:def.title+(def.major?'이 도시의 풍경을 바꿉니다.':' 소식이 도착했습니다.'),def.major?'도시 전체':districts[e.d].name,!!def.major);
+ if(def.major||source==='user')showBanner(def.title,def.major?'도시의 다른 하루가 시작됩니다':districts[e.d].name,def.color);
+ addRipple(e.x,e.y,def.color,def.major?16:8);tone(def.major?'major':def.kind==='good'?'good':'small');return e;
+}
+function attract(e,count){let candidates=people.filter(p=>!p.waiting).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y));for(const p of candidates.slice(0,count)){const d=e.venues.length?destinations[pick(e.venues)]:destinations[e.target];if(p.at!==d.id)requestTrip(p,d,e.type==='hotspot'?'소문난 가게로 가는 중':e.type==='music'?'거리 공연을 보러':'특별한 소식이 있는 곳으로',e.id)}}
+function evacuate(e){let count=0;for(const p of people){if(count>45)break;if(Math.hypot(p.x-e.x,p.y-e.y)<(e.type==='inferno'?19:10)&&!p.waiting){const safe=parks.filter(b=>Math.hypot(b.cx-e.x,b.cy-e.y)>20);if(safe.length){requestTrip(p,pick(safe),'안전한 곳으로 이동 중');count++}}}if(count)log(`${count}명의 주민이 안전한 장소로 이동하기 시작했습니다.`,districts[e.d].name)}
+function dispatch(e,extra=false){const unit=eventDefs[e.type].unit;if(!unit)return;const count=extra?2:eventDefs[e.type].major?3:1;for(let i=0;i<count;i++)if(cars.filter(c=>c.responding).length<24)addCar(unit,e);e.dispatched=true}
+function finishEvent(e,quiet=false){const idx=events.indexOf(e);if(idx<0)return;events.splice(idx,1);const def=eventDefs[e.type];for(const c of cars)if(c.responding===e.id){c.wait=Math.min(c.wait||1,1.5);c.arrived=true}
+ if(def.kind==='hazard'){daily.rescues++;if(e.type==='fire'||e.type==='inferno'){for(const id of[e.target,...e.secondary]){const b=buildings[id];if(b){b.scorch=rand(18,32);b.health=Math.max(18,b.health-15)}}}if(!quiet)log(e.type==='lostpet'?'길 잃은 강아지가 가족의 품으로 돌아갔습니다.':e.type==='blackout'?'복구가 끝나고 도시의 불빛이 다시 이어집니다.':`${def.title}, 현장이 안정되었습니다.`,e.responded?'대응 차량 현장 처리':'지역 대응팀 처리');addRipple(e.x,e.y,'#b6dbbd',10)}else if(!quiet&&['festival','cityfestival','nightmarket','hotspot'].includes(e.type))log(`${def.title}의 여운이 골목에 남았습니다.`,districts[e.d].name);
+ if(e.type==='construction')sim.traffic=Math.max(0,sim.traffic-4);
+}
+function randomEvent(){let choices=normalTypes.filter(t=>!events.some(e=>e.type===t));if(sim.night>.65)choices=choices.filter(t=>!['schooltrip','heat'].includes(t));if(sim.night<.3)choices=choices.filter(t=>t!=='stargaze');if(sim.weather==='storm')choices=choices.filter(t=>!['rain','heat'].includes(t));if(events.filter(e=>eventDefs[e.type].kind==='hazard').length>=3)choices=choices.filter(t=>eventDefs[t].kind!=='hazard');return createEvent(pick(choices.length?choices:['music']))}
+function burst(x,y,large=false){if(settings.gentle)return;const colors=['#eec3a0','#efb9d8','#afdccb','#c6c3f1','#e5dcad'];const color=pick(colors);for(let i=0;i<(large?26:12)&&particles.length<400;i++){const angle=TAU*i/(large?26:12),v=rand(2,large?9:5);particles.push({x,y,vx:Math.cos(angle)*v,vy:Math.sin(angle)*v,life:rand(1,2.5),total:2.5,color,type:'spark'})}}
+function updateEvents(dt){
+ for(const e of [...events]){const def=eventDefs[e.type];e.elapsed+=dt;let rate=1;if(def.kind==='hazard'||e.type==='construction')rate+=e.responders*.23+(sim.boost>0?.38:0);e.remaining-=dt*rate;if(e.remaining<=0){finishEvent(e);continue}if(def.unit&&!e.dispatched&&e.elapsed>(def.major?3:4.5))dispatch(e);
+  if(e.type==='storm'&&e.elapsed>9&&!e.extraDone){e.extraDone=true;if(events.length<8)createEvent('flood',6);sim.flash=settings.gentle?0:.06}
+  if(e.type==='blackout'&&e.elapsed>7&&!e.extraDone){e.extraDone=true;for(const p of people.filter(p=>p.walking).slice(0,15))p.purpose='어두운 길을 조심히 걷는 중'}
+  if(['festival','cityfestival','nightmarket','parade','wedding'].includes(e.type)){e.spark-=dt;if(e.spark<=0){e.spark=def.major?rand(1.2,2.6):rand(3,5);const venue=e.venues.length?destinations[pick(e.venues)]:{cx:e.x,cy:e.y};burst(venue.cx+rand(-3,3),venue.cy+rand(-4,1),!!def.major)}}
+  if((e.type==='fire'||e.type==='inferno')&&!settings.gentle){e.spark-=dt;if(e.spark<=0){e.spark=.16;const b=destinations[chance(.5)&&e.secondary.length?pick(e.secondary):e.target];if(particles.length<400)particles.push({x:b.cx+rand(-2,2),y:b.cy,vx:rand(-.8,.8),vy:rand(-4,-1),life:rand(.8,2),total:2,color:pick(['#edb76a','#d49066','#d5a981']),type:'ember'})}}
+ }
+ sim.secondsToEvent-=dt;if(sim.secondsToEvent<=0){if(events.length<6)randomEvent();sim.secondsToEvent=rand(11,18)}
+ sim.secondsToMajor-=dt;if(sim.secondsToMajor<=0&&!events.some(e=>eventDefs[e.type].major)){const recent=records.slice(0,2).map(r=>r.biggestType);const arr=majorTypes.filter(t=>!recent.includes(t));createEvent(pick(arr.length?arr:majorTypes));sim.secondsToMajor=rand(105,140)}
+ for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.type==='spark'){p.vx*=1-dt*.7;p.vy+=dt*.8}if(p.life<=0)particles.splice(i,1)}
+ for(let i=ripples.length-1;i>=0;i--){ripples[i].life+=dt;if(ripples[i].life>ripples[i].total)ripples.splice(i,1)}
+ sim.boost=Math.max(0,sim.boost-dt);sim.flash=Math.max(0,sim.flash-dt*.2);
+ for(const k in sim.cooldowns)sim.cooldowns[k]=Math.max(0,sim.cooldowns[k]-dt);
+ if(bannerTTL>0){bannerTTL-=dt;if(bannerTTL<=0)$('eventBanner').classList.remove('visible')}
+ if(paperTTL>0){paperTTL-=dt;$('paperTime').style.transform=`scaleX(${clamp(paperTTL/14,0,1)})`;if(paperTTL<=0)$('daypaper').classList.remove('visible')}
+ if(noticeTTL>0){noticeTTL-=dt;if(noticeTTL<=0)$('notice').classList.remove('show')}
+}
+function updateEnvironment(dt){
+ const h=sim.clock/60,sun=Math.sin((h-6)/24*TAU);sim.daylight=clamp((sun+.12)*1.5,0,1);sim.night=1-sim.daylight;
+ const storm=events.some(e=>e.type==='storm'),rain=events.some(e=>e.type==='rain'),heat=events.some(e=>e.type==='heat');sim.weather=storm?'storm':rain?'rain':heat?'heat':'clear';sim.rain=lerp(sim.rain,storm?1:rain?.45:0,Math.min(1,dt*.7));sim.wind=storm?9.6:rain?4.8:2.4+Math.sin(sim.t*.028)*.8;
+ const powerDemand=62+sim.night*27+events.filter(e=>['cityfestival','festival','nightmarket','heat'].includes(e.type)).length*5;
+ let supply=107+(sim.boost>0?9:0);if(storm)supply-=8;
+ for(const d of districts){let p=Math.min(1,supply/powerDemand);for(const e of events){const fading=clamp(e.remaining/6,0,1);if(e.type==='blackout')p*=1-.91*fading;if(e.type==='outage'&&e.d===districts.indexOf(d))p*=1-.85*fading;if(e.type==='inferno'&&e.d===districts.indexOf(d))p*=.65}d.power=lerp(d.power,p,Math.min(1,dt*1.5))}
+ sim.tradePulse=Math.max(0,(sim.tradePulse||0)-dt*.13);sim.power=lerp(sim.power,districts.reduce((sum,d)=>sum+d.power,0)/7*100,Math.min(1,dt));
+ for(const b of buildings)if(b.scorch>0)b.scorch=Math.max(0,b.scorch-dt);
+}
+let statsTimer=0,businessTimer=0,migrationTimer=30,storyTimer=17,saveTimer=12,uiTimer=0;
+function updateStats(){
+ for(const d of districts)d.walking=0;let walking=0;for(const p of people)if(p.walking){districts[districtAt(p.x,p.y)].walking++;walking++}sim.walkers=walking;
+ const moving=cars.filter(c=>c.active&&c.wait<=0),slow=moving.filter(c=>c.velocity<2).length;sim.movingCars=moving.length;
+ const block=events.filter(e=>['traffic','accident','construction','flood','protest'].includes(e.type)).length;
+ const trafficTarget=clamp(7+(moving.length?slow/moving.length:0)*76+block*4+sim.rain*7,4,98);sim.traffic=lerp(sim.traffic,trafficTarget,.17);
+ const danger=events.filter(e=>eventDefs[e.type].kind==='hazard').reduce((a,e)=>a+eventDefs[e.type].rank*(1-e.responders*.045),0);
+ const safetyTarget=clamp(95-danger*1.8-(100-sim.power)*.12+(sim.boost>0?6:0),30,99);sim.safety=lerp(sim.safety,safetyTarget,.12);
+ const open=shops.filter(b=>!b.closed),avgHealth=open.length?open.reduce((a,b)=>a+b.health,0)/open.length:30;
+ const econTarget=clamp(avgHealth*.66+open.length/shops.length*30-(100-sim.power)*.13+(sim.tradePulse||0),20,99);sim.economy=lerp(sim.economy,econTarget,.055);
+ const good=events.filter(e=>eventDefs[e.type].kind==='good');
+ const happyTarget=clamp(58+sim.economy*.29+sim.safety*.07-sim.traffic*.13-danger*.54+good.length*2.4-(100-sim.power)*.075+(sim.boost>0?2:0),25,99);sim.happiness=lerp(sim.happiness,happyTarget,.08);
+ for(let i=0;i<7;i++){const d=districts[i],localGood=good.filter(e=>e.d===i||eventDefs[e.type].major).length,localDanger=events.filter(e=>e.d===i&&eventDefs[e.type].kind==='hazard').length;d.happiness=clamp(sim.happiness+(d.h-77)*.5+localGood*2-localDanger*3,20,99);d.peak=Math.max(d.peak,d.walking);daily.peaks[i]=Math.max(daily.peaks[i],d.walking);daily.happySum[i]+=d.happiness;d.activity=lerp(d.activity,d.walking,.45)}daily.samples++;
+}
+function updateBusinesses(dt){
+ for(const b of shops){if(b.closed){b.reopen-=dt;if(b.reopen<=0)reopenShop(b)}else{const visits=Math.max(0,b.sales-(b.lastSales||0));b.lastSales=b.sales;b.flow=lerp(b.flow||0,visits/dt,.18);const rent=b.d===1?10:b.d===2?7:3;const boom=events.some(e=>e.type==='boom'&&e.d===b.d)?13:0;const target=clamp(26+b.flow*130-rent-(1-districts[b.d].power)*30+boom,10,93);b.health=lerp(b.health,target,Math.min(1,dt*.015));if(b.health<20&&chance(.10)){if(closeShop(b))log(`${b.name}, 적자를 견디지 못하고 문을 닫았습니다.`,districts[b.d].name)}}}
+}
+function migrate(){const carrying=clamp(680+(sim.happiness-78)*8+(sim.economy-72)*2-Math.max(0,sim.traffic-55)*.8,500,820);const desired=Math.round(clamp((carrying-people.length)*.055+rand(-1.6,1.6),-7,7));
+ if(desired>0&&people.length<850){for(let i=0;i<desired&&people.length<850;i++)addPerson();log(`${desired}명의 새 이웃이 미광시에 짐을 풀었습니다.`,'생활 여건에 따른 전입')}
+ else if(desired<0&&people.length>480){let removed=0;for(let i=people.length-1;i>=0&&removed<-desired;i--){const p=people[i];if(selection&&selection.type==='person'&&selection.id===p.id)continue;if(p.at>=0)destinations[p.at].occupants=Math.max(0,destinations[p.at].occupants-1);p.removed=true;people.splice(i,1);removed++}log(`${removed}명의 주민이 다른 도시로 떠났습니다.`,'생활 여건에 따른 전출')}
+ sim.population=people.length;
+}
+function microstory(){
+ const bought=shops.filter(b=>b.todaySales>4&&!b.closed),walker=pick(people.filter(p=>p.walking));
+ if(bought.length&&chance(.48)){const b=pick(bought);log(`${b.name}, 오늘 ${b.todaySales}번째 손님을 맞이했습니다.`,districts[b.d].name)}
+ else if(walker)log(`${walker.name} 씨는 ${walker.purpose}${walker.purpose.endsWith('중')||walker.purpose.endsWith('길')?'입니다.':' 향합니다.'}`, districts[districtAt(walker.x,walker.y)].name);
+ else log(sim.night>.7?'늦은 불빛 아래, 교대 근무자들의 하루가 이어집니다.':'큰 사건이 없는 순간에도, 각자의 하루는 이어집니다.','미광 생활 통신');
+}
+function finishDay(){
+ const busiest=daily.peaks.indexOf(Math.max(...daily.peaks)),happy=daily.happySum.indexOf(Math.max(...daily.happySum)),headlines={blackout:'불이 꺼져도, 도시는 이어졌다.',inferno:'긴 소방 호스 끝에, 다시 일상.',storm:'비가 지나간 자리에도 삶은 남았다.',cityfestival:'오늘 밤, 도시가 하나의 무대였다.',nightmarket:'밤이 길어진 만큼, 이야기도 늘었다.'};
+ const record={day:sim.day,start:daily.start,busiest:districts[busiest].name,peak:daily.peaks[busiest],happy:districts[happy].name,happiness:daily.samples?Math.round(daily.happySum[happy]/daily.samples):Math.round(sim.happiness),biggest:daily.biggest,biggestType:daily.biggestType||'',accidents:daily.accidents,closed:daily.closed,opened:daily.opened,fires:daily.fires,crimes:daily.crimes,rescues:daily.rescues,sales:daily.sales,events:daily.events,population:people.length,popChange:people.length-daily.popStart,title:headlines[daily.biggestType]||(daily.festivals?'골목의 작은 축제가 하루를 빛냈다.':'수많은 평범한 하루가, 도시를 만들었다.')};
+ records.unshift(record);if(records.length>7)records.length=7;renderArchives();showPaper(record);
+ log(`${sim.day}일의 도시 일보가 도착했습니다. 오늘의 중심은 ${record.busiest}.`,'자정 · 기록 보관');
+ for(const b of shops){b.todaySales=0;b.customers=0}for(const d of districts){d.peak=0;d.visits=0}
+ daily={start:0,popStart:people.length,accidents:0,closed:0,opened:0,fires:0,crimes:0,festivals:0,rescues:0,sales:0,events:0,biggest:'평온한 일상',biggestType:'',biggestRank:0,peaks:Array(7).fill(0),visits:Array(7).fill(0),happySum:Array(7).fill(0),samples:0};
+}
+function showPaper(r){$('paperDay').textContent=`${String(r.day).padStart(2,'0')}호`;$('paperTitle').textContent=r.title;$('paperDesc').textContent=`가장 붐빈 곳은 ${r.busiest}(${r.peak}명). 가장 행복했던 곳은 ${r.happy}(${r.happiness}%). 가장 큰 소식은 ‘${r.biggest}’.`;
+ $('paperFacts').replaceChildren();for(const[v,label]of[[r.sales,'가게 방문'],[r.closed,'문 닫은 가게'],[r.accidents,'교통 사고']]){const div=document.createElement('div'),strong=document.createElement('strong'),span=document.createElement('span');strong.className='mono';strong.textContent=fmt(v);span.textContent=label;div.append(strong,span);$('paperFacts').append(div)}$('daypaper').classList.add('visible');paperTTL=14;tone('good')}
+function renderArchives(){if(!records.length)return;$('archiveCount').textContent=`${records.length}일`;$('archives').replaceChildren();for(const r of records){const el=document.createElement('article');el.className='record';const h=document.createElement('h4');h.textContent=`관측 ${String(r.day).padStart(2,'0')}일${r.start?' · '+timeText(r.start)+'부터':''} — ${r.title}`;const p=document.createElement('p');p.textContent=`최대 밀집 ${r.busiest} ${r.peak}명 · 행복 ${r.happy} ${r.happiness}% · 가장 큰 소식 ${r.biggest} · 폐점 ${r.closed} / 개업 ${r.opened} · 사고 ${r.accidents} / 화재 ${r.fires} / 범죄 ${r.crimes} · 해결 ${r.rescues}건 · 가게 방문 ${r.sales}회 · 인구 ${r.population}명 (${r.popChange>=0?'+':''}${r.popChange})`;el.append(h,p);$('archives').append(el)}}
+function step(dt){if(sim.paused)return;sim.t+=dt;sim.clock+=dt*7.5;while(sim.clock>=1440){sim.clock-=1440;finishDay();sim.day++}updateEnvironment(dt);updatePeople(dt);updateCars(dt);updateEvents(dt);
+ statsTimer+=dt;if(statsTimer>=1){statsTimer-=1;updateStats()}
+ businessTimer+=dt;if(businessTimer>=3){updateBusinesses(businessTimer);businessTimer=0}
+ migrationTimer-=dt;if(migrationTimer<=0){migrate();migrationTimer=30}
+ storyTimer-=dt;if(storyTimer<=0){microstory();storyTimer=rand(14,22)}
+ saveTimer-=dt;if(saveTimer<=0){saveState();saveTimer=12}
+ uiTimer+=dt;if(uiTimer>=.35){uiTimer=0;updateUI()}
+}
+// Each tile is drawn as an independent LED. Terrain is cached twice; the
+// changing lights, citizens, vehicles and incidents remain live layers.
+const canvas=$('city'),ctx=canvas.getContext('2d',{alpha:false}),zoom=$('zoom'),zctx=zoom.getContext('2d',{alpha:false});
+const dayMap=document.createElement('canvas'),nightMap=document.createElement('canvas');dayMap.width=nightMap.width=1000;dayMap.height=nightMap.height=1000;
+let cssSize=600,renderScale=10,frameCount=0;
+const colorRGB=new Map();function rgba(hex,a){if(!colorRGB.has(hex))colorRGB.set(hex,[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]);const c=colorRGB.get(hex);return`rgba(${c[0]},${c[1]},${c[2]},${a})`}
+function shade(hex,f){const c=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];return`rgb(${c.map(n=>Math.round(clamp(n*f,0,255))).join(',')})`}
+const roofDay=['#907b63','#6d8a89','#876b87','#81705a','#688467','#827a89','#688981'];
+const roofNight=['#493f36','#314b50','#493c52','#494134','#2c4132','#403e4e','#304941'];
+const lamps=[];for(const i of walkTiles){const x=i%100,y=(i/100)|0;if((sideRoad(x)||sideRoad(y))&&!treeAt[i]&&hash(x,y,56)>.81)lamps.push(i)}
+function buildBase(target,day){const g=target.getContext('2d');g.fillStyle=day?'#344b45':'#0d1c23';g.fillRect(0,0,1000,1000);
+ for(let y=0;y<100;y++)for(let x=0;x<100;x++){const i=y*100+x,t=tiles[i],d=tileDistrict[i],h=hash(x,y,seed),f=.87+h*.21;let c;
+  if(t===C.road)c=day?'#2e403f':'#111f29';else if(t===C.walk)c=day?'#6b7770':'#283c3c';else if(t===C.water)c=day?'#386571':'#173444';else if(t===C.park)c=day?'#4f7355':'#244a3d';else if(t===C.plaza)c=day?'#81907a':'#394e47';else if(t===C.building)c=day?roofDay[d]:roofNight[d];else c=day?'#597065':'#263e3b';
+  g.fillStyle=shade(c,f);g.fillRect(x*10+.6,y*10+.6,8.8,8.8);
+  if(t===C.road){if(crosswalk[i]){g.fillStyle=day?'#8c999088':'#8aab9b55';g.fillRect(x*10+2,y*10+3,6,4)}else if((inRoad(x)&&(x-7)%16===0&&y%4===0)||(inRoad(y)&&(y-7)%16===0&&x%4===0)){g.fillStyle=day?'#b5b39877':'#80a7973a';g.fillRect(x*10+4,y*10+4,2,2)}}
+  if(treeAt[i]){g.fillStyle=day?'#253f3844':'#071c2655';g.fillRect(x*10+3,y*10+3,7,7);g.fillStyle=shade(day?'#8da576':'#4c7052',f);g.fillRect(x*10+1,y*10+1,6.5,6.5);g.fillStyle=day?'#bfd19b':'#698563';g.fillRect(x*10+2,y*10+1,2,2)}
+ }
+ for(const b of buildings){g.strokeStyle=day?'#283e3777':'#09141d88';g.lineWidth=2;g.strokeRect(b.x*10+.6,b.y*10+.6,b.w*10-1.2,b.h*10-1.2);g.fillStyle=day?'#c8ceac55':'#c6d2b91c';g.fillRect(b.x*10+2,b.y*10+2,b.w*10-4,1.5);if(b.type==='factory'){g.fillStyle=day?'#37494b':'#162b37';g.fillRect((b.x+1)*10,(b.y+1)*10,Math.max(9,(b.w-2)*10),Math.max(7,(b.h-2)*10))}else if(b.type==='office'){g.fillStyle=day?'#adcac555':'#79b7c62e';g.fillRect((b.x+.3)*10,(b.y+.3)*10,4,(b.h-.6)*10)}
+ }
+ // Promenade edge and little landing lights.
+ for(let y=0;y<100;y++){const x=Math.floor(92+Math.sin(y*.12)*1.6);if(tiles[y*100+x]!==C.building){g.fillStyle=day?'#a0b5a588':'#81baae55';g.fillRect(x*10+3,y*10+3,3,3)}}
+}
+buildBase(dayMap,true);buildBase(nightMap,false);
+function resize(){const rect=canvas.getBoundingClientRect();cssSize=Math.max(1,rect.width);const dpr=Math.min(settings.gentle?1.35:2,window.devicePixelRatio||1),size=Math.max(200,Math.round(cssSize*dpr));if(canvas.width!==size||canvas.height!==size){canvas.width=canvas.height=size;renderScale=size/100}draw()}
+function rectLed(x,y,size,color,alpha=1){ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.fillRect(Math.floor(x)+(1-size)/2,Math.floor(y)+(1-size)/2,size,size);ctx.globalAlpha=1}
+function buildingLight(b){const h=sim.clock/60,power=districts[b.d].power;let v=.15;
+ if(b.type==='home'){const evening=clamp((h-17.2-hash(b.id,4,seed)*1.7)/1.5,0,1),sleep=h>=22?clamp((h-22-hash(b.id,5,seed)*1.2)/1.3,0,1):0;v=h<6?.1+hash(b.id,6,seed)*.1:.12+evening*.73*(1-sleep*.8);}
+ else if(b.type==='office')v=h>=7&&h<18?.78:h>=18&&h<22?.78-clamp((h-18-hash(b.id,7,seed))/3,0,1)*.65:.13;
+ else if(b.type==='shop')v=shopTrading(b)?(.55+b.health*.004):.08;
+ else if(b.type==='factory')v=h>=5&&h<19?.5:.21;
+ else if(['hospital','firestation','policestation','powerplant'].includes(b.type))v=.82;
+ else if(b.type==='school')v=h>=7&&h<18?.6:.07;else v=.4;
+ if(b.closed||b.scorch>0)v*=.12;
+ return v*power;
+}
+function drawBuildings(){
+ for(const b of buildings){let level=buildingLight(b),color=b.type==='home'?'#f2c792':b.type==='factory'?'#dba976':b.type==='hospital'?'#b7e3cd':b.type==='firestation'?'#e4aa89':districts[b.d].color;
+  if(b.scorch>0){ctx.fillStyle='#101b20';ctx.globalAlpha=.48;ctx.fillRect(b.x,b.y,b.w,b.h);ctx.globalAlpha=1}
+  const glow=level*(.3+sim.night*.7);if(sim.night>.15&&!settings.gentle){ctx.fillStyle=color;ctx.globalAlpha=glow*.075;ctx.fillRect(b.x-.45,b.y-.45,b.w+.9,b.h+.9)}
+  ctx.fillStyle=color;for(const w of b.windows){const lit=w.k<level;let a=lit?(sim.night*.7+.10)*(.65+w.k*.35):.018;if(b.type==='shop'&&lit)a*=.91+Math.sin(sim.t*.6+b.twinkle)*.09;ctx.globalAlpha=a;ctx.fillRect(w.x+.16,w.y+.16,.68,.68);if(lit&&sim.night>.55&&w.k<.15){ctx.globalAlpha=a*.65;ctx.fillRect(w.x+.29,w.y+.25,.28,.24)}}
+  ctx.globalAlpha=1;
+  if(b.type==='shop'&&!b.closed){ctx.fillStyle=color;ctx.globalAlpha=(.35+sim.night*.5)*level;ctx.fillRect(b.x+.15,b.y+b.h-.36,b.w-.3,.2)}
+  if(['hospital','firestation','policestation','powerplant','school','civic'].includes(b.type)){const c=b.type==='hospital'?'#ccecc7':b.type==='firestation'?'#f0a383':b.type==='policestation'?'#9bcedd':b.type==='powerplant'?'#d8d897':'#bcd3c5';ctx.fillStyle=c;ctx.globalAlpha=.6+level*.3;ctx.fillRect(b.cx-.3,b.cy-.9,.6,1.8);ctx.fillRect(b.cx-.9,b.cy-.3,1.8,.6)}
+  if(b.closed){ctx.strokeStyle='#a39d9288';ctx.lineWidth=.22;ctx.beginPath();ctx.moveTo(b.x+.5,b.y+.5);ctx.lineTo(b.x+b.w-.5,b.y+b.h-.5);ctx.moveTo(b.x+b.w-.5,b.y+.5);ctx.lineTo(b.x+.5,b.y+b.h-.5);ctx.stroke()}
+  ctx.globalAlpha=1;
+ }
+}
+function drawStreets(){
+ if(sim.night>.15){for(const i of lamps){const d=tileDistrict[i],p=districts[d].power;if(p<.2)continue;const x=i%100,y=(i/100)|0;ctx.fillStyle='#d9d8ad';ctx.globalAlpha=.46*sim.night*p;ctx.fillRect(x+.33,y+.33,.34,.34);if(!settings.gentle){ctx.globalAlpha=.037*sim.night*p;ctx.fillRect(x-.6,y-.6,2.2,2.2)}}ctx.globalAlpha=1}
+ for(const n of nodes){const green=lightGreen(n.id,true),powered=districts[districtAt(n.x,n.y)].power>.3;ctx.fillStyle=powered?(green?'#9ecb9e':'#dc9a83'):'#bca570';ctx.globalAlpha=sim.night>.5?.8:.65;ctx.fillRect(n.x-2,n.y-1.8,.33,.33);ctx.fillStyle=powered?(green?'#dc9a83':'#9ecb9e'):'#bca570';ctx.fillRect(n.x+1.6,n.y+1.3,.33,.33)}ctx.globalAlpha=1;
+}
+function drawWater(){
+ const t=sim.t;for(let k=0;k<waterTiles.length;k++){const i=waterTiles[k],x=i%100,y=(i/100)|0,h=hash(x,y,82),wave=Math.sin(y*.55+x*.8-t*1.1);if(wave>.1&&h>.44){ctx.fillStyle=sim.night>.5?'#92c8c0':'#bad2c2';ctx.globalAlpha=(wave*.12+.02)*(sim.night>.5?.6:1);ctx.fillRect(x+.2,y+.25,.65,.25)}if(sim.night>.45&&y%3===0&&h>.66){ctx.fillStyle=y<35?'#a6c7d0':y<68?'#d2a5c7':'#b7c38f';ctx.globalAlpha=.12+wave*.05;ctx.fillRect(x+.22,y+.18,.55,.65)}}ctx.globalAlpha=1;
+ for(let k=0;k<3;k++){const y=((t*(k===1?-1.15:1.25)+k*31+200)%100),x=96.5+Math.sin(y*.12)*.65;ctx.fillStyle='#2e5964';ctx.fillRect(x-.4,y-3.7,.8,2.5);ctx.fillStyle=k===1?'#d4cba8':'#b8d2c9';ctx.fillRect(x-.6,y-1.1,1.2,2.2);ctx.fillStyle='#e7dfb5';ctx.fillRect(x-.2,y-.6,.4,.5);ctx.fillStyle='#9ec7bb';ctx.globalAlpha=.22;ctx.fillRect(x-1.2,y-5,2.4,.22);ctx.globalAlpha=1}
+}
+function drawParks(){
+ // The fountain is a walk-through LED water plaza, not an invisible wall.
+ const cx=48.5,cy=79.5;for(let i=0;i<14;i++){const a=i/14*TAU,r=2.7,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;rectLed(x,y,.55,i%2?'#92c8bc':'#b6d8c2',.55+Math.sin(sim.t*1.5+i)*.14)}
+ for(let i=0;i<5;i++){const angle=sim.t*.4+i/5*TAU,r=.8+Math.sin(sim.t*1.2+i)*.45;rectLed(cx+Math.cos(angle)*r,cy+Math.sin(angle)*r,.45,'#cbe9df',.72)}
+ if(!settings.gentle){for(let i=0;i<12;i++){const x=41+hash(i,1,8)*23,y=75+hash(i,2,8)*22;if(tiles[Math.floor(y)*100+Math.floor(x)]===C.park){const a=Math.max(0,Math.sin(sim.t*.6+i))*sim.night*.6;rectLed(x+Math.sin(sim.t*.3+i)*.5,y,.23,'#dfedb2',a)}}}
+ for(const e of events.filter(e=>e.type==='garden')){for(let k=0;k<14;k++){const x=clamp(Math.floor(e.x+Math.sin(k*2.4)*8),0,99),y=clamp(Math.floor(e.y+Math.cos(k*1.7)*8),0,99);if(tiles[y*100+x]===C.park)rectLed(x,y,.65,'#aac993',.65)}}
+}
+function drawPeople(){
+ for(const p of people){if(!p.walking&&!p.visible)continue;const x=Math.floor(p.x),y=Math.floor(p.y);if(x<0||x>99||y<0||y>99)continue;const power=districts[districtAt(p.x,p.y)].power;const size=p.walking?.62:.5;
+  if(sim.night>.4&&!settings.gentle){ctx.globalAlpha=.10;ctx.fillStyle=p.color;ctx.fillRect(x-.25,y-.25,1.5,1.5)}
+  ctx.globalAlpha=1;ctx.fillStyle=p.color;ctx.fillRect(x+(1-size)/2,y+(1-size)/2,size,size);
+  if(sim.rain>.3){ctx.fillStyle=p.color;ctx.globalAlpha=.52;ctx.fillRect(x+.06,y+.08,.88,.22);ctx.globalAlpha=1}
+  if(power<.3){ctx.fillStyle='#dfdab0';ctx.globalAlpha=.12;ctx.fillRect(x-.8,y-.8,2.6,2.6);ctx.globalAlpha=1}
+ }
+}
+function drawCars(){for(const c of cars){if(!c.active||c.arrived)continue;const a=nodes[c.route[c.seg]],b=nodes[c.route[c.seg+1]];if(!a||!b)continue;const dx=Math.sign(b.x-a.x),dy=Math.sign(b.y-a.y),hor=!!dx,x=Math.floor(c.x)+.5,y=Math.floor(c.y)+.5,len=c.type==='bus'?2.05:c.type==='truck'?1.65:1.32;
+ if(sim.night>.25&&!settings.gentle){ctx.globalAlpha=.12;ctx.fillStyle='#eadbbb';ctx.fillRect(x+dx*.8-.8,y+dy*.8-.8,1.6,1.6)}ctx.globalAlpha=1;ctx.fillStyle=c.color;ctx.fillRect(x-(hor?len:.52)/2,y-(hor?.52:len)/2,hor?len:.52,hor?.52:len);
+ ctx.fillStyle='#fff2c9';ctx.fillRect(x+dx*len*.5-.14,y+dy*len*.5-.14,.28,.28);ctx.fillStyle='#e49781';ctx.fillRect(x-dx*len*.45-.12,y-dy*len*.45-.12,.24,.24);
+ if(c.responding){const even=(Math.floor(sim.t*3)+c.id)%2===0;ctx.fillStyle=even?'#b9e7f0':'#f0b4a4';ctx.fillRect(x-.25,y-.25,.5,.5);ctx.globalAlpha=settings.gentle?.04:.12;ctx.fillRect(x-1.1,y-1.1,2.2,2.2);ctx.globalAlpha=1}
+}}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function label(text,x,y,color='#c5d1bd',important=false){const size=clamp(850/cssSize,1.13,2.3)*(important?1.04:1);ctx.font=`${important?'600':'500'} ${size}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;const width=ctx.measureText(text).width+1.7;const xx=clamp(x-width/2,1,99-width),yy=clamp(y,8,95);roundRect(xx,yy,width,size+1.1,.45);ctx.fillStyle=important?'#16272be8':'#172725c7';ctx.fill();ctx.strokeStyle=rgba(color,important?.62:.23);ctx.lineWidth=.10;ctx.stroke();ctx.fillStyle=color;ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(text,xx+width/2,yy+(size+1.1)/2);ctx.textAlign='start';ctx.textBaseline='alphabetic'}
+function drawEvents(){
+ for(const e of events){const def=eventDefs[e.type],progress=1-e.remaining/e.total,color=def.color;
+  if(['rain','storm','heat','stargaze'].includes(e.type))continue;
+  const radius=def.major?11:6;
+  ctx.strokeStyle=rgba(color,.30);ctx.lineWidth=.17;ctx.setLineDash([.65,1.15]);ctx.beginPath();ctx.arc(e.x,e.y,radius*(.95+Math.sin(sim.t+e.id)*.025),0,TAU);ctx.stroke();ctx.setLineDash([]);
+  if(e.type==='fire'||e.type==='inferno'){const ids=[e.target,...e.secondary.slice(0,Math.floor(e.elapsed/4))];for(const id of ids){const b=destinations[id];if(!b)continue;const fade=clamp(e.remaining/5,0,1);ctx.fillStyle='#da6d46';ctx.globalAlpha=.08*fade;ctx.fillRect(b.x-1,b.y-1,b.w+2,b.h+2);ctx.globalAlpha=1;for(let y=b.y;y<b.y+b.h;y++)for(let x=b.x;x<b.x+b.w;x++){const h=hash(x,y,Math.floor(sim.t*4)),a=(.4+h*.5)*fade;rectLed(x,y,.82,h>.6?'#f5d391':h>.23?'#e99c60':'#b7674c',a)}
+    if(e.responders>0){ctx.strokeStyle='#b6dfea99';ctx.lineWidth=.27;const near=nodes[nearestNode(b.cx,b.cy)];ctx.beginPath();ctx.moveTo(near.x,near.y);ctx.quadraticCurveTo((near.x+b.cx)/2,(near.y+b.cy)/2-4,b.cx+Math.sin(sim.t*2)*1.3,b.cy);ctx.stroke()}
+   }}
+  if(['construction','accident','traffic','flood'].includes(e.type)){const node=nodes[nearestNode(e.x,e.y)];for(let k=-3;k<=3;k++)if(e.type==='flood'){rectLed(node.x+k,node.y+Math.sin(k+sim.t),.87,'#6cb2c9',.5)}else if(k%2){rectLed(node.x+k,node.y+2,.6,color,.7)}if(e.type==='accident'){rectLed(node.x-.8,node.y,.83,'#e8b3a0',1);rectLed(node.x+.4,node.y+.8,.83,'#a8c7d4',1)}}
+  if(e.type==='outage'||e.type==='blackout'){ctx.strokeStyle=rgba('#b5c9e3',.16);ctx.lineWidth=.2;const node=nodes[nearestNode(e.x,e.y)];ctx.beginPath();ctx.moveTo(node.x,node.y);ctx.lineTo(e.x,e.y);ctx.stroke();if(e.responders){for(let k=0;k<e.responders*3;k++){const a=sim.t*.3+k*2,r=3+Math.sin(sim.t*.8+k);rectLed(e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,.4,'#a8d1d8',.55)}}}
+  if(['festival','cityfestival','market','nightmarket','music','wedding','hotspot','parade','filming'].includes(e.type)){const venues=e.venues.length?e.venues.map(i=>destinations[i]):[{cx:e.x,cy:e.y}];for(const v of venues){for(let k=0;k<18;k++){const a=k/18*TAU,r=e.type==='hotspot'?3.3:4.4;const xx=v.cx+Math.cos(a)*r,yy=v.cy+Math.sin(a)*r;rectLed(xx,yy,.5,k%3===0?'#bde3cf':k%3===1?'#efc5de':'#e8d396',.45+.20*Math.sin(sim.t*1.4+k*.6))}if(e.type==='music'){ctx.strokeStyle=rgba(color,.2);ctx.lineWidth=.14;ctx.beginPath();ctx.arc(v.cx,v.cy,3+((sim.t*1.7)%4),0,TAU);ctx.stroke()}}}
+  if(e.type==='protest'){for(let k=0;k<12;k++){const a=k/12*TAU;rectLed(e.x+Math.cos(a)*3,e.y+Math.sin(a)*3,.65,k%2?'#c8ddcb':'#d6c5a9',.65)}}
+  if(e.type==='lostpet'){const x=e.x+Math.sin(sim.t*.4)*3,y=e.y+Math.cos(sim.t*.6)*2;rectLed(x,y,.6,'#e7c894',.95)}
+ }
+ for(const r of ripples){ctx.globalAlpha=(1-r.life/r.total)*.38;ctx.strokeStyle=r.color;ctx.lineWidth=.18;ctx.beginPath();ctx.arc(r.x,r.y,r.r*(r.life/r.total),0,TAU);ctx.stroke()}ctx.globalAlpha=1;
+ for(const p of particles){const size=p.type==='ember'?.35:.47;rectLed(p.x,p.y,size,p.color,clamp(p.life/p.total,0,1))}
+}
+function drawAtmosphere(){
+ const inferno=events.find(e=>e.type==='inferno');if(inferno){const g=ctx.createRadialGradient(inferno.x,inferno.y,2,inferno.x,inferno.y,45);g.addColorStop(0,'#e286382b');g.addColorStop(1,'#e2863800');ctx.fillStyle=g;ctx.fillRect(0,0,100,100)}
+ if(sim.rain>.05){ctx.fillStyle='#17313a';ctx.globalAlpha=sim.rain*.12;ctx.fillRect(0,0,100,100);ctx.globalAlpha=1;ctx.strokeStyle=`rgba(172,205,215,${sim.rain*.23})`;ctx.lineWidth=.15;const count=settings.gentle?24:Math.floor(30+sim.rain*95);ctx.beginPath();for(let i=0;i<count;i++){const x=(hash(i,1,seed)*115-sim.t*6+10000)%115-5,y=(hash(i,2,seed)*110+sim.t*(sim.rain>.7?51:34))%110-5;ctx.moveTo(x,y);ctx.lineTo(x-.8-sim.rain,y+1.8+sim.rain*1.5)}ctx.stroke();
+  if(sim.rain>.8&&!settings.gentle&&Math.floor(sim.t)%17===0){ctx.strokeStyle='#b4c6d944';ctx.lineWidth=.25;ctx.beginPath();ctx.moveTo(67,-2);ctx.lineTo(61,7);ctx.lineTo(66,6);ctx.lineTo(59,17);ctx.stroke()}
+ }
+ if(sim.flash>0){ctx.fillStyle='#bfd5df';ctx.globalAlpha=sim.flash;ctx.fillRect(0,0,100,100);ctx.globalAlpha=1}
+ const star=events.find(e=>e.type==='stargaze');if(star&&sim.night>.3&&!settings.gentle){for(let i=0;i<3;i++){const p=((sim.t+i*8)%27)/27,x=10+i*22+p*8,y=3+p*9;ctx.strokeStyle=rgba('#d2d5ee',Math.sin(p*Math.PI)*.45);ctx.lineWidth=.18;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-2,y-2);ctx.stroke()}}
+ // Quiet industrial steam. It follows production hours and disappears in storms.
+ if(!settings.gentle&&sim.rain<.7){for(const b of buildings.filter(b=>b.type==='factory').slice(0,15)){const p=(sim.t*.27+b.id*.13)%1;ctx.globalAlpha=(1-p)*(.1+sim.daylight*.09);ctx.fillStyle='#c5c3b1';ctx.fillRect(b.cx+p*1.2,b.y-p*3.8,.6+p,.6+p)}}ctx.globalAlpha=1;
+ const vignette=ctx.createRadialGradient(50,45,28,50,50,73);vignette.addColorStop(0,'#06151e00');vignette.addColorStop(1,sim.night>.7?'#06121e4d':'#12282021');ctx.fillStyle=vignette;ctx.fillRect(0,0,100,100);
+}
+function selectionPoint(){if(!selection)return null;if(selection.type==='person'){const p=people.find(p=>p.id===selection.id);return p?{x:p.x,y:p.y}:null}if(selection.type==='car'){const c=cars.find(c=>c.id===selection.id);return c?{x:c.x,y:c.y}:null}if(selection.type==='event'){const e=events.find(e=>e.id===selection.id);return e?{x:e.x,y:e.y}:selection.point}if(selection.type==='building'){const b=destinations[selection.id];return{x:b.cx,y:b.cy}}return selection.point}
+function drawSelection(){const point=selectionPoint();if(!point)return;const x=point.x,y=point.y;ctx.strokeStyle='#f1eac9dd';ctx.lineWidth=.16;const r=2.1;ctx.beginPath();for(const [sx,sy]of[[-1,-1],[1,-1],[-1,1],[1,1]]){ctx.moveTo(x+sx*r,y+sy*(r-.8));ctx.lineTo(x+sx*r,y+sy*r);ctx.lineTo(x+sx*(r-.8),y+sy*r)}ctx.stroke();if(selection.type==='person'){const p=people.find(p=>p.id===selection.id);if(p&&p.path&&p.walking){ctx.strokeStyle='#e4dca16b';ctx.lineWidth=.16;ctx.setLineDash([.4,.7]);ctx.beginPath();ctx.moveTo(p.x,p.y);for(let j=p.pi;j<p.path.length;j++){const i=p.path[j];ctx.lineTo(i%100+.5,((i/100)|0)+.5)}ctx.stroke();ctx.setLineDash([])}}}
+function draw(){if(!ctx||!canvas.width)return;frameCount++;ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.drawImage(nightMap,0,0,canvas.width,canvas.height);ctx.globalAlpha=sim.daylight*(1-sim.rain*.35);ctx.drawImage(dayMap,0,0,canvas.width,canvas.height);ctx.globalAlpha=1;ctx.setTransform(renderScale,0,0,renderScale,0,0);
+ drawWater();drawBuildings();drawStreets();drawParks();drawPeople();drawCars();drawEvents();drawAtmosphere();
+ if(settings.labels){const positions=[[15,17],[59,17],[71,49],[18,81],[49,85],[24,51],[81,83]];for(let i=0;i<7;i++)label(districts[i].name,...positions[i],districts[i].color)}
+ const local=events.filter(e=>!['rain','storm','heat','stargaze','blackout','cityfestival','nightmarket'].includes(e.type)).slice(-5);for(const e of local)label(eventDefs[e.type].label+(e.responders?' · 대응 중':''),e.x,e.y-(e.type==='inferno'?8:6),eventDefs[e.type].color,true);
+ drawSelection();ctx.globalAlpha=1;
+ if(selection&&frameCount%2===0){const point=selectionPoint();if(point){const size=18,xx=clamp(point.x-size/2,0,100-size),yy=clamp(point.y-size/2,0,100-size);zctx.imageSmoothingEnabled=false;zctx.drawImage(canvas,xx*renderScale,yy*renderScale,size*renderScale,size*renderScale,0,0,160,160);zctx.strokeStyle='#eee9c399';zctx.lineWidth=1;zctx.strokeRect((point.x-xx)/size*160-6,(point.y-yy)/size*160-6,12,12)}}
+}
+function inspect(){if(!selection)return;let title='',desc='',type='LIFE, UP CLOSE';
+ if(selection.type==='person'){const p=people.find(p=>p.id===selection.id);if(!p){clearSelection();return}title=`${p.name} · ${roles[p.role]}`;const target=destinations[p.target];desc=`${p.purpose}<br>${p.walking&&target?'목적지 '+target.name:'사는 곳 '+destinations[p.home].name}`;if(!p.visible&&!p.walking)desc+='<br>지금은 실내에 있습니다.'}
+ else if(selection.type==='car'){const c=cars.find(c=>c.id===selection.id);if(!c){clearSelection();return}const names={car:'작은 승용차',taxi:'미광 택시',bus:'동네 순환버스',truck:'상점 배송 트럭',fire:'소방차',police:'순찰차',ambulance:'구급차',repair:'전력 복구차'};title=names[c.type];const ev=events.find(e=>e.id===c.responding);desc=ev?`${ev.title} ${c.arrived?'현장 대응 중':'현장으로 출동 중'}`:c.wait>0?'목적지에서 잠시 정차 중':c.velocity<2?'신호 또는 앞차를 기다리는 중':'차선을 따라 이동하는 중';desc+=`<br>${districts[districtAt(c.x,c.y)].name}`;type='ON THE ROAD'}
+ else if(selection.type==='building'){const b=destinations[selection.id];title=b.name;const kinds={home:'주거 건물',office:'업무 건물',shop:'동네 상점',factory:'생산·물류 시설',hospital:'24시간 병원',firestation:'소방 대응 거점',policestation:'경찰 순찰 거점',powerplant:'전력 공급 거점',school:'학교',civic:'시민회관',park:'열린 쉼터'};desc=`${districts[b.d].name} · ${kinds[b.type]||'도시 시설'}`;if(b.type==='shop')desc+=`<br>${b.closed?'새 주인을 기다리는 중':shopTrading(b)?'영업 중':'영업시간을 기다리는 중'} · 오늘 방문 ${b.todaySales||0}회`;else desc+=`<br>지금 머무는 시민 ${b.occupants||0}명`;desc+=` · 전력 ${Math.round(districts[b.d].power*100)}%`;type='A PLACE WITH A STORY'}
+ else if(selection.type==='event'){const e=events.find(e=>e.id===selection.id);title=e?e.title:'다시 일상으로';desc=e?`${districts[e.d].name}<br>${e.responders?`대응팀 ${e.responders}대 현장 도착`:eventDefs[e.type].unit?'대응 차량 이동·준비 중':'시민들의 이야기가 이어지는 중'}`:'이곳의 사건이 마무리되었습니다.';type='A MOMENT IN THE CITY'}
+ else{const p=selection.point,d=districtAt(p.x,p.y),i=Math.floor(p.y)*100+Math.floor(p.x);title=districts[d].name;desc=`${tiles[i]===C.water?'물결과 작은 배가 지나갑니다.':tiles[i]===C.road?'차들이 신호를 따라 흘러갑니다.':tiles[i]===C.park?'그늘과 작은 쉼이 있는 곳.':'하루가 이어지는 골목입니다.'}<br>걷는 시민 ${districts[d].walking}명 · 행복 ${Math.round(districts[d].happiness)}%`;type='NEIGHBORHOOD OBSERVATORY'}
+ $('inspectTitle').textContent=title;$('inspectDesc').innerHTML=desc;$('inspectType').textContent=type;
+}
+function clearSelection(){selection=null;$('inspector').classList.remove('visible')}
+function onMapTap(event){const r=canvas.getBoundingClientRect(),x=clamp((event.clientX-r.left)/r.width*100,0,99.99),y=clamp((event.clientY-r.top)/r.height*100,0,99.99);let nearest=null,dd=cssSize<500?1.4:1;
+ for(const p of people){if(!p.walking&&!p.visible)continue;const d=Math.hypot(p.x-x,p.y-y);if(d<dd){dd=d;nearest={type:'person',id:p.id}}}
+ for(const c of cars){if(!c.active)continue;const d=Math.hypot(c.x-x,c.y-y);if(d<dd){dd=d;nearest={type:'car',id:c.id}}}
+ if(!nearest){const ev=events.filter(e=>eventDefs[e.type].kind!=='weather'&&Math.hypot(e.x-x,e.y-y)<5).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y))[0];const bid=buildingAt[Math.floor(y)*100+Math.floor(x)];if(ev)nearest={type:'event',id:ev.id,point:{x:ev.x,y:ev.y}};else if(bid>=0)nearest={type:'building',id:bid};else nearest={type:'place',point:{x,y}}}
+ selection=nearest;$('inspector').classList.add('visible');$('daypaper').classList.remove('visible');paperTTL=0;inspect();draw();
+}
+const districtRows=[];for(let i=0;i<7;i++){const d=districts[i],row=document.createElement('div');row.className='district';row.style.setProperty('--dc',d.color);const name=document.createElement('span');name.className='district-name';const dot=document.createElement('i');name.append(dot,document.createTextNode(d.name));const bar=document.createElement('div');bar.className='district-bar';const fill=document.createElement('span');bar.append(fill);const count=document.createElement('span');count.className='district-count mono';count.textContent='0';row.append(name,bar,count);$('districtList').append(row);districtRows.push({fill,count})}
+function updateUI(){
+ $('clock').textContent=timeText();$('dayLabel').textContent=`관측 ${String(sim.day).padStart(2,'0')}일 · ${['월','화','수','목','금','토','일'][(sim.day-1)%7]}요일`;
+ const h=sim.clock/60;const period=h<5?'깊은 밤':h<8?'아침 준비':h<11?'출근과 등교':h<14?'점심의 리듬':h<17?'분주한 오후':h<20?'각자의 저녁':'불빛의 시간';$('timeCaption').textContent=period;
+ $('population').textContent=fmt(people.length);const change=people.length-daily.popStart;$('populationTrend').textContent=`${change>=0?'+':''}${change} 오늘`;
+ for(const k of['happiness','safety','traffic','economy','power']){$(k).textContent=Math.round(sim[k]);$(k+'Bar').style.width=clamp(sim[k],0,100)+'%';const good=k==='traffic'?100-sim[k]:sim[k];$(k+'Bar').style.background=good>68?'#b6dfbd':good>40?'#e2c48e':'#d99786'}
+ $('movingCount').textContent=`${sim.walkers} WALKING · ${sim.movingCars} DRIVING`;
+ const major=events.find(e=>eventDefs[e.type].major),weather=sim.weather,temperature=Math.round(21+Math.sin((h-8)/24*TAU)*5+(weather==='heat'?7:weather==='storm'?-4:0));
+ $('weatherText').textContent=`${weather==='storm'?'폭우':weather==='rain'?'소나기':weather==='heat'?'무더위':sim.night>.7?'맑은 밤':'맑음'} · ${temperature}°C`;
+ $('weatherIcon').textContent=weather==='storm'?'☂':weather==='rain'?'☂':sim.night>.7?'☾':sim.night>.15?'◒':'☀';$('windText').textContent=`SW ${sim.wind.toFixed(1)} m/s`;
+ $('phaseTag').textContent=sim.paused?'PAUSED / 잠시 멈춤':major?major.title:sim.night>.9?'AFTER DARK':sim.night>.2?'BLUE HOUR':'DAYLIGHT';
+ $('activeLabel').textContent=`진행 중인 이야기 ${events.length}개`;
+ const max=Math.max(35,...districts.map(d=>d.activity));districts.forEach((d,i)=>{districtRows[i].fill.style.width=Math.min(100,d.activity/max*100)+'%';districtRows[i].count.textContent=d.walking});
+ const defaults={festival:'거리 축제 · 재사용 65초',support:'복구·순찰 · 재사용 45초',chance:'뜻밖의 사건 · 재사용 30초'};for(const k of['festival','support','chance']){const maxCD=k==='festival'?65:k==='support'?45:30,cd=sim.cooldowns[k];$(k+'Btn').disabled=cd>0||sim.paused;$(k+'Hint').textContent=cd>0?`${Math.ceil(cd)}초 뒤 다시 개입`:(sim.paused?'잠시 멈춘 도시':defaults[k]);$(k+'Cool').style.width=cd>0?((maxCD-cd)/maxCD*100)+'%':'0%'}
+ let title,desc;
+ if(major){const text={cityfestival:['오늘은 도시 전체가<br><span class="accent">하나의 무대.</span>','여러 광장으로 시민들이 모여듭니다. 가게의 불이 길게 켜지고, 귀갓길은 조금 느려집니다.'],blackout:['불이 꺼진 자리에도<br><span class="accent">사람은 남아.</span>','신호등은 비상 교대로 바뀌고 복구 차량이 움직입니다. 전력이 돌아오는 골목부터 천천히 밝아집니다.'],storm:['빗속에서도 도시의<br><span class="accent">맥박은 계속.</span>','걸음은 빨라지고 차는 속도를 낮춥니다. 낮은 도로에는 복구팀이, 집으로는 시민들이 향합니다.'],inferno:['잠시 흔들려도,<br><span class="accent">함께 돌아오는 길.</span>','주민들은 안전한 광장으로 이동합니다. 소방차가 도착할수록 진화와 복구가 빨라집니다.'],nightmarket:['해가 진 뒤 열리는<br><span class="accent">두 번째 하루.</span>','여러 골목의 야시장에 불이 들어옵니다. 손님과 불빛이 평소보다 오래 거리에 머뭅니다.']};[title,desc]=text[major.type]}
+ else if(sim.rain>.3){title='비가 오면, 도시도<br><span class="accent">걸음을 바꾼다.</span>';desc='작은 우산들이 골목을 건넙니다. 잠깐의 비에도 귀갓길과 교통, 가게의 풍경이 달라집니다.'}
+ else if(h>=7&&h<11){title='출근길이 그리는<br><span class="accent">아침의 별자리.</span>';desc='주택가에서 상업지와 학교로, 공장에서는 교대 근무가 이어집니다. 신호 앞에 작은 줄이 생깁니다.'}
+ else if(h>=17&&h<21){title='서로 다른 하루가<br><span class="accent">하나의 도시로.</span>';desc='누군가는 집으로, 누군가는 아직 가게로. 수백 개의 작은 선택이 도시의 저녁을 만듭니다.'}
+ else if(h>=21||h<5){title='잠든 창문 곁에<br><span class="accent">깨어 있는 골목.</span>';desc='주택가는 천천히 잠들고, 달빛 번화가는 다른 하루를 엽니다. 택시와 야간 근무자들은 여전히 움직입니다.'}
+ else{title='별일 없는 순간도<br><span class="accent">가만있지 않게.</span>';desc='물건을 실은 트럭, 약속을 향하는 사람, 새 손님을 기다리는 가게. 작은 일이 쉬지 않고 이어집니다.'}
+ if($('moodTitle').innerHTML!==title)$('moodTitle').innerHTML=title;$('moodDesc').textContent=desc;
+ const best=shops.filter(b=>!b.closed).sort((a,b)=>b.todaySales-a.todaySales)[0];$('ribbon').textContent=sim.boost>0?'도시 구조대가 추가 복구와 예방 순찰을 이어갑니다.':best&&best.todaySales>0?`오늘의 단골 가게 · ${best.name} (${best.todaySales}회 방문)`:'각자의 하루가, 작은 불빛으로 이어집니다.';
+ if(selection)inspect();
+}
+function saveState(){if(!canSave)return;try{const state={t:sim.t,clock:sim.clock,day:sim.day,population:people.length,happiness:sim.happiness,safety:sim.safety,traffic:sim.traffic,economy:sim.economy,power:sim.power,boost:sim.boost,secondsToEvent:sim.secondsToEvent,secondsToMajor:sim.secondsToMajor,cooldowns:{...sim.cooldowns},deliveries:sim.deliveries,tradePulse:sim.tradePulse||0};const data={version:1,seed,state,records,news:news.slice(0,12),daily,settings:{labels:settings.labels,gentle:settings.gentle},buildings:buildings.map(b=>({health:b.health,closed:b.closed,reopen:b.reopen,sales:b.sales,todaySales:b.todaySales,flow:b.flow||0,lastSales:b.lastSales||0,name:b.name,scorch:b.scorch})),events:events.map(e=>({...e,vehicles:[]})),nextEventId};localStorage.setItem(STORAGE,JSON.stringify(data))}catch(e){canSave=false;$('saveStatus').textContent='OFFLINE · 이번 관측만 보관';$('saveHint').textContent='이 환경에서는 브라우저 저장소를 사용할 수 없습니다. 페이지를 열어 둔 동안에만 상태와 기록이 유지됩니다.'}}
+function restore(){if(!saved)return;try{const s=saved.state||{};for(const k of['t','clock','day','happiness','safety','traffic','economy','power','boost','secondsToEvent','secondsToMajor','deliveries','tradePulse'])if(Number.isFinite(s[k]))sim[k]=s[k];sim.clock=clamp(sim.clock,0,1439.99);sim.day=Math.max(1,Math.floor(sim.day));sim.population=clamp(Math.floor(s.population||680),480,850);if(s.cooldowns)for(const k of['festival','support','chance'])sim.cooldowns[k]=clamp(Number(s.cooldowns[k])||0,0,65);
+ records=saved.records.slice(0,7);news=Array.isArray(saved.news)?saved.news.slice(0,12):[];if(saved.daily&&Array.isArray(saved.daily.peaks)&&saved.daily.peaks.length===7)daily=saved.daily;
+ if(saved.settings){settings.labels=saved.settings.labels!==false;settings.gentle=!!saved.settings.gentle}
+ if(Array.isArray(saved.buildings))for(let i=0;i<Math.min(buildings.length,saved.buildings.length);i++){const b=saved.buildings[i];if(b&&Number.isFinite(b.health)){for(const k of['health','closed','reopen','sales','todaySales','flow','lastSales','name','scorch'])if(b[k]!==undefined)buildings[i][k]=b[k]}}
+ if(Array.isArray(saved.events))events=saved.events.filter(e=>eventDefs[e.type]&&Number.isFinite(e.remaining)&&e.remaining>0&&Number.isFinite(e.x)&&destinations[e.target]).slice(0,9).map(e=>({...e,vehicles:[],responders:0,responded:false,dispatched:false,responseLogged:false}));nextEventId=Math.max(saved.nextEventId||1,...events.map(e=>e.id+1));renderArchives();renderFeed();
+ }catch(e){saved=null}}
+function shopTrading(b){if(b.closed)return false;if(events.some(e=>e.target===b.id&&eventDefs[e.type].kind==='good'))return true;const h=sim.clock/60;if(b.d===2)return h>=14||h<4;if(hash(b.id,2,seed)<.16)return true;return h>=7&&h<22}
+restore();
+for(let i=0;i<sim.population;i++)addPerson(true);
+for(let i=0;i<108;i++)addCar(i<63?'car':i<78?'taxi':i<87?'bus':'truck');
+for(const p of people.slice(0,235)){const c=desiredDestination(p);if(c.dest.id!==p.at)requestTrip(p,c.dest,c.purpose,c.event)}for(let i=0;i<64;i++)processPaths();
+if(!saved){log('관측을 시작합니다. 미광시의 저녁은 이미 움직이고 있습니다.','첫 관측 · 17:20 이후');createEvent('hotspot',1);sim.secondsToEvent=9}else log('관측을 이어갑니다. 시민들이 다시 각자의 길을 나섭니다.','저장된 도시 불러옴');
+$('labelToggle').checked=settings.labels;$('gentleToggle').checked=settings.gentle;
+if(!canSave){$('saveStatus').textContent='OFFLINE · 이번 관측만 보관';$('saveHint').textContent='이 환경에서는 저장소를 사용할 수 없습니다. 페이지를 열어 둔 동안에만 상태와 기록이 유지됩니다.'}
+$('festivalBtn').addEventListener('click',()=>{if(sim.cooldowns.festival>0||sim.paused)return;const e=createEvent('festival',pick([2,4,6]),'user');if(e){sim.cooldowns.festival=65;notice('작은 무대가 열렸어요. 사람들이 모여드는 길을 지켜보세요.')}updateUI()});
+$('supportBtn').addEventListener('click',()=>{if(sim.cooldowns.support>0||sim.paused)return;sim.boost=28;const hazards=events.filter(e=>eventDefs[e.type].unit&&['hazard','traffic'].includes(eventDefs[e.type].kind));if(hazards.length){for(const e of hazards)dispatch(e,true);log('도시 구조대가 추가 출동했습니다. 복구와 현장 대응이 빨라집니다.','시민의 작은 개입');showBanner('도시 구조대 출동','위급한 현장부터, 하나씩','#a7d3dd')}else{const e=createEvent('repair',null,'user');if(e)dispatch(e,true);log('지금은 예방 점검을. 도시 구조대가 골목을 살핍니다.','예방 순찰 · 전력 점검')}sim.cooldowns.support=45;tone('good');updateUI()});
+$('chanceBtn').addEventListener('click',()=>{if(sim.cooldowns.chance>0||sim.paused)return;const major=!events.some(e=>eventDefs[e.type].major)&&chance(.38);const type=major?pick(majorTypes):pick(normalTypes.filter(t=>!events.some(e=>e.type===t)));const e=createEvent(type,null,'user');if(e){sim.cooldowns.chance=30;notice('작은 나비효과. 이번에는 '+e.title+'!')}updateUI()});
+$('closeInspector').addEventListener('click',clearSelection);$('closePaper').addEventListener('click',()=>{$('daypaper').classList.remove('visible');paperTTL=0});
+$('pauseToggle').addEventListener('change',e=>{sim.paused=e.target.checked;$('liveLabel').innerHTML=sim.paused?'<i></i>도시는 잠시 쉬는 중':'<i></i>도시는 살아가는 중';updateUI()});
+$('labelToggle').addEventListener('change',e=>{settings.labels=e.target.checked;draw();saveState()});
+$('gentleToggle').addEventListener('change',e=>{settings.gentle=e.target.checked;resize();saveState()});
+$('soundToggle').addEventListener('change',async e=>{settings.sound=e.target.checked;if(settings.sound){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw new Error('No audio');if(!audio)audio=new AC();await audio.resume();tone('good');notice('도시의 작은 알림음을 켰습니다.')}catch(err){settings.sound=false;e.target.checked=false;notice('이 환경에서는 소리를 켤 수 없어요.')}}});
+canvas.addEventListener('click',onMapTap);canvas.addEventListener('keydown',e=>{if(e.key==='Escape')clearSelection();if(e.key==='Enter'){const r=canvas.getBoundingClientRect();onMapTap({clientX:r.left+r.width/2,clientY:r.top+r.height/2})}});
+document.addEventListener('pointerdown',e=>{if(!$('settings').contains(e.target))$('settings').open=false},{passive:true});
+window.addEventListener('resize',resize,{passive:true});if(window.ResizeObserver){const ro=new ResizeObserver(resize);ro.observe($('stage'))}
+window.addEventListener('pagehide',saveState);document.addEventListener('visibilitychange',()=>{if(document.hidden){saveState();if(audio&&audio.state==='running')audio.suspend()}else{last=performance.now();accumulator=0;if(settings.sound&&audio)audio.resume().catch(()=>{})}});
+updateEnvironment(.1);updateCars(.01);updateStats();updateUI();resize();
+let last=performance.now(),lastPaint=0,accumulator=0,rafId=0;
+function frame(now){rafId=requestAnimationFrame(frame);if(document.hidden){last=now;return}const elapsed=clamp((now-last)/1000,0,.2);last=now;if(!sim.paused){accumulator+=elapsed;let steps=0;while(accumulator>=1/20&&steps<4){step(1/20);accumulator-=1/20;steps++}}if(now-lastPaint>=(settings.gentle?1000/20:1000/30)){draw();lastPaint=now}}
+rafId=requestAnimationFrame(frame);
+// Readable diagnostics are intentionally kept small and do not affect play.
+window.Migwang=Object.freeze({audit:()=>{const actual=Array(destinations.length).fill(0);for(const p of people)if(p.at>=0)actual[p.at]++;return{invalidAgents:people.filter(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.x>=100||p.y<0||p.y>=100).length,blockedAgents:people.filter(p=>(p.visible||p.walking)&&(tiles[Math.floor(p.y)*100+Math.floor(p.x)]===C.building||tiles[Math.floor(p.y)*100+Math.floor(p.x)]===C.water)).length,occupancyMismatches:destinations.filter((b,i)=>(b.occupants||0)!==actual[i]).length,invalidCars:cars.filter(c=>!Number.isFinite(c.x)||!Number.isFinite(c.y)).length,finiteMetrics:['happiness','safety','traffic','economy','power'].every(k=>Number.isFinite(sim[k])&&sim[k]>=0&&sim[k]<=100)}},snapshot:()=>({grid:[100,100],day:sim.day,time:timeText(),population:people.length,walking:sim.walkers,cars:cars.length,movingCars:sim.movingCars,buildings:buildings.length,shops:shops.length,events:events.map(e=>({type:e.type,remaining:e.remaining,responders:e.responders})),metrics:{happiness:sim.happiness,safety:sim.safety,traffic:sim.traffic,economy:sim.economy,power:sim.power},records:records.slice(),pendingPaths:pathQueue.length,cache:pathCache.size,particles:particles.length,storage:canSave}),event:type=>{const e=createEvent(type,null,'user');updateUI();return!!e},advance:seconds=>{const total=clamp(Number(seconds)||0,0,3600);for(let t=0;t<total;t+=.05)step(.05);updateUI();draw();return sim.day},inspectAt:(x,y)=>{const r=canvas.getBoundingClientRect();onMapTap({clientX:r.left+r.width*x/100,clientY:r.top+r.height*y/100})},save:saveState});
+})();
+</script>
+</body>
+</html>
