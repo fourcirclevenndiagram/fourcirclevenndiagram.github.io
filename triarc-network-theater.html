@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#09121b"><meta name="color-scheme" content="dark">
+<title>TRIARC — 5분의 네트워크 오퍼레이션</title>
+<style>
+:root{--bg:#09121b;--panel:#101d29;--line:#233643;--muted:#8199a9;--text:#e8f1f5;--cyan:#72e6d0;--blue:#80b8ff;--amber:#f5c47c;--red:#ff7e85;--radius:15px;--mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}body{overflow:hidden}button,input,select{font:inherit}button{color:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}button{border:1px solid var(--line);background:#142330;border-radius:8px;padding:7px 11px;white-space:nowrap}button:hover{background:#1c3442}button.on{border-color:#4d998e;background:#193f3e;color:var(--cyan)}button:disabled{opacity:.4;cursor:default}a{color:var(--cyan)}svg{vertical-align:middle}.mono{font-family:var(--mono)}.muted{color:var(--muted)}.app{max-width:1900px;height:100vh;height:100dvh;margin:auto;padding:0 max(18px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:12px}.topbar{display:flex;align-items:center;justify-content:space-between;height:66px;flex-shrink:0;border-bottom:1px solid var(--line);gap:10px}.brand{display:flex;align-items:center;gap:11px}.brandmark{width:33px;height:33px;position:relative}.brandmark i{display:block;position:absolute;border:2px solid var(--cyan);width:17px;height:17px;transform:rotate(30deg);border-radius:3px}.brandmark i:nth-child(1){left:1px;top:13px}.brandmark i:nth-child(2){left:16px;top:13px}.brandmark i:nth-child(3){left:9px;top:0}.wordmark{font-size:20px;letter-spacing:4px;font-weight:800}.brand-sub{font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:2px}.topmeta{display:flex;align-items:center;gap:10px;font-size:11px}.topmeta .lab{padding:5px 9px;background:#183139;color:var(--cyan);border:1px solid #284951;border-radius:5px;letter-spacing:1px}.topmeta .about{border-radius:50%;width:29px;height:29px;padding:0;font-family:var(--mono);font-weight:700}.summary{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:61px;flex-shrink:0}.summary-title .eyebrow{color:var(--cyan);font-size:10px;letter-spacing:2px;margin-bottom:5px}.summary-title h1{font-size:21px;margin:0;font-weight:650;letter-spacing:-.7px}.summary-title p{font-size:11px;margin:5px 0 0;color:var(--muted)}.metrics{display:flex;gap:30px}.metric .k{font-size:10px;color:var(--muted);margin-bottom:5px}.metric .v{font-size:24px;line-height:1;font-family:var(--mono);letter-spacing:-1px}.metric .unit{font-size:11px;color:var(--muted);letter-spacing:0}.metric .spark{width:55px;height:16px;display:inline-block;margin-left:6px}.workspace{min-height:0;flex:1;display:grid;grid-template-columns:minmax(0,1.66fr) minmax(315px,1fr);grid-template-rows:minmax(235px,1fr) minmax(198px,.58fr);gap:12px}.panel{min-width:0;min-height:0;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}.panel-head{height:39px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;border-bottom:1px solid var(--line);gap:7px;flex-shrink:0}.panel-label{font-size:10px;font-weight:600;letter-spacing:1.1px;display:flex;align-items:center;gap:7px}.live-dot{width:5px;height:5px;background:var(--cyan);border-radius:50%;box-shadow:0 0 8px #72e6d066;display:inline-block}.panel-head .small{font-size:9px;color:var(--muted)}.map-panel{grid-column:1;grid-row:1;display:flex;flex-direction:column;background:#0c1924;position:relative}.map-tools{display:flex;gap:4px;align-items:center}.map-tools button{font-size:10px;padding:4px 7px;border-radius:5px}.map-body{flex:1;min-height:0;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#16303c40,transparent 75%)}#campus{display:block;width:100%;height:100%;touch-action:manipulation;cursor:crosshair}.map-legend{position:absolute;left:12px;bottom:9px;display:flex;gap:11px;align-items:center;font-size:9px;color:var(--muted);pointer-events:none}.legend-line{display:inline-block;width:13px;height:2px;background:var(--cyan);vertical-align:middle;margin-right:4px}.legend-line.alt{background:var(--amber)}.legend-line.red{background:var(--red)}.map-hint{position:absolute;right:11px;bottom:8px;font-size:9px;color:#6f8999;pointer-events:none}.site-controls{position:absolute;left:11px;top:10px;display:flex;gap:4px;z-index:2}.site-controls button{background:#101e2ee8;font-size:10px;padding:5px 9px;border-radius:6px}.site-controls button.on{color:var(--cyan);border-color:#5eb8a0}.map-toast{position:absolute;top:12px;right:12px;max-width:52%;background:#172d36e8;border:1px solid #37645e;border-radius:7px;padding:6px 9px;font-size:10px;line-height:1.5;color:var(--cyan);pointer-events:none;transition:opacity .3s;opacity:0}.map-toast.alert{border-color:#704249;background:#37242fee;color:#ff9c9f}.side-panel{grid-column:2;grid-row:1;display:flex;flex-direction:column;padding:17px 18px;background:linear-gradient(155deg,#142634,#101d29 65%)}.chapter-meta{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:1px}.chapter-meta b{color:var(--cyan);font-family:var(--mono);font-size:12px}.chapter-heading{display:flex;align-items:center;gap:11px;margin:13px 0 7px}.chapter-number{font-size:37px;line-height:1;font-family:var(--mono);font-weight:300;color:#477777}.chapter-heading h2{font-size:19px;line-height:1.4;margin:0;letter-spacing:-.6px;font-weight:650}.chapter-description{font-size:12px;line-height:1.8;margin:0 0 11px;color:#abc0cd;min-height:43px}.concepts{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 12px}.concepts span{font:9px var(--mono);padding:4px 6px;color:var(--cyan);border-radius:4px;background:#18323a;border:1px solid #26434b}.operation-card{padding:10px 11px;background:#0c1722aa;border:1px solid #253b48;border-radius:9px;margin-bottom:10px;display:flex;gap:9px}.op-icon{width:25px;height:25px;flex-shrink:0;color:var(--cyan);background:#1c3f40;border-radius:6px;display:grid;place-items:center;font:13px var(--mono)}.operation-card.error .op-icon{color:var(--red);background:#482c35}.operation-card .op-title{font-size:11px;margin:0 0 4px;font-weight:600}.operation-card .op-desc{font-size:10px;line-height:1.55;color:var(--muted);margin:0}.event-feed{flex:1;min-height:28px;overflow:auto;scrollbar-width:thin;scrollbar-color:#325060 transparent}.event-item{display:flex;gap:9px;align-items:flex-start;font-size:10px;padding:5px 0;color:#a6b9c5;border-bottom:1px solid #21323c55}.event-item time{color:#698594;font:9px var(--mono);flex-shrink:0;padding-top:1px}.event-item .event-mark{display:inline-block;width:4px;height:4px;background:var(--cyan);border-radius:50%;margin-right:6px;vertical-align:middle}.event-item.warn .event-mark{background:var(--amber)}.event-item.error .event-mark{background:var(--red)}.terminal-panel{grid-column:1;grid-row:2;display:flex;flex-direction:column;background:#09121c}.terminal-panel .panel-head{background:#101d29}.terminal-dots{display:flex;gap:4px;margin-right:6px}.terminal-dots i{height:6px;width:6px;border-radius:50%;background:#456170}.terminal-dots i:first-child{background:#eb968d}.terminal-dots i:nth-child(2){background:#e4c177}.terminal-dots i:nth-child(3){background:#7dc8a3}.terminal-body{flex:1;overflow:auto;padding:10px 13px;scrollbar-width:thin;scrollbar-color:#325060 transparent;font:11px/1.68 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}.term-line{min-height:1.68em}.term-line.command{color:#87decc}.term-line.output{color:#9eb3c1}.term-line.error{color:var(--red)}.term-line.warn{color:var(--amber)}.term-line.note{color:#627f93}.term-line.success{color:#c5e9c8}.cursor{display:inline-block;background:var(--cyan);width:6px;height:12px;vertical-align:middle;animation:blink 1s step-end infinite}.terminal-status{height:23px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #192b38;font:9px var(--mono);color:#6b8b9d;padding:0 13px;flex-shrink:0}.terminal-head-actions{display:flex;gap:5px}.terminal-head-actions button{font-size:9px;padding:3px 6px}.desktop-panel{grid-column:2;grid-row:2;display:flex;flex-direction:column;background:#122532}.desktop-panel select{background:#142938;border:1px solid #314859;border-radius:5px;color:#b9d4df;max-width:145px;min-width:0;font:10px var(--mono);padding:4px}.desktop-body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;background:radial-gradient(ellipse at 70% 0,#1c4f57,#11222f 80%);padding:9px 10px 7px}.desktop-nav{display:flex;gap:4px;flex-shrink:0;margin-bottom:5px}.desktop-nav button{font-size:9px;padding:3px 7px;background:#162936;border-color:#294150}.desktop-nav button.on{color:#99e7d9;border-color:#507d79}.pc-window{border:1px solid #47647177;background:#0b1823ef;border-radius:8px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 6px 20px #0002}.window-bar{height:26px;display:flex;justify-content:space-between;align-items:center;padding:0 10px;background:#203743;border-bottom:1px solid #35505d;font-size:9px;flex-shrink:0}.window-content{padding:9px 11px;flex:1;min-height:0;overflow:auto;position:relative}.network-row{display:flex;align-items:center;justify-content:space-between;font-size:10px;gap:8px;line-height:1.6;margin-bottom:5px}.network-row label{color:#8da6b5;white-space:nowrap}.network-row b{font:10px var(--mono);font-weight:400}.setting-value{padding:3px 7px;min-width:148px;border:1px solid #314a56;border-radius:4px;background:#132834}.setting-value.active{color:var(--cyan);border-color:#61968f}.setting-value.bad{color:var(--red);border-color:#874c57}.pc-status{font-size:9px;color:#9db8c5;display:flex;align-items:center;justify-content:space-between;margin-top:6px;flex-shrink:0;gap:6px}.pc-status .status-led{width:5px;height:5px;border-radius:50%;display:inline-block;background:var(--cyan);margin-right:5px}.pc-status code{font:9px var(--mono)}.desktop-pointer{position:absolute;right:28px;top:49%;width:13px;height:19px;clip-path:polygon(0 0,100% 66%,54% 66%,38% 100%);background:#effff8;filter:drop-shadow(1px 1px 2px black);pointer-events:none;animation:pointer 4s ease-in-out infinite}.pc-log{font:10px/1.7 var(--mono);color:#a5c7d5;white-space:pre-wrap;overflow-wrap:anywhere}.app-view{display:flex;height:100%;min-height:70px;gap:10px}.app-visual{width:43%;min-height:65px;position:relative;border:1px solid #294652;border-radius:6px;overflow:hidden;background:#0d2330;flex-shrink:0}.app-visual canvas{display:block;width:100%;height:100%}.app-information{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}.app-information h3{font-size:11px;margin:0 0 5px;font-weight:600}.app-information p{font-size:9px;color:#90adbd;margin:0 0 9px;line-height:1.6}.progress-track{height:4px;background:#243e4a;overflow:hidden;border-radius:2px}.progress-track i{height:100%;display:block;background:var(--cyan);transition:width .25s}.app-information .progress-label{font:9px var(--mono);margin-top:5px;color:var(--cyan)}.mobile-tabs,.mobile-story{display:none}.footer{flex-shrink:0;display:flex;flex-direction:column;gap:9px}.timeline-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.transport{display:flex;align-items:center;gap:5px}.transport button{font-size:10px;height:31px;padding:5px 10px}.transport .play{background:var(--cyan);color:#0a2b27;border-color:var(--cyan);font-weight:700;min-width:76px}.transport .play:hover{background:#9af5df}.timecode{font:12px var(--mono);margin-left:7px;color:#c6d9e3}.timecode span{color:#597587}.footer-meta{font-size:10px;display:flex;align-items:center;gap:11px;color:var(--muted)}.footer-meta button{font-size:10px;height:29px;padding:4px 8px}.timeline-wrap{position:relative;height:31px}.chapter-rail{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;position:absolute;inset:0;pointer-events:none}.rail-segment{position:relative;overflow:hidden}.rail-segment .rail-fill{position:absolute;top:0;left:0;right:0;height:4px;border-radius:3px;background:#223743}.rail-segment .rail-fill i{display:block;height:100%;background:var(--cyan);width:0}.rail-segment label{position:absolute;top:12px;left:0;font-size:9px;color:#627e8f;white-space:nowrap}.rail-segment.active label{color:#b4e9da}.scrubber{position:absolute;top:-11px;left:0;width:100%;height:25px;margin:0;cursor:pointer;appearance:none;-webkit-appearance:none;background:transparent;z-index:2}.scrubber::-webkit-slider-runnable-track{height:4px;background:transparent}.scrubber::-moz-range-track{height:4px;background:transparent}.scrubber::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:10px;height:10px;background:#d8fff1;border:2px solid #0a1b24;border-radius:50%;margin-top:-3px;box-shadow:0 0 0 1px #72e6d0;cursor:ew-resize}.scrubber::-moz-range-thumb{width:7px;height:7px;background:#d8fff1;border:2px solid #0a1b24;border-radius:50%}.footer-bottom{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.2px;color:#506c7d}.modal-backdrop{position:fixed;inset:0;background:#020912ce;backdrop-filter:blur(9px);z-index:30;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}.modal-backdrop.open{display:flex}.modal{width:min(780px,100%);max-height:90vh;max-height:90dvh;border:1px solid #395865;background:#11222e;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 100px #0007}.modal-head{padding:18px 21px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2d4350;gap:10px}.modal-head h2{font-size:17px;margin:0}.modal-head button{border-radius:50%;padding:0;width:28px;height:28px;flex-shrink:0}.modal-content{padding:21px;overflow:auto;font-size:12px;line-height:1.8;min-height:0}.modal-content h3{font-size:14px;color:#d7eee9;margin:18px 0 6px}.modal-content p{color:#a8c0cb}.modal-content .disclaimer{padding:12px;border:1px solid #5b513d;border-radius:8px;background:#332e2544;color:#d9c9a1}.modal-content table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0}.modal-content td,.modal-content th{padding:8px 6px;border-bottom:1px solid #29424e;text-align:left;vertical-align:top}.modal-content th{color:var(--cyan)}.modal-content pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0a1721;padding:14px;border-radius:9px;color:#a5cbbd;font:11px/1.7 var(--mono)}.modal-content a{overflow-wrap:anywhere}.report-hero{text-align:center;padding:6px 0 16px}.report-emblem{font-size:33px;color:var(--cyan);line-height:1.6}.report-hero h3{font-size:24px;margin:4px 0}.report-hero p{margin:4px 0;font-size:12px}.report-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:9px 0 18px}.report-stat{padding:13px 6px;text-align:center;background:#18333c;border:1px solid #2d5157;border-radius:9px}.report-stat strong{display:block;font:24px var(--mono);color:var(--cyan)}.report-stat span{font-size:10px;color:#9ab2bf}.test-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #253e49;padding:6px 0;gap:8px;font-size:11px}.test-row b{font:10px var(--mono);color:var(--cyan);white-space:nowrap}.test-row.fail b{color:var(--red)}.modal-actions{display:flex;justify-content:center;gap:8px;margin-top:19px}.modal-actions button{padding:10px 17px}.modal-actions .primary{color:#082920;background:var(--cyan);font-weight:600}.inspection-head{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border:1px solid #31525c;background:#18323b;border-radius:9px}.inspection-head strong{font:15px var(--mono);color:var(--cyan)}.mini-ports{display:flex;gap:5px;margin:12px 0;flex-wrap:wrap}.mini-port{font:9px var(--mono);padding:6px 7px;border:1px solid #285448;background:#17382f;color:#8addb2;border-radius:4px}.mini-port.down{color:#ee9b9b;background:#3c2630;border-color:#6a3b47}.tooltip{position:absolute;z-index:4;pointer-events:none;max-width:210px;background:#11232ff5;border:1px solid #497478;padding:8px 11px;border-radius:8px;font-size:10px;line-height:1.6;box-shadow:0 7px 20px #0004}.tooltip strong{color:var(--cyan);font-family:var(--mono)}.inspect-note{color:var(--amber);font-size:10px}.kbd{font-family:var(--mono);border:1px solid #2b4756;border-radius:4px;padding:2px 5px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@keyframes blink{50%{opacity:0}}@keyframes pointer{0%,100%{transform:translate(0,0)}50%{transform:translate(-18px,7px)}}
+@media(min-width:1550px){.app{gap:16px;padding-left:28px;padding-right:28px;padding-bottom:18px}.topbar{height:74px}.summary{min-height:73px}.summary-title h1{font-size:25px}.workspace{gap:16px;grid-template-rows:minmax(280px,1fr) minmax(245px,.57fr)}.side-panel{padding:24px}.chapter-heading h2{font-size:23px}.chapter-description{font-size:13px}.operation-card .op-title{font-size:12px}.event-item{font-size:11px;padding:7px 0}.terminal-body{font-size:12px;padding:13px 17px}.desktop-body{padding:12px 14px}.window-content{padding:12px 15px}.network-row{font-size:11px}.network-row b{font-size:11px}.app-information h3{font-size:13px}.app-information p{font-size:11px}.app-information .progress-label{font-size:10px}}
+@media(max-width:1050px) and (min-width:761px){.metrics{gap:17px}.summary-title p{display:none}.workspace{grid-template-columns:minmax(0,1.35fr) minmax(290px,1fr)}.chapter-heading h2{font-size:17px}.side-panel{padding:12px}.chapter-number{font-size:30px}.chapter-description{font-size:11px;min-height:0}.concepts{margin-bottom:7px}.chapter-heading{margin-top:10px}.map-hint{display:none}.network-row .setting-value{min-width:128px}}
+@media(max-width:760px){body{overflow:hidden}.app{padding:0 max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));gap:8px}.topbar{height:51px}.brandmark{transform:scale(.78);transform-origin:left center;width:28px}.brand{gap:4px}.wordmark{font-size:16px;letter-spacing:3px}.brand-sub{font-size:7px;letter-spacing:1.4px}.topmeta{gap:7px}.topmeta .lab{font-size:8px;padding:4px 6px;letter-spacing:.4px}.topmeta .episode{display:none}.topmeta .about{width:26px;height:26px}.summary{min-height:49px;gap:8px}.summary-title .eyebrow{font-size:8px;letter-spacing:1px;margin-bottom:4px}.summary-title h1{font-size:14px;letter-spacing:-.5px}.summary-title p{display:none}.metrics{gap:13px}.metric .k{font-size:8px;margin-bottom:4px}.metric .v{font-size:19px}.metric .unit{font-size:9px}.metric .spark{display:none}.metric.extra{display:none}.workspace{display:grid;grid-template-columns:1fr;grid-template-rows:minmax(170px,1.15fr) 34px minmax(156px,1fr);gap:0;border-radius:13px;overflow:hidden;border:1px solid var(--line);background:var(--panel);min-height:0}.panel{border:0;border-radius:0}.map-panel{grid-column:1;grid-row:1;border-bottom:1px solid var(--line)}.map-panel .panel-head{height:31px;padding:0 9px}.panel-label{font-size:9px;letter-spacing:.6px}.panel-head .small{font-size:8px}.map-tools button{font-size:9px;padding:3px 6px}.map-tools .labels-button{display:none}.site-controls{top:6px;left:7px;gap:3px}.site-controls button{font-size:8px;padding:4px 6px}.map-hint{display:none}.map-legend{left:8px;bottom:6px;font-size:7px;gap:8px}.legend-line{width:10px}.map-toast{font-size:8px;padding:4px 6px;top:6px;right:7px;max-width:59%}.mobile-tabs{display:flex;grid-column:1;grid-row:2;gap:0;border-bottom:1px solid var(--line);background:#142533;z-index:3}.mobile-tabs button{flex:1;border-radius:0;font-size:10px;padding:7px 2px;background:transparent;border:0;color:#8fa9b9}.mobile-tabs button.on{background:#1c343e;color:var(--cyan);box-shadow:inset 0 -2px var(--cyan)}.terminal-panel,.desktop-panel,.side-panel{display:none;grid-column:1;grid-row:3}.workspace[data-pane="terminal"] .terminal-panel{display:flex}.workspace[data-pane="desktop"] .desktop-panel{display:flex}.workspace[data-pane="story"] .side-panel{display:flex}.side-panel{padding:10px 12px}.chapter-meta{font-size:8px}.chapter-meta b{font-size:10px}.chapter-number{font-size:24px}.chapter-heading{margin:5px 0;gap:8px}.chapter-heading h2{font-size:14px}.chapter-description{font-size:10px;line-height:1.6;min-height:0;margin-bottom:6px}.concepts{display:none}.operation-card{padding:7px 8px;margin-bottom:5px}.operation-card .op-title{font-size:10px}.operation-card .op-desc{font-size:9px}.event-item{font-size:9px;padding:3px 0}.event-feed{min-height:15px}.terminal-panel .panel-head,.desktop-panel .panel-head{height:29px;padding:0 9px}.terminal-body{font-size:10px;line-height:1.6;padding:7px 10px}.terminal-status{height:18px;font-size:8px;padding:0 10px}.terminal-head-actions button{font-size:8px;padding:3px 5px}.desktop-body{padding:7px 9px 5px}.desktop-nav{margin-bottom:4px}.desktop-nav button{font-size:8px;padding:3px 6px}.window-content{padding:6px 9px}.window-bar{height:23px;font-size:9px}.network-row{font-size:9px;margin-bottom:3px;line-height:1.5}.network-row b{font-size:9px}.setting-value{min-width:142px;padding:2px 6px}.pc-status{font-size:8px;margin-top:4px}.pc-status code{font-size:8px}.pc-log{font-size:9px;line-height:1.6}.desktop-panel select{font-size:9px;max-width:144px}.app-information h3{font-size:10px}.app-information p{font-size:9px;margin-bottom:6px}.app-information .progress-label{font-size:8px}.mobile-story{display:block;flex-shrink:0;min-height:42px;padding:0 2px}.mobile-story .mobile-title{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:11px;font-weight:600;margin-bottom:4px}.mobile-story .mobile-title small{font:9px var(--mono);color:var(--cyan)}.mobile-story p{margin:0;color:#91abba;font-size:9px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.footer{gap:7px}.timeline-top{gap:4px}.transport{gap:4px}.transport button{height:29px;padding:4px 7px;font-size:10px}.transport .play{min-width:65px}.timecode{font-size:10px;margin-left:3px}.footer-meta{gap:4px}.footer-meta button{font-size:9px;padding:4px 6px;height:27px}.footer-meta .auto-follow{display:none}.footer-meta .sim-date{display:none}.timeline-wrap{height:24px}.rail-segment label{font-size:7px;top:11px}.chapter-rail{gap:3px}.footer-bottom{font-size:7px}.footer-bottom .keys{display:none}.modal{max-height:92vh;max-height:92dvh;border-radius:13px}.modal-head{padding:12px 15px}.modal-content{padding:15px;font-size:11px}.modal-head h2{font-size:15px}.modal-content table{font-size:9px}.modal-content td,.modal-content th{padding:6px 4px}.report-hero h3{font-size:20px}.report-stat strong{font-size:21px}.report-stat span{font-size:9px}.test-row{font-size:10px}.tooltip{font-size:9px}}
+@media(max-height:720px) and (max-width:760px){.app{gap:5px}.topbar{height:43px}.summary{min-height:42px}.workspace{grid-template-rows:minmax(135px,1fr) 30px minmax(141px,1fr)}.mobile-tabs button{padding:5px 2px;font-size:9px}.mobile-story{min-height:37px}.footer-bottom{display:none}.mobile-story p{-webkit-line-clamp:1}.mobile-story .mobile-title{font-size:10px}.metric .v{font-size:17px}.footer{gap:5px}.window-content{padding:5px 8px}.network-row{margin-bottom:2px}.desktop-nav{display:none}.pc-status{margin-top:3px}}
+@media(max-height:525px){body{overflow:auto}.app{height:auto;min-height:100vh;padding-bottom:12px}.workspace{flex:none;height:530px;min-height:530px}.footer{margin-top:3px}}
+@media(max-width:360px){.topmeta .lab{font-size:7px;padding:3px 4px;white-space:nowrap}.brand-sub{font-size:6px;letter-spacing:.9px}.summary-title{min-width:0}.summary-title h1{font-size:12px;line-height:1.5;word-break:keep-all}.summary-title .eyebrow{font-size:7px;letter-spacing:.5px}.metrics{gap:9px;flex-shrink:0}.metric .k{font-size:7px;white-space:nowrap}.metric .v{font-size:17px;white-space:nowrap}.metric .unit{font-size:8px}.timecode{font-size:9px;white-space:nowrap;letter-spacing:-.35px;margin-left:2px}.transport{gap:3px}.transport button{font-size:9px;padding:4px 6px}.transport .play{min-width:54px}.footer-meta button{font-size:8px;padding:4px 5px}.footer-meta{flex-shrink:0;gap:3px}.mobile-story .mobile-title{font-size:9px}.footer-bottom .mono{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<header class="topbar"><div class="brand"><div class="brandmark" aria-hidden="true"><i></i><i></i><i></i></div><div><div class="wordmark">TRIARC</div><div class="brand-sub">NETWORK OPERATIONS THEATER</div></div></div><div class="topmeta"><span class="episode mono">GAME STUDIO / 001</span><span class="lab">CCNP-LEVEL LAB</span><button class="about" id="aboutBtn" aria-label="시뮬레이션 설계와 도움말">?</button></div></header>
+<section class="summary"><div class="summary-title"><div class="eyebrow">THREE BUILDINGS. ONE CONNECTED WORLD.</div><h1>게임을 만드는 사람들을, 연결하다.</h1><p>72개의 작업대 · 3개 동 · 300초의 자동 네트워크 오퍼레이션</p></div><div class="metrics"><div class="metric"><div class="k">업무 가능 단말</div><div class="v"><span id="onlineCount">0</span><span class="unit"> / 72</span></div></div><div class="metric"><div class="k">캠퍼스 트래픽</div><div class="v"><span id="trafficCount">0.0</span><span class="unit"> Gbps</span></div></div><div class="metric extra"><div class="k">서비스 RTT · 합성</div><div class="v"><span id="latencyCount">—</span><span class="unit"> ms</span><svg class="spark" viewBox="0 0 60 20"><path id="sparkPath" fill="none" stroke="#72e6d0" stroke-width="1.4" d="M0 18L60 18"/></svg></div></div></div></section>
+<div class="mobile-story"><div class="mobile-title"><span id="mobileTitle">잠든 캠퍼스를 깨우다</span><small id="mobileChapter">01 / 10</small></div><p id="mobileDescription">네트워크 자동화 에이전트가 장비 목록과 연결 상태를 확인합니다.</p></div>
+<main class="workspace" id="workspace" data-pane="terminal">
+<section class="panel map-panel"><div class="panel-head"><div class="panel-label"><span class="live-dot"></span><span id="mapViewTitle">LIVE CAMPUS</span><span class="small" id="mapClock">09:00:00</span></div><div class="map-tools"><button id="viewBtn" aria-label="캠퍼스와 논리망 보기 전환">논리망</button><button id="packetsBtn" class="on" aria-pressed="true">패킷</button><button id="fullBtn" aria-label="전체 화면">⛶</button></div></div><div class="map-body" id="mapBody"><canvas id="campus" aria-label="네트워크 캠퍼스. 세 동의 스위치, 단말, 패킷 흐름을 보여 줍니다."></canvas><div class="site-controls"><button data-focus="all" class="on">전체</button><button data-focus="A">A 개발</button><button data-focus="B">B 아트</button><button data-focus="C">C QA</button></div><div class="map-toast" id="mapToast"></div><div class="map-legend"><span><i class="legend-line"></i>전달</span><span><i class="legend-line alt"></i>STP 대기</span><span><i class="legend-line red"></i>장애 / 차단</span></div><div class="map-hint">장비·작업대를 누르면 상세 보기</div><div class="tooltip" id="tooltip" hidden></div></div></section>
+<div class="mobile-tabs" role="tablist" aria-label="하단 패널"><button id="autoTab" class="on" role="tab" aria-selected="true">자동 연출</button><button data-pane="terminal" role="tab" aria-selected="false">장비 CLI</button><button data-pane="desktop" role="tab" aria-selected="false">직원 기기</button><button data-pane="story" role="tab" aria-selected="false">운영 기록</button></div>
+<section class="panel side-panel"><div class="chapter-meta"><span>THE OPERATIONS JOURNAL</span><b id="chapterCount">01 / 10</b></div><div class="chapter-heading"><div class="chapter-number" id="chapterNumber">01</div><h2 id="chapterTitle">잠든 캠퍼스를 깨우다</h2></div><p class="chapter-description" id="chapterDescription"></p><div class="concepts" id="concepts"></div><div class="operation-card" id="operationCard"><div class="op-icon" id="opIcon">⌘</div><div><p class="op-title" id="opTitle">오케스트레이터 시작</p><p class="op-desc" id="opDescription">기준 구성을 불러오는 중입니다.</p></div></div><div class="event-feed" id="eventFeed" aria-label="최근 운영 이벤트"></div></section>
+<section class="panel terminal-panel"><div class="panel-head"><div class="panel-label"><span class="terminal-dots"><i></i><i></i><i></i></span><span id="terminalHost" class="mono">ORCHESTRATOR</span></div><div class="terminal-head-actions"><span class="small mono" id="terminalMethod">AUTOMATION</span><button id="logsBtn">전체 기록</button></div></div><div class="terminal-body" id="terminalBody" aria-label="자동 입력되는 장비 명령과 응답"></div><div class="terminal-status"><span id="terminalSession">SESSION 001 · READ-ONLY THEATER</span><span id="terminalPhase">PLANNING</span></div></section>
+<section class="panel desktop-panel"><div class="panel-head"><div class="panel-label"><span class="live-dot"></span>END-USER DEVICE</div><select id="hostSelect" aria-label="관찰할 직원 기기 선택"></select></div><div class="desktop-body"><div class="desktop-nav"><button data-pctab="auto" class="on">자동</button><button data-pctab="network">네트워크</button><button data-pctab="app">업무 화면</button><button data-pctab="shell">명령 기록</button></div><div class="pc-window"><div class="window-bar"><span id="windowTitle">PIXEL OS / NETWORK</span><span id="windowBadge" class="mono">OFFLINE</span></div><div class="window-content" id="pcContent"></div></div><div class="pc-status"><span id="pcStatus"><i class="status-led"></i>부팅 대기</span><code id="pcAddress">NO ADDRESS</code></div></div></section>
+</main>
+<footer class="footer"><div class="timeline-top"><div class="transport"><button class="play" id="playBtn" aria-label="일시 정지">Ⅱ 일시정지</button><button id="restartBtn" aria-label="처음부터 다시 보기">↺</button><button id="speedBtn" aria-label="재생 배속 변경">1×</button><div class="timecode"><b id="elapsed">00:00</b><span> / 05:00</span></div></div><div class="footer-meta"><span class="sim-date mono" id="statusLabel">AUTO OPERATIONS</span><button id="followBtn" class="on auto-follow" aria-pressed="true">자동 선택</button><button id="soundBtn" aria-pressed="false" aria-label="효과음 켜기">음향 OFF</button><button id="loopBtn" aria-pressed="false">반복 OFF</button></div></div><div class="timeline-wrap"><div class="chapter-rail" id="chapterRail"></div><input type="range" id="scrubber" class="scrubber" min="0" max="300" step="0.1" value="0" aria-label="시뮬레이션 시간 이동"></div><div class="footer-bottom"><span>관전형 모델 · 실제 기기 접속 없음 · 수치·전이 시간은 시나리오 기반</span><span class="keys">SPACE 재생/정지 &nbsp; ← → 10초 이동 &nbsp; 1–3 동 선택</span><span class="mono">TRIARC LAB / OFFLINE READY</span></div></footer>
+</div>
+<div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle">도움말</h2><button id="modalClose" aria-label="닫기">×</button></div><div class="modal-content" id="modalContent"></div></section></div>
+<noscript><div style="position:fixed;inset:0;background:#09121b;padding:40px;z-index:100">이 시뮬레이션은 JavaScript가 필요합니다. JavaScript를 지원하는 브라우저에서 HTML 파일을 열어 주세요.</div></noscript>
+<script>
+'use strict';
+/* Single-file, offline, fictional educational model. No network/device access. */
+
+const PHASES = [
+ {short:'발견', title:'잠든 캠퍼스를 깨우다', desc:'출근 전의 게임 스튜디오. 자동화 에이전트가 세 동의 장비를 발견하고, 검증된 구성과 현재 상태를 비교합니다.',tags:['INVENTORY','LLDP','NETCONF']},
+ {short:'L2 구축', title:'루프 없이, 더 넓게', desc:'업무별 VLAN을 분리하고 LACP로 대역폭을 묶습니다. Rapid PVST+가 여분의 경로를 대기시켜 루프를 막습니다.',tags:['802.1Q','LACP','RAPID PVST+']},
+ {short:'라우팅', title:'세 동, 하나의 네트워크', desc:'분배 계층은 HSRP로 게이트웨이를 이중화합니다. 코어와는 OSPF로 연결하고, 각 동의 경로를 요약해 공유합니다.',tags:['OSPF / AREA 0','HSRP v2','ABR / SUMMARY']},
+ {short:'단말 접속', title:'72개의 작업대에 연결을', desc:'직원 인증, DHCP, DNS, 무선 접속이 순서대로 준비됩니다. 주소를 받은 작업대가 하나씩 온라인으로 바뀝니다.',tags:['802.1X','DHCP RELAY','DNS','WLAN']},
+ {short:'첫 빌드', title:'코드가 게임이 되는 시간', desc:'소스 동기화와 에셋 렌더링, 멀티플레이 테스트가 시작됩니다. 전송량이 커지면 QoS가 실시간 트래픽을 보호합니다.',tags:['CI / CD','AF41 / EF','QoS']},
+ {short:'회선 장애', title:'끊어져도, 이어지도록', desc:'A동 주 분배기의 상행 광 경로가 모두 끊깁니다. 추적 객체가 HSRP 우선순위를 낮추고, 예비 분배기가 서비스를 이어받습니다.',tags:['OBJECT TRACKING','OSPF RECONVERGENCE','FAILOVER']},
+ {short:'VLAN 복구', title:'살아 있는 링크, 막힌 길', desc:'링크는 정상이지만 C동 QA만 접속하지 못합니다. 자동화가 두 업링크의 VLAN 허용 목록을 비교해 누락된 VLAN 130을 복원합니다.',tags:['TRUNK ALLOWED','CONFIG DIFF','ROLLBACK']},
+ {short:'보안 검증', title:'연결할 것과, 막을 것', desc:'게스트는 인터넷만 이용합니다. 비인가 DHCP 응답과 위조 ARP는 접근 스위치에서 폐기하고 정상 업무 흐름은 유지합니다.',tags:['ACL','DHCP SNOOPING','DAI']},
+ {short:'DNS 복구', title:'주소는 맞는데, 왜 안 될까', desc:'아트팀 PC 한 대의 DNS 설정이 기준에서 벗어났습니다. IP 연결과 이름 해석을 따로 검사한 뒤 DHCP 기준 DNS로 되돌립니다.',tags:['L3 vs DNS','ENDPOINT REMEDIATION','POST-CHECK']},
+ {short:'릴리스', title:'연결의 끝에, 플레이가 시작된다', desc:'업무 서비스와 보안 차단을 함께 검증합니다. 구성을 저장하고 릴리스 빌드를 배포하면, 세 동의 하루가 비로소 시작됩니다.',tags:['VALIDATION','CONFIG SAVE','RELEASE READY']}
+];
+const EVENTS=[];
+function E(at,title,detail,host,lines,patch={},opt={}){EVENTS.push({at,title,detail,host,lines,patch,level:'info',pane:'terminal',...opt});}
+E(0,'오케스트레이터 세션 시작','연출용 오프라인 환경입니다. 장비 명령과 상태 전이는 가상의 사내 네트워크 모델 안에서만 실행됩니다.','ORCHESTRATOR',[
+'~TRIARC / Campus bring-up scenario 001','$ labctl run studio-campus --mode simulation','+Inventory loaded: 3 buildings / 72 user devices','  Policy: discover → compare → apply → verify','  No SSH sockets. No external requests.'],{}, {focus:'CORE-1'});
+E(5,'전원과 물리 연결 확인','코어, 분배, 접근 장비의 전원을 켜고 업링크의 물리 상태를 수집합니다.','CONSOLE-SERVER',[
+'$ labctl power-on --group campus','  CORE-1, CORE-2                 BOOTING','  A-D1/D2  B-D1/D2  C-D1/D2      BOOTING','  6 access switches / 3 APs      BOOTING','+Out-of-band console established'],{power:true},{focus:'A-D1'});
+E(12,'이웃 장비와 포트 매핑','LLDP 이웃 정보를 대조해 케이블이 의도한 장비로 연결되었는지 확인합니다.','A-AS1',[
+'A-AS1# show lldp neighbors','Device ID     Local Intf      Port ID','A-D1          Te1/1/1         Te1/0/3','A-D1          Te1/1/2         Te1/0/4','A-D2          Te1/1/3         Te1/0/3','A-D2          Te1/1/4         Te1/0/4'],{discovered:true},{focus:'A-AS1'});
+E(21,'구성 스냅샷과 변경 계획','NETCONF로 기준 구성과 차이를 읽고, L2부터 적용할 변경 순서를 생성합니다. 비밀 값은 이 모델에 포함하지 않습니다.','ORCHESTRATOR',[
+'$ labctl snapshot --all --transport netconf','  <get-config><source><running/></source></get-config>','+Snapshot: baseline-0001 / local model','  Change plan: VLAN → LACP → STP → L3 → clients','+Pre-check: management path available'],{snapshot:true},{focus:'CORE-1'});
+E(30,'업무별 브로드캐스트 도메인 분리','동별로 두 업무 VLAN을 생성합니다. VLAN 90은 게스트, 99는 관리망이며 동 사이로 L2를 늘리지 않습니다.','A-AS1',[
+'A-AS1# configure terminal','A-AS1(config)# vlan 10','A-AS1(config-vlan)# name DEV','A-AS1(config-vlan)# vlan 110','A-AS1(config-vlan)# name ENGINE','A-AS1(config-vlan)# vlan 90','A-AS1(config-vlan)# name GUEST','A-AS1(config-vlan)# vlan 99','A-AS1(config-vlan)# name MGMT'],{vlans:true},{focus:'A-AS1'});
+E(39,'동일 상대 장비에 LACP 묶음 생성','분배기마다 별도의 2×10G 포트채널을 만듭니다. 독립된 D1과 D2를 하나의 EtherChannel 상대처럼 취급하지 않습니다.','A-AS1',[
+'A-AS1(config)# interface range TenGigabitEthernet1/1/1-2','A-AS1(config-if-range)# switchport mode trunk','A-AS1(config-if-range)# switchport trunk allowed vlan 10,90,99,110','A-AS1(config-if-range)# channel-group 1 mode active','A-AS1(config-if-range)# end','A-AS1# show etherchannel summary','  1  Po1(SU)  LACP  Te1/1/1(P) Te1/1/2(P)','~Po2 → A-D2도 별도로 구성 / 다른 접근 스위치에 반복'],{lacp:true},{focus:'A-AS1'});
+E(48,'STP 루트와 게이트웨이 배치 정렬','각 동 D1을 루트로, D2를 보조 루트로 설정합니다. 접근 스위치의 Po2는 해당 VLAN에서 Alternate / Discarding입니다.','A-D1',[
+'A-D1(config)# spanning-tree mode rapid-pvst','A-D1(config)# spanning-tree vlan 10,90,99,110 priority 4096','A-D1(config)# end','A-D1# show spanning-tree vlan 10','  This bridge is the root','~A-D2 priority 8192 / A-AS1 Po2 Altn DISC','+LACP bundle ≠ STP forwarding guarantee'],{stp:true,l2:true},{focus:'A-D1'});
+E(55,'접근 포트 보호 적용','직원 포트는 PortFast와 BPDU Guard를 사용합니다. 스위치 간 트렁크에는 엣지 포트 설정을 적용하지 않습니다.','C-AS1',[
+'C-AS1(config)# interface range GigabitEthernet1/0/1-12','C-AS1(config-if-range)# switchport mode access','C-AS1(config-if-range)# switchport access vlan 30','C-AS1(config-if-range)# spanning-tree portfast','C-AS1(config-if-range)# spanning-tree bpduguard enable','+Access edge policy verified on all buildings'],{edgeGuard:true},{focus:'C-AS1'});
+E(60,'HSRP 가상 게이트웨이 생성','SVI .2와 .3이 가상 IP .1을 공유합니다. D1 우선순위는 110, D2는 100이며 정상 시 D1이 Active입니다.','A-D1',[
+'A-D1(config)# ip routing','A-D1(config)# interface Vlan10','A-D1(config-if)# ip address 10.10.10.2 255.255.255.0','A-D1(config-if)# standby version 2','A-D1(config-if)# standby 10 ip 10.10.10.1','A-D1(config-if)# standby 10 priority 110','A-D1(config-if)# standby 10 preempt delay minimum 10','~D2: SVI .3 / priority 100 / preempt'],{hsrp:true},{focus:'A-D1'});
+E(69,'OSPF 영역과 패시브 인터페이스 구성','상행 링크는 area 0, 업무 SVI는 동별 area 10/20/30입니다. 사용자 SVI는 경로만 알리고 OSPF 이웃은 맺지 않습니다.','A-D1',[
+'A-D1(config)# router ospf 100','A-D1(config-router)# router-id 10.255.10.1','A-D1(config-router)# passive-interface default','A-D1(config-router)# no passive-interface TenGigabitEthernet1/0/1','A-D1(config-router)# no passive-interface TenGigabitEthernet1/0/2','A-D1(config-router)# area 10 range 10.10.0.0 255.255.0.0','~상행: ip ospf 100 area 0 / network point-to-point','~업무 SVI: ip ospf 100 area 10'],{ospfStarting:true},{focus:'A-D1'});
+E(77,'OSPF FULL, 동별 요약 경로 확인','코어는 각 동의 /16 요약 경로를 학습합니다. /30 상행 링크의 FULL/-는 point-to-point 네트워크 유형을 반영합니다.','CORE-1',[
+'CORE-1# show ip ospf neighbor','Neighbor ID     State     Address       Interface','10.255.10.1     FULL/-    172.20.10.2   Te1/0/1','10.255.10.2     FULL/-    172.20.10.10  Te1/0/2','CORE-1# show ip route ospf','O IA  10.10.0.0/16 [110/11] via 172.20.10.2','O IA  10.20.0.0/16 [110/11] via 172.20.20.2','O IA  10.30.0.0/16 [110/11] via 172.20.30.2'],{routing:true},{focus:'CORE-1'});
+E(84,'중앙 서비스와 DHCP 릴레이 연결','업무 VLAN의 DHCP 요청을 10.100.0.10으로 전달합니다. DNS, 저장소, CI, 테스트 서비스는 공용 서버 VLAN 100에 있습니다.','C-D1',[
+'C-D1(config)# interface Vlan130','C-D1(config-if)# ip helper-address 10.100.0.10','C-D1(config-if)# end','C-D1# ping 10.100.0.10 source Vlan130','  !!!!!','  Success rate is 100 percent (5/5)','+Relay repeated on both distribution switches / all client SVIs'],{relay:true,services:true},{focus:'SRV-INFRA'});
+E(90,'유·무선 직원 인증','관리된 직원 인증서를 사용해 802.1X/EAP-TLS 인증을 모델링합니다. RADIUS 승인 이후에 업무 네트워크 접근을 허용합니다.','IDENTITY-SERVICE',[
+'$ labctl auth-profile apply --name STAFF-EAP-TLS','  Access switch / AP → RADIUS policy service',
+'  Pre-DHCP: snooping enabled on user VLANs / trusted uplinks','  Certificate chain: trusted (simulation)','  User role: managed-employee','+Access-Accept / authorized VLAN 10','~무선 단말은 각 동 AP를 경유합니다.'],{auth:true,snooping:true},{pane:'desktop',pc:'A-DEV-01',focus:'A-DEV-01'});
+E(98,'A동 개발 PC에 주소 자동 할당','DHCP DORA가 완료되면 게이트웨이와 DNS도 함께 설정됩니다. 다른 작업대의 할당은 순차적으로 이어집니다.','A-DEV-01',[
+'PS> ipconfig /renew','  DHCPDISCOVER → DHCPOFFER → DHCPREQUEST → DHCPACK','  IPv4 Address . . . : 10.10.10.51','  Default Gateway .  : 10.10.10.1','  DNS Servers . . .  : 10.100.0.11, 10.100.0.10','+Lease accepted / managed network'],{dhcp:true},{pane:'desktop',pc:'A-DEV-01',focus:'A-DEV-01'});
+E(105,'아트팀 작업대와 무선 노트북 접속','B동의 아트·사운드 작업대에 해당 VLAN의 주소가 할당됩니다. 화면의 패킷은 AP와 접근 스위치의 실제 모델 경로를 따릅니다.','B-ART-07',[
+'PS> Get-NetIPConfiguration','  InterfaceAlias : Ethernet','  IPv4Address    : 10.20.20.57','  IPv4Gateway    : 10.20.20.1','PS> Resolve-DnsName p4.studio.test','  p4.studio.test  A  10.100.0.20','+Workspace mapping approved'],{}, {pane:'desktop',pc:'B-ART-07',focus:'B-ART-07'});
+E(112,'QA 개발킷과 테스트 장비 준비','C동 QA VLAN 130의 개발킷이 접속합니다. 업무 VLAN 30과 QA VLAN 130은 서로 다른 DHCP 스코프입니다.','C-QA-18',[
+'PS> ipconfig /all','  IPv4 Address . . : 10.30.130.56','  Default Gateway  : 10.30.130.1','  DNS Servers . .  : 10.100.0.11, 10.100.0.10','PS> Test-NetConnection 10.100.0.40 -Port 443','  TcpTestSucceeded : True'],{}, {pane:'desktop',pc:'C-QA-18',focus:'C-QA-18'});
+E(118,'바인딩을 만든 뒤 ARP 검사 활성화','DHCP Snooping 바인딩을 토대로 DAI를 검사합니다. 서버 방향의 관리된 업링크만 신뢰하고, 정적 서버는 검사 대상 사용자 VLAN 밖에 둡니다.','C-AS2',[
+'C-AS2(config)# ip dhcp snooping','C-AS2(config)# ip dhcp snooping vlan 30,90,130','C-AS2(config)# ip arp inspection vlan 30,90,130','C-AS2(config)# interface range Port-channel1-2','C-AS2(config-if-range)# ip dhcp snooping trust','C-AS2(config-if-range)# ip arp inspection trust','~사용자 포트는 untrusted / Option 82 처리는 서버 정책과 정합성 확인'],{security:true},{focus:'C-AS2'});
+E(120,'개발자 저장소 동기화','개발자는 소스를 받고, 아트팀은 에셋을 공유하고, QA는 전용 테스트 서버에 접속합니다. 서비스별 흐름이 캠퍼스를 오갑니다.','A-DEV-01',[
+'$ git pull origin main','  remote: Enumerating objects: 246, done.','  Updating a36d19c..d79052a','  38 files changed / workspace ready','$ buildctl submit --project tiny-orbit','+CI job #2048 queued → 10.100.0.30'],{workload:true},{pane:'desktop',pc:'A-DEV-01',focus:'A-DEV-01'});
+E(128,'CI 빌드와 에셋 파이프라인 가동','빌드 워커가 소스를 컴파일하고 아트팀은 3D 에셋을 렌더링합니다. 단말의 작업 진척도는 연결 상태와 연동됩니다.','B-ART-07',[
+'$ p4 sync //TinyOrbit/Assets/...','  Textures/planet_base.ktx2  updated','  Models/rover_lod0.mesh     updated','$ renderctl submit --scene orbital-garden','+Render queue: 12 workers / 64 frames','  Destination: 10.100.0.30'],{}, {pane:'desktop',pc:'B-ART-07',focus:'SRV-CI'});
+E(136,'실시간 트래픽 분류','신뢰된 업무 정책에서 음성 EF와 QA AF41을 분류합니다. 임의 단말의 표시를 무조건 신뢰하는 방식은 아닙니다.','A-D1',[
+'A-D1(config)# class-map match-any VOICE','A-D1(config-cmap)# match dscp ef','A-D1(config-cmap)# class-map match-any QA-REALTIME','A-D1(config-cmap)# match dscp af41','~액세스에서 인증된 역할/분류 정책으로 마킹','+Bulk assets remain best-effort'],{}, {focus:'A-D1'});
+E(140,'대용량 에셋 전송으로 큐 증가','대량 전송이 실시간 테스트와 경쟁합니다. 큐가 길어지면서 합성 RTT가 높아지고, 모델의 QA 화면이 지연 상태로 바뀝니다.','TELEMETRY',[
+'$ labctl inspect queues --site B','!B uplink egress: transient congestion','  Bulk asset transfers: 6 active streams','  QA synthetic RTT: 48 ms','  Policy action: apply protected queues'],{congestion:true},{level:'warn',focus:'B-D1',pc:'C-QA-18',pane:'desktop'});
+E(146,'QoS 정책 적용과 지연 회복','음성은 우선 큐로, QA는 보장 대역폭 클래스로 분리합니다. 플랫폼별 세부 큐 명령 대신 이 모델의 정책 API를 표시합니다.','ORCHESTRATOR',[
+'$ labctl qos apply --policy STUDIO-EGRESS','  VOICE / EF       : priority queue, capped budget','  QA / AF41        : reserved share','  ASSET / default  : remaining bandwidth','+Policy attached to managed egress links','+Synthetic QA RTT: 48 → 8 ms'],{congestion:false,qos:true},{focus:'B-D1'});
+E(150,'장애 대비: 두 상행 링크를 함께 추적','D1의 두 상행 링크 중 하나라도 살아 있으면 정상입니다. OR 추적 객체가 모두 Down일 때만 우선순위를 30 낮춥니다.','A-D1',[
+'A-D1(config)# track 11 interface TenGigabitEthernet1/0/1 line-protocol','A-D1(config)# track 12 interface TenGigabitEthernet1/0/2 line-protocol','A-D1(config)# track 100 list boolean or','A-D1(config-track)# object 11','A-D1(config-track)# object 12','A-D1(config)# interface Vlan10','A-D1(config-if)# standby 10 track 100 decrement 30','~다른 A동 HSRP 그룹에도 동일 추적 정책 적용'],{tracking:true},{focus:'A-D1'});
+E(154,'INC-01 · A동 주 상행 광 경로 단절','같은 경로에 놓인 D1 상행 두 링크가 동시에 Down입니다. D2의 상행은 별도 경로로 살아 있고, D1–D2 트렁크도 정상입니다.','A-D1',[
+'!%LINK-3-UPDOWN: Te1/0/1 changed state to down','!%LINK-3-UPDOWN: Te1/0/2 changed state to down','!%OSPF-5-ADJCHG: neighbors FULL → DOWN','!%TRACK-6-STATE: 100 list boolean or Up → Down','  HSRP local priority: 110 → 80','!Client check: application requests retrying'],{fiberDown:true},{level:'error',focus:'A-D1',pc:'A-DEV-01'});
+E(159,'예비 분배기가 게이트웨이 인계','D2가 Active가 됩니다. D1은 여전히 STP 루트이므로 접근 스위치의 전달 경로는 D1 → 동내 트렁크 → D2 → 코어입니다.','A-D2',[
+'A-D2# show standby brief','Interface  Grp Pri P State   Active Standby      Virtual IP','Vl10       10  100 P Active  local  10.10.10.2  10.10.10.1','Vl110      110 100 P Active  local  10.10.110.2 10.10.110.1','+Model route: AS1 → D1 → D2 → CORE → services','+INC-01: service restored / modeled impact 5 s'],{failover:true,recoveredFiber:true},{focus:'A-D2',pc:'A-DEV-01',pane:'desktop'});
+E(166,'우회 상태의 업무 연속성 검사','가상 게이트웨이 IP는 바뀌지 않습니다. 기존 PC의 IP를 다시 설정하지 않고 저장소 전송을 재시도합니다.','A-DEV-01',[
+'PS> ping 10.10.10.1','  Reply from 10.10.10.1: time=2ms','PS> Test-NetConnection 10.100.0.20 -Port 1666','  TcpTestSucceeded : True','+Workspace sync resumed through distribution peer link'],{}, {pane:'desktop',focus:'A-DEV-01',pc:'A-DEV-01'});
+E(170,'광 링크 복구, 안정화 대기','D1 상행과 OSPF 이웃이 복구되었습니다. 이 연출에서는 10초의 검증 시간을 둔 뒤 D1을 다시 Active로 전환합니다.','A-D1',[
+'+%LINK-3-UPDOWN: Te1/0/1, Te1/0/2 changed state to up','+%OSPF-5-ADJCHG: neighbors → FULL','+Track 100: Up / priority 80 → 110','  Controller stability gate: 10 simulation seconds','~프로토콜의 실제 수렴 성능을 측정한 값이 아닙니다.'],{fiberDown:false},{focus:'A-D1'});
+E(180,'정상 게이트웨이 복귀와 다음 변경 점검','A동 D1이 Active로 복귀했습니다. 이어 C동 QA 접근 스위치의 허용 VLAN 구성 변경을 감시합니다.','A-D1',[
+'A-D1# show standby brief','  Vlan10  10   110  P  Active  local  10.10.10.3','  Vlan110 110  110  P  Active  local  10.10.110.3','+STP root and HSRP Active aligned again','$ labctl watch config-drift --device C-AS2'],{failover:false},{focus:'C-AS2'});
+E(184,'INC-02 · QA만 멈춘 네트워크','C-AS2의 Po1과 Po2에서 VLAN 130이 동시에 누락되었습니다. 물리 링크와 관리 VLAN 99는 정상이라 원격 진단은 가능합니다.','C-AS2',[
+'!CONFIG-DRIFT: allowed list replaced on Po1 / Po2','!Expected: 30,90,99,130  /  Actual: 30,90,99','  Physical links: UP / EtherChannel: SU','  Management VLAN 99: reachable','!12 QA endpoints: application path unavailable'],{vlanBad:true},{level:'error',focus:'C-AS2',pc:'C-QA-18',pane:'desktop'});
+E(190,'링크 상태와 VLAN 전달 상태를 분리 진단','포트채널이 Up이어도 모든 VLAN이 통과하는 것은 아닙니다. 두 트렁크에서 VLAN 130이 사라졌는지 확인합니다.','C-AS2',[
+'C-AS2# show interfaces trunk','Port   Mode  Encapsulation Status    Native vlan','Po1    on    802.1q        trunking  1','Po2    on    802.1q        trunking  1','Port   Vlans allowed on trunk','Po1    30,90,99','Po2    30,90,99','!VLAN 130 is missing from BOTH uplinks'],{}, {level:'warn',focus:'C-AS2'});
+E(195,'기준 구성과 차이 검토','새 목록으로 덮어쓰는 대신 add를 사용합니다. 보조 포트채널에도 VLAN이 남아 있어야 다음 장애 때 우회가 가능합니다.','ORCHESTRATOR',[
+'$ labctl diff C-AS2 --baseline baseline-0002','  interface Port-channel1','!- switchport trunk allowed vlan 30,90,99','++ switchport trunk allowed vlan 30,90,99,130','  interface Port-channel2','!- switchport trunk allowed vlan 30,90,99','++ switchport trunk allowed vlan 30,90,99,130'],{}, {focus:'C-AS2'});
+E(199,'두 트렁크에 QA VLAN 복원','VLAN 130을 Po1과 Po2 모두에 복원합니다. 관리망 연결과 VLAN 자체는 살아 있으므로 전체 장비 재부팅이 필요하지 않습니다.','C-AS2',[
+'C-AS2# configure terminal','C-AS2(config)# interface range Port-channel1-2','C-AS2(config-if-range)# switchport trunk allowed vlan add 130','C-AS2(config-if-range)# end','C-AS2# show spanning-tree vlan 130','  Po1  Root FWD / Po2 Altn DISC','+INC-02: 12 endpoints restored / modeled impact 15 s'],{vlanBad:false,recoveredVlan:true},{focus:'C-AS2',pc:'C-QA-18'});
+E(205,'QA 세션 재연결','기존 DHCP 임대는 유지됩니다. 테스트 장비가 서버에 다시 접속하고, 패킷 흐름과 플레이테스트가 함께 재개됩니다.','C-QA-18',[
+'PS> Test-NetConnection 10.100.0.40 -Port 443','  TcpTestSucceeded : True','$ qactl reconnect --session nightly-2048','+Manifest checksum verified','+12/12 QA clients ready'],{}, {pane:'desktop',pc:'C-QA-18',focus:'C-QA-18'});
+E(210,'게스트 인터넷 허용, 내부 저장소 차단','C동 게스트 SVI의 인바운드 ACL은 DHCP·지정 DNS를 예외 허용한 뒤 내부망을 차단합니다. 차단 성공도 정상 결과입니다.','C-D1',[
+'C-D1# show access-lists GUEST-IN','  permit udp any host 10.100.0.11 eq domain','  permit tcp any host 10.100.0.11 eq domain','  permit udp any eq bootpc any eq bootps','  deny ip 10.30.90.0 0.0.0.255 10.0.0.0 0.255.255.255 log','~RFC1918 나머지 대역 차단 + 인터넷 허용 항목 생략','+Guest → 10.100.0.20 DENY (expected)','+Guest → 203.0.113.80 ALLOW (modeled Internet)'],{guestBlocked:true,blocks:1},{focus:'C-D1'});
+E(217,'비인가 DHCP 응답 폐기','신뢰되지 않은 사용자 포트에서 온 서버 응답을 DHCP Snooping이 버립니다. 정상 DHCP 서버 방향의 응답은 허용합니다.','C-AS1',[
+'C-AS1# show ip dhcp snooping','  DHCP snooping is configured on VLANs: 30,90,130','  Trusted interfaces: Port-channel1, Port-channel2','!Untrusted Gi1/0/23: unauthorized DHCPOFFER dropped','+Authorized DHCP bindings unchanged'],{rogueBlocked:true,blocks:2},{level:'warn',focus:'C-AS1'});
+E(225,'위조 ARP와 바인딩 불일치 차단','DAI가 DHCP Snooping 바인딩과 맞지 않는 ARP를 폐기합니다. 이 장면은 방어 검증이며 실제 공격 패킷은 전송하지 않습니다.','B-AS1',[
+'B-AS1# show ip arp inspection statistics vlan 20','  Forwarded : 1248','  Dropped   : 1','  DHCP Drops: 1','!ARP binding mismatch on untrusted Gi1/0/23','+Normal ART workstations continue rendering'],{arpBlocked:true,blocks:3},{level:'warn',focus:'B-AS1'});
+E(233,'차단과 정상 통신을 함께 검증','정상 업무 단말은 그대로 동작하고, 허용하지 않은 경로만 막혔는지 확인합니다. 격리 성공을 서비스 장애로 잘못 세지 않습니다.','ORCHESTRATOR',[
+'$ labctl security post-check','+Managed clients → services: PASS','+Guest → public endpoint: PASS','+Guest → private repository: EXPECTED DENY','+Rogue DHCP / invalid ARP: EXPECTED DROP','+Security checks: 3 / 3'],{}, {focus:'CORE-2'});
+E(240,'단말 구성 드리프트 감시','네트워크 장비가 정상이어도 직원 PC의 설정이 어긋날 수 있습니다. 아트팀 PC의 DNS 값을 DHCP 정책과 비교합니다.','B-ART-07',[
+'PS> Get-DnsClientServerAddress -AddressFamily IPv4','  InterfaceAlias   ServerAddresses','  Ethernet         {10.100.0.11, 10.100.0.10}','+Policy source: DHCP option 6','  Monitoring for endpoint drift…'],{}, {pane:'desktop',pc:'B-ART-07',focus:'B-ART-07'});
+E(245,'INC-03 · 아트 PC 한 대의 이름 해석 실패','B-ART-07의 DNS가 잘못된 수동 주소로 바뀌었습니다. IP와 게이트웨이는 정상이며 다른 71대의 업무는 계속됩니다.','B-ART-07',[
+'!Endpoint drift: manual DNS = 198.51.100.53','PS> Resolve-DnsName p4.studio.test','!DNS request timed out.','  IPv4 Address : 10.20.20.57 (unchanged)','!Asset sync paused: name resolution failed'],{dnsBad:true},{level:'error',pane:'desktop',pc:'B-ART-07',focus:'B-ART-07'});
+E(251,'IP 도달성은 정상, DNS만 비정상','IP 직접 접속이 성공하므로 VLAN과 라우팅을 다시 만들지 않습니다. 장애 범위를 단말의 이름 해석 설정으로 좁힙니다.','B-ART-07',[
+'PS> Test-NetConnection 10.100.0.20 -Port 1666','  TcpTestSucceeded : True','PS> Resolve-DnsName p4.studio.test -Server 10.100.0.11','  p4.studio.test A 10.100.0.20','+Diagnosis: endpoint DNS override, not routing failure'],{}, {pane:'desktop',pc:'B-ART-07',focus:'B-ART-07'});
+E(257,'DHCP 기준 DNS 복원과 캐시 초기화','수동 DNS를 제거하고 DHCP가 전달한 서버 주소로 되돌립니다. 수정 뒤 실제 이름 해석과 업무 앱 연결까지 재검증합니다.','B-ART-07',[
+'PS> Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ResetServerAddresses','PS> ipconfig /flushdns','  Successfully flushed the DNS Resolver Cache.','PS> Resolve-DnsName p4.studio.test','  p4.studio.test A 10.100.0.20','+INC-03: endpoint recovered / modeled impact 12 s'],{dnsBad:false,recoveredDns:true},{pane:'desktop',pc:'B-ART-07',focus:'B-ART-07'});
+E(264,'에셋 작업 재개','PC는 기존 주소를 유지한 채 작업을 이어갑니다. 자동화는 수정 명령의 성공뿐 아니라 최종 업무 복귀를 확인합니다.','B-ART-07',[
+'$ p4 sync //TinyOrbit/Assets/...','+DNS: p4.studio.test → 10.100.0.20','+Server handshake complete','+Asset sync resumed / workspace consistent'],{}, {pane:'desktop',pc:'B-ART-07',focus:'B-ART-07'});
+E(270,'최종 서비스·보안 매트릭스 검사','모든 단말의 게이트웨이, 저장소, CI, QA 경로를 검사합니다. 기대한 차단 결과는 PASS로 판정합니다.','ORCHESTRATOR',[
+'$ labctl validate --suite studio-release','+3 building routes / 6 distribution uplinks pairs: PASS','+72 managed endpoint workflows: PASS','+HSRP active / STP root alignment: PASS','+Guest policy + snooping + DAI: PASS','+No unresolved incident in scenario'],{validated:true},{focus:'CORE-1'});
+E(278,'구성 저장과 감사 기록 남기기','실행 구성을 시작 구성에 저장하고, 시뮬레이션의 변경 이력과 복구 시간을 기록합니다. 기록은 브라우저 밖으로 전송하지 않습니다.','C-AS2',[
+'C-AS2# copy running-config startup-config','  Destination filename [startup-config]?','  Building configuration...','+[OK]','$ labctl snapshot --all --tag release-ready','+Local audit: INC-01 5s / INC-02 15s / INC-03 12s'],{saved:true},{focus:'C-AS2'});
+E(285,'릴리스 빌드 배포','테스트가 끝난 빌드를 배포합니다. 네트워크 뒤에서 만들고 있던 작은 게임이 QA 화면에서 실행됩니다.','C-QA-18',[
+'$ releasectl deploy tiny-orbit --build 2048','  Package verification: SHA-256 match','  Target: QA staging / 10.100.0.40','+Release READY','+Tiny Orbit — playtest session started'],{released:true},{pane:'desktop',pc:'C-QA-18',focus:'C-QA-18'});
+E(293,'세 동 모두 정상 업무 중','개발자는 코드를, 아트팀은 세계를, QA는 경험을 다듬습니다. 네트워크는 그 사이에서 조용히 연결을 유지합니다.','ORCHESTRATOR',[
+'+72 / 72 managed users ready','+3 / 3 incidents recovered','+3 / 3 security controls verified','+Configuration saved / release ready','  End of operations sequence at 05:00'],{}, {pane:'desktop',pc:'C-QA-18',focus:'CORE-1'});
+const SITE_DATA = [
+ {id:'A',oct:10,name:'ENGINEERING',ko:'게임 개발동',dept:['CLIENT / ENGINE','PLATFORM / TOOLS'],vlans:[10,110],prefix:['DEV','ENG'],color:'#79dccb'},
+ {id:'B',oct:20,name:'ART & SOUND',ko:'아트·사운드동',dept:['3D / ANIMATION','AUDIO / RENDER'],vlans:[20,120],prefix:['ART','SND'],color:'#dab1fa'},
+ {id:'C',oct:30,name:'QA & LIVE OPS',ko:'QA·라이브운영동',dept:['LIVE OPERATIONS','QA / DEVICE LAB'],vlans:[30,130],prefix:['OPS','QA'],color:'#f2c986'}
+];
+const HOSTS=SITE_DATA.flatMap((s,si)=>Array.from({length:24},(_,i)=>({id:`${s.id}-${s.prefix[i<12?0:1]}-${String(i+1).padStart(2,'0')}`,site:s.id,si,i,vlan:s.vlans[i<12?0:1],ip:`10.${s.oct}.${s.vlans[i<12?0:1]}.${51+i%12}`,gw:`10.${s.oct}.${s.vlans[i<12?0:1]}.1`,wireless:i>=18,as:`${s.id}-AS${i<12?1:2}`,readyAt:99+si*4+i*.3}))); 
+const HOST_BY_ID=Object.fromEntries(HOSTS.map(h=>[h.id,h]));
+const DEFAULT_STATE={power:false,discovered:false,snapshot:false,vlans:false,lacp:false,stp:false,l2:false,edgeGuard:false,hsrp:false,ospfStarting:false,routing:false,relay:false,services:false,auth:false,dhcp:false,snooping:false,security:false,workload:false,congestion:false,qos:false,tracking:false,fiberDown:false,failover:false,vlanBad:false,dnsBad:false,recoveredFiber:false,recoveredVlan:false,recoveredDns:false,guestBlocked:false,rogueBlocked:false,arpBlocked:false,blocks:0,validated:false,saved:false,released:false};
+function stateAt(t){const s={...DEFAULT_STATE};for(const e of EVENTS){if(e.at>t)break;Object.assign(s,e.patch);}return s;}
+function currentEvent(t){let e=EVENTS[0];for(const item of EVENTS){if(item.at>t)break;e=item;}return e;}
+function hostStatus(h,s,t){if(!s.power)return 'off';if(!s.auth)return 'boot';if(!s.dhcp||t<h.readyAt)return 'dhcp';if(s.vlanBad&&h.site==='C'&&h.i>=12)return 'isolated';if(s.fiberDown&&!s.failover&&h.site==='A')return 'retry';if(s.dnsBad&&h.id==='B-ART-07')return 'dns';return 'online';}
+function hostLabel(status){return {off:'전원 대기',boot:'망 구성 대기',dhcp:'인증 · DHCP 진행',isolated:'VLAN 전달 차단',retry:'게이트웨이 재선출',dns:'이름 해석 실패',online:'업무 네트워크 정상'}[status];}
+function metricsAt(t,s){const online=HOSTS.filter(h=>hostStatus(h,s,t)==='online').length;let traffic=s.workload?1.9+Math.sin(t*.22)*.3+Math.sin(t*.071)*.55:s.dhcp?.07+online*.003:s.routing?.02:0;if(s.congestion)traffic=8.4+Math.sin(t)*.3;if(s.released)traffic=3.1+Math.sin(t*.13)*.28;traffic*=s.workload?online/72:1;return {online,traffic:Math.max(0,traffic),rtt:s.workload?(s.congestion?48:Math.round(6+Math.sin(t*.38)*2+(s.failover?5:0))):s.routing?3:null};}
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>`${String(Math.floor(n/60)).padStart(2,'0')}:${String(Math.floor(n%60)).padStart(2,'0')}`;
+const C={cyan:'#79dccb',blue:'#80b8ff',amber:'#f2c986',purple:'#dab1fa',red:'#ff7e85',ink:'#0c1924',muted:'#7493a5'};
+let time=0,playing=true,speed=1,state=stateAt(0),follow=true,autoPane=true,pcTab='auto',pcId='A-DEV-01',selected='CORE-1',focus='all',view='campus',showPackets=true,sound=false,loop=false;
+let lastEvent=-1,lastUi=-1,lastFrame=0,ended=false,repeatAt=0,modalResume=false,lastFocused=null,pcContentKey='',termHTML='',seenPhase=-1;
+const reducedMotion=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+let audioCtx=null,flowClock=0,randomSeed=4711;
+function rand(){randomSeed=(Math.imul(1664525,randomSeed)+1013904223)>>>0;return randomSeed/4294967296;}
+function tone(level='info'){if(!sound)return;try{if(!audioCtx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return;audioCtx=new A();}if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.setValueAtTime(level==='error'?185:level==='warn'?350:660,audioCtx.currentTime);g.gain.setValueAtTime(.018,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.13);o.start();o.stop(audioCtx.currentTime+.15);}catch(_){}}
+// The topology is one graph shared by the drawing, packet routing and validation.
+const NODES=[],LINKS=[];const boxes={};
+function node(id,type,x,y,extra={}){const n={id,type,x,y,...extra};NODES.push(n);return n;}
+function link(a,b,kind,extra={}){const l={id:`${a}|${b}`,a,b,kind,...extra};LINKS.push(l);return l;}
+node('INTERNET','cloud',560,35,{label:'INTERNET',ip:'203.0.113.80',note:'외부 통신도 합성 모델입니다.'});
+node('EDGE-1','edge',455,80,{label:'EDGE-1 / FW',ip:'172.20.1.1'});node('EDGE-2','edge',655,80,{label:'EDGE-2 / FW',ip:'172.20.1.5'});
+node('CORE-1','core',455,155,{label:'CORE-1',ip:'10.255.0.1/32'});node('CORE-2','core',655,155,{label:'CORE-2',ip:'10.255.0.2/32'});
+node('DC-SW','switch',850,149,{label:'DC-SW',ip:'10.100.0.9'});
+node('SRV-INFRA','server',980,80,{label:'DNS / DHCP',ip:'10.100.0.10 / .11'});node('SRV-REPO','server',1080,80,{label:'GIT / P4',ip:'10.100.0.20'});
+node('SRV-CI','server',980,169,{label:'CI / RENDER',ip:'10.100.0.30'});node('SRV-QA','server',1080,169,{label:'QA SERVER',ip:'10.100.0.40'});
+link('INTERNET','EDGE-1','edge');link('INTERNET','EDGE-2','edge');link('EDGE-1','CORE-1','routed');link('EDGE-2','CORE-2','routed');link('CORE-1','CORE-2','routed',{caption:'AREA 0 / L3'});
+link('CORE-1','DC-SW','service');link('CORE-2','DC-SW','service',{alternate:true});
+for(const id of ['SRV-INFRA','SRV-REPO','SRV-CI','SRV-QA'])link('DC-SW',id,'service');
+for(let si=0;si<3;si++){
+ const s=SITE_DATA[si],x=30+375*si,y=280,w=330,h=290;boxes[s.id]={x,y,w,h};
+ node(`${s.id}-D1`,'dist',x+87,y+55,{site:s.id,label:`${s.id}-D1`,ip:`10.255.${s.oct}.1/32`,role:'主 / D1'});
+ node(`${s.id}-D2`,'dist',x+243,y+55,{site:s.id,label:`${s.id}-D2`,ip:`10.255.${s.oct}.2/32`,role:'副 / D2'});
+ node(`${s.id}-AS1`,'access',x+87,y+104,{site:s.id,label:`${s.id}-AS1`,ip:`10.${s.oct}.99.11`});
+ node(`${s.id}-AS2`,'access',x+243,y+104,{site:s.id,label:`${s.id}-AS2`,ip:`10.${s.oct}.99.12`});
+ node(`${s.id}-AP`,'ap',x+304,y+211,{site:s.id,label:'AP',ip:`10.${s.oct}.99.21`});
+ for(let d=1;d<=2;d++){for(let c=1;c<=2;c++)link(`${s.id}-D${d}`,`CORE-${c}`,'uplink',{site:s.id,channel:si*4+(d-1)*2+c,capacity:10});}
+ link(`${s.id}-D1`,`${s.id}-D2`,'peer',{site:s.id,caption:'L2 PEER / 20G'});
+ for(let a=1;a<=2;a++){link(`${s.id}-AS${a}`,`${s.id}-D1`,'trunk',{site:s.id,po:1,capacity:20});link(`${s.id}-AS${a}`,`${s.id}-D2`,'trunk',{site:s.id,po:2,alternate:true,capacity:20});}
+ link(`${s.id}-AP`,`${s.id}-AS2`,'ap',{site:s.id});
+ for(const hst of HOSTS.filter(h=>h.site===s.id)){
+  const i=hst.i,hx=x+35+(i%6)*49,hy=y+147+Math.floor(i/6)*32+(i>=12?14:0);
+  node(hst.id,'host',hx,hy,{...hst,label:hst.id});link(hst.id,hst.wireless?`${s.id}-AP`:hst.as,'host',{site:s.id,host:hst.id,wireless:hst.wireless});
+ }
+}
+const NODE=Object.fromEntries(NODES.map(n=>[n.id,n]));
+const adjacency={};for(const l of LINKS){(adjacency[l.a]??=[]).push(l);(adjacency[l.b]??=[]).push(l);}
+function linkState(l,s,t){
+ if(!s.power)return 'off';
+ if(l.kind==='host'){const h=HOST_BY_ID[l.host];return s.auth&&s.dhcp&&t>=h.readyAt-.8?'up':'off';}
+ if(l.kind==='ap')return s.l2?'up':'off';
+ if(l.kind==='trunk'){
+  if(!s.lacp)return 'off';
+  if(s.vlanBad&&l.a==='C-AS2')return 'filtered';
+  if(l.alternate&&s.stp)return 'alternate';
+  return s.l2?'up':'pending';
+ }
+ if(l.kind==='peer')return s.l2?'up':'off';
+ if(l.kind==='uplink'){
+  if(s.fiberDown&&l.a==='A-D1')return 'down';
+  return s.routing?'up':s.ospfStarting?'pending':'off';
+ }
+ if(l.kind==='service')return !s.services?'off':l.alternate?'alternate':'up';
+ return s.routing?'up':'off';
+}
+function bfsPath(src,dst,s,t,allowedKinds=null){
+ const queue=[src],prev={[src]:null};let index=0;
+ while(index<queue.length){const at=queue[index++];if(at===dst)break;for(const l of adjacency[at]||[]){if(allowedKinds&&!allowedKinds.includes(l.kind))continue;if(linkState(l,s,t)!=='up')continue;const nx=l.a===at?l.b:l.a;if(Object.prototype.hasOwnProperty.call(prev,nx))continue;prev[nx]=at;queue.push(nx);}}
+ if(!Object.prototype.hasOwnProperty.call(prev,dst))return null;const p=[];for(let at=dst;at!==null;at=prev[at])p.push(at);return p.reverse();
+}
+function route(src,dst,s=state,t=time){
+ const h=HOST_BY_ID[src],target=NODE[dst];
+ // Endpoint traffic must first reach its elected HSRP gateway on Layer 2.
+ // A peer trunk cannot substitute for a routed adjacency before a failover.
+ if(h&&target&&target.site!==h.site){
+  if(!s.hsrp||!s.routing)return null;
+  const gateway=h.site+'-'+(h.site==='A'&&s.failover?'D2':'D1');
+  const l2=bfsPath(src,gateway,s,t,['host','ap','trunk','peer']);
+  const l3=bfsPath(gateway,dst,s,t,['uplink','routed','service','edge']);
+  return l2&&l3?l2.concat(l3.slice(1)):null;
+ }
+ if(NODE[src]?.type==='dist'&&target?.type==='core')return bfsPath(src,dst,s,t,['uplink','routed']);
+ return bfsPath(src,dst,s,t);
+}
+function deviceStatus(n,s=state,t=time){if(n.type==='host')return hostStatus(HOST_BY_ID[n.id],s,t);if(!s.power)return 'off';if(n.id==='A-D1'&&s.fiberDown)return 'warning';if(n.id==='C-AS2'&&s.vlanBad)return 'warning';if(n.type==='server')return s.services?'online':'boot';if(n.type==='ap')return s.auth?'online':'boot';if(n.type==='dist'||n.type==='core'||n.type==='edge')return s.routing?'online':'boot';return s.l2?'online':'boot';}
+function isUp(status){return status==='online';}
+function statusColor(status){return status==='online'?C.cyan:status==='off'?'#3d586b':['isolated','retry','dns','warning'].includes(status)?C.red:C.amber;}
+let packets=[];
+function addPacket(path,color,type='data',bad=false){if(!path||path.length<2)return;packets.push({path,color,type,bad,age:0,duration:(path.length-1)*.36+.5});if(packets.length>(reducedMotion?32:120))packets.shift();}
+function generateFlows(dt){
+ packets=packets.filter(p=>(p.age+=dt)<p.duration);
+ if(!showPackets||!state.power)return;
+ flowClock+=dt;const interval=state.workload?(reducedMotion?.6:.16):.48;
+ let guard=0;while(flowClock>=interval&&guard++<8){flowClock-=interval;
+  if(state.dhcp){
+   const h=HOSTS[Math.floor(rand()*HOSTS.length)],st=hostStatus(h,state,time);
+   if(st==='online'){
+    const target=state.workload?(['SRV-REPO','SRV-CI','SRV-QA'][h.si]):'SRV-INFRA';
+    let p=route(h.id,target);if(p&&rand()<.45)p=p.slice().reverse();
+    addPacket(p,SITE_DATA[h.si].color,state.workload?['SOURCE','ASSET','QA'][h.si]:'DHCP');
+   }else if(st==='isolated'){addPacket([h.id,h.wireless?'C-AP':'C-AS2',...(h.wireless?['C-AS2']:[])],C.red,'DROP',true);}
+   else if(st==='dns'){addPacket(route(h.id,'EDGE-1'),C.red,'DNS ?',true);}
+   else if(st==='retry'){const p=route(h.id,'A-D1');addPacket(p,C.red,'RETRY',true);}
+  }
+  if(state.routing&&rand()<.25){const n=SITE_DATA[Math.floor(rand()*3)].id;addPacket(route(`${n}-D${rand()>.5?1:2}`,'CORE-1'),C.blue,'OSPF');}
+  if(!state.dhcp&&state.l2){const s=SITE_DATA[Math.floor(rand()*3)].id;addPacket(route(`${s}-AS1`,`${s}-D1`),C.cyan,'LACP');}
+  if(state.services&&state.workload&&rand()<.3)addPacket(route('SRV-REPO','SRV-CI'),C.purple,'CI');
+ }
+}
+const canvas=$('campus'),ctx=canvas.getContext('2d');let cw=1,ch=1,dpr=1;
+let camera={cx:560,cy:310,scale:1},cameraReady=false,hoverNode=null;
+function resizeCanvas(){const r=$('mapBody').getBoundingClientRect();cw=Math.max(1,r.width);ch=Math.max(1,r.height);dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(cw*dpr);canvas.height=Math.round(ch*dpr);cameraReady=false;drawMap(0);}
+function rr(x,y,w,h,r=5,fill,stroke){r=Math.max(0,Math.min(r,w/2,h/2));ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}}
+function txt(str,x,y,size=11,color=C.muted,align='left',weight=400){ctx.font=`${weight} ${size}px ${size<=10?'ui-monospace, SFMono-Regular, monospace':'-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'}`;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(str,x,y);}
+function poly(points,fill,stroke){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}}
+function linkPoints(l){const a=NODE[l.a],b=NODE[l.b];
+ if(l.kind==='uplink'){const lane=220+(l.channel%4)*9;return [[a.x,a.y-12],[a.x,lane],[b.x,lane],[b.x,b.y+12]];}
+ if(l.kind==='trunk')return [[a.x,a.y-9],[a.x,a.y-25],[b.x,a.y-25],[b.x,b.y+10]];
+ if(l.kind==='host'&&view==='campus'){const dy=a.i<12?-19:-13;return [[a.x,a.y],[a.x,a.y+dy],[b.x,a.y+dy],[b.x,b.y]];}
+ if(l.kind==='service'&&a.id==='DC-SW')return [[a.x,a.y],[b.x,a.y],[b.x,b.y]];
+ if(l.kind==='service'&&b.id==='DC-SW')return [[a.x,a.y],[a.x,197],[b.x,197],[b.x,b.y]];
+ return [[a.x,a.y],[b.x,b.y]];
+}
+function strokePoints(points,color,width=1,dash=[]){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);}
+function pointAlong(points,f){let lengths=[],total=0;for(let i=1;i<points.length;i++){let len=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);lengths.push(len);total+=len;}let distance=Math.max(0,Math.min(1,f))*total;for(let i=0;i<lengths.length;i++){if(distance<=lengths[i]||i===lengths.length-1){const q=lengths[i]?distance/lengths[i]:0;return [points[i][0]+(points[i+1][0]-points[i][0])*q,points[i][1]+(points[i+1][1]-points[i][1])*q];}distance-=lengths[i];}return points[0];}
+function findLink(a,b){return (adjacency[a]||[]).find(l=>l.a===b||l.b===b);}
+function drawBuilding(s){const b=boxes[s.id],{x,y,w,h}=b;
+ ctx.lineWidth=1;
+ if(view==='campus'){
+  rr(x+7,y+8,w+9,h+12,9,'#050c1366');
+  poly([[x,y+h],[x+w,y+h],[x+w+11,y+h-11],[x+w+11,y+2],[x+w,y+12]],'#152d3b','#294351');
+  rr(x,y,w,h,9,'#112332','#344c5b');
+  ctx.save();rr(x+4,y+4,w-8,h-8,6);ctx.clip();
+  ctx.strokeStyle='#2c47532b';ctx.lineWidth=.6;for(let a=x+14;a<x+w;a+=17){ctx.beginPath();ctx.moveTo(a,y+36);ctx.lineTo(a,y+h);ctx.stroke();}for(let a=y+37;a<y+h;a+=17){ctx.beginPath();ctx.moveTo(x,a);ctx.lineTo(x+w,a);ctx.stroke();}ctx.restore();
+  rr(x+10,y+120,w-20,83,5,'#10202dcc','#213a46');rr(x+10,y+208,w-20,73,5,'#10202dcc','#213a46');
+  // Architectural edge lighting and a front entrance.
+  ctx.fillStyle=s.color;ctx.globalAlpha=.52;ctx.fillRect(x+13,y+1,w-26,2);ctx.globalAlpha=1;
+  ctx.fillStyle='#284453';ctx.fillRect(x+w/2-15,y+h-2,30,4);
+ }else{rr(x,y,w,h,8,'#10223022','#2d4856');}
+ const online=HOSTS.filter(h=>h.site===s.id&&hostStatus(h,state,time)==='online').length;
+ txt(s.id,x+16,y+20,17,s.color,'left',750);txt(s.name,x+41,y+19,11,'#d3e3e9','left',650);txt(`${online}/24`,x+w-14,y+20,10,online===24?s.color:'#6e899b','right');
+ txt(s.dept[0],x+17,y+127,8,'#73909f');txt(`VLAN ${s.vlans[0]}`,x+w-19,y+127,8,s.color,'right');txt(s.dept[1],x+17,y+216,8,'#73909f');txt(`VLAN ${s.vlans[1]}`,x+w-39,y+216,8,s.color,'right');
+ txt(`${s.ko} · OSPF AREA ${s.oct}`,x+w/2,y+h+28,11,'#93b0bc','center');
+ if(state.power&&view==='campus'&&!reducedMotion){
+  for(let j=0;j<2;j++){const p=(time*(.019+j*.004)+j*.42)%1;const px=x+23+p*(w-46),py=y+197;ctx.fillStyle='#9bb6be';ctx.globalAlpha=.45;ctx.beginPath();ctx.arc(px,py,2.8,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
+ }
+}
+function drawDevice(n){const st=deviceStatus(n),color=statusColor(st),hot=n.id===selected||n.id===hoverNode;
+ ctx.save();ctx.translate(n.x,n.y);
+ if(hot){ctx.globalAlpha=.7;ctx.strokeStyle=hoverNode===n.id?'#e5faff':C.cyan;ctx.lineWidth=1.2;ctx.setLineDash([3,3]);rr(-26,-23,52,45,7,null,ctx.strokeStyle);ctx.setLineDash([]);ctx.globalAlpha=1;}
+ if(n.type==='host'){
+  const h=HOST_BY_ID[n.id],sc=SITE_DATA[h.si].color;ctx.fillStyle='#213846';ctx.fillRect(-16,-8,32,16);ctx.fillStyle='#2e4a59';ctx.fillRect(-17,6,34,2);
+  rr(-11,-11,22,15,2,'#09151d',st==='online'?sc:color);ctx.fillStyle=st==='online'?sc:'#304653';ctx.globalAlpha=st==='online'?.20:.15;ctx.fillRect(-9,-9,18,10);ctx.globalAlpha=1;
+  if(st==='online'){ctx.fillStyle=sc;const width=4+((Math.floor(time*1.5)+h.i)%10);ctx.globalAlpha=.75;ctx.fillRect(-7,-6,width,1.5);ctx.fillRect(-7,-2,13,1);ctx.fillRect(-7,1,8,1);ctx.globalAlpha=1;}
+  else if(['dns','retry','isolated'].includes(st)){txt('!',0,-3,11,C.red,'center',700);}
+  else if(state.power){ctx.fillStyle=color;ctx.fillRect(-6,-3,3+((time+h.i)%5)*2,2);}
+  ctx.fillStyle='#5d7a89';ctx.fillRect(-2,4,4,3);
+  if(view==='campus'){ctx.fillStyle=st==='online'?'#829daf':'#435968';ctx.beginPath();ctx.arc(0,14,3.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#253e50';rr(-5,16,10,5,3,'#253e50');}
+  if(view==='logical'||focus===n.site){txt(String(h.i+1).padStart(2,'0'),17,-5,7,'#7f9ead');}
+  if(h.wireless){ctx.strokeStyle=sc;ctx.lineWidth=.7;ctx.beginPath();ctx.arc(12,-11,4,Math.PI*1.13,Math.PI*1.92);ctx.stroke();}
+ }else if(n.type==='ap'){
+  ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fillStyle='#223c49';ctx.fill();ctx.strokeStyle=color;ctx.stroke();ctx.fillStyle=color;ctx.beginPath();ctx.arc(0,0,2,0,Math.PI*2);ctx.fill();
+  if(state.auth){for(let i=0;i<2;i++){ctx.globalAlpha=.35-i*.1;ctx.strokeStyle=C.cyan;ctx.beginPath();ctx.arc(0,0,15+i*6+(time%2)*2,Math.PI*1.12,Math.PI*1.88);ctx.stroke();}ctx.globalAlpha=1;}
+  txt('AP',0,17,7,C.muted,'center');
+ }else if(n.type==='cloud'){
+  ctx.strokeStyle=state.routing?C.blue:'#3b586c';ctx.lineWidth=1;ctx.beginPath();ctx.arc(-10,-4,10,Math.PI,Math.PI*1.6);ctx.arc(2,-9,12,Math.PI*1.05,Math.PI*1.9);ctx.arc(15,-3,8,Math.PI*1.2,Math.PI*2.5);ctx.lineTo(-17,5);ctx.stroke();txt('INTERNET · MODEL',0,20,9,'#7792a7','center');
+ }else if(n.type==='edge'){
+  poly([[-13,-12],[13,-12],[13,1],[0,14],[-13,1]],'#1c3342',color);ctx.strokeStyle=color;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-6,-1);ctx.lineTo(-1,4);ctx.lineTo(7,-6);ctx.stroke();txt(n.label,0,25,9,'#7c9ab0','center');
+ }else if(n.type==='server'){
+  rr(-17,-20,34,34,4,'#152a3b','#3d5668');for(let i=0;i<3;i++){rr(-12,-15+i*9,24,6,1,'#203a4c');ctx.fillStyle=state.services?(i===Math.floor(time*2)%3?C.cyan:'#6dbaa5'):'#445b6b';ctx.fillRect(7,-13+i*9,2,2);ctx.fillStyle='#466073';ctx.fillRect(-8,-13+i*9,10,1);}
+  txt(n.label,0,26,9,'#99b7c5','center');if(focus==='all')txt(n.ip.replace('10.100.0.','.'),0,38,7,'#5f8094','center');
+ }else{
+  const w=n.type==='core'?50:n.type==='dist'?43:37,hh=n.type==='core'?24:17;
+  poly([[-w/2,-hh/2],[w/2,-hh/2],[w/2+4,-hh/2-4],[-w/2+4,-hh/2-4]],'#2e485a','#3e5a6a');
+  rr(-w/2,-hh/2,w,hh,3,'#183041',hot?C.cyan:'#416274');ctx.fillStyle='#0b1924';ctx.fillRect(-w/2+4,-hh/2+4,w-8,hh-8);
+  const ports=n.type==='core'?9:7;for(let i=0;i<ports;i++){ctx.fillStyle=state.power&&((Math.floor(time*3)+i)%5!==0)?color:'#294452';ctx.fillRect(-w/2+5+i*(w-10)/ports,-2,2.3,2.5);}
+  txt(n.label,0,hh/2+13,9,hot?'#e5fff5':'#95b1c0','center',600);
+  if(n.type==='dist'&&state.hsrp){const active=n.site==='A'&&state.failover?n.id.endsWith('D2'):n.id.endsWith('D1');const str=active?'ACTIVE':'STANDBY';txt(str,0,-hh/2-15,7,active?C.cyan:'#a18b64','center');}
+  if(n.type==='core')txt('L3 / OSPF 100',0,-hh/2-14,8,'#7296ac','center');
+ }
+ ctx.restore();
+}
+function drawMap(dt){
+ if(!ctx||cw<2||ch<2)return;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cw,ch);
+ // Screen-space blueprint grid.
+ ctx.strokeStyle='#24415326';ctx.lineWidth=.5;for(let x=0;x<cw;x+=25){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ch);ctx.stroke();}for(let y=0;y<ch;y+=25){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cw,y);ctx.stroke();}
+ let target;if(focus==='all')target={cx:565,cy:318,scale:Math.min((cw-18)/1140,(ch-24)/640)};else{const b=boxes[focus];target={cx:b.x+b.w/2,cy:b.y+b.h/2+6,scale:Math.min((cw-30)/390,(ch-24)/365)};}
+ if(!cameraReady||reducedMotion){camera={...target};cameraReady=true;}else{const k=dt?1-Math.exp(-dt*10):.16;camera.cx+=(target.cx-camera.cx)*k;camera.cy+=(target.cy-camera.cy)*k;camera.scale+=(target.scale-camera.scale)*k;}
+ ctx.translate(cw/2,ch/2);ctx.scale(camera.scale,camera.scale);ctx.translate(-camera.cx,-camera.cy);
+ // Shared service zone.
+ rr(809,33,316,182,10,'#11253270','#234252');txt('SHARED SERVICES / VLAN 100',820,49,8,'#6d8a9b');
+ txt('CAMPUS BACKBONE',46,172,10,'#406477','left',650);txt('L3 AREA 0 · DUAL 10G FIBER',46,188,8,'#365669');
+ for(const s of SITE_DATA)drawBuilding(s);
+ // Selected path highlights use the same valid graph as the packets.
+ let highlight=new Set();if(HOST_BY_ID[selected]){const p=route(selected,'SRV-REPO');if(p)for(let i=1;i<p.length;i++){const l=findLink(p[i-1],p[i]);if(l)highlight.add(l.id);}}
+ for(const l of LINKS){
+  const st=linkState(l,state,time),points=linkPoints(l);let color,width=1,dash=[];
+  if(st==='up')color=l.kind==='uplink'?'#5d9fa1':'#376a77';else if(st==='alternate'){color='#866f45';dash=[4,5];}else if(st==='down'){color=C.red;width=2;dash=[4,4];}else if(st==='filtered'){color=C.amber;width=1.7;dash=[2,3];}else if(st==='pending'){color='#5a6462';dash=[2,5];}else{color='#263e4e';dash=[2,5];}
+  if(l.kind==='host'){if(view==='campus'&&!highlight.has(l.id)&&l.host!==hoverNode)continue;color=st==='up'?'#385769':'#1e3443';width=.6;}
+  if(highlight.has(l.id)){color=C.cyan;width=1.6;}
+  strokePoints(points,color,width,dash);
+  if(l.kind==='peer'&&state.failover&&l.site==='A')strokePoints(points,C.cyan,2.2);
+  if(l.kind==='uplink'&&st==='down'){const p=pointAlong(points,.18);txt('×',p[0],p[1],22,C.red,'center',700);}
+  if(l.kind==='trunk'&&st==='filtered'&&l.po===1){const p=pointAlong(points,.47);rr(p[0]-20,p[1]-8,40,15,3,'#3c3222','#806b44');txt('130 ×',p[0],p[1],8,C.amber,'center');}
+  if(l.kind==='peer'&&(focus===l.site||view==='logical')){const p=pointAlong(points,.5);txt('L2 PEER',p[0],p[1]-7,7,'#6a95a3','center');}
+ }
+ for(const n of NODES)drawDevice(n);
+ if(showPackets){for(const p of packets){
+  const f=p.age/p.duration,seg=Math.min(p.path.length-2,Math.floor(f*(p.path.length-1))),lf=f*(p.path.length-1)-seg;
+  const a=p.path[seg],b=p.path[seg+1],l=findLink(a,b);if(!l)continue;
+  // Drop a visual packet when its traversed link is no longer forwarding.
+  if(linkState(l,state,time)!=='up')continue;
+  let pts=linkPoints(l);if(l.a!==a)pts=pts.slice().reverse();const pt=pointAlong(pts,lf);
+  ctx.globalAlpha=.12;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(pt[0],pt[1],7,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle=p.color;ctx.fillRect(pt[0]-2,pt[1]-2,4,4);
+  const trail=pointAlong(pts,Math.max(0,lf-.08));strokePoints([trail,pt],p.color,1.4);
+  if(p.bad&&f>.85){ctx.strokeStyle=C.red;ctx.beginPath();ctx.arc(pt[0],pt[1],(f-.85)*45+4,0,Math.PI*2);ctx.stroke();}
+ }}
+ // Scene footer decoration.
+ strokePoints([[43,615],[452,615]],'#294654',1);strokePoints([[678,615],[1093,615]],'#294654',1);
+ txt(state.released?'TINY ORBIT / RELEASE READY':'TRIARC GAME STUDIO',565,615,9,state.released?C.cyan:'#587d91','center',600);
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+const TERM_LINES=[];
+for(let i=0;i<EVENTS.length;i++){
+ const e=EVENTS[i],next=EVENTS[i+1]?.at??300,budget=Math.max(1,Math.min(11.8,next-e.at-.3));
+ const weights=e.lines.map(l=>.45+Math.min(l.length,120)*.009),sum=weights.reduce((a,b)=>a+b,0);let at=e.at+.1;
+ for(let j=0;j<e.lines.length;j++){
+  let text=e.lines[j],kind='output';if(text.startsWith('~')){kind='note';text='// '+text.slice(1);}else if(text.startsWith('!')){kind='error';text=text.slice(1);}else if(text.startsWith('+')){kind='success';text=text.slice(1);}else if(text.startsWith('$')||text.startsWith('PS>')||/^[A-Z0-9-]+(?:\([^)]*\))?[#>]/.test(text)){kind='command';}
+  const duration=weights[j]/sum*budget;TERM_LINES.push({at,end:at+duration*.83,text,kind,host:e.host});at+=duration;
+ }
+}
+function applyEvent(e,silent=false){
+ if(follow){selected=e.focus||e.host;if(!NODE[selected])selected='CORE-1';if(e.pc)pcId=e.pc;}
+ if(autoPane)$('workspace').dataset.pane=e.pane||'terminal';
+ if(!silent&&e.at>0)tone(e.level);
+ lastEvent=e.at;pcContentKey='';
+}
+function restoreSelectionAt(t){let lastPc='A-DEV-01';for(const e of EVENTS){if(e.at>t)break;if(e.pc)lastPc=e.pc;}if(follow)pcId=lastPc;}
+function renderTerminal(){
+ const visible=[];for(const l of TERM_LINES){if(l.at>time)break;let str=l.text,cursor='';if(l.kind==='command'&&time<l.end){str=str.slice(0,Math.max(0,Math.floor(str.length*(time-l.at)/(l.end-l.at))));cursor='<i class="cursor"></i>';}visible.push(`<div class="term-line ${l.kind}">${esc(str)}${cursor}</div>`);}
+ const html=visible.slice(-90).join('')||'<div class="term-line note">// TRIARC local orchestration model<span class="cursor"></span></div>';
+ if(html!==termHTML){const el=$('terminalBody'),atBottom=el.scrollHeight-el.scrollTop-el.clientHeight<35;el.innerHTML=html;if(atBottom||!termHTML)el.scrollTop=el.scrollHeight;termHTML=html;}
+}
+function pcMode(){if(pcTab!=='auto')return pcTab;if(time<120)return 'network';if(time>=240&&time<264)return time>=251&&time<257?'shell':'network';return 'app';}
+function pcProgress(h){let paused=0;if(h.site==='A')paused+=Math.min(5,Math.max(0,time-154));if(h.site==='C'&&h.i>=12)paused+=Math.min(15,Math.max(0,time-184));if(h.id==='B-ART-07')paused+=Math.min(12,Math.max(0,time-245));return state.released?100:Math.min(97,Math.max(0,((time-120-paused)/165)*100));}
+function shellFor(h,st){if(time<120)return `PS> ipconfig /all\nIPv4  : ${time>=h.readyAt?h.ip:'waiting for DHCP…'}\nGW    : ${time>=h.readyAt?h.gw:'—'}\nDNS   : 10.100.0.11 / 10.100.0.10\n\n${st==='online'?'AUTH ACCEPT / LEASE BOUND':'Authentication / address provisioning…'}`;
+ if(st==='dns')return 'PS> Test-NetConnection 10.100.0.20 -Port 1666\nTcpTestSucceeded : True\n\nPS> Resolve-DnsName p4.studio.test\nDNS request timed out.\n\nDiagnosis: manual DNS override';
+ if(st==='isolated')return `PS> ipconfig\nIPv4: ${h.ip} (lease still valid)\n\nPS> ping ${h.gw}\nRequest timed out.\n\nSwitch check: VLAN 130 not permitted on Po1 / Po2`;
+ if(st==='retry')return `PS> ping ${h.gw}\nRequest timed out.\n\nHSRP: tracking object down\nWaiting for standby gateway takeover…`;
+ if(time>=257&&time<270&&h.id==='B-ART-07')return 'PS> Set-DnsClientServerAddress\n  -InterfaceAlias "Ethernet" -ResetServerAddresses\nPS> ipconfig /flushdns\nPS> Resolve-DnsName p4.studio.test\np4.studio.test  A  10.100.0.20\n\nPASS / asset sync resumed';
+ return `${h.si===0?'$ git status':h.si===1?'$ p4 sync //TinyOrbit/Assets/...':'$ qactl status --session nightly-2048'}\nEndpoint: ${h.id}\nService : 10.100.0.${[20,30,40][h.si]}\nGateway : ${h.gw}\n\n${state.released?'RELEASE READY / Tiny Orbit #2048':'Connection verified / job in progress'}`;}
+function renderPC(){
+ const h=HOST_BY_ID[pcId]||HOSTS[0],st=hostStatus(h,state,time),mode=pcMode(),ready=state.dhcp&&time>=h.readyAt;
+ const dnsBad=state.dnsBad&&h.id==='B-ART-07';let key=`${h.id}/${st}/${mode}/${state.released}/${Math.floor(time/10)}`;
+ $('hostSelect').value=h.id;
+ $('pcAddress').textContent=ready?`${h.ip} · V${h.vlan}`:'NO ADDRESS';
+ $('pcStatus').innerHTML=`<i class="status-led" style="background:${statusColor(st)}"></i>${hostLabel(st)}`;
+ $('windowBadge').textContent=st==='online'?(state.released?'RELEASE':'CONNECTED'):st.toUpperCase();$('windowBadge').style.color=statusColor(st);
+ $('windowTitle').textContent=mode==='network'?'설정 / 관리형 네트워크':mode==='shell'?'TERMINAL / ENDPOINT AGENT':state.released?'TINY ORBIT / PLAYTEST':h.si===0?'STUDIO BUILD / PIPELINE':h.si===1?'ASSET STUDIO / RENDER':'TINY ORBIT / QA STAGING';
+ if(key!==pcContentKey){
+  pcContentKey=key;
+  if(mode==='network'){
+   $('pcContent').innerHTML=`<div class="network-row"><label>접속 · 인증</label><b class="setting-value ${state.auth?'active':''}">${h.wireless?'STAFF Wi-Fi':'Ethernet'} / ${state.auth?'EAP-TLS ✓':'대기'}</b></div><div class="network-row"><label>IPv4 · 자동</label><b class="setting-value ${ready?'active':''}">${ready?h.ip:'DHCP 할당 대기…'}</b></div><div class="network-row"><label>게이트웨이</label><b class="setting-value">${ready?h.gw:'—'}</b></div><div class="network-row"><label>DNS · ${dnsBad?'수동':'자동'}</label><b class="setting-value ${dnsBad?'bad':ready?'active':''}">${ready?(dnsBad?'198.51.100.53':'10.100.0.11 / .10'):'—'}</b></div>${time>=90&&time<118||time>=245&&time<264?'<div class="desktop-pointer" aria-hidden="true"></div>':''}`;
+  }else if(mode==='shell'){$('pcContent').innerHTML=`<div class="pc-log" style="color:${st==='online'?'#a5c7d5':C.amber}">${esc(shellFor(h,st))}</div>`;
+  }else{
+   const title=state.released?'Tiny Orbit #2048':h.si===0?'게임 클라이언트 빌드':h.si===1?'궤도 정원 · 에셋 렌더':'멀티플레이 자동 테스트';
+   const desc=state.released?'모든 업무 경로 검증 완료. QA 세션이 실행 중입니다.':st==='online'?(h.si===0?'소스 동기화 → 컴파일 → 패키징':h.si===1?'메시 · 텍스처 · 사운드 에셋 처리':'빌드 다운로드 → 세션 접속 → 테스트'):hostLabel(st)+' · 작업 재시도 대기';
+   $('pcContent').innerHTML=`<div class="app-view"><div class="app-visual"><canvas id="gameCanvas" aria-label="게임 빌드와 QA 화면 연출"></canvas></div><div class="app-information"><h3>${title}</h3><p id="jobDescription">${desc}</p><div class="progress-track"><i id="jobProgress"></i></div><div class="progress-label" id="jobProgressLabel"></div></div></div>`;
+  }
+ }
+ if(mode==='app'){
+  const p=pcProgress(h),blocked=st!=='online';if($('jobProgress')){$('jobProgress').style.width=p.toFixed(1)+'%';$('jobProgress').style.background=blocked?C.red:SITE_DATA[h.si].color;$('jobProgressLabel').textContent=blocked?'RETRYING · '+p.toFixed(0)+'%':state.released?'LIVE · 72/72 READY':p.toFixed(0)+'% · '+(state.congestion?'QUEUE BUSY':'PROCESSING');}
+ }
+}
+function drawGame(){const c=$('gameCanvas');if(!c||!c.isConnected)return;const r=c.getBoundingClientRect();if(r.width<2||r.height<2)return;const ratio=Math.min(window.devicePixelRatio||1,2),w=r.width,h=r.height;if(c.width!==Math.round(w*ratio)||c.height!==Math.round(h*ratio)){c.width=Math.round(w*ratio);c.height=Math.round(h*ratio);}const g=c.getContext('2d');g.setTransform(ratio,0,0,ratio,0,0);g.fillStyle='#0b1d2b';g.fillRect(0,0,w,h);
+ const hst=HOST_BY_ID[pcId],st=hostStatus(hst,state,time),ok=st==='online',t=ok?time:Math.floor(time/6)*6;
+ for(let i=0;i<23;i++){const x=((i*47+17)%197)/197*w,y=((i*31+9)%83)/83*h;g.fillStyle=i%4===0?'#77a5bc':'#345266';g.fillRect(x,y,1,1);}
+ const cx=w*.51,cy=h*.54,sc=Math.min(w*.34,h*.39);const points=[];for(let i=0;i<6;i++){const a=i*Math.PI/3+t*.1;points.push([cx+Math.cos(a)*sc,cy+Math.sin(a)*sc*.44]);}
+ function gp(pts,fill,stroke){g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fillStyle=fill;g.fill();if(stroke){g.strokeStyle=stroke;g.stroke();}}
+ gp(points.map(p=>[p[0],p[1]+12]),'#163f4c','#437785');for(let i=0;i<5;i++)gp([points[i],points[i+1],[points[i+1][0],points[i+1][1]+12],[points[i][0],points[i][1]+12]],i%2?'#245966':'#173d50');gp(points,'#477f80','#8bd8ba');
+ for(let i=0;i<5;i++){const a=i*2.4;const px=cx+Math.cos(a)*sc*.55,py=cy+Math.sin(a)*sc*.25;g.fillStyle='#243d48';g.fillRect(px-2,py-8,4,9);gp([[px-6,py-5],[px,py-18],[px+6,py-5]],'#85b8a0');}
+ const px=cx+Math.cos(t*.8)*sc*.47,py=cy+Math.sin(t*.8)*sc*.21;g.fillStyle='#e7c689';g.fillRect(px-4,py-9,8,8);g.fillStyle='#132a3b';g.fillRect(px,py-7,3,2);g.fillStyle='#abcbd6';g.fillRect(px-3,py-1,6,3);
+ if(state.released){g.strokeStyle='#8eddd188';g.lineWidth=1;g.beginPath();g.ellipse(cx,cy+2,sc*1.23,sc*.49,-.12,0,Math.PI*2);g.stroke();const a=t*.65;g.fillStyle=C.cyan;g.fillRect(cx+Math.cos(a)*sc*1.23-2,cy+2+Math.sin(a)*sc*.49-2,4,4);}
+ if(!ok){g.fillStyle='#1b1426b8';g.fillRect(0,0,w,h);g.fillStyle=C.red;g.font='9px ui-monospace, monospace';g.textAlign='center';g.fillText('CONNECTION RETRY',w/2,h/2);}
+ else{g.fillStyle='#a3c9cf';g.font='7px ui-monospace, monospace';g.textAlign='left';g.fillText(state.released?'TINY ORBIT · LIVE':'ASSET PREVIEW',6,h-6);}
+}
+function renderUI(force=false){
+ const e=currentEvent(time);if(e.at!==lastEvent){applyEvent(e);}
+ const phase=Math.min(9,Math.floor(time/30)),p=PHASES[phase],m=metricsAt(time,state);
+ $('onlineCount').textContent=m.online;$('trafficCount').textContent=m.traffic.toFixed(1);$('latencyCount').textContent=m.rtt??'—';
+ $('onlineCount').style.color=m.online===72?C.cyan:time>=120?C.amber:'';
+ const pts=Array.from({length:16},(_,i)=>`${i*4},${m.rtt===null?17:Math.max(2,Math.min(18,17-(m.rtt/4+Math.sin(time*.3-i*.7)*2)))}`);$('sparkPath').setAttribute('d','M'+pts.join(' L'));
+ $('mapClock').textContent=`09:${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')}`;
+ $('elapsed').textContent=fmt(time);$('scrubber').value=time;$('scrubber').setAttribute('aria-valuetext',`${fmt(time)} / 05:00`);
+ $('playBtn').textContent=time>=300?'▶ 다시 보기':playing?'Ⅱ 일시정지':'▶ 재생';$('playBtn').setAttribute('aria-label',playing?'일시 정지':'재생');
+ $('statusLabel').textContent=time>=300?'SEQUENCE COMPLETE':!playing?'PAUSED':e.level==='error'?'INCIDENT RESPONSE':'AUTO OPERATIONS';
+ if(phase!==seenPhase||force){seenPhase=phase;$('chapterNumber').textContent=String(phase+1).padStart(2,'0');$('chapterCount').textContent=`${String(phase+1).padStart(2,'0')} / 10`;$('chapterTitle').textContent=p.title;$('chapterDescription').textContent=p.desc;$('concepts').innerHTML=p.tags.map(s=>`<span>${esc(s)}</span>`).join('');$('mobileChapter').textContent=`${String(phase+1).padStart(2,'0')} / 10`;}
+ $('mobileTitle').textContent=e.title;$('mobileDescription').textContent=e.detail;
+ $('opTitle').textContent=e.title;$('opDescription').textContent=e.detail;$('operationCard').classList.toggle('error',e.level==='error');$('opIcon').textContent=e.level==='error'?'!':e.level==='warn'?'△':'⌘';
+ $('terminalHost').textContent=e.host;$('terminalMethod').textContent=HOST_BY_ID[e.host]?'ENDPOINT':e.host==='ORCHESTRATOR'?'LOCAL AGENT':'CLI EXCERPT';$('terminalPhase').textContent=playing?'AUTO · '+p.tags[0]:'PAUSED';
+ $('terminalSession').textContent=`SESSION 001 · ${EVENTS.filter(x=>x.at<=time).length}/${EVENTS.length} ACTIONS`;
+ const events=EVENTS.filter(x=>x.at<=time).slice(-7).reverse();const feed=events.map(x=>`<div class="event-item ${x.level}"><time>${fmt(x.at)}</time><span><i class="event-mark"></i>${esc(x.title)}</span></div>`).join('');if($('eventFeed').innerHTML!==feed)$('eventFeed').innerHTML=feed;
+ const age=time-e.at,toast=$('mapToast');toast.textContent=e.title;toast.classList.toggle('alert',e.level==='error');toast.style.opacity=(age<5.5&&e.at>0)?'1':'0';
+ document.querySelectorAll('.rail-segment').forEach((el,i)=>{el.classList.toggle('active',phase===i);el.querySelector('i').style.width=Math.max(0,Math.min(100,(time-i*30)/30*100))+'%';});
+ renderTerminal();renderPC();
+}
+function seek(t,options={}){time=Math.min(300,Math.max(0,Number(t)||0));state=stateAt(time);lastEvent=-1;seenPhase=-1;packets=[];flowClock=0;randomSeed=4711+Math.floor(time);ended=false;repeatAt=0;pcContentKey='';termHTML='';restoreSelectionAt(time);applyEvent(currentEvent(time),true);if(time>=300)playing=false;renderUI(true);generateFlows(0);drawMap(0);drawGame();if(options.finish&&time>=300)finish();}
+function setPlaying(p){if(time>=300&&p)seek(0);playing=p;lastFrame=performance.now();renderUI();}
+function setFocus(f){focus=boxes[f]?f:'all';document.querySelectorAll('[data-focus]').forEach(el=>el.classList.toggle('on',el.dataset.focus===focus));$('tooltip').hidden=true;}
+function restoreAuto(){follow=true;$('followBtn').classList.add('on');$('followBtn').setAttribute('aria-pressed','true');restoreSelectionAt(time);applyEvent(currentEvent(time),true);renderUI(true);}
+function setPane(p){autoPane=false;$('workspace').dataset.pane=p;document.querySelectorAll('.mobile-tabs button').forEach(el=>{const on=el.dataset.pane===p;el.classList.toggle('on',on);el.setAttribute('aria-selected',String(on));});pcContentKey='';renderPC();}
+function autoTab(){autoPane=true;$('workspace').dataset.pane=currentEvent(time).pane||'terminal';document.querySelectorAll('.mobile-tabs button').forEach(el=>{const on=el.id==='autoTab';el.classList.toggle('on',on);el.setAttribute('aria-selected',String(on));});restoreAuto();}
+function inspectHTML(n){const status=deviceStatus(n),h=HOST_BY_ID[n.id],links=adjacency[n.id]||[],s=SITE_DATA.find(s=>s.id===n.site);let detail='';
+ if(h){const p=route(h.id,'SRV-REPO'),ready=time>=h.readyAt&&state.dhcp;detail=`<table><tr><th>업무 / 연결</th><td>${s.ko} / ${h.wireless?'직원 무선 · AP 경유':'유선 Ethernet'}</td></tr><tr><th>VLAN / IPv4</th><td>${h.vlan} / ${ready?h.ip:'DHCP 대기'}</td></tr><tr><th>기본 게이트웨이</th><td>${ready?h.gw:'—'} (HSRP VIP)</td></tr><tr><th>DNS</th><td>${state.dnsBad&&h.id==='B-ART-07'?'198.51.100.53 — 잘못된 수동 값':'10.100.0.11 / 10.100.0.10'}</td></tr><tr><th>인증</th><td>${state.auth?'802.1X / EAP-TLS 승인':'준비 중'}</td></tr><tr><th>저장소 경로</th><td>${p?esc(p.join(' → ')):'전달 가능한 경로 없음'}</td></tr></table><p class="inspect-note">${status==='dns'?'IP 경로는 존재하지만 기본 DNS가 잘못되어 이름 기반 업무는 실패합니다.':''}</p><button id="watchHostBtn" data-host="${esc(h.id)}">이 직원의 업무 화면 보기</button>`;}
+ else{detail=`<table><tr><th>장비 역할</th><td>${({dist:'L3 분배 · ABR · HSRP',core:'L3 코어 · OSPF area 0',access:'L2 접근 · LACP · Rapid PVST+',ap:'직원 무선 AP · EAP-TLS',edge:'외곽 라우터 / 방화벽 — 축약 모델',server:'중앙 서비스 서버',switch:'서버 접근 스위치',cloud:'외부 서비스 — 합성 네트워크'})[n.type]}</td></tr><tr><th>주소</th><td>${esc(n.ip||'—')}</td></tr>`;
+  if(n.type==='dist'){const active=n.site==='A'&&state.failover?n.id.endsWith('D2'):n.id.endsWith('D1');detail+=`<tr><th>라우팅</th><td>OSPF process 100 · 상행 area 0 / 업무 area ${s.oct}<br>사용자 SVI passive · ${`10.${s.oct}.0.0/16`} 요약</td></tr><tr><th>HSRP</th><td>${state.hsrp?(active?'Active':'Standby'):'미구성'} / priority ${n.id==='A-D1'&&state.fiberDown?80:n.id.endsWith('D1')?110:100}</td></tr><tr><th>STP</th><td>${n.id.endsWith('D1')?'Root primary / 4096':'Root secondary / 8192'}</td></tr>`;}
+  if(n.type==='access')detail+=`<tr><th>업링크</th><td>Po1 → ${s.id}-D1 / Po2 → ${s.id}-D2<br>각 포트채널은 2 × 10G, 독립된 LACP 상대입니다.</td></tr><tr><th>허용 VLAN</th><td>${n.id==='C-AS2'&&state.vlanBad?'30,90,99 — 130 누락':s.vlans.concat([90,99]).sort((a,b)=>a-b).join(',')}</td></tr><tr><th>접근 보안</th><td>직원 포트: PortFast / BPDU Guard<br>DHCP Snooping / DAI: ${state.security?'활성':'구성 중'}</td></tr>`;
+  detail+='</table><h3>연결 상태</h3><div class="mini-ports">'+links.filter(l=>l.kind!=='host').map(l=>{const st=linkState(l,state,time);return `<span class="mini-port ${['down','filtered','off'].includes(st)?'down':''}">${esc(l.a===n.id?l.b:l.a)} · ${({up:'FWD',alternate:'STP DISC',filtered:'VLAN FILTER',down:'DOWN',off:'NOT READY',pending:'PENDING'})[st]}</span>`;}).join('')+'</div>';
+ }
+ return `<div class="inspection-head"><strong>${esc(n.id)}</strong><span style="color:${statusColor(status)}">${h?hostLabel(status):status.toUpperCase()}</span></div>${detail}<p class="muted">장면 시간 ${fmt(time)}의 모델 상태입니다. 이 창을 열면 재생이 잠시 멈춥니다.</p>`;
+}
+function showModal(title,content,opts={}){lastFocused=document.activeElement;modalResume=opts.resume!==false&&playing;playing=false;$('modalTitle').textContent=title;$('modalContent').innerHTML=content;$('modalBackdrop').classList.add('open');$('app').setAttribute('aria-hidden','true');if('inert' in $('app'))$('app').inert=true;$('modalClose').focus();renderUI();}
+function closeModal(){if(!$('modalBackdrop').classList.contains('open'))return;$('modalBackdrop').classList.remove('open');$('app').removeAttribute('aria-hidden');if('inert' in $('app'))$('app').inert=false;if(time<300)playing=modalResume;lastFrame=performance.now();if(lastFocused&&lastFocused.isConnected)lastFocused.focus();renderUI();}
+function inspect(n){selected=n.id;follow=false;$('followBtn').classList.remove('on');$('followBtn').setAttribute('aria-pressed','false');if(n.type==='host')pcId=n.id;showModal(n.id+' · 실시간 상태',inspectHTML(n));const watch=$('watchHostBtn');if(watch)watch.addEventListener('click',()=>{pcId=watch.dataset.host;setPane('desktop');closeModal();pcContentKey='';renderPC();});}
+function finalChecks(s=state,t=time){return [
+ ['VLAN · LACP · Rapid PVST+ 정합성',s.vlans&&s.lacp&&s.stp],
+ ['3개 동 OSPF 경로 및 중앙 서비스',s.routing&&s.services],
+ ['HSRP Active / STP Root 정상 정렬',s.hsrp&&!s.fiberDown&&!s.failover],
+ ['72대 DHCP · 게이트웨이 · DNS',HOSTS.every(h=>hostStatus(h,s,t)==='online')],
+ ['직원 유·무선 인증 및 접근',s.auth&&s.edgeGuard],
+ ['저장소 · CI · QA 릴리스 준비',s.released],
+ ['INC-01 광 경로 장애 복구',s.recoveredFiber&&!s.fiberDown],
+ ['INC-02 두 QA 트렁크 복원',s.recoveredVlan&&!s.vlanBad],
+ ['INC-03 PC DNS 정상화',s.recoveredDns&&!s.dnsBad],
+ ['게스트 내부망 차단 / 인터넷 허용',s.guestBlocked],
+ ['비인가 DHCP 및 잘못된 ARP 차단',s.rogueBlocked&&s.arpBlocked&&s.security],
+ ['실행 구성 저장 및 최종 감사',s.saved&&s.validated]
+ ];}
+function saveAudit(){const checks=finalChecks(),data={title:'TRIARC / offline simulation audit',note:'All events, addresses, measurements and timings are synthetic. No real device connections.',duration_seconds:time,scenario_completed:time>=300,state:{...state},checks:checks.map(([name,pass])=>({name,pass})),incidents:[{id:'INC-01',kind:'dual uplink failure',modeled_impact_seconds:5,recovered:state.recoveredFiber},{id:'INC-02',kind:'VLAN 130 omitted on both trunks',modeled_impact_seconds:15,recovered:state.recoveredVlan},{id:'INC-03',kind:'endpoint DNS override',modeled_impact_seconds:12,recovered:state.recoveredDns}],events:EVENTS.filter(e=>e.at<=time).map(e=>({at:e.at,time:fmt(e.at),title:e.title,detail:e.detail,device:e.host,lines:e.lines}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='triarc-simulation-audit.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);}
+function report(){const checks=finalChecks(),pass=checks.filter(x=>x[1]).length,recovered=[state.recoveredFiber,state.recoveredVlan,state.recoveredDns].filter(Boolean).length;showModal('운영 완료 · 05:00',`<div class="report-hero"><div class="report-emblem">◇</div><h3>작은 게임을 위한, 단단한 연결.</h3><p>TRIARC의 세 동이 하나의 네트워크로 연결되었습니다.</p></div><div class="report-grid"><div class="report-stat"><strong>${metricsAt(time,state).online}<small style="font-size:12px">/72</small></strong><span>업무 가능 단말</span></div><div class="report-stat"><strong>${recovered}<small style="font-size:12px">/3</small></strong><span>장애 복구</span></div><div class="report-stat"><strong>${pass}<small style="font-size:12px">/${checks.length}</small></strong><span>최종 검증 통과</span></div></div>${checks.map(([name,ok])=>`<div class="test-row ${ok?'':'fail'}"><span>${esc(name)}</span><b>${ok?'PASS':'NOT READY'}</b></div>`).join('')}<h3>모델에 기록된 업무 영향 시간</h3><p>광 경로 단절 <b>5초</b> · QA VLAN 누락 <b>15초</b> · PC DNS 오류 <b>12초</b><br>장면 연출을 위해 정의한 수치이며, 실제 장비의 성능이나 수렴 시간 측정값이 아닙니다.</p><div class="modal-actions"><button class="primary" id="reportReplay">처음부터 다시 보기</button><button id="reportExport">감사 기록 저장</button></div><p style="text-align:center;font-size:10px" id="repeatInfo">${loop?'반복 ON · 15초 후 이 시나리오를 다시 시작합니다.':'다시 보려는 구간은 창을 닫고 시간 막대에서 선택할 수 있습니다.'}</p>`,{resume:false});$('reportReplay').onclick=()=>{closeModal();seek(0);playing=true;};$('reportExport').onclick=saveAudit;}
+function finish(){if(ended)return;ended=true;time=300;state=stateAt(300);playing=false;renderUI(true);report();repeatAt=loop?performance.now()+15000:0;tone('info');}
+function showAbout(){showModal('TRIARC · 설계와 관전 안내',`
+<p>가상의 게임개발사 <b>TRIARC</b>에 출근 전 네트워크를 올리는 300초의 자동 관전형 시뮬레이션입니다. A동 개발, B동 아트·사운드, C동 QA·라이브운영, 각 24대의 업무 단말이 등장합니다.</p>
+<div class="disclaimer"><b>연출형 네트워크 모델입니다.</b><br>실제 IOS 에뮬레이터, Packet Tracer 또는 실기 실습의 대체품이 아닙니다. CLI는 설명용 발췌이며 전체 구축 명령이 아닙니다. 장비·단말 상태, 경로, 업무 앱은 같은 모델 상태에 연결되어 있지만 패킷 헤더·타이머·TCP를 완전 구현하지는 않습니다. 처리량·RTT·복구 시간은 합성 값입니다. 실제 장비나 외부 서비스에 연결하지 않습니다.</div>
+<h3>관전 방법</h3><p>자동으로 시작하며 1배속 기준 5분에 종료합니다. 일시정지, 1·2·4배속, 시간 막대 이동을 지원합니다. 전체/A/B/C 버튼으로 동을 확대하고, 기기나 작업대를 누르면 해당 시점의 상태가 표시됩니다. 모바일은 아래 패널을 자동으로 전환하며, 탭을 눌러 한 화면을 고정할 수 있습니다. <b>자동 연출</b>을 다시 누르면 자동 선택으로 돌아갑니다. 음향은 처음에는 꺼져 있습니다. 다른 탭으로 이동하면 진행 시간이 멈춥니다.</p>
+<h3>캠퍼스 주소 설계</h3><table><tr><th>동 / 역할</th><th>업무 VLAN · 서브넷</th><th>OSPF</th></tr><tr><td>A 개발</td><td>10 / 10.10.10.0/24<br>110 / 10.10.110.0/24</td><td>area 10 → /16 요약</td></tr><tr><td>B 아트·사운드</td><td>20 / 10.20.20.0/24<br>120 / 10.20.120.0/24</td><td>area 20 → /16 요약</td></tr><tr><td>C 운영·QA</td><td>30 / 10.30.30.0/24<br>130 / 10.30.130.0/24</td><td>area 30 → /16 요약</td></tr><tr><td>각 동 관리 / 게스트</td><td>99 / 10.SITE.99.0/24<br>90 / 10.SITE.90.0/24</td><td>SITE = 10,20,30</td></tr><tr><td>중앙 서비스</td><td>100 / 10.100.0.0/24</td><td>area 0 · 코어 SVI</td></tr></table>
+<p>각 동의 D1/D2는 독립된 분배 스위치입니다. 접근 스위치는 <b>동일한 상대 D1에 Po1(2×10G), 동일한 상대 D2에 Po2(2×10G)</b>를 연결합니다. 두 독립된 장비를 하나의 LACP 상대처럼 묶지 않습니다. D1이 모든 업무 VLAN의 STP 루트이므로 정상 시 Po1은 FWD, Po2는 DISC입니다. 분배 사이에는 업무 VLAN을 전달하는 별도 L2 트렁크가 있습니다.</p>
+<p>코어–분배는 /30 point-to-point OSPF area 0 링크입니다. 분배기의 업무 SVI는 각 동 영역에 속하고 passive로 설정됩니다. HSRP의 가상 IP는 .1, D1 실제 IP는 .2, D2는 .3입니다. 서버 VLAN의 코어 쌍 역시 별도의 HSRP 게이트웨이를 사용합니다. 중앙 서비스 스위치의 코어 2 연결은 STP 대기이며, 이 장면에서는 코어 자체의 장애를 다루지 않습니다.</p>
+<h3>장애와 복구의 이유</h3><p><b>01. 광 경로 단절:</b> A-D1 상행 두 개의 OR 추적 객체가 Down → 우선순위 110에서 80 → 우선순위 100인 D2가 Active. D1은 STP 루트로 남으므로 데이터는 D1–D2 L2 트렁크를 거쳐 D2에서 라우팅됩니다.<br><b>02. VLAN 누락:</b> C-AS2의 두 포트채널 허용 목록에서 130이 빠짐. 관리 VLAN 99로 접속해 두 채널 모두에 <code>add 130</code>을 적용합니다.<br><b>03. DNS 오설정:</b> B-ART-07은 IP 직접 접속에는 성공하지만 기본 DNS 질의만 실패. 수동 DNS를 제거해 DHCP 옵션의 서버로 되돌립니다.</p>
+<h3>보안 모델의 경계</h3><p>DHCP Snooping은 주소 할당 전에 활성화하여 바인딩을 수집하고, DAI는 바인딩 확보 후 적용합니다. 관리된 업링크만 신뢰합니다. 고정 IP의 중앙 서버는 사용자 DAI VLAN 밖에 있으며, 정적 호스트를 같은 검사 VLAN에 추가하려면 적절한 정적 바인딩 또는 ARP ACL이 필요합니다. 직원 802.1X와 무선 인증, QoS 정책, 외곽 방화벽은 오케스트레이터의 축약 모델로 표시합니다. eBGP, NAT 세션, 실제 인증서 검증 등은 구현하지 않습니다.</p>
+<h3>참고한 Cisco 공식 문서</h3><p>아래 자료의 개념을 바탕으로 독립적인 시나리오와 상태 모델을 만들었습니다. 실제 명령 지원은 장비와 IOS XE 버전에 따라 확인해야 합니다.</p>
+<p><a href="https://www.cisco.com/c/en/us/support/docs/ip/hot-standby-router-protocol-hsrp/13780-6.html" target="_blank" rel="noopener noreferrer">HSRP Preempt and Track Commands</a><br><a href="https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-13/configuration_guide/lyr2/b_1713_lyr2_9300_cg/configuring_etherchannels.html" target="_blank" rel="noopener noreferrer">Catalyst 9300 — Configuring EtherChannels</a><br><a href="https://www.cisco.com/c/en/us/td/docs/routers/ios/config/17-x/ip-routing/b-ip-routing/m_iro-cfg-0.html" target="_blank" rel="noopener noreferrer">IOS XE — Configuring OSPF</a><br><a href="https://www.cisco.com/c/en/us/td/docs/routers/ios/config/17-x/ip-routing/b-ip-routing/m_iri-default-passive-interface.html" target="_blank" rel="noopener noreferrer">Default Passive Interfaces</a><br><a href="https://www.cisco.com/c/en/us/support/docs/switches/lan-switch-software/222274-troubleshoot-dynamic-arp-inspection-dai.html" target="_blank" rel="noopener noreferrer">Dynamic ARP Inspection / IP Source Guard</a></p>
+<p class="muted">모든 파일은 이 HTML 안에 들어 있습니다. 외부 폰트, CDN, 이미지, 분석기, 네트워크 요청을 사용하지 않습니다. 외부 연결은 위 문서 링크를 직접 열 때에만 발생합니다.</p>`);}
+function showLogs(){const entries=EVENTS.filter(e=>e.at<=time);showModal('운영 감사 기록',`<p>장면 시간 ${fmt(time)}까지 진행한 ${entries.length}개의 작업입니다. 명령은 설명용 발췌이며 외부에서 실행되지 않았습니다.</p><button id="exportLogs">JSON 감사 기록 저장</button>${entries.map(e=>`<h3>${fmt(e.at)} · ${esc(e.title)}</h3><p>${esc(e.detail)}</p><pre>${esc(e.lines.map(l=>l.replace(/^[~!+]/,'')).join('\n'))}</pre>`).join('')}`);$('exportLogs').onclick=saveAudit;}
+// Controls and accessibility.
+$('chapterRail').innerHTML=PHASES.map((p,i)=>`<div class="rail-segment"><div class="rail-fill"><i></i></div><label>${String(i+1).padStart(2,'0')} ${esc(p.short)}</label></div>`).join('');
+$('hostSelect').innerHTML=SITE_DATA.map(s=>`<optgroup label="${s.id}동 · ${s.ko}">${HOSTS.filter(h=>h.site===s.id).map(h=>`<option value="${h.id}">${h.id}${h.wireless?' · Wi-Fi':''}</option>`).join('')}</optgroup>`).join('');
+$('playBtn').onclick=()=>setPlaying(!playing);$('restartBtn').onclick=()=>{seek(0);playing=true;renderUI();};
+$('speedBtn').onclick=()=>{speed=speed===1?2:speed===2?4:1;$('speedBtn').textContent=speed+'×';};
+$('scrubber').addEventListener('input',e=>seek(e.target.value));$('scrubber').addEventListener('change',()=>{if(time>=300)finish();});
+$('aboutBtn').onclick=showAbout;$('logsBtn').onclick=showLogs;
+$('viewBtn').onclick=()=>{view=view==='campus'?'logical':'campus';$('viewBtn').textContent=view==='campus'?'논리망':'캠퍼스';$('viewBtn').classList.toggle('on',view==='logical');$('mapViewTitle').textContent=view==='campus'?'LIVE CAMPUS':'LOGICAL TOPOLOGY';};
+$('packetsBtn').onclick=()=>{showPackets=!showPackets;$('packetsBtn').classList.toggle('on',showPackets);$('packetsBtn').setAttribute('aria-pressed',String(showPackets));if(!showPackets)packets=[];};
+$('fullBtn').onclick=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();}else if($('app').requestFullscreen){await $('app').requestFullscreen();}else{showModal('화면 보기 안내','<p>이 브라우저는 페이지 전체 화면 API를 지원하지 않습니다. 현재 브라우저 창 크기에 맞춰 화면이 자동 배치됩니다. 각 동 버튼을 사용하면 캠퍼스를 확대해서 볼 수 있습니다.</p>');}}catch(_){showModal('전체 화면 안내','<p>현재 실행 환경에서 전체 화면이 제한되어 있습니다. 일반 창에서도 모든 장면과 제어 기능을 사용할 수 있습니다.</p>');}};
+$('soundBtn').onclick=()=>{sound=!sound;$('soundBtn').textContent=sound?'음향 ON':'음향 OFF';$('soundBtn').classList.toggle('on',sound);$('soundBtn').setAttribute('aria-pressed',String(sound));tone();};
+$('loopBtn').onclick=()=>{loop=!loop;$('loopBtn').textContent=loop?'반복 ON':'반복 OFF';$('loopBtn').classList.toggle('on',loop);$('loopBtn').setAttribute('aria-pressed',String(loop));if(!loop)repeatAt=0;};
+$('followBtn').onclick=()=>{if(!follow)restoreAuto();else{follow=false;$('followBtn').classList.remove('on');$('followBtn').setAttribute('aria-pressed','false');}};
+$('autoTab').onclick=autoTab;document.querySelectorAll('.mobile-tabs [data-pane]').forEach(el=>el.onclick=()=>setPane(el.dataset.pane));
+$('hostSelect').onchange=e=>{pcId=e.target.value;selected=pcId;follow=false;$('followBtn').classList.remove('on');$('followBtn').setAttribute('aria-pressed','false');pcContentKey='';renderPC();};
+ document.querySelectorAll('[data-pctab]').forEach(el=>el.onclick=()=>{pcTab=el.dataset.pctab;document.querySelectorAll('[data-pctab]').forEach(b=>b.classList.toggle('on',b===el));pcContentKey='';renderPC();});
+ document.querySelectorAll('[data-focus]').forEach(el=>el.onclick=()=>setFocus(el.dataset.focus));
+$('modalClose').onclick=closeModal;$('modalBackdrop').addEventListener('click',e=>{if(e.target===$('modalBackdrop'))closeModal();});
+document.addEventListener('keydown',e=>{
+ if($('modalBackdrop').classList.contains('open')){if(e.key==='Escape'){e.preventDefault();closeModal();}if(e.key==='Tab'){const items=Array.from($('modalBackdrop').querySelectorAll('button,a[href],input,select')).filter(x=>!x.disabled),first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}return;}
+ if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement?.tagName||''))return;
+ if(e.code==='Space'){e.preventDefault();setPlaying(!playing);}else if(e.key==='ArrowRight'){e.preventDefault();seek(time+10);}else if(e.key==='ArrowLeft'){e.preventDefault();seek(time-10);}else if(['1','2','3','0'].includes(e.key))setFocus(e.key==='0'?'all':['A','B','C'][Number(e.key)-1]);
+});
+function screenToWorld(ev){const r=canvas.getBoundingClientRect();return {x:(ev.clientX-r.left-cw/2)/camera.scale+camera.cx,y:(ev.clientY-r.top-ch/2)/camera.scale+camera.cy,sx:ev.clientX-r.left,sy:ev.clientY-r.top};}
+function hitNode(p){let best=null,dist=Infinity;for(const n of NODES){const d=Math.hypot(p.x-n.x,p.y-n.y)*camera.scale;if(d<(n.type==='host'?13:21)&&d<dist){best=n;dist=d;}}return best;}
+canvas.addEventListener('click',e=>{const n=hitNode(screenToWorld(e));if(n)inspect(n);});
+canvas.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const p=screenToWorld(e),n=hitNode(p);hoverNode=n?.id||null;const tip=$('tooltip');if(!n){tip.hidden=true;return;}const st=deviceStatus(n);tip.innerHTML=`<strong>${esc(n.id)}</strong><br>${n.type==='host'?hostLabel(st):st.toUpperCase()}${n.ip?'<br>'+esc(n.ip):''}<br><span class="muted">클릭하여 상세 보기</span>`;tip.hidden=false;tip.style.left=Math.max(6,Math.min(cw-195,p.sx+12))+'px';tip.style.top=Math.max(40,Math.min(ch-89,p.sy+12))+'px';});
+canvas.addEventListener('pointerleave',()=>{hoverNode=null;$('tooltip').hidden=true;});
+document.addEventListener('visibilitychange',()=>{lastFrame=performance.now();});
+window.addEventListener('resize',resizeCanvas);
+if(window.ResizeObserver)new ResizeObserver(resizeCanvas).observe($('mapBody'));
+function frame(now){const raw=lastFrame?(now-lastFrame)/1000:0;lastFrame=now;const dt=Math.min(raw,.2);
+ if(!document.hidden&&playing&&time<300){const advance=dt*speed;time=Math.min(300,time+advance);state=stateAt(time);generateFlows(advance);if(time>=300)finish();}
+ if(!document.hidden){if(now-lastUi>95){renderUI();lastUi=now;}drawMap(reducedMotion?0:dt);drawGame();}
+ if(repeatAt&&loop&&now>=repeatAt&&!document.hidden){repeatAt=0;closeModal();seek(0);playing=true;}
+ requestAnimationFrame(frame);
+}
+// Read-only inspection hooks plus explicit seeking are provided for reproducible testing.
+window.TriarcLab={seek:t=>{playing=false;seek(t);},play:()=>setPlaying(true),pause:()=>setPlaying(false),getState:()=>({time,playing,speed,selected,pcId,focus,state:{...state},metrics:metricsAt(time,state),checks:finalChecks(),packets:packets.length}),route:(a,b)=>route(a,b),host:id=>{const h=HOST_BY_ID[id];return h?{...h,status:hostStatus(h,state,time)}:null;},eventCount:EVENTS.length,version:'1.0.0'};
+renderUI(true);resizeCanvas();requestAnimationFrame(frame);
+
+</script>
+</body>
+</html>
