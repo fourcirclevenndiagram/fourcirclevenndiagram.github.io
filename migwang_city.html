@@ -101,7 +101,8 @@ for(let y=0;y<N;y++)for(let x=0;x<N;x++){
  if(t===C.road){roadTiles.push(i);const nearX=roads.some(r=>Math.abs(x-r)<=2||Math.abs(x-(r+3))<=1),nearY=roads.some(r=>Math.abs(y-r)<=2||Math.abs(y-(r+3))<=1);if((inRoad(x)&&nearY&&!inRoad(y))||(inRoad(y)&&nearX&&!inRoad(x)))crosswalk[i]=1}
  if(t===C.water)waterTiles.push(i);
 }
-const shopWords=['소금빵집','오늘의청과','작은 서점','밤의 레코드','달빛 분식','아침 커피','모퉁이 꽃집','물결 식당','여름 잡화점','별빛 극장','느린 찻집','고요한 세탁소','종이와 연필','두 번째 식탁','반달 베이커리','라디오 수리점'];
+const shopWords=['소금빵집','반딧불 과실점','작은 서점','밤의 레코드','달빛 분식','아침 커피','모퉁이 꽃집','물결 식당','여름 잡화점','별빛 극장','느린 찻집','고요한 세탁소','종이와 연필','두 번째 식탁','반달 베이커리','라디오 수리점'];
+const cleanLegacyShopName=v=>typeof v==='string'?v.replace(/\uC624\uB298\uC758\s*\uCCAD\uACFC/g,'반딧불 과실점'):v;
 const homeWords=['햇살빌라','별하우스','느티나무 주택','아침 아파트','온기빌라','노을 맨션','새봄 주택','여름 아파트'];
 const officeWords=['미광 디자인','중앙 오피스','물결 연구소','새빛 스튜디오','한낮 타워','도시 데이터실'];
 const factoryWords=['금속 공방','미광 물류','새벽 제과공장','빛 조립소','포장 작업장'];
@@ -523,9 +524,9 @@ function updateUI(){
 }
 function saveState(){if(!canSave)return;try{const state={t:sim.t,clock:sim.clock,day:sim.day,population:people.length,happiness:sim.happiness,safety:sim.safety,traffic:sim.traffic,economy:sim.economy,power:sim.power,boost:sim.boost,secondsToEvent:sim.secondsToEvent,secondsToMajor:sim.secondsToMajor,cooldowns:{...sim.cooldowns},deliveries:sim.deliveries,tradePulse:sim.tradePulse||0};const data={version:1,seed,state,records,news:news.slice(0,12),daily,settings:{labels:settings.labels,gentle:settings.gentle},buildings:buildings.map(b=>({health:b.health,closed:b.closed,reopen:b.reopen,sales:b.sales,todaySales:b.todaySales,flow:b.flow||0,lastSales:b.lastSales||0,name:b.name,scorch:b.scorch})),events:events.map(e=>({...e,vehicles:[]})),nextEventId};localStorage.setItem(STORAGE,JSON.stringify(data))}catch(e){canSave=false;$('saveStatus').textContent='OFFLINE · 이번 관측만 보관';$('saveHint').textContent='이 환경에서는 브라우저 저장소를 사용할 수 없습니다. 페이지를 열어 둔 동안에만 상태와 기록이 유지됩니다.'}}
 function restore(){if(!saved)return;try{const s=saved.state||{};for(const k of['t','clock','day','happiness','safety','traffic','economy','power','boost','secondsToEvent','secondsToMajor','deliveries','tradePulse'])if(Number.isFinite(s[k]))sim[k]=s[k];sim.clock=clamp(sim.clock,0,1439.99);sim.day=Math.max(1,Math.floor(sim.day));sim.population=clamp(Math.floor(s.population||680),480,850);if(s.cooldowns)for(const k of['festival','support','chance'])sim.cooldowns[k]=clamp(Number(s.cooldowns[k])||0,0,65);
- records=saved.records.slice(0,7);news=Array.isArray(saved.news)?saved.news.slice(0,12):[];if(saved.daily&&Array.isArray(saved.daily.peaks)&&saved.daily.peaks.length===7)daily=saved.daily;
+ records=saved.records.slice(0,7);news=Array.isArray(saved.news)?saved.news.slice(0,12).map(item=>({...item,text:cleanLegacyShopName(item.text),tag:cleanLegacyShopName(item.tag)})):[];if(saved.daily&&Array.isArray(saved.daily.peaks)&&saved.daily.peaks.length===7)daily=saved.daily;
  if(saved.settings){settings.labels=saved.settings.labels!==false;settings.gentle=!!saved.settings.gentle}
- if(Array.isArray(saved.buildings))for(let i=0;i<Math.min(buildings.length,saved.buildings.length);i++){const b=saved.buildings[i];if(b&&Number.isFinite(b.health)){for(const k of['health','closed','reopen','sales','todaySales','flow','lastSales','name','scorch'])if(b[k]!==undefined)buildings[i][k]=b[k]}}
+ if(Array.isArray(saved.buildings))for(let i=0;i<Math.min(buildings.length,saved.buildings.length);i++){const b=saved.buildings[i];if(b&&Number.isFinite(b.health)){for(const k of['health','closed','reopen','sales','todaySales','flow','lastSales','name','scorch'])if(b[k]!==undefined)buildings[i][k]=k==='name'?cleanLegacyShopName(b[k]):b[k]}}
  if(Array.isArray(saved.events))events=saved.events.filter(e=>eventDefs[e.type]&&Number.isFinite(e.remaining)&&e.remaining>0&&Number.isFinite(e.x)&&destinations[e.target]).slice(0,9).map(e=>({...e,vehicles:[],responders:0,responded:false,dispatched:false,responseLogged:false}));nextEventId=Math.max(saved.nextEventId||1,...events.map(e=>e.id+1));renderArchives();renderFeed();
  }catch(e){saved=null}}
 function shopTrading(b){if(b.closed)return false;if(events.some(e=>e.target===b.id&&eventDefs[e.type].kind==='good'))return true;const h=sim.clock/60;if(b.d===2)return h>=14||h<4;if(hash(b.id,2,seed)<.16)return true;return h>=7&&h<22}
