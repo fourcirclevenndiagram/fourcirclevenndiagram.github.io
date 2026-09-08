@@ -132,6 +132,8 @@
       font-size: 6px; line-height: 1.7; text-align: right;
       color: var(--dim); opacity: 0.9;
     }
+    .card-date .registered, .card-date .updated { display: block; }
+    .card-date .registered { min-height: 1.7em; }
     .card-date .updated { color: var(--c); }
     .card-body { padding: 20px 22px 22px; }
     .card-num {
@@ -181,12 +183,34 @@
 
   <main class="game-grid">
 
-    <!-- ⚠ RULE: 새로 추가되는 앱은 항상 이 <main> 태그 바로 아래, 맨 첫 번째 카드로 삽입할 것.
+<!-- ⚠ RULE: 새로 추가되는 앱은 항상 이 <main> 태그 바로 아래, 맨 첫 번째 카드로 삽입할 것.
          가장 최근에 추가된 앱이 최상단에 오도록 유지 (역순 정렬). COMING SOON 카드는 항상 맨 마지막에 고정.
-         새 카드 추가 시 card-top 우측 상단에 등록일 표기: '2026/07/24 등록' 형식. 이후 수정 시 그 아래에 '2026/07/14 최근 업데이트' 형식으로 추가. -->
+         모든 카드의 card-top 우측 상단에는 등록일과 최신 업데이트를 각각 한 줄로 표기. 등록일 미상은 첫 줄을 비워 두고, 최신 업데이트 미상은 '최신 업데이트 —'로 표기. -->
+
+    <a class="card" data-color="cyan" href="omniwatch-simulator-ko.html">
+      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">KR</span><span class="card-date"><span class="registered"></span><span class="updated">2026/09/09 최신 업데이트</span></span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 02</div>
+        <div class="card-title">통합감시 콘솔<br>모바일</div>
+        <div class="card-desc">통합 시스템 감시 콘솔의 모바일 버전 시뮬레이터. 실제 감시 화면 분위기를 실감나게 재현. 한국어판.</div>
+        <div class="card-tags"><span class="tag">SIM</span><span class="tag">OMNIWATCH</span><span class="tag">한국어</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="grn" href="office-day.html">
+      <div class="card-top">🏢<span class="pixel-deco tl">OFFICE</span><span class="card-date"><span class="registered"></span><span class="updated">2026/09/09 최신 업데이트</span></span></div>
+      <div class="card-body">
+        <div class="card-num">NO. 52</div>
+        <div class="card-title">사무실의 하루<br>50 × 80 OFFICE DAY</div>
+        <div class="card-desc">50×80 격자 위 작은 사무실에서 직원과 로봇, 집기와 전자기기가 하루의 흐름을 만들어가는 자동 감상 시뮬레이터.</div>
+        <div class="card-tags"><span class="tag">AUTO</span><span class="tag">OFFICE</span><span class="tag">50×80</span></div>
+        <div class="card-play">▶ WATCH</div>
+      </div>
+    </a>
 
     <a class="card" data-color="yel" href="four-fronts.html">
-      <div class="card-top">🗺️<span class="pixel-deco tl">RTS</span><span class="card-date">2026/09/07 등록</span></div>
+      <div class="card-top">🗺️<span class="pixel-deco tl">RTS</span><span class="card-date"><span class="registered">2026/09/07 등록</span><span class="updated">2026/09/07 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 51</div>
         <div class="card-title">네 갈래 전선<br>FOUR FRONTS</div>
@@ -197,7 +221,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="midnight-lost-and-found.html">
-      <div class="card-top">🧳<span class="pixel-deco tl">STORY</span><span class="card-date">2026/09/07 등록</span></div>
+      <div class="card-top">🧳<span class="pixel-deco tl">STORY</span><span class="card-date"><span class="registered">2026/09/07 등록</span><span class="updated">2026/09/07 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 50</div>
         <div class="card-title">새벽 분실물 보관소</div>
@@ -208,7 +232,7 @@
     </a>
 
     <a class="card" data-color="pink" href="moonpaw-cascade.html">
-      <div class="card-top">🐾<span class="pixel-deco tl">AUTO</span><span class="card-date">2026/09/07 등록</span></div>
+      <div class="card-top">🐾<span class="pixel-deco tl">AUTO</span><span class="card-date"><span class="registered">2026/09/07 등록</span><span class="updated">2026/09/07 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 49</div>
         <div class="card-title">문포우<br>달빛 마을</div>
@@ -219,7 +243,7 @@
     </a>
 
     <a class="card" data-color="pink" href="nocturne-pinball-expanded-13.html">
-      <div class="card-top">🟣<span class="pixel-deco tl">PINBALL</span><span class="card-date">2026/09/06 등록</span></div>
+      <div class="card-top">🟣<span class="pixel-deco tl">PINBALL</span><span class="card-date"><span class="registered">2026/09/06 등록</span><span class="updated">2026/09/06 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 48</div>
         <div class="card-title">NOCTURNE XIII<br>13종 자동 네온 핀볼</div>
@@ -230,7 +254,7 @@
     </a>
 
     <a class="card" data-color="pink" href="territory-rts-120.html">
-      <div class="card-top">🗺️<span class="pixel-deco tl">RTS</span><span class="card-date">2026/09/06 등록</span></div>
+      <div class="card-top">🗺️<span class="pixel-deco tl">RTS</span><span class="card-date"><span class="registered">2026/09/06 등록</span><span class="updated">2026/09/06 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 47</div>
         <div class="card-title">사색전선<br>120 × 120 자동 RTS</div>
@@ -241,7 +265,7 @@
     </a>
 
     <a class="card" data-color="grn" href="seven-vending-v5.html">
-      <div class="card-top">🥤<span class="pixel-deco tl">IDLE</span><span class="card-date">2026/09/06 등록</span></div>
+      <div class="card-top">🥤<span class="pixel-deco tl">IDLE</span><span class="card-date"><span class="registered">2026/09/06 등록</span><span class="updated">2026/09/06 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 46</div>
         <div class="card-title">제이제이 자판기<br>사계절의 작은 행운</div>
@@ -252,7 +276,7 @@
     </a>
 
     <a class="card" data-color="pink" href="migwang_city.html">
-      <div class="card-top">🏙️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/09/05 등록</span></div>
+      <div class="card-top">🏙️<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/09/05 등록</span><span class="updated">2026/09/05 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 45</div>
         <div class="card-title">미광시<br>빛으로 살아가는 도시</div>
@@ -263,7 +287,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="glyph_tide_001.html">
-      <div class="card-top">🌊<span class="pixel-deco tl">SIM</span><span class="card-date">2026/09/05 등록</span></div>
+      <div class="card-top">🌊<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/09/05 등록</span><span class="updated">2026/09/05 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 44</div>
         <div class="card-title">GLYPH TIDE<br>문자 해류</div>
@@ -274,7 +298,7 @@
     </a>
 
     <a class="card" data-color="yel" href="four_fronts_80x80.html">
-      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/09/05 등록</span></div>
+      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/09/05 등록</span><span class="updated">2026/09/05 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 43</div>
         <div class="card-title">사색의 전선<br>FOUR FRONTS</div>
@@ -285,7 +309,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="glyph-loop.html">
-      <div class="card-top">🔤<span class="pixel-deco tl">SIM</span><span class="card-date">2026/09/02 등록</span></div>
+      <div class="card-top">🔤<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/09/02 등록</span><span class="updated">2026/09/02 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 42</div>
         <div class="card-title">글리프 순환보<br>GLYPH LOOP</div>
@@ -296,7 +320,7 @@
     </a>
 
     <a class="card" data-color="pink" href="neon-samsara.html">
-      <div class="card-top">☸️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/09/02 등록</span></div>
+      <div class="card-top">☸️<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/09/02 등록</span><span class="updated">2026/09/02 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 41</div>
         <div class="card-title">네온 윤회<br>NEON SAMSARA</div>
@@ -307,7 +331,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="4d-coordinate-lab.html">
-      <div class="card-top">🔷<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/28 등록</span></div>
+      <div class="card-top">🔷<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/28 등록</span><span class="updated">2026/08/28 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 40</div>
         <div class="card-title">네 번째 축의 실험실</div>
@@ -318,7 +342,7 @@
     </a>
 
     <a class="card" data-color="grn" href="latent-citadel-board-2.html">
-      <div class="card-top">🏛️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/20 등록</span></div>
+      <div class="card-top">🏛️<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/20 등록</span><span class="updated">2026/08/20 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 39</div>
         <div class="card-title">합의의 성채,<br>두 번째 회로판</div>
@@ -329,7 +353,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="latent-citadel-board-1.html">
-      <div class="card-top">🏛️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/20 등록</span></div>
+      <div class="card-top">🏛️<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/20 등록</span><span class="updated">2026/08/20 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 38</div>
         <div class="card-title">합의의 성채,<br>첫 번째 회로판</div>
@@ -340,7 +364,7 @@
     </a>
 
     <a class="card" data-color="pink" href="chroma_manifold_31.html">
-      <div class="card-top">🌈<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/20 등록</span></div>
+      <div class="card-top">🌈<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/20 등록</span><span class="updated">2026/08/20 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 37</div>
         <div class="card-title">비가환 극장,<br>서른한 번째 막</div>
@@ -350,9 +374,8 @@
       </div>
     </a>
 
-
     <a class="card" data-color="pink" href="chroma_manifold_25.html">
-      <div class="card-top">🔷<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/19 등록</span></div>
+      <div class="card-top">🔷<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/19 등록</span><span class="updated">2026/08/19 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 36</div>
         <div class="card-title">CHROMA MANIFOLD<br>(v25)</div>
@@ -363,7 +386,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="chroma_manifold_24.html">
-      <div class="card-top">🔷<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/19 등록</span></div>
+      <div class="card-top">🔷<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/19 등록</span><span class="updated">2026/08/19 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 35</div>
         <div class="card-title">CHROMA MANIFOLD<br>: 24개의 비가환 패널</div>
@@ -374,7 +397,7 @@
     </a>
 
     <a class="card" data-color="pink" href="latent_quartet.html">
-      <div class="card-top">🧩<span class="pixel-deco tl">AI</span><span class="card-date">2026/08/18 등록</span></div>
+      <div class="card-top">🧩<span class="pixel-deco tl">AI</span><span class="card-date"><span class="registered">2026/08/18 등록</span><span class="updated">2026/08/18 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 34</div>
         <div class="card-title">LATENT QUARTET<br>네 개의 해석기</div>
@@ -385,7 +408,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="latent-circuit.html">
-      <div class="card-top">🔮<span class="pixel-deco tl">AI</span><span class="card-date">2026/08/18 등록</span></div>
+      <div class="card-top">🔮<span class="pixel-deco tl">AI</span><span class="card-date"><span class="registered">2026/08/18 등록</span><span class="updated">2026/08/18 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 33</div>
         <div class="card-title">LATENT CIRCUIT<br>16 HYPOTHESES</div>
@@ -396,7 +419,7 @@
     </a>
 
     <a class="card" data-color="grn" href="latent-reels.html">
-      <div class="card-top">🎰<span class="pixel-deco tl">AI</span><span class="card-date">2026/08/18 등록</span></div>
+      <div class="card-top">🎰<span class="pixel-deco tl">AI</span><span class="card-date"><span class="registered">2026/08/18 등록</span><span class="updated">2026/08/18 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 32</div>
         <div class="card-title">LATENT REELS<br>인간에게는 당첨 없음</div>
@@ -407,7 +430,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="pixel-guild-twelve.html">
-      <div class="card-top">⚔️<span class="pixel-deco tl">AUTO</span><span class="card-date">2026/08/14 등록</span></div>
+      <div class="card-top">⚔️<span class="pixel-deco tl">AUTO</span><span class="card-date"><span class="registered">2026/08/14 등록</span><span class="updated">2026/08/14 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 31</div>
         <div class="card-title">픽셀 원정대: 12인의 길드<br>PIXEL GUILD: TWELVE</div>
@@ -418,7 +441,7 @@
     </a>
 
     <a class="card" data-color="pink" href="FOUR_COLOR_GRID_RTS.html">
-      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/09 등록</span></div>
+      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/09 등록</span><span class="updated">2026/08/09 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 30</div>
         <div class="card-title">260809 RTS</div>
@@ -429,7 +452,7 @@
     </a>
 
     <a class="card" data-color="yel" href="iron-shrine-auto-siege/">
-      <div class="card-top">🏯<span class="pixel-deco tl">AUTO</span><span class="card-date">2026/08/08 등록</span></div>
+      <div class="card-top">🏯<span class="pixel-deco tl">AUTO</span><span class="card-date"><span class="registered">2026/08/08 등록</span><span class="updated">2026/08/08 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 29</div>
         <div class="card-title">IRON SHRINE<br>AUTO SIEGE</div>
@@ -440,7 +463,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="nova-striker.html">
-      <div class="card-top">🚀<span class="pixel-deco tl">AUTO</span><span class="card-date">2026/08/06 등록</span></div>
+      <div class="card-top">🚀<span class="pixel-deco tl">AUTO</span><span class="card-date"><span class="registered">2026/08/06 등록</span><span class="updated">2026/08/06 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 28</div>
         <div class="card-title">NOVA STRIKER<br>Auto Patrol</div>
@@ -451,7 +474,7 @@
     </a>
 
     <a class="card" data-color="yel" href="CHAOS_WORLD_CUP/">
-      <div class="card-top">⚽<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/05 등록</span></div>
+      <div class="card-top">⚽<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/05 등록</span><span class="updated">2026/08/05 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 27</div>
         <div class="card-title">CHAOS WORLD CUP</div>
@@ -462,7 +485,7 @@
     </a>
 
     <a class="card" data-color="grn" href="cellular-apocalypse/index.html">
-      <div class="card-top">🧬<span class="pixel-deco tl">ECO</span><span class="card-date">2026/08/05 등록</span></div>
+      <div class="card-top">🧬<span class="pixel-deco tl">ECO</span><span class="card-date"><span class="registered">2026/08/05 등록</span><span class="updated">2026/08/05 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 26</div>
         <div class="card-title">CELLULAR APOCALYPSE<br>4색 생태 전쟁</div>
@@ -473,7 +496,7 @@
     </a>
 
     <a class="card" data-color="yel" href="code-brew-loop-pwa/index.html">
-      <div class="card-top">☕<span class="pixel-deco tl">BREW</span><span class="card-date">2026/08/05 등록</span></div>
+      <div class="card-top">☕<span class="pixel-deco tl">BREW</span><span class="card-date"><span class="registered">2026/08/05 등록</span><span class="updated">2026/08/05 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 25</div>
         <div class="card-title">CODE BREW LOOP<br>30개의 무한 코딩 쇼</div>
@@ -484,7 +507,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="ghost-author/index.html">
-      <div class="card-top">👻<span class="pixel-deco tl">IDE</span><span class="card-date">2026/08/05 등록</span></div>
+      <div class="card-top">👻<span class="pixel-deco tl">IDE</span><span class="card-date"><span class="registered">2026/08/05 등록</span><span class="updated">2026/08/05 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 24</div>
         <div class="card-title">GHOST AUTHOR<br>무한 코딩 루프</div>
@@ -495,7 +518,7 @@
     </a>
 
     <a class="card" data-color="pink" href="purple_gravity_rush.html">
-      <div class="card-top">🟣<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/03 등록</span></div>
+      <div class="card-top">🟣<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/03 등록</span><span class="updated">2026/08/03 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 23</div>
         <div class="card-title">PURPLE GRAVITY<br>RUSH</div>
@@ -506,7 +529,7 @@
     </a>
 
     <a class="card" data-color="pink" href="doombot_auto_carnage_pwa/DOOMBOT_AUTO_CARNAGE.html">
-      <div class="card-top">🤖<span class="pixel-deco tl">AI</span><span class="card-date">2026/08/03 등록</span></div>
+      <div class="card-top">🤖<span class="pixel-deco tl">AI</span><span class="card-date"><span class="registered">2026/08/03 등록</span><span class="updated">2026/08/03 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 22</div>
         <div class="card-title">DOOMBOT<br>// AUTO CARNAGE</div>
@@ -517,7 +540,7 @@
     </a>
 
     <a class="card" data-color="grn" href="cinder_loop.html">
-      <div class="card-top">🔥<span class="pixel-deco tl">SIM</span><span class="card-date">2026/08/03 등록</span></div>
+      <div class="card-top">🔥<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/08/03 등록</span><span class="updated">2026/08/03 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 21</div>
         <div class="card-title">CINDER LOOP<br>흑철의 봉합사</div>
@@ -528,7 +551,7 @@
     </a>
 
     <a class="card" data-color="pink" href="four-color-grid-rts.html">
-      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="card-date">2026/07/24 등록</span></div>
+      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="card-date"><span class="registered">2026/07/24 등록</span><span class="updated">2026/07/24 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 20</div>
         <div class="card-title">사색 영토전 RTS</div>
@@ -539,7 +562,7 @@
     </a>
 
     <a class="card" data-color="grn" href="cli-tetris-loop.html">
-      <div class="card-top">🧱<span class="pixel-deco tl">CLI</span><span class="card-date">2026/07/24 등록</span></div>
+      <div class="card-top">🧱<span class="pixel-deco tl">CLI</span><span class="card-date"><span class="registered">2026/07/24 등록</span><span class="updated">2026/07/24 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 19</div>
         <div class="card-title">nightshift.c<br>AUTO TETRIS</div>
@@ -550,7 +573,7 @@
     </a>
 
     <a class="card" data-color="pink" href="pixel-studio-tycoon.html">
-      <div class="card-top">🎮<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">TYCOON</span></div>
+      <div class="card-top">🎮<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">TYCOON</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 18</div>
         <div class="card-title">PIXEL STUDIO<br>TYCOON</div>
@@ -561,7 +584,7 @@
     </a>
 
     <a class="card" data-color="yel" href="pixel-city.html">
-      <div class="card-top">🏘️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">99×99</span></div>
+      <div class="card-top">🏘️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">99×99</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 17</div>
         <div class="card-title">PIXEL CITY<br>99×99 도시 성장</div>
@@ -572,7 +595,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="motherboard-defense.html">
-      <div class="card-top">⚙️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">DEF</span></div>
+      <div class="card-top">⚙️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">DEF</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 16</div>
         <div class="card-title">MOTHERBOARD<br>DEFENSE</div>
@@ -583,7 +606,7 @@
     </a>
 
     <a class="card" data-color="grn" href="park-run.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">RUN</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">RUN</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 15</div>
         <div class="card-title">PARK RUN<br>공원 러닝 감상</div>
@@ -594,7 +617,7 @@
     </a>
 
     <a class="card" data-color="grn" href="midnight_crossing.html">
-      <div class="card-top">🌙<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">밤</span></div>
+      <div class="card-top">🌙<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">밤</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 14</div>
         <div class="card-title">심야 교차로<br>Midnight Crossing</div>
@@ -605,7 +628,7 @@
     </a>
 
     <a class="card" data-color="yel" href="greatsword-dashboard.html">
-      <div class="card-top">⚔️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">GS</span></div>
+      <div class="card-top">⚔️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">GS</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 13</div>
         <div class="card-title">마검 텔레메트리</div>
@@ -616,7 +639,7 @@
     </a>
 
     <a class="card" data-color="pink" href="doom-runner.html">
-      <div class="card-top">🔫<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">FPS</span></div>
+      <div class="card-top">🔫<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">FPS</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 12</div>
         <div class="card-title">DOOM RUNNER</div>
@@ -627,7 +650,7 @@
     </a>
 
     <a class="card" data-color="grn" href="territory_artillery_v1_2.html">
-      <div class="card-top">💣<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.2</span></div>
+      <div class="card-top">💣<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.2</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 11</div>
         <div class="card-title">포격 사분전<br>v1.2</div>
@@ -638,7 +661,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="ai-breakout.html">
-      <div class="card-top">🧱<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">AUTO</span></div>
+      <div class="card-top">🧱<span class="pixel-deco tl">AI</span><span class="pixel-deco tr">AUTO</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 10</div>
         <div class="card-title">NEON BREAKER</div>
@@ -649,7 +672,7 @@
     </a>
 
     <a class="card" data-color="yel" href="switch-cli.html">
-      <div class="card-top">🔌<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">CLI</span></div>
+      <div class="card-top">🔌<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">CLI</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 09</div>
         <div class="card-title">Catalyst CLI</div>
@@ -660,7 +683,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="auto_python.html">
-      <div class="card-top">🐍<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">PY</span></div>
+      <div class="card-top">🐍<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">PY</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 08</div>
         <div class="card-title">py.live // auto</div>
@@ -671,7 +694,7 @@
     </a>
 
     <a class="card" data-color="grn" href="equation-stream.html">
-      <div class="card-top">∑<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">EQ</span></div>
+      <div class="card-top">∑<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">EQ</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 07</div>
         <div class="card-title">EQ STREAM</div>
@@ -682,7 +705,7 @@
     </a>
 
     <a class="card" data-color="pink" href="hanja_viewer.html">
-      <div class="card-top">漢<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">漢字</span></div>
+      <div class="card-top">漢<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">漢字</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 06</div>
         <div class="card-title">漢字 STREAM</div>
@@ -693,7 +716,7 @@
     </a>
 
     <a class="card" data-color="pink" href="territory_war.html">
-      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.442</span></div>
+      <div class="card-top">🗺️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">v1.442</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 05</div>
         <div class="card-title">TERRITORY WAR<br>4색 영토전</div>
@@ -704,7 +727,7 @@
     </a>
 
     <a class="card" data-color="yel" href="number_chain.html">
-      <div class="card-top">🔗<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">數</span></div>
+      <div class="card-top">🔗<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">數</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 04</div>
         <div class="card-title">數의 連鎖</div>
@@ -715,7 +738,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="nova_miner.html">
-      <div class="card-top">🌟<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">NOVA</span></div>
+      <div class="card-top">🌟<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">NOVA</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 03</div>
         <div class="card-title">노바 채굴 시뮬레이터</div>
@@ -725,19 +748,8 @@
       </div>
     </a>
 
-    <a class="card" data-color="cyan" href="omniwatch-simulator-ko.html">
-      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">KR</span></div>
-      <div class="card-body">
-        <div class="card-num">NO. 02</div>
-        <div class="card-title">통합감시 콘솔<br>모바일</div>
-        <div class="card-desc">통합 시스템 감시 콘솔의 모바일 버전 시뮬레이터. 실제 감시 화면 분위기를 실감나게 재현. 한국어판.</div>
-        <div class="card-tags"><span class="tag">SIM</span><span class="tag">OMNIWATCH</span><span class="tag">한국어</span></div>
-        <div class="card-play">▶ WATCH</div>
-      </div>
-    </a>
-
     <a class="card" data-color="grn" href="omniwatch-simulator-ja.html">
-      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">JP</span></div>
+      <div class="card-top">📡<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">JP</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">NO. 01</div>
         <div class="card-title">OmniWatch/IM<br>Mobile</div>

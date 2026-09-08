@@ -2,903 +2,273 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>통합감시 콘솔 - 모바일</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b111b">
+<meta name="description" content="장비 44대의 이벤트, 성능, 서비스 영향과 장애 대응이 연동되는 오프라인 통합감시 훈련 시뮬레이터.">
+<title>통합감시 콘솔 · Operations Lab</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-
-:root {
-  --bg:        #080b10;
-  --bg-card:   #0c1018;
-  --bg-header: #0e1422;
-  --border:    #181f30;
-  --border2:   #232d45;
-
-  --txt:       #b8c8e0;
-  --txt2:      #607090;
-  --txt3:      #304058;
-
-  --em:  #ff2244;
-  --al:  #ff6622;
-  --cr:  #ffaa00;
-  --er:  #ffdd00;
-  --wa:  #77cc33;
-  --nt:  #33aadd;
-  --inf: #445577;
-
-  --blue:   #2a6cd4;
-  --blue-l: #4a8cf0;
-  --green:  #22bb55;
-
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
-}
-
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--txt);
-  font-family: 'Noto Sans KR', sans-serif;
-  overscroll-behavior: none;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  overflow: hidden;
-}
-
-/* 스캔라인 오버레이 */
-body::after {
-  content:'';
-  position:fixed; inset:0;
-  background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);
-  pointer-events:none; z-index:9000;
-}
-
-/* ── 상단 헤더 ── */
-.top-header {
-  background: linear-gradient(180deg,#121c35 0%,#0a1020 100%);
-  border-bottom: 1px solid #1e2c48;
-  padding: calc(var(--safe-top) + 8px) 12px 8px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.header-badge {
-  background: linear-gradient(135deg,#1a4a90,#0d2d60);
-  border: 1px solid #2a5dbb;
-  color: #aac8ff;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 3px 6px;
-  letter-spacing: .04em;
-  flex-shrink: 0;
-  line-height: 1.3;
-  text-align: center;
-}
-.header-info { flex:1; min-width:0; }
-.header-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #8aabdd;
-  letter-spacing: -.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.header-sub {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  color: #334466;
-  margin-top: 1px;
-}
-.header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  flex-shrink: 0;
-}
-.live-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 6px var(--green)} 50%{opacity:.5;box-shadow:0 0 2px var(--green)} }
-.clock-sm {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  color: #445566;
-}
-
-/* ── 통계 바 ── */
-.stats-row {
-  background: #09101a;
-  border-bottom: 1px solid var(--border);
-  padding: 6px 10px;
-  display: flex;
-  gap: 0;
-  flex-shrink: 0;
-}
-.stat-cell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  border-right: 1px solid var(--border);
-  padding: 2px 4px;
-}
-.stat-cell:last-child { border-right: none; }
-.stat-num {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1;
-}
-.stat-lbl {
-  font-size: 8px;
-  color: var(--txt3);
-  letter-spacing: .02em;
-}
-.stat-cell.total .stat-num { color: var(--blue-l); }
-.stat-cell.crit  .stat-num { color: var(--al); }
-.stat-cell.err   .stat-num { color: var(--er); }
-.stat-cell.warn  .stat-num { color: var(--wa); }
-
-/* ── 필터 칩 ── */
-.filter-scroll {
-  background: #080e18;
-  border-bottom: 1px solid var(--border);
-  padding: 5px 10px;
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  flex-shrink: 0;
-  scrollbar-width: none;
-  align-items: center;
-}
-.filter-scroll::-webkit-scrollbar { display: none; }
-.filter-label {
-  font-size: 9px;
-  color: var(--txt3);
-  flex-shrink: 0;
-  letter-spacing: -.01em;
-}
-.chip {
-  flex-shrink: 0;
-  padding: 3px 9px;
-  border-radius: 12px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .03em;
-  border: 1px solid transparent;
-  cursor: pointer;
-  opacity: .35;
-  transition: opacity .15s;
-  user-select: none;
-}
-.chip.on { opacity: 1; }
-.chip[data-s="0"] { color:var(--em); border-color:var(--em); }
-.chip[data-s="1"] { color:var(--al); border-color:var(--al); }
-.chip[data-s="2"] { color:var(--cr); border-color:var(--cr); }
-.chip[data-s="3"] { color:var(--er); border-color:var(--er); }
-.chip[data-s="4"] { color:var(--wa); border-color:var(--wa); }
-.chip[data-s="5"] { color:var(--nt); border-color:var(--nt); }
-
-/* ── 툴바 ── */
-.toolbar {
-  background: var(--bg-header);
-  border-bottom: 1px solid var(--border);
-  padding: 5px 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.tb-btn {
-  padding: 5px 13px;
-  background: linear-gradient(180deg,#14203a,#0d1528);
-  border: 1px solid #1e2c48;
-  color: #6688aa;
-  font-size: 11px;
-  font-family: 'Noto Sans KR', sans-serif;
-  border-radius: 3px;
-  cursor: pointer;
-  white-space: nowrap;
-  -webkit-appearance: none;
-  letter-spacing: -.01em;
-}
-.tb-btn.pause-active { color:#ffcc33; border-color:#665500; }
-.tb-sep { flex:1; }
-.tb-btn-clear {
-  padding: 5px 13px;
-  background: transparent;
-  border: 1px solid #1e2c48;
-  color: #445566;
-  font-size: 11px;
-  font-family: 'Noto Sans KR', sans-serif;
-  border-radius: 3px;
-  cursor: pointer;
-  letter-spacing: -.01em;
-}
-
-/* ── 이벤트 목록 ── */
-.event-list {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  -webkit-overflow-scrolling: touch;
-}
-.event-list::-webkit-scrollbar { width: 3px; }
-.event-list::-webkit-scrollbar-track { background: transparent; }
-.event-list::-webkit-scrollbar-thumb { background: #1a2438; border-radius: 2px; }
-
-/* 이벤트 카드 */
-.ev-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-left: 3px solid transparent;
-  border-radius: 3px;
-  padding: 8px 10px;
-  cursor: pointer;
-  animation: card-in .25s ease-out;
-  transition: background .1s;
-  position: relative;
-  overflow: visible;
-  flex-shrink: 0;
-}
-@keyframes card-in {
-  from { opacity:0; transform:translateY(-6px); background:#0d2040; }
-  to   { opacity:1; transform:translateY(0); }
-}
-.ev-card:active { background: #10182a; }
-.ev-card.selected { background: #0d1c32; border-color: var(--blue) !important; }
-
-.ev-card.s0 { border-left-color: var(--em); }
-.ev-card.s1 { border-left-color: var(--al); }
-.ev-card.s2 { border-left-color: var(--cr); }
-.ev-card.s3 { border-left-color: var(--er); }
-.ev-card.s4 { border-left-color: var(--wa); }
-.ev-card.s5 { border-left-color: var(--nt); }
-
-.ev-card.s0 { animation: card-in .25s ease-out, flash-em .7s ease-out; }
-@keyframes flash-em { 0%{background:#2a0010} 100%{background:var(--bg-card)} }
-
-/* 카드 상단 행 */
-.card-top {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 5px;
-}
-.sev-pill {
-  font-size: 8px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 2px;
-  letter-spacing: .04em;
-  flex-shrink: 0;
-  font-family: 'IBM Plex Mono', monospace;
-}
-.s0 .sev-pill { background:rgba(255,34,68,.15);  color:var(--em); border:1px solid rgba(255,34,68,.4); }
-.s1 .sev-pill { background:rgba(255,102,34,.12); color:var(--al); border:1px solid rgba(255,102,34,.35); }
-.s2 .sev-pill { background:rgba(255,170,0,.12);  color:var(--cr); border:1px solid rgba(255,170,0,.35); }
-.s3 .sev-pill { background:rgba(255,221,0,.1);   color:var(--er); border:1px solid rgba(255,221,0,.3); }
-.s4 .sev-pill { background:rgba(119,204,51,.1);  color:var(--wa); border:1px solid rgba(119,204,51,.3); }
-.s5 .sev-pill { background:rgba(51,170,221,.1);  color:var(--nt); border:1px solid rgba(51,170,221,.3); }
-
-.card-evid {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  color: var(--txt3);
-  flex-shrink: 0;
-}
-.card-time {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  color: var(--txt3);
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-/* 카드 중간 행 */
-.card-mid {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 5px;
-  flex-wrap: wrap;
-}
-.card-product {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  color: var(--blue-l);
-  background: rgba(42,108,212,.12);
-  padding: 1px 5px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-.card-host {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  color: #7a9abb;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-.card-obj {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  color: var(--txt3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-  max-width: 100%;
-}
-
-/* 메세지 본문 */
-.card-msg {
-  font-size: 11.5px;
-  line-height: 1.6;
-  color: var(--txt);
-  word-break: keep-all;
-  overflow-wrap: break-word;
-  letter-spacing: -.01em;
-}
-.s0 .card-msg { color: #ffa0b0; }
-.s1 .card-msg { color: #ffb090; }
-.s2 .card-msg { color: #ffd090; }
-.s3 .card-msg { color: #ffee88; }
-.s4 .card-msg { color: #aade77; }
-.s5 .card-msg { color: #77bbee; }
-
-/* ── 상세 드로어 ── */
-.drawer-backdrop {
-  position: fixed; inset:0;
-  background: rgba(0,0,0,.6);
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
-}
-.drawer-backdrop.open { opacity:1; pointer-events:auto; }
-
-.drawer {
-  position: fixed;
-  bottom:0; left:0; right:0;
-  background: #0c1020;
-  border-top: 2px solid #2a3c60;
-  border-radius: 12px 12px 0 0;
-  z-index: 101;
-  padding-bottom: var(--safe-bot);
-  transform: translateY(100%);
-  transition: transform .25s cubic-bezier(.22,.68,0,1.2);
-  max-height: 65vh;
-  display: flex;
-  flex-direction: column;
-}
-.drawer.open { transform: translateY(0); }
-
-.drawer-handle {
-  display: flex;
-  justify-content: center;
-  padding: 10px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.drawer-handle::before {
-  content:'';
-  width:36px; height:4px;
-  background: #2a3a58;
-  border-radius: 2px;
-}
-.drawer-header {
-  padding: 0 14px 10px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.drawer-sev-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--txt2);
-  margin-bottom: 3px;
-  font-family: 'IBM Plex Mono', monospace;
-}
-.drawer-host-line {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  color: var(--txt3);
-}
-.drawer-body {
-  overflow-y: auto;
-  padding: 10px 14px;
-  flex: 1;
-  -webkit-overflow-scrolling: touch;
-}
-.drawer-body::-webkit-scrollbar { display: none; }
-.drow {
-  display: flex;
-  gap: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid #0f1525;
-  align-items: flex-start;
-}
-.drow:last-child { border-bottom: none; }
-.dk {
-  font-size: 9px;
-  color: var(--txt3);
-  min-width: 72px;
-  flex-shrink: 0;
-  padding-top: 1px;
-  letter-spacing: -.01em;
-}
-.dv {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  color: #9ab8d8;
-  word-break: break-all;
-}
-.drawer-msg-full {
-  margin-top: 10px;
-  padding: 10px;
-  background: #080e18;
-  border: 1px solid var(--border2);
-  border-radius: 3px;
-  font-size: 12px;
-  line-height: 1.65;
-  color: var(--txt);
-  word-break: keep-all;
-  overflow-wrap: break-word;
-  letter-spacing: -.01em;
-}
-
-/* ── 하단 네비 ── */
-.bottom-nav {
-  background: #09101a;
-  border-top: 1px solid var(--border);
-  padding: 6px 0 calc(var(--safe-bot) + 4px);
-  display: flex;
-  flex-shrink: 0;
-}
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 4px;
-  cursor: pointer;
-}
-.nav-icon { font-size: 16px; }
-.nav-label {
-  font-size: 8px;
-  color: var(--txt3);
-  letter-spacing: -.01em;
-}
-.nav-item.active .nav-label { color: var(--blue-l); }
-
-/* 일시정지 배지 */
-.pause-badge {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  background: rgba(255,200,50,.12);
-  border: 1px solid rgba(255,200,50,.4);
-  color: #ffcc33;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 10px 24px;
-  letter-spacing: -.01em;
-  z-index: 200;
-  pointer-events: none;
-  display: none;
-  border-radius: 4px;
-}
-.pause-badge.on { display: block; }
-
-/* 긴급 플래시 */
-.flash-ring {
-  position: fixed;
-  top:0; left:0; right:0;
-  height: 2px;
-  background: var(--em);
-  box-shadow: 0 0 8px var(--em);
-  z-index: 500;
-  opacity: 0;
-  transition: opacity .05s;
-}
-.flash-ring.on { opacity:1; }
+:root{color-scheme:dark;--bg:#090e16;--panel:#101824;--panel2:#141f2e;--line:#263347;--dim:#91a3bc;--text:#e4edf8;--blue:#80b4ff;--teal:#62dbc1;--red:#ff7985;--orange:#ffaf75;--yellow:#edd178;--purple:#bdadff;--mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;--font:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}body{height:100vh;height:100dvh;overflow:hidden}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}button,select,input,textarea{border:1px solid var(--line);border-radius:7px;background:#121d2b}button{min-height:40px;padding:8px 12px;transition:background .15s,border-color .15s}button:hover{background:#213148;border-color:#526886}button:disabled{opacity:.48;cursor:default}input,select,textarea{padding:10px 12px;max-width:100%;min-width:0}input[type=checkbox]{accent-color:var(--teal);width:20px;height:20px}input[type=range]{accent-color:var(--teal);padding:0}textarea{resize:vertical;width:100%;min-height:88px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--blue);outline-offset:3px}a{color:var(--blue)}svg{display:block}button svg{width:19px;height:19px;flex-shrink:0}h1,h2,h3,p{margin:0}h1{font-size:21px;letter-spacing:-.6px}h2{font-size:17px}h3{font-size:15px}p{line-height:1.65}small,.small{font-size:12px}strong{font-weight:650}.muted{color:var(--dim)}.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}[hidden]{display:none!important}.good{color:var(--teal)}.bad{color:var(--red)}.warn{color:var(--yellow)}.info{color:var(--blue)}.flex{display:flex;align-items:center;gap:9px;min-width:0}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grow{flex:1;min-width:0}.stack{display:flex;flex-direction:column;gap:14px}.primary{background:#17493e;border-color:#3b8c79;color:#a3f4df}.primary:hover{background:#226351}.danger{border-color:#934954;color:#ffabb1;background:#331d28}.quiet{background:transparent}.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;line-height:1.6;padding:2px 7px;border:1px solid currentColor;border-radius:5px;white-space:nowrap}.pill.soft{border-color:var(--line);color:var(--dim)}.dot{width:7px;height:7px;background:currentColor;border-radius:50%;display:inline-block;flex-shrink:0}.iconbtn{display:flex;align-items:center;justify-content:center;width:42px;padding:9px;flex-shrink:0}.section-title{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}.empty{text-align:center;border:1px dashed var(--line);border-radius:10px;padding:42px 18px;color:var(--dim);line-height:1.7}.empty strong{display:block;color:var(--text);margin-bottom:6px}.note{padding:12px 14px;border-left:3px solid var(--blue);background:#112032;border-radius:4px;line-height:1.65}.note.warn{color:var(--text);border-color:var(--yellow);background:#242218}.num{font-variant-numeric:tabular-nums}.spacer{height:7px}.divider{height:1px;background:var(--line);margin:12px 0}
+.app{height:100%;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);display:grid;grid-template-columns:196px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.sidebar{grid-column:1;grid-row:1/3;background:#0c131e;border-right:1px solid var(--line);padding:calc(25px + env(safe-area-inset-top,0px)) 13px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:30px;min-width:0}.brand{display:flex;align-items:center;gap:10px;padding-left:7px}.brandmark{width:35px;height:35px;display:grid;grid-template-columns:repeat(3,4px);align-items:end;gap:4px;justify-content:center;padding:8px 0;border:1px solid #386659;border-radius:9px;color:var(--teal);background:#10281f}.brandmark i{display:block;background:currentColor;border-radius:2px;height:13px}.brandmark i:nth-child(2){height:19px}.brandmark i:last-child{height:9px}.brand strong{display:block;font-size:15px}.brand small{font-family:var(--mono);color:var(--dim);font-size:10px;letter-spacing:1.4px}.nav{display:flex;flex-direction:column;gap:5px}.nav button{background:transparent;border-color:transparent;color:var(--dim);display:flex;align-items:center;gap:12px;text-align:left;padding:12px}.nav button.active{color:var(--teal);background:#142b29;border-color:#285047}.nav button span{flex:1}.nav button .navnew{font-size:9px;color:var(--teal);border:0;flex:none}.side-bottom{margin-top:auto;color:var(--dim);padding:9px;font-size:12px;line-height:1.8}.side-bottom strong{display:block;color:#c5d6e8}.side-bottom button{margin-top:14px;width:100%}.topbar{grid-column:2;padding:calc(15px + env(safe-area-inset-top,0px)) 28px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;background:#0e1621;min-width:0}.top-title{min-width:0;flex:1}.eyebrow{display:flex;align-items:center;gap:7px;color:var(--teal);font-family:var(--mono);font-size:11px;letter-spacing:1.2px;margin-bottom:5px}.topmeta{display:flex;align-items:center;gap:12px}.clock{text-align:right;color:var(--dim);font-size:12px;line-height:1.65}.clock strong{font-size:14px;color:var(--text)}.topcontrols{display:flex;gap:7px}.topcontrols select{width:66px;padding:8px}.topcontrols button{display:flex;align-items:center;gap:7px}.workspace{grid-column:2;min-height:0;min-width:0;display:flex;flex-direction:column}.healthbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line);background:#0c131e;flex-shrink:0;padding:0 28px}.healthcell{display:flex;align-items:center;gap:12px;padding:15px 18px;border-right:1px solid var(--line)}.healthcell:first-child{padding-left:0}.healthcell:last-child{border:0}.healthnum{font:600 23px var(--mono);letter-spacing:-.7px}.healthlabel{font-size:12px;color:var(--dim);line-height:1.6}.workspace-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:24px 28px 30px;scrollbar-color:#344960 transparent;scrollbar-width:thin}.view-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.view-head h2{font-size:19px}.view-head p{font-size:13px;color:var(--dim);margin-top:5px}.view-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}.searchbox{position:relative;flex:1;min-width:150px;max-width:450px}.searchbox svg{width:17px;height:17px;position:absolute;left:12px;top:13px;color:var(--dim)}.searchbox input{width:100%;padding-left:37px}.filter-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}.filter-chips button{min-height:32px;padding:4px 9px;font-size:12px;background:transparent;border-color:#293648;color:#8091a8}.filter-chips button.active{background:color-mix(in srgb,var(--sev) 11%,#101824);border-color:var(--sev);color:var(--sev)}.list-status{font-size:12px;color:var(--dim);display:flex;align-items:center;justify-content:space-between;gap:12px;margin:13px 0}.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}.panel.flat{padding:0;overflow:hidden}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.grid5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}.metric-value{font:600 27px var(--mono);letter-spacing:-1px;margin:11px 0 8px}.metric-caption{font-size:12px;color:var(--dim);line-height:1.65}.kpi-name{color:var(--dim);font-size:13px}.bar{height:5px;background:#263446;border-radius:6px;overflow:hidden}.bar i{height:100%;display:block;background:var(--teal);border-radius:6px;max-width:100%}.service-card{cursor:pointer;display:block;width:100%;text-align:left}.service-card.selected{border-color:var(--teal)}.service-card .service-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.service-card .service-stat{font:500 19px var(--mono);margin-bottom:7px}.services{margin-bottom:18px}.spark{width:100%;height:40px;margin-top:10px}.event-table-head{display:grid;grid-template-columns:78px 65px 145px minmax(0,1fr) 80px;gap:12px;padding:10px 15px;color:var(--dim);font-size:12px;border-bottom:1px solid var(--line);background:#111e2d}.ev{display:grid;grid-template-columns:78px 65px 145px minmax(0,1fr) 80px;align-items:start;gap:12px;width:100%;padding:13px 15px;border:0;border-left:3px solid var(--sev);border-bottom:1px solid #202e40;border-radius:0;background:#101824;text-align:left;min-width:0}.ev:last-child{border-bottom:0}.ev:hover{background:#172336}.ev-time{font:12px var(--mono);color:var(--dim);line-height:1.75}.ev-sev{font-size:12px;color:var(--sev);padding-top:2px}.ev-host{min-width:0}.ev-host strong{font:500 12px var(--mono);color:#c6d8ee;display:block;overflow-wrap:anywhere;margin:1px 0 5px}.ev-host small{color:var(--dim);font-size:11px;display:block}.ev-msg{line-height:1.65;font-size:14px;min-width:0;overflow-wrap:anywhere}.ev-tags{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px;font-size:11px;color:var(--dim)}.ev-state{font-size:12px;text-align:right;line-height:1.8}.repeat{border:1px solid #3c506a;border-radius:4px;padding:1px 5px;color:var(--blue);font-family:var(--mono)}.event-feed{overflow:hidden}.event-footer{text-align:center;margin-top:12px}.device-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.device-card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:15px;text-align:left;min-width:0}.device-card strong{font:600 13px var(--mono);overflow-wrap:anywhere}.device-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}.device-icon{color:var(--blue);border:1px solid #304967;background:#132235;display:grid;place-items:center;width:35px;height:35px;border-radius:8px;flex-shrink:0}.device-icon svg{width:20px;height:20px}.device-card small{display:block;color:var(--dim);font-size:12px;margin-top:5px}.device-status{font-size:12px;white-space:nowrap}.mini-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;border-top:1px solid var(--line);padding-top:10px}.mini-metrics span{display:block;font-size:11px;color:var(--dim);margin-bottom:3px}.mini-metrics b{font:500 12px var(--mono)}.device-footer{margin-top:11px;color:var(--dim);font-size:11px;display:flex;justify-content:space-between;gap:10px}.row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid var(--line);line-height:1.6}.row:last-child{border:0}.row-main{min-width:0}.row-main strong{font-size:14px}.row-main small{display:block;color:var(--dim);margin-top:3px}.list-link{border:0;background:transparent;text-align:left;width:100%;border-radius:0}.statuslabel{font-size:12px;white-space:nowrap}.distribution{display:flex;height:12px;gap:3px;border-radius:4px;overflow:hidden;margin:16px 0}.distribution i{min-width:2px}.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--dim);font-size:12px;line-height:1.7}.trend-chart{width:100%;height:145px;margin-top:7px;overflow:visible}.chart-title{display:flex;justify-content:space-between;gap:10px;align-items:center}.chart-title strong{font:600 24px var(--mono)}.chart-labels{display:flex;justify-content:space-between;color:var(--dim);font:11px var(--mono);margin-top:4px}.threshold-line{stroke:var(--yellow);stroke-dasharray:5 5;stroke-width:1}.chart-empty{display:grid;place-items:center;height:145px;color:var(--dim);font-size:13px}.table-wrap{overflow:auto;max-width:100%}table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}th{font-weight:500;color:var(--dim);background:#111e2b;white-space:nowrap}th,td{padding:11px 12px;border-bottom:1px solid var(--line);line-height:1.6}td{overflow-wrap:anywhere}tr:last-child td{border:0}.heat{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;margin-top:12px}.heat button{min-height:28px;padding:0;border-radius:3px}.heat button:hover{outline:1px solid white}.case-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.case{border-left:3px solid var(--sev)}.case h3{line-height:1.65;font-size:15px;margin:11px 0 6px}.case .meta{font-size:12px;color:var(--dim);line-height:1.9}.case-tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 14px}.case-tags span{font-size:11px;padding:3px 6px;background:#1b2a3d;border-radius:4px;color:#b0c5e0}.case-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}.case-actions button{font-size:13px;flex:1}.case-progress{margin-top:14px}.scenario-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.scenario-button{text-align:left;padding:14px;line-height:1.6;background:#132132}.scenario-button strong{display:block;margin-bottom:4px}.scenario-button small{color:var(--dim);display:block;font-size:12px}.timeline{list-style:none;margin:0;padding:0 0 0 9px}.timeline li{position:relative;padding:0 0 21px 23px;border-left:1px solid #38526b}.timeline li:before{content:'';width:7px;height:7px;background:var(--teal);border:3px solid #152b2b;border-radius:50%;position:absolute;left:-7px;top:3px}.timeline li:last-child{padding-bottom:3px}.timeline time{display:block;color:var(--dim);font:12px var(--mono);margin-bottom:5px}.timeline p{font-size:14px}.map-wrap{overflow:auto;max-width:100%;border-radius:8px;background:#0c141f;background-image:radial-gradient(#2a394b .7px,transparent .7px);background-size:18px 18px}.topology-svg{width:100%;min-width:530px;height:auto}.topology-svg .node{cursor:pointer}.topology-svg .node:focus{outline:none}.topology-svg .node:hover rect,.topology-svg .node:focus rect{stroke:white;stroke-width:2}.map-links{fill:none;stroke:#42566f;stroke-width:1.4}.map-links.affected{stroke:var(--red);stroke-width:2.1}.dependency-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.dependency-row:last-child{border:0}.dependency-row .dep-label{width:80px;color:var(--dim);font-size:12px;flex-shrink:0}.dependency-row .dep-nodes{display:flex;flex-wrap:wrap;gap:6px}.dep-nodes button{padding:5px 8px;min-height:33px;font:12px var(--mono)}.settings-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.setting-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid var(--line)}.setting-row:last-child{border:0}.setting-row label{line-height:1.7}.setting-row label small{display:block;color:var(--dim);font-size:12px}.setting-row input[type=number]{width:85px;text-align:right}.switch{appearance:none;position:relative;width:42px!important;height:25px!important;background:#304058;border:1px solid #4a5e78;border-radius:20px;flex-shrink:0;padding:0!important;cursor:pointer}.switch:after{content:'';position:absolute;width:17px;height:17px;border-radius:50%;background:#b2c5de;top:3px;left:3px;transition:left .15s}.switch:checked{background:#236756;border-color:#499c85}.switch:checked:after{left:20px;background:#b2ffe7}.threshold-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}.threshold-grid label{display:flex;gap:6px;flex-direction:column;color:var(--dim);font-size:12px}.threshold-grid input{width:100%;font-size:16px}.settings-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.settings-buttons button{font-size:13px;flex:1;white-space:nowrap}details{border:1px solid var(--line);border-radius:8px;background:#101b28;padding:13px}summary{cursor:pointer;line-height:1.6}details>div{padding-top:15px}.catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.catalog p{font-size:12px;line-height:1.8}.catalog h3{font-size:13px;margin:9px 0}.toast-area{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom,0px));left:calc(50% + 98px);transform:translateX(-50%);width:max-content;max-width:min(620px,calc(100vw - 32px));z-index:120;pointer-events:none}.toast{background:#203b3b;border:1px solid #5ba58f;box-shadow:0 15px 60px #0006;padding:12px 18px;border-radius:9px;font-size:14px;line-height:1.6;margin-top:8px;animation:appear .18s ease-out}.toast.error{background:#42242a;border-color:#a65a66}.modal-backdrop{position:fixed;inset:0;z-index:90;background:#0009;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:max(18px,env(safe-area-inset-top,0px)) 18px max(18px,env(safe-area-inset-bottom,0px))}.modal{width:720px;max-width:100%;max-height:100%;display:flex;flex-direction:column;border:1px solid #38506b;background:#101925;border-radius:13px;box-shadow:0 30px 100px #0009;overflow:hidden}.modal.wide{width:870px}.modal-header{display:flex;align-items:center;gap:15px;flex-shrink:0;padding:16px 20px;border-bottom:1px solid var(--line);background:#152131}.modal-header h2{font-size:17px;line-height:1.6;flex:1;min-width:0;overflow-wrap:anywhere}.modal-close{font-size:23px;line-height:1;width:42px;padding:6px;flex-shrink:0}.modal-body{overflow:auto;overscroll-behavior:contain;padding:20px;min-height:0}.modal-footer{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px;flex-shrink:0;background:#131f2c;flex-wrap:wrap}.modal-footer button{flex:1}.detail-pairs{display:grid;grid-template-columns:100px minmax(0,1fr);gap:11px 16px;font-size:13px;line-height:1.65;margin:0}.detail-pairs dt{color:var(--dim)}.detail-pairs dd{margin:0;overflow-wrap:anywhere}.runbook{padding-left:22px;margin:10px 0}.runbook li{padding:6px 0;line-height:1.7;font-size:14px}.logline{font:12px/1.9 var(--mono);overflow-wrap:anywhere;background:#080f18;padding:13px;border:1px solid #2b3f54;border-radius:6px}.mobile-note{display:none}.paused-label{background:#443a18;color:var(--yellow);font-size:12px;padding:7px 12px;border-bottom:1px solid #655626}.save-warning{background:#40232a;color:#ffc6ce;font-size:12px;padding:8px 18px}.freeze-note{background:#142d3c;color:#a2daf7;border:1px solid #315f7a;padding:9px 12px;border-radius:6px;font-size:12px;margin-bottom:12px}.offline-mark{font-size:11px;letter-spacing:.3px;color:var(--dim)}@keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:1600px){.workspace-scroll{padding-left:38px;padding-right:38px}.device-list{grid-template-columns:repeat(4,minmax(0,1fr))}.case-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1200px){.app{grid-template-columns:170px minmax(0,1fr)}.sidebar{padding-left:8px;padding-right:8px}.workspace-scroll{padding:20px}.topbar{padding-left:20px;padding-right:20px}.healthbar{padding:0 20px}.healthcell{padding:14px 10px;gap:8px}.grid5{grid-template-columns:repeat(3,minmax(0,1fr))}.device-list{grid-template-columns:repeat(2,minmax(0,1fr))}.event-table-head,.ev{grid-template-columns:70px 52px 130px minmax(0,1fr) 67px;gap:9px}.toast-area{left:calc(50% + 85px)}}
+@media(max-width:900px){.app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto}.sidebar{grid-column:1;grid-row:3;padding:0 7px env(safe-area-inset-bottom,0px);border:0;border-top:1px solid var(--line);gap:0;z-index:30}.brand,.side-bottom{display:none}.nav{flex-direction:row;gap:1px;justify-content:space-around}.nav button{flex:1;min-width:0;flex-direction:column;justify-content:center;gap:4px;font-size:11px;line-height:1.2;padding:9px 1px 7px;min-height:56px;border-radius:6px}.nav button svg{width:20px;height:20px}.nav button span{flex:none;white-space:nowrap}.nav button .navnew{display:none}.topbar{grid-column:1;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;gap:8px}.workspace{grid-column:1;grid-row:2}.eyebrow{font-size:10px;margin-bottom:4px}.topbar h1{font-size:19px}.topmeta .clock{display:none}.topcontrols button{padding:7px 9px;font-size:12px}.topcontrols select{font-size:13px;min-height:38px;width:58px;padding:6px}.topcontrols .iconbtn{width:38px}.toast-area{left:50%;bottom:calc(74px + env(safe-area-inset-bottom,0px))}.grid5{grid-template-columns:repeat(3,minmax(0,1fr))}.workspace-scroll{padding:18px 16px 22px}.healthbar{padding:0 16px}.healthnum{font-size:22px}.view-head{margin-bottom:16px}.view-head p{font-size:12px}.modal-backdrop{padding:12px max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px));padding-top:max(12px,env(safe-area-inset-top,0px))}.modal{max-height:100%}.modal-body{padding:17px}.modal-header{padding:12px 16px}.modal-footer{padding:12px 16px}}
+@media(max-width:640px){.topbar{padding-left:12px;padding-right:12px}.topbar h1{font-size:17px}.topcontrols{gap:5px}.topcontrols #soundBtn{display:none}.topcontrols button{min-height:36px}.topcontrols button svg{width:15px;height:15px}.topcontrols select{min-height:36px}.eyebrow .desktop-only{display:none}.healthbar{padding:0 12px}.healthcell{display:block;text-align:center;padding:10px 3px!important}.healthnum{font-size:20px}.healthlabel{font-size:10px;margin-top:4px;line-height:1.4}.healthlabel br{display:none}.healthlabel .secondary-label{display:none}.workspace-scroll{padding:16px 12px 20px}.view-head{align-items:flex-start;gap:10px}.view-head h2{font-size:18px}.view-actions button{font-size:12px;min-height:35px;padding:7px 9px}.view-actions svg{width:15px;height:15px}.view-head p{line-height:1.65}.toolbar{gap:6px}.toolbar select{font-size:13px;padding:10px 8px}.searchbox{max-width:none;flex-basis:100%}.searchbox input{font-size:16px;height:43px}.toolbar .wide-search{flex-basis:auto}.filter-chips{gap:5px}.filter-chips button{font-size:11px;min-height:31px;padding:4px 8px}.event-table-head{display:none}.ev{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:12px 12px;border-left-width:3px}.ev-sev{grid-column:1;grid-row:1}.ev-time{grid-column:3;grid-row:1;text-align:right;line-height:1.5}.ev-time small{display:none}.ev-host{grid-row:1;grid-column:2;display:flex;align-items:center;gap:5px;flex-wrap:wrap}.ev-host strong{font-size:11px;margin:0}.ev-host small{display:none}.ev-msg{grid-column:1/4;grid-row:2;font-size:14px}.ev-state{grid-row:3;grid-column:1/4;text-align:left;display:flex;gap:12px;align-items:center;font-size:11px}.ev-tags{font-size:11px;margin-top:6px}.grid2,.grid3,.settings-grid,.case-grid{grid-template-columns:1fr}.grid5{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.panel{padding:15px}.panel.flat{padding:0}.service-card .service-title{font-size:13px}.service-card .service-stat{font-size:18px}.service-card .pill{font-size:10px;padding:1px 4px}.services .service-card:last-child{grid-column:1/-1}.services .service-card:last-child .spark{display:none}.device-list{gap:9px}.device-card{padding:12px}.device-icon{display:none}.device-top{display:block;position:relative;margin-bottom:9px}.device-status{display:block;font-size:11px;margin-top:8px}.device-card strong{font-size:11px}.device-card small{font-size:11px}.mini-metrics{gap:3px}.mini-metrics b{font-size:11px}.mini-metrics span{font-size:10px}.device-footer{font-size:10px;flex-wrap:wrap;gap:3px}.device-footer .ip{display:none}.mobile-note{display:block}.grid2>.full,.settings-grid>.full{grid-column:auto}.modal-header h2{font-size:16px}.modal-backdrop{padding-left:8px;padding-right:8px}.detail-pairs{grid-template-columns:80px minmax(0,1fr);gap:10px;font-size:13px}.modal-footer button{font-size:13px;min-height:44px}.scenario-grid{grid-template-columns:1fr}.heat{grid-template-columns:repeat(11,minmax(0,1fr))}.catalog{grid-template-columns:1fr}.paused-label{font-size:11px;padding:6px 12px}.topmeta{gap:0}.metric-value{font-size:25px}}
+@media(max-width:360px){.topcontrols button .btn-word{display:none}.topbar h1{font-size:16px}.offline-mark{font-size:10px}.healthlabel{font-size:9px}.nav button{font-size:10px}.view-actions{gap:5px}.device-list{grid-template-columns:1fr}.device-icon{display:grid}.device-top{display:flex}.device-card strong{font-size:13px}.mini-metrics b{font-size:13px}.mini-metrics span{font-size:12px}}
+@media(max-height:480px) and (max-width:900px){.eyebrow{display:none}.topbar{padding-top:6px;padding-bottom:6px}.healthbar{display:none}.nav button{flex-direction:row;min-height:42px;padding:7px 2px;gap:4px}.nav button svg{width:16px;height:16px}.workspace-scroll{padding-top:12px}.toast-area{bottom:50px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-
-<div class="flash-ring" id="flashRing"></div>
-
-<!-- 상단 헤더 -->
-<div class="top-header">
-  <div class="header-badge">통합<br>감시</div>
-  <div class="header-info">
-    <div class="header-title">시스템 통합감시 콘솔</div>
-    <div class="header-sub">mgr-srv-01.corp.local · admin</div>
-  </div>
-  <div class="header-right">
-    <div class="live-dot"></div>
-    <div class="clock-sm" id="clock">--:--:--</div>
-  </div>
+<div class="app" id="app">
+ <aside class="sidebar"><div class="brand"><div class="brandmark" aria-hidden="true"><i></i><i></i><i></i></div><div><strong>통합감시</strong><small>OPERATIONS LAB</small></div></div><nav class="nav" id="nav" aria-label="주 화면"></nav><div class="side-bottom"><strong><span class="dot good"></span> 독립 훈련 환경</strong>manager-01 · 운영 담당자<br><span id="sideInventory">44개 감시 대상</span><button class="quiet" data-action="help">사용 안내 · 변경 내용</button></div></aside>
+ <header class="topbar"><div class="top-title"><div class="eyebrow"><span class="dot" id="liveDot"></span><span id="liveText">MONITORING</span><span class="desktop-only muted"> / LOCAL LAB</span></div><h1>시스템 통합감시 콘솔</h1></div><div class="topmeta"><div class="clock"><strong class="mono" id="clock">--:--:--</strong><br><span id="simDuration">감시 시작</span></div><div class="topcontrols"><button id="pauseBtn" data-action="pause" title="시뮬레이션 시간 전체 정지"></button><select id="speedSelect" aria-label="시뮬레이션 배속"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select><button class="iconbtn" id="soundBtn" data-action="sound" aria-label="경보음 켜기"></button></div></div></header>
+ <div class="workspace"><div class="healthbar" id="healthbar"></div><div class="paused-label" id="pauseBanner" hidden>시뮬레이션 일시정지 · 감시 시간과 자동 진행이 멈췄습니다. 화면은 계속 둘러볼 수 있습니다.</div><div class="save-warning" id="saveWarning" hidden>이 환경에서는 자동 저장을 사용할 수 없습니다. 설정에서 기록 파일을 내보내 주세요.</div><main class="workspace-scroll" id="main"><div id="view"></div></main></div>
 </div>
-
-<!-- 통계 바 -->
-<div class="stats-row">
-  <div class="stat-cell total">
-    <div class="stat-num" id="stTotal">0</div>
-    <div class="stat-lbl">전체</div>
-  </div>
-  <div class="stat-cell crit">
-    <div class="stat-num" id="stCrit">0</div>
-    <div class="stat-lbl">긴급+</div>
-  </div>
-  <div class="stat-cell err">
-    <div class="stat-num" id="stErr">0</div>
-    <div class="stat-lbl">오류</div>
-  </div>
-  <div class="stat-cell warn">
-    <div class="stat-num" id="stWarn">0</div>
-    <div class="stat-lbl">경고</div>
-  </div>
-</div>
-
-<!-- 필터 칩 -->
-<div class="filter-scroll">
-  <span class="filter-label">중요도:</span>
-  <span class="chip on" data-s="0" onclick="toggleChip(this)">긴급</span>
-  <span class="chip on" data-s="1" onclick="toggleChip(this)">경보</span>
-  <span class="chip on" data-s="2" onclick="toggleChip(this)">치명</span>
-  <span class="chip on" data-s="3" onclick="toggleChip(this)">오류</span>
-  <span class="chip on" data-s="4" onclick="toggleChip(this)">경고</span>
-  <span class="chip on" data-s="5" onclick="toggleChip(this)">알림</span>
-</div>
-
-<!-- 툴바 -->
-<div class="toolbar">
-  <button class="tb-btn" id="btnPause" onclick="togglePause()">■ 일시정지</button>
-  <div class="tb-sep"></div>
-  <button class="tb-btn-clear" onclick="clearAll()">초기화</button>
-</div>
-
-<!-- 이벤트 목록 -->
-<div class="event-list" id="eventList"></div>
-
-<!-- 드로어 백드롭 -->
-<div class="drawer-backdrop" id="backdrop" onclick="closeDrawer()"></div>
-
-<!-- 상세 드로어 -->
-<div class="drawer" id="drawer">
-  <div class="drawer-handle" onclick="closeDrawer()"></div>
-  <div class="drawer-header">
-    <div class="drawer-sev-title" id="drawerTitle">—</div>
-    <div class="drawer-host-line" id="drawerSub">—</div>
-  </div>
-  <div class="drawer-body" id="drawerBody"></div>
-</div>
-
-<!-- 하단 네비 -->
-<div class="bottom-nav">
-  <div class="nav-item active">
-    <div class="nav-icon">📋</div>
-    <div class="nav-label">이벤트</div>
-  </div>
-  <div class="nav-item">
-    <div class="nav-icon">📊</div>
-    <div class="nav-label">요약</div>
-  </div>
-  <div class="nav-item">
-    <div class="nav-icon">🖥</div>
-    <div class="nav-label">호스트</div>
-  </div>
-  <div class="nav-item">
-    <div class="nav-icon">⚙️</div>
-    <div class="nav-label">설정</div>
-  </div>
-</div>
-
-<div class="pause-badge" id="pauseBadge">⏸ 일시정지 중</div>
-
+<div class="toast-area" id="toasts" role="status" aria-live="polite"></div>
+<div class="modal-backdrop" id="modalBackdrop" hidden><section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><header class="modal-header"><h2 id="modalTitle"></h2><button class="modal-close" data-action="close" aria-label="상세 창 닫기">×</button></header><div class="modal-body" id="modalBody"></div><footer class="modal-footer" id="modalFooter"></footer></section></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
 <script>
-// ── 데이터 정의 ────────────────────────────────────────────────────────────────
-const SEV = [
-  {l:0, n:'긴급(Emergency)', s:'긴급'},
-  {l:1, n:'경보(Alert)',     s:'경보'},
-  {l:2, n:'치명(Critical)',  s:'치명'},
-  {l:3, n:'오류(Error)',     s:'오류'},
-  {l:4, n:'경고(Warning)',   s:'경고'},
-  {l:5, n:'알림(Notice)',    s:'알림'},
+'use strict';
+/* All data, icons and charts are local. This is a stateful training simulation. */
+const VERSION=3, STORAGE='operations-lab-jp1-v3', MAX_EVENTS=1200, MAX_HISTORY=120;
+const SEV=[['긴급','Emergency','#ff7887'],['경보','Alert','#ff9d72'],['치명','Critical','#ffc076'],['오류','Error','#f5d57b'],['경고','Warning','#cbd77f'],['알림','Notice','#80bdff'],['정보','Info','#a3b5ca'],['디버그','Debug','#af9adc']];
+const CATEGORIES=['에이전트','운영체제','자원','네트워크','보안','인증','데이터베이스','웹·API','잡관리','백업','스토리지','가상화','컨테이너','메시지큐','캐시','전원·환경','구성관리','감시운영'];
+const TYPES={linux:['Linux 서버','server'],windows:['Windows 서버','server'],database:['DB 서버','database'],web:['웹 서버','globe'],batch:['배치 서버','jobs'],nas:['NAS','database'],lb:['부하분산장치','network'],backup:['백업 장비','archive'],mq:['메시지큐','queue'],monitor:['감시 서버','pulse'],router:['라우터','network'],switch:['스위치','network'],firewall:['방화벽','shield'],dns:['DNS 서버','globe'],auth:['인증 서버','key'],hypervisor:['가상화 호스트','layers'],container:['컨테이너 노드','box'],cache:['캐시 서버','database'],storage:['스토리지','database'],ups:['UPS','power'],sensor:['환경 센서','thermo']};
+const ICONS={events:'M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5',summary:'M4 20V10h4v10 M10 20V4h4v16 M16 20v-7h4v7',server:'M4 3h16v7H4z M4 14h16v7H4z M7 6h.01 M7 17h.01 M11 6h6 M11 17h6',network:'M9 3h6v5H9z M3 16h6v5H3z M15 16h6v5h-6z M12 8v4 M6 16v-4h12v4',pulse:'M2 12h4l3-8 5 16 3-8h5',cases:'M8 6V3h8v3 M3 6h18v14H3z M3 12h18 M10 12v3h4v-3',settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M5 19l2-2 M17 7l2-2',search:'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14 M15 15l6 6',pause:'M8 5v14 M16 5v14',play:'M7 4l13 8-13 8z',sound:'M3 9v6h4l5 4V5L7 9z M16 8q5 4 0 8 M19 5q8 7 0 14',mute:'M3 9v6h4l5 4V5L7 9z M17 9l5 6 M22 9l-5 6',download:'M12 3v12 M7 10l5 5 5-5 M4 16v5h16v-5',filter:'M3 5h18 M6 12h12 M10 19h4',database:'M4 6c0-5 16-5 16 0s-16 5-16 0 M4 6v12c0 5 16 5 16 0V6 M4 12c0 5 16 5 16 0',globe:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20 M2 12h20 M12 2q-8 10 0 20 M12 2q8 10 0 20',jobs:'M4 4h16v16H4z M8 8l4 4-4 4 M14 16h3',archive:'M3 3h18v5H3z M5 8v13h14V8 M9 12h6',queue:'M3 4h5v5H3z M16 15h5v5h-5z M8 6h9v5 M17 11l-3-3 M17 11l3-3 M16 18H7v-5',shield:'M12 2l9 4v6c0 6-9 10-9 10S3 18 3 12V6z M8 12l3 3 5-6',key:'M8 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10 M12 12l9 9 M16 16l3-3 M19 19l3-3',layers:'M12 2l10 5-10 5L2 7z M2 12l10 5 10-5 M2 17l10 5 10-5',box:'M12 2l10 6v10l-10 5-10-5V8z M2 8l10 6 10-6 M12 14v9 M7 5l10 6',power:'M10 3H3v18h18V3h-7 M12 1v10',thermo:'M9 14V5a3 3 0 0 1 6 0v9a5 5 0 1 1-6 0 M12 8v10',check:'M4 12l5 5L20 6',clock:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20 M12 6v6l4 2',arrow:'M5 12h14 M13 6l6 6-6 6',help:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20 M9 8a3 3 0 1 1 4 3l-1 2 M12 17h.01'};
+const icon=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[n]||ICONS.server}"/></svg>`;
+const INVENTORY=[];
+function device(id,type,role,zone,deps=[],extra={}){INVENTORY.push({id,type,role,zone,deps,ip:`10.${zone==='주센터'?20:zone==='DR센터'?30:40}.${Object.keys(TYPES).indexOf(type)+1}.${INVENTORY.length+11}`,protocol:['router','switch','firewall','lb','nas','storage','ups','sensor'].includes(type)?'SNMP v3':['web','dns','auth'].includes(type)?'Agent + HTTP/TCP':'Agent / TLS',collector:INVENTORY.length%3===0?'MONITOR-EDGE':'MONITOR-SRV',...extra})}
+device('CORE-RTR-01','router','주 회선 라우터','주센터',[],{rack:'N01'});device('CORE-RTR-02','router','대체 회선 라우터','주센터',[],{rack:'N02'});
+device('FW-01','firewall','외부 접근 제어','주센터',['CORE-RTR-01']);device('FW-02','firewall','대기 방화벽','주센터',['CORE-RTR-02']);
+device('CORE-SW-01','switch','업무망 코어 스위치','주센터',['FW-01','FW-02']);device('DR-SW-01','switch','DR망 스위치','DR센터',['CORE-RTR-02']);
+device('LB-SRV-01','lb','운영 서비스 분산','주센터',['CORE-SW-01']);device('LB-SRV-02','lb','대기 서비스 분산','주센터',['CORE-SW-01']);
+device('DNS-01','dns','내부 이름 해석','주센터',['CORE-SW-01']);device('DNS-02','dns','보조 이름 해석','DR센터',['DR-SW-01']);
+device('WEB-SRV-01','web','고객 포털 프런트','주센터',['LB-SRV-01']);device('WEB-SRV-02','web','고객 포털 프런트','주센터',['LB-SRV-02']);
+device('AP-SRV-01','linux','주문·업무 API','주센터',['CORE-SW-01','HV-01']);device('AP-SRV-02','linux','주문·업무 API','주센터',['CORE-SW-01','HV-02']);
+device('IMG-SRV-01','linux','이미지 변환·배포','주센터',['NFS-SRV-01']);device('IMG-SRV-02','linux','이미지 변환·배포','주센터',['NFS-SRV-01']);
+device('WIN-AD-01','windows','업무 도메인 컨트롤러','주센터',['DNS-01']);device('FILE-SRV-01','windows','공유 파일 서비스','주센터',['NFS-SRV-01']);
+device('DB-SRV-01','database','운영 DB · primary','주센터',['SAN-01']);device('DB-SRV-02','database','DR 복제 DB · standby','DR센터',['SAN-DR-01']);
+device('BATCH-SRV-01','batch','집계·일마감 잡넷','주센터',['DB-SRV-01','MQ-SRV-01']);device('BACKUP-SRV','backup','백업 카탈로그·실행','DR센터',['NFS-DR-01']);
+device('NFS-SRV-01','nas','공유 이미지 볼륨','주센터',['SAN-01']);device('NFS-DR-01','nas','백업 파일 볼륨','DR센터',['SAN-DR-01']);
+device('SAN-01','storage','업무 LUN 스토리지','주센터',['UPS-01']);device('SAN-DR-01','storage','DR LUN 스토리지','DR센터',['UPS-DR-01']);
+device('LDAP-SRV-01','auth','디렉터리 조회','주센터',['CORE-SW-01']);device('AUTH-SRV-02','auth','인증 게이트웨이','주센터',['LDAP-SRV-01']);
+device('HV-01','hypervisor','가상 머신 호스트 01','주센터',['SAN-01','UPS-01']);device('HV-02','hypervisor','가상 머신 호스트 02','주센터',['SAN-01','UPS-01']);
+device('K8S-CTRL-01','container','컨테이너 제어 노드','주센터',['CORE-SW-01']);device('K8S-WORKER-01','container','보급 API 워커 01','주센터',['K8S-CTRL-01','HV-01']);device('K8S-WORKER-02','container','보급 API 워커 02','주센터',['K8S-CTRL-01','HV-02']);
+device('MQ-SRV-01','mq','보급 메시지 브로커','주센터',['SAN-01']);device('CACHE-01','cache','주문 세션 캐시','주센터',['CORE-SW-01']);device('CACHE-02','cache','세션 캐시 replica','주센터',['CORE-SW-01']);
+device('MONITOR-SRV','monitor','감시 관리자·수집기','주센터',['CORE-SW-01'],{collector:null});device('MONITOR-EDGE','monitor','분산 감시 수집기','DR센터',['DR-SW-01'],{collector:null});
+device('UPS-01','ups','주센터 무정전 전원','주센터');device('UPS-DR-01','ups','DR센터 무정전 전원','DR센터');
+device('TEMP-01','sensor','서버실 온습도 센서','주센터');device('TEMP-DR-01','sensor','DR실 온습도 센서','DR센터');
+device('AP-DR-01','linux','DR 업무 API 대기','DR센터',['DR-SW-01','DB-SRV-02']);device('BATCH-DR-01','batch','DR 재처리·대조 잡','DR센터',['DB-SRV-02','NFS-DR-01']);
+const DEVICE=Object.fromEntries(INVENTORY.map(d=>[d.id,d]));
+const GROUPS={net:{name:'업무망',ids:['CORE-SW-01']},lb:{name:'접속 경로',ids:['LB-SRV-01','LB-SRV-02']},web:{name:'웹 프런트',ids:['WEB-SRV-01','WEB-SRV-02']},app:{name:'업무 API',ids:['AP-SRV-01','AP-SRV-02']},db:{name:'운영 DB',ids:['DB-SRV-01']},auth:{name:'인증 게이트웨이',ids:['AUTH-SRV-02']},ldap:{name:'디렉터리',ids:['LDAP-SRV-01']},images:{name:'이미지 서버',ids:['IMG-SRV-01','IMG-SRV-02']},nas:{name:'공유 파일',ids:['NFS-SRV-01']},workers:{name:'보급 워커',ids:['K8S-WORKER-01','K8S-WORKER-02']},mq:{name:'전송 대기열',ids:['MQ-SRV-01']},batch:{name:'잡 실행',ids:['BATCH-SRV-01']},san:{name:'업무 스토리지',ids:['SAN-01']},dns:{name:'이름 해석',ids:['DNS-01','DNS-02']}};
+const SERVICES=[{id:'portal',name:'고객 포털',short:'포털',slo:99.5,groups:['net','lb','web','app','db','auth','dns'],base:130},{id:'image',name:'이미지 조회',short:'이미지',slo:99.5,groups:['net','lb','images','nas','san'],base:80},{id:'supply',name:'보급 처리',short:'보급',slo:99,groups:['net','workers','mq','db'],base:170},{id:'login',name:'업무 인증',short:'인증',slo:99.5,groups:['net','auth','ldap','dns'],base:95},{id:'batch',name:'야간 배치',short:'배치',slo:98,groups:['net','batch','db','mq','san'],base:220}];
+/* Fault messages choose host and object ONCE; severity is defined by the condition. */
+const FAULTS=[];
+function fault(id,cat,types,sev,title,object,detail,fix,impact=.3,metric=null,value=null){FAULTS.push({id,cat,types:types.split(','),sev,title,object,detail,fix,impact,metric,value})}
+fault('agent_loss','에이전트','linux,windows,web,monitor',3,'감시 에이전트 하트비트 누락','agent/heartbeat','하트비트 연속 3회 미수신. 마지막 수신값을 유지하며 현재 상태를 미수신으로 표시합니다.','에이전트 서비스를 재기동하고 하트비트 수신을 확인',0);
+fault('collector_loss','에이전트','monitor',2,'분산 수집기 연결 중단','collector/tls','수집기 세션이 끊어져 연결 대상의 새 측정값을 수신하지 못합니다.','수집기 연결을 재수립하고 밀린 측정값을 수집',0);
+fault('event_backlog','에이전트','monitor',4,'이벤트 전송 버퍼 적체','queue/events','수신 큐가 4,800건에 도달했습니다. 이벤트 전달 지연이 증가하고 있습니다.','수신 워커를 재시작하고 이벤트 버퍼를 배출',0,'queue',4800);
+fault('process_down','운영체제','linux,web,windows',3,'업무 프로세스 응답 없음','service/application','서비스 상태 점검 실패. 프로세스는 존재하지만 업무 요청에 응답하지 않습니다.','서비스를 순차 재기동하고 업무 응답을 확인',.8,'latency',2400);
+fault('fd_limit','운영체제','linux,web',4,'파일 디스크립터 부족','os/open_files','열린 파일 수가 한도에 근접했습니다. 신규 소켓 할당 지연을 감지했습니다.','유휴 연결을 정리하고 프로세스 자원을 회수',.25,'cpu',82);
+fault('ntp_drift','운영체제','linux,windows,auth',4,'시각 동기화 오차','ntp/offset','기준 시각과 8.4초 차이가 발생했습니다. 인증 티켓 검증에 영향을 줄 수 있습니다.','NTP 동기화를 재수행하고 시각 오차를 확인',.1);
+fault('cpu_high','자원','linux,windows,web,database,hypervisor,container',4,'CPU 사용률 지속 상승','metric/cpu','CPU 사용률이 설정 임계값을 연속 초과했습니다.','과부하 작업을 분산하고 CPU 사용률을 안정화',.2,'cpu',94);
+fault('memory_high','자원','linux,windows,web,container,cache',4,'메모리 사용률 지속 상승','metric/memory','메모리 사용률이 설정 임계값을 연속 초과했습니다.','유휴 작업 메모리를 회수하고 작업량을 분산',.25,'mem',94);
+fault('disk_high','자원','linux,database,batch,nas',3,'디스크 여유 공간 부족','volume/data','볼륨 사용률이 설정 임계값을 연속 초과했습니다.','보존기간이 지난 임시·순환 로그를 정리',.3,'disk',96);
+fault('swap_storm','자원','linux,windows,hypervisor',3,'메모리 스와핑 급증','os/swap','스왑 입출력 급증으로 업무 스레드가 대기하고 있습니다.','메모리 집중 작업을 다른 호스트로 이관',.5,'mem',97);
+fault('link_down','네트워크','router,switch',0,'업무망 업링크 단절','interface/uplink-1','업링크 운영 상태가 DOWN으로 바뀌었습니다. 해당 경로의 업무 통신이 중단됩니다.','대체 업링크로 전환하고 경로 도달성을 검증',1,'loss',100);
+fault('packet_loss','네트워크','router,switch,firewall,lb',3,'네트워크 패킷 손실','interface/uplink-1','패킷 손실 18%를 감지했습니다. 재전송과 업무 응답 지연이 증가합니다.','불량 경로를 우회하고 인터페이스 오류를 초기화',.5,'loss',18);
+fault('bandwidth','네트워크','router,switch,lb',4,'인터페이스 대역폭 포화','interface/uplink-1','트래픽이 링크 용량의 94%를 점유했습니다. 큐 대기가 증가합니다.','대역폭 집중 트래픽을 대체 경로로 분산',.25,'cpu',86);
+fault('route_flap','네트워크','router',3,'라우팅 인접 관계 반복 변경','routing/adjacency','인접 관계가 최근 60초 동안 4회 변경되었습니다. 경로가 불안정합니다.','불안정 회선을 제외하고 대체 경로를 고정',.4,'loss',12);
+fault('dns_timeout','네트워크','dns',3,'내부 DNS 질의 타임아웃','dns/corp.local','내부 도메인 질의가 응답 제한시간을 초과했습니다.','DNS 리졸버 서비스를 복구하고 이름 해석을 검증',.8,'latency',2100);
+fault('vpn_down','네트워크','firewall,router',2,'센터 간 VPN 터널 중단','vpn/site-to-site','VPN 보안 연결이 해제되었습니다. 센터 간 데이터 전송이 지연됩니다.','VPN 연결을 재협상하고 터널 경로를 확인',.6,'loss',70);
+fault('login_burst','보안','windows,auth,linux',4,'인증 실패 횟수 급증','security/auth-fail','동일 시험 계정에서 60초 동안 인증 실패 24회를 감지했습니다.','시험 계정을 잠금 처리하고 실패 흐름을 차단',.05);
+fault('firewall_deny','보안','firewall',3,'업무 포트 차단 감지','policy/application','정책 변경 후 업무 TCP 세션이 차단되고 있습니다.','변경 전 허용 정책으로 복원하고 세션을 점검',.85,'loss',60);
+fault('config_drift','구성관리','router,switch,firewall,lb',4,'기준 구성과 설정 불일치','configuration/baseline','현재 설정의 해시가 승인된 기준 구성과 다릅니다. 변경 이력 확인이 필요합니다.','승인된 기준 구성과 대조하고 차이를 복원',.1);
+fault('cert_soon','인증','web,lb,auth',4,'TLS 인증서 만료 임박','tls/server-certificate','서버 인증서 유효기간이 7일 남았습니다. 선제 갱신이 필요합니다.','갱신된 인증서를 반영하고 신뢰 체인을 검증',0);
+fault('cert_expired','인증','auth,lb,web',1,'TLS 인증서 만료로 연결 실패','tls/server-certificate','인증서 유효기간 초과로 TLS 검증에 실패했습니다. 업무 연결이 거부됩니다.','유효한 인증서 체인을 반영하고 TLS 연결을 재검증',1,'latency',3000);
+fault('ldap_bind','인증','auth',3,'디렉터리 바인드 실패','ldap/bind','디렉터리 인증 연결이 실패했습니다. 로그인 요청이 처리되지 못합니다.','인증 연결 풀을 갱신하고 디렉터리 바인드를 확인',.9,'latency',1900);
+fault('ticket_error','인증','windows,auth',3,'인증 티켓 검증 실패','auth/ticket','업무 계정 티켓을 검증할 수 없습니다. 로그인 재시도가 발생합니다.','인증 키와 시각을 동기화하고 시험 로그인을 검증',.6);
+fault('db_pool','데이터베이스','database',2,'DB 접속 풀 고갈','database/session-pool','사용 중 연결 200/200. 신규 업무 세션이 대기열에 진입했습니다.','유휴·장기 점유 세션을 회수하고 접속 풀을 정상화',.8,'latency',2200);
+fault('db_lock','데이터베이스','database',3,'장기 잠금 대기','database/lock-wait','선행 트랜잭션 잠금으로 42개 세션이 대기하고 있습니다.','장기 점유 트랜잭션을 종료하고 대기 세션을 재개',.5,'latency',1300);
+fault('db_replica','데이터베이스','database',4,'DB 복제 지연','replication/replay','대기 DB의 복제 적용 지연이 120초를 초과했습니다.','복제 워커를 재시작하고 지연 로그를 따라잡기',.1,'queue',1400);
+fault('db_listener','데이터베이스','database',2,'DB 리스너 응답 없음','database/listener','DB 리스너 연결 검사에 실패했습니다. 신규 연결을 수락하지 못합니다.','리스너를 재기동하고 신규 세션 연결을 확인',1,'latency',3000);
+fault('db_log','데이터베이스','database',3,'트랜잭션 로그 영역 부족','volume/transaction-log','로그 영역 잔여 용량이 4%입니다. 커밋 지연이 발생하고 있습니다.','로그 백업을 수행하고 재사용 가능 영역을 확보',.6,'disk',96);
+fault('http_5xx','웹·API','web,linux,container',3,'업무 API 오류율 상승','http/health-business','업무 요청 중 HTTP 5xx 비율이 28%를 초과했습니다.','실패한 연결을 갱신하고 업무 API를 재검증',.6,'latency',1700);
+fault('http_slow','웹·API','web,linux,container',4,'업무 응답 지연','http/response-time','업무 응답시간이 설정 임계값을 연속 초과했습니다.','업무 워커를 분산하고 응답시간을 안정화',.3,'latency',1100);
+fault('lb_backend','웹·API','lb',2,'정상 백엔드 부족','pool/business-api','업무 풀의 정상 백엔드 비율이 50% 이하로 떨어졌습니다.','건강한 백엔드로 풀을 재편하고 헬스체크를 수행',.6,'latency',1500);
+fault('health_mismatch','웹·API','web,linux',3,'기본 감시 정상 · 업무 검사 실패','http/synthetic-login','기본 포트는 열려 있지만 실제 시험 거래가 실패합니다. 업무 경로 점검이 필요합니다.','업무 의존 연결을 복구하고 시험 거래를 수행',.7,'latency',2100);
+fault('job_failed','잡관리','batch',3,'일마감 잡 비정상 종료','jobnet/daily-close','일마감 집계 잡이 종료코드 8로 실패했습니다. 후속 잡을 보류합니다.','선행 조건을 복구한 뒤 실패 단계부터 재실행',.85,'queue',430);
+fault('job_delay','잡관리','batch',4,'예약 잡 시작 지연','jobnet/stock-sync','예약 시각 이후 선행 잡이 끝나지 않아 후속 잡이 대기 중입니다.','선행 잡을 완료하고 대기 중인 후속 잡을 재개',.4,'queue',200);
+fault('job_timeout','잡관리','batch',3,'잡 실행 제한시간 초과','jobnet/report','보고서 생성 잡이 실행 제한시간을 초과했습니다.','응답 없는 실행 작업을 정리하고 실패 단계부터 재실행',.65,'cpu',88);
+fault('backup_failed','백업','backup',3,'일일 백업 실패','backup/daily-full','백업 대상 읽기 오류로 백업 세트가 완료되지 않았습니다.','대상 연결을 확인한 후 실패 세트를 다시 백업',.1);
+fault('backup_verify','백업','backup,nas',2,'백업 복원 검증 실패','backup/restore-check','복원 시험 파일의 검사값이 백업 카탈로그와 일치하지 않습니다.','정상 백업 세트를 재생성하고 복원 검증을 수행',.1);
+fault('backup_slow','백업','backup',4,'백업 완료 예상시간 초과','backup/window','현재 전송률로는 예정된 백업 시간 내 완료하기 어렵습니다.','백업 전송 대역폭을 재배분하고 작업을 재개',.05,'latency',900);
+fault('nfs_stale','스토리지','nas',3,'공유 볼륨 I/O 지연','nfs/image-share','파일 핸들 응답이 지연되어 이미지 읽기 요청이 대기합니다.','공유 볼륨 연결을 갱신하고 파일 읽기·쓰기를 검증',.8,'latency',2100);
+fault('raid_degraded','스토리지','storage,nas',2,'RAID 보호 수준 저하','storage/raid-group-01','물리 디스크 1개가 오프라인 상태입니다. 중복 보호 수준이 감소했습니다.','예비 디스크를 편입하고 RAID 재구성을 수행',.2,'disk',84);
+fault('lun_path','스토리지','storage',1,'스토리지 다중 경로 소실','storage/lun-business','업무 LUN의 유효 경로가 모두 끊어졌습니다. 파일·DB I/O가 대기합니다.','대체 스토리지 경로를 활성화하고 LUN 연결을 복구',1,'latency',3200);
+fault('snapshot_full','스토리지','storage,nas',4,'스냅샷 예약 공간 부족','storage/snapshot','스냅샷 예약 공간의 사용률이 93%입니다.','만료 스냅샷을 정리하고 예약 공간을 확보',.1,'disk',93);
+fault('vm_stun','가상화','hypervisor',3,'가상 머신 실행 지연','hypervisor/vm-scheduler','호스트 자원 경합으로 가상 머신 스케줄링 지연이 증가합니다.','부하가 낮은 호스트로 가상 머신을 이관',.65,'cpu',95);
+fault('datastore_full','가상화','hypervisor',2,'가상화 데이터스토어 부족','hypervisor/datastore','데이터스토어 잔여 공간이 3%입니다. 가상 디스크 확장이 제한됩니다.','만료 이미지를 정리하고 데이터스토어 여유 공간을 확보',.6,'disk',97);
+fault('ha_degraded','가상화','hypervisor',4,'HA 대기 자원 부족','hypervisor/ha-reserve','장애 시 가상 머신을 수용할 대기 자원이 부족합니다.','비필수 작업을 분산해 HA 예비 자원을 확보',.1,'mem',88);
+fault('pod_crash','컨테이너','container',3,'업무 Pod 반복 재시작','k8s/supply-api','업무 컨테이너가 CrashLoopBackOff 상태입니다. 재시작 횟수 6회.','정상 이미지로 롤백하고 Pod 준비 상태를 검증',.8,'latency',1800);
+fault('pod_pending','컨테이너','container',4,'Pod 배치 대기','k8s/scheduler','가용 자원 부족으로 업무 Pod 4개가 Pending 상태입니다.','워크로드를 재배치하고 준비 상태를 확인',.3,'mem',93);
+fault('node_notready','컨테이너','container',2,'컨테이너 노드 NotReady','k8s/node','노드 상태가 NotReady로 바뀌었습니다. 업무 Pod 배치가 중단됩니다.','노드 런타임을 재시작하고 준비 상태를 확인',1,'cpu',93);
+fault('image_pull','컨테이너','container',3,'컨테이너 이미지 가져오기 실패','k8s/registry','ImagePullBackOff로 신규 업무 Pod가 시작되지 못합니다.','이미지 접근 구성을 복원하고 배포를 재개',.55);
+fault('mq_backlog','메시지큐','mq',3,'업무 메시지 대기열 적체','mq/supply.outbound','소비 속도보다 유입 속도가 빨라 대기 메시지가 8,400건에 도달했습니다.','소비자를 재연결하고 대기 메시지를 순서대로 배출',.65,'queue',8400);
+fault('mq_consumer','메시지큐','mq',2,'메시지 소비자 연결 없음','mq/consumer-group','활성 소비자 수가 0입니다. 보급 업무 메시지를 처리하지 못합니다.','소비자 연결을 복구하고 미확인 메시지를 재처리',1,'queue',10500);
+fault('mq_deadletter','메시지큐','mq',4,'실패 메시지 큐 증가','mq/dead-letter','반복 처리 실패 메시지가 64건 쌓였습니다. 원인 확인 후 재처리가 필요합니다.','실패 원인을 복구하고 대상 메시지를 재처리',.2,'queue',950);
+fault('cache_eviction','캐시','cache',4,'캐시 키 축출 급증','cache/evictions','메모리 부족으로 최근 60초 동안 키 3,100개가 축출되었습니다.','만료 키를 정리하고 캐시 메모리를 안정화',.2,'mem',95);
+fault('cache_link','캐시','cache',3,'캐시 복제 연결 중단','cache/replication','주 캐시와 복제 노드의 연결이 끊어졌습니다.','복제 연결을 복구하고 키 동기화를 재개',.5,'latency',850);
+fault('cache_latency','캐시','cache',4,'캐시 명령 지연','cache/command-time','블로킹 명령으로 캐시 요청 지연이 증가했습니다.','장기 실행 명령을 중지하고 대기 명령을 재개',.3,'latency',900);
+fault('ups_battery','전원·환경','ups',1,'UPS 배터리 운전 전환','ups/input-power','상용 전원 입력이 끊어졌습니다. 배터리 운전 잔여시간 12분.','상용 전원 경로를 복구하고 충전 상태를 확인',.05,'battery',38);
+fault('ups_replace','전원·환경','ups',4,'UPS 배터리 점검 필요','ups/battery-health','배터리 자가 시험이 실패했습니다. 비상 유지시간이 줄어들 수 있습니다.','예비 배터리 모듈을 편입하고 자가 시험을 수행',0,'battery',65);
+fault('temp_high','전원·환경','sensor',2,'서버실 온도 상승','sensor/inlet-temperature','흡입구 온도가 설정 임계값을 연속 초과했습니다. 냉각 계통 확인이 필요합니다.','예비 냉각 장치를 가동하고 흡입구 온도를 낮춤',.15,'temp',39);
+fault('humidity','전원·환경','sensor',4,'서버실 습도 이탈','sensor/humidity','상대 습도가 78%로 감시 범위를 벗어났습니다.','공조 제습 운전을 조정하고 습도를 안정화',0);
+fault('sensor_loss','전원·환경','sensor',3,'환경 센서 수신 중단','sensor/heartbeat','환경 센서 응답이 3회 연속 누락되었습니다. 현재 환경값은 알 수 없습니다.','센서 통신을 재연결하고 새 측정값을 수신',0);
+const FT=Object.fromEntries(FAULTS.map(f=>[f.id,f]));
+const NOTICES=[
+ ['에이전트','monitor,linux,windows',6,'agent/heartbeat','에이전트 하트비트 정상 수신. 수집 주기가 유지되고 있습니다.'],
+ ['에이전트','monitor',7,'collector/checkpoint','수집 체크포인트 저장 완료. 미전송 이벤트 버퍼 0건.'],
+ ['운영체제','linux,windows',6,'os/service-check','필수 서비스 상태 검사 완료. 중지된 서비스가 없습니다.'],
+ ['운영체제','linux,windows,auth',5,'ntp/sync','시각 동기화 완료. 기준 서버와의 오차 12ms.'],
+ ['자원','linux,web,hypervisor',6,'metric/sample','자원 지표 수집 완료. 현재 임계값 이내입니다.'],
+ ['네트워크','router,switch',5,'routing/path-check','대체 경로 도달성 검사를 완료했습니다.'],
+ ['네트워크','dns',6,'dns/resolve-check','내부 이름 해석 시험이 정상 완료되었습니다.'],
+ ['보안','firewall',6,'security/policy-check','허용 정책 검증 완료. 승인되지 않은 규칙 변경이 없습니다.'],
+ ['인증','auth',5,'auth/test-login','시험 계정의 로그인 및 세션 종료를 정상 확인했습니다.'],
+ ['데이터베이스','database',6,'database/health','DB 연결·시험 질의가 정상 완료되었습니다.'],
+ ['잡관리','batch',5,'jobnet/stock-sync','재고 동기화 잡 정상 완료. 처리 1,284건, 실패 0건.'],
+ ['잡관리','batch',6,'jobnet/report','보고서 생성 잡 실행 시작. 선행 조건 충족.'],
+ ['백업','backup',5,'backup/incremental','증분 백업 완료. 카탈로그 등록과 복원 시험 정상.'],
+ ['스토리지','storage,nas',6,'storage/health','볼륨 읽기·쓰기 검사를 완료했습니다.'],
+ ['가상화','hypervisor',5,'hypervisor/migration','예약된 가상 머신 분산 작업이 정상 완료되었습니다.'],
+ ['컨테이너','container',6,'k8s/readiness','컨테이너 준비 상태 점검 완료. 준비 상태 정상.'],
+ ['메시지큐','mq',6,'mq/ack','보급 업무 메시지 처리가 완료되었습니다. 미확인 메시지 없음.'],
+ ['캐시','cache',7,'cache/expiry','만료 키 정리 주기 완료. 복제 연결 정상.'],
+ ['전원·환경','ups',6,'ups/self-test','전원 계통 자가 시험 완료. 입력·출력 상태 정상.'],
+ ['전원·환경','sensor',6,'sensor/sample','온습도 측정값을 정상 수신했습니다.'],
+ ['구성관리','lb,switch,firewall',5,'configuration/backup','승인된 구성의 정기 백업을 완료했습니다.'],
+ ['감시운영','monitor',6,'monitor/self-check','감시 관리자 자체 검사 완료. 이벤트 저장소 정상.']
+].map((n,i)=>({id:'notice_'+i,cat:n[0],types:n[1].split(','),sev:n[2],object:n[3],message:n[4]}));
+const SCENARIOS=[
+ {id:'database',name:'DB 접속 풀 고갈',desc:'DB 포화 → API 지연 → 일마감 잡 대기',root:['DB-SRV-01','db_pool'],children:[[5,'AP-SRV-01','http_slow'],[10,'BATCH-SRV-01','job_delay']]},
+ {id:'network',name:'코어 업링크 단절',desc:'업무망 단절 → 여러 업무의 접속 실패',root:['CORE-SW-01','link_down'],children:[[4,'LB-SRV-01','lb_backend'],[8,'WEB-SRV-01','http_5xx']]},
+ {id:'certificate',name:'인증서 만료',desc:'TLS 검증 실패 → 업무 로그인 실패',root:['AUTH-SRV-02','cert_expired'],children:[[5,'WEB-SRV-01','health_mismatch'],[9,'AP-SRV-02','http_5xx']]},
+ {id:'storage',name:'이미지 공유 볼륨 지연',desc:'공유 파일 대기 → 이미지 조회 지연',root:['NFS-SRV-01','nfs_stale'],children:[[5,'IMG-SRV-01','http_slow'],[8,'IMG-SRV-02','http_slow']]},
+ {id:'container',name:'보급 컨테이너 장애',desc:'업무 Pod 재시작 → 메시지 처리 적체',root:['K8S-WORKER-01','pod_crash'],children:[[6,'MQ-SRV-01','mq_backlog']]},
+ {id:'monitoring',name:'분산 수집기 중단',desc:'일부 장비 지표 미수신 · 업무 장애와 구분',root:['MONITOR-EDGE','collector_loss'],children:[]},
+ {id:'cooling',name:'서버실 냉각 이상',desc:'센서 온도 상승 → 가상화 호스트 부하',root:['TEMP-01','temp_high'],children:[[7,'HV-01','vm_stun']]},
+ {id:'power',name:'상용 전원 상실',desc:'UPS 배터리 운전 · 업무 중단 전 선제 대응',root:['UPS-01','ups_battery'],children:[]}
 ];
-
-const HOSTS = [
-  'AP-SRV-01', 'AP-SRV-02', 'DB-SRV-01', 'DB-SRV-02',
-  'WEB-SRV-01', 'WEB-SRV-02', 'BATCH-SRV-01', 'NFS-SRV-01',
-  'LB-SRV-01', 'BACKUP-SRV', 'MQ-SRV-01', 'MONITOR-SRV'
-];
-
-const EVENTS = [
-  // ── 잡 실행/완료/실패 ──────────────────────────────────────────────────────
-  {
-    sev: () => pick([3,3,3,4,4,5]),
-    prod: '잡관리',
-    obj: () => `JOBNET:${pick(['일일배치','보고서생성','데이터동기화','재고점검','일마감처리','급여처리','메일발송','정리작업'])}`,
-    evid: () => `JB${h2()}${h4()}`,
-    msg: () => {
-      const j = pick(['일일배치','데이터가져오기','매출집계','재고갱신','보고서생성','정산처리','로그정리']);
-      return pick([
-        `잡넷 [${j}]이(가) 비정상 종료되었습니다. 종료코드=8, 실행호스트=${rh()}`,
-        `잡 [${j} / 실행번호:${ri(1,9999).toString().padStart(4,'0')}]의 실행이 실패했습니다. 반환코드=255`,
-        `잡넷 [${j}]의 예약 실행이 지연되고 있습니다. 지연시간=${ri(5,120)}분`,
-        `잡 [${j}]의 프로세스가 응답하지 않습니다. PID=${ri(1000,65535)}`,
-        `잡넷 [${j}]이(가) 정상 완료되었습니다. 처리건수=${ri(100,99999).toLocaleString()}건`,
-        `스케줄러 서비스가 기동되었습니다. 루트 잡넷 수=${ri(10,300)}`,
-        `잡 [${j}]의 실행을 시작합니다. 실행 에이전트=${rh()}`,
-        `잡넷 [${j}] 선행 잡 대기 중. 대기시간=${ri(1,30)}분 초과`,
-      ]);
-    }
-  },
-  // ── 서버/호스트 연결 이상 ──────────────────────────────────────────────────
-  {
-    sev: () => pick([0,1,2,2,3,3,4,5]),
-    prod: '기반소프트',
-    obj: () => `AGENT:${rh()}`,
-    evid: () => `AG${h2()}${h4()}`,
-    msg: () => {
-      const h = rh();
-      return pick([
-        `에이전트 호스트 [${h}]와의 통신이 끊어졌습니다. 재접속 시도 중입니다. (시도횟수=${ri(1,10)}회)`,
-        `호스트 [${h}]에 대한 접속 타임아웃이 발생했습니다. 타임아웃 값=${ri(30,300)}초`,
-        `관리서버 [${h}]로의 이벤트 전송에 실패했습니다. 포트번호=20237`,
-        `호스트 [${h}]의 감시 에이전트 서비스가 정지되었습니다.`,
-        `에이전트 [${h}]와의 접속이 복구되었습니다.`,
-        `호스트 [${h}]로부터 하트비트를 수신하지 못하고 있습니다. 경과시간=${ri(60,1800)}초`,
-        `호스트 [${h}]와의 인증에 실패했습니다. 사용자=admin`,
-        `클러스터 호스트 [${h}]의 페일오버가 감지되었습니다.`,
-        `호스트 [${h}]의 원격 로그인(SSH)이 ${ri(3,20)}회 연속 실패했습니다. 보안 잠금 발생`,
-      ]);
-    }
-  },
-  // ── DB/파일시스템 경고 ─────────────────────────────────────────────────────
-  {
-    sev: () => pick([0,1,2,2,3,3,3,4,5,5]),
-    prod: '자원감시',
-    obj: () => pick(['VOLUME:/data01','VOLUME:/log','DB:운영DB','DB:보고서DB','FS:/backup','FS:/var/log','DB:배치DB','TABLESPACE:IDX_TS']),
-    evid: () => `RS${h2()}${h4()}`,
-    msg: () => pick([
-      `파일시스템 [/data01]의 사용률이 ${ri(80,99)}%에 도달했습니다. 여유공간=${ri(1,20)}GB`,
-      `데이터베이스 [운영DB]의 접속 풀이 고갈되었습니다. 최대접속수=${ri(50,200)}`,
-      `테이블스페이스 [IDX_TS]의 자동 확장에 실패했습니다. 디스크 여유공간 부족`,
-      `DB 접속 오류 발생. ORA-${ri(1000,9999)}: ${pick(['TNS 접속 타임아웃','리스너가 기동되어 있지 않습니다','세션 수가 상한에 도달했습니다'])}`,
-      `로그 파일 [/var/log/app.log]의 로테이션에 실패했습니다.`,
-      `백업 영역 [/backup]의 여유공간이 ${ri(1,10)}GB 미만이 되었습니다.`,
-      `디스크 쓰기 오류 발생. 장치=/dev/sd${pick(['b','c','d','e'])}, 섹터=${ri(100000,9999999)}`,
-      `트랜잭션 로그 사용률이 ${ri(80,99)}%에 도달했습니다. 로그 백업을 실행하십시오.`,
-      `데이터베이스 [보고서DB]의 응답시간이 ${ri(5,60)}초를 초과하고 있습니다.`,
-      `데이터 파일 무결성 검사에서 오류가 감지되었습니다. 파일=운영DB_data02.dbf`,
-    ])
-  },
-  // ── 네트워크/포트 이상 ────────────────────────────────────────────────────
-  {
-    sev: () => pick([0,1,2,3,3,4,5,5,5]),
-    prod: '네트워크감시',
-    obj: () => pick([
-      `PORT:${rh()}:${rport()}`,
-      `IF:${rh()}:eth${ri(0,3)}`,
-      `ROUTER:코어-RTR-${ri(1,4)}`,
-      `SW:분배-SW-${ri(1,8)}`
-    ]),
-    evid: () => `NW${h2()}${h4()}`,
-    msg: () => {
-      const h = rh(); const p = rport();
-      return pick([
-        `호스트 [${h}] 포트 ${p}에 대한 접속이 거부되었습니다.`,
-        `네트워크 인터페이스 [${h}:eth${ri(0,3)}]의 링크 다운을 감지했습니다.`,
-        `스위치 [분배-SW-${ri(1,8)}] 포트 ${ri(1,48)}에서 패킷 손실이 ${ri(5,80)}% 발생하고 있습니다.`,
-        `라우터 [코어-RTR-${ri(1,4)}]와의 통신이 두절되었습니다. 최종 응답=${ri(1,60)}분 전`,
-        `방화벽에 의해 통신이 차단되었습니다. 발신지=${h}, 목적지 포트=${p}`,
-        `ICMP 도달 불가: 호스트 [${h}]가 응답하지 않습니다.`,
-        `SSL/TLS 인증서 유효기간이 ${ri(1,30)}일 후 만료됩니다. 대상=${h}`,
-        `VPN 접속 [${h}↔${rh()}]이 끊어졌습니다.`,
-        `대역폭 사용률이 ${ri(80,99)}%를 초과했습니다. 인터페이스=${h}:eth${ri(0,3)}`,
-        `DNS 쿼리 타임아웃 발생. DNS서버=${h}`,
-      ]);
-    }
-  },
-  // ── 성능 감시 ────────────────────────────────────────────────────────────
-  {
-    sev: () => pick([3,4,4,5,5,5,5]),
-    prod: '성능감시',
-    obj: () => `ALARM:${rh()}`,
-    evid: () => `PF${h2()}${h4()}`,
-    msg: () => {
-      const h = rh();
-      return pick([
-        `CPU 사용률 경보: 호스트 [${h}]의 CPU 사용률이 ${ri(85,100)}%에 도달했습니다. (임계값=80%)`,
-        `메모리 경보: 호스트 [${h}]의 여유 메모리가 ${ri(1,512)}MB가 되었습니다.`,
-        `프로세스 [${pick(['httpd','java','oracle','postgres','nginx'])}] 중복 기동 감지. (${ri(2,20)}개 프로세스) 호스트=${h}`,
-        `응답시간 초과: 서비스 [${pick(['HTTP','AP','DB','MQ'])}]의 평균 응답시간=${ri(500,5000)}ms`,
-        `스왑 사용량이 ${ri(50,100)}%에 도달했습니다. 호스트=${h}`,
-        `파일 디스크립터 사용수가 상한의 ${ri(80,99)}%에 도달했습니다. 호스트=${h}`,
-        `시스템 로드 평균이 임계값을 초과했습니다. load avg=${(ri(30,120)/10).toFixed(1)}, 호스트=${h}`,
-      ]);
-    }
-  },
-];
-
-// ── 유틸 함수 ─────────────────────────────────────────────────────────────────
-function pick(a)  { return a[Math.floor(Math.random()*a.length)]; }
-function rh()     { return pick(HOSTS); }
-function rport()  { return pick([80,443,1521,3306,5432,8080,8443,9090,22,3389,6379]); }
-function ri(a,b)  { return Math.floor(Math.random()*(b-a+1))+a; }
-function h4()     { return Math.floor(Math.random()*0xFFFF).toString(16).toUpperCase().padStart(4,'0'); }
-function h2()     { return Math.floor(Math.random()*0xFF).toString(16).toUpperCase().padStart(2,'0'); }
-function tsNow() {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+const METRICS={cpu:{name:'CPU',unit:'%',max:100,color:'#80b4ff'},mem:{name:'메모리',unit:'%',max:100,color:'#bdadff'},disk:{name:'볼륨',unit:'%',max:100,color:'#edd178'},latency:{name:'응답시간',unit:'ms',max:1500,color:'#62dbc1'},loss:{name:'패킷 손실',unit:'%',max:100,color:'#ff7985'},temp:{name:'온도',unit:'°C',max:45,color:'#ffaf75'},queue:{name:'대기 메시지',unit:'건',max:12000,color:'#80b4ff'},battery:{name:'배터리',unit:'%',max:100,color:'#62dbc1'}};
+const NAV=[['events','이벤트','events'],['summary','요약','summary'],['hosts','장비','server'],['map','구성도','network'],['performance','성능','pulse'],['incidents','대응실','cases'],['settings','설정','settings']];
+const UI={view:'events',search:'',severity:new Set([0,1,2,3,4,5,6]),life:'all',cat:'all',host:'all',freeze:null,limit:100,hostSearch:'',hostType:'all',hostState:'all',hostZone:'all',performance:'DB-SRV-01',service:'portal',caseState:'open',modal:null,lastFocus:null};
+let S,saveError=false,booted=false,audioCtx=null,lastSound=-99,lastAlert=-99;
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n,d=0)=>Number(n).toLocaleString('ko-KR',{maximumFractionDigits:d,minimumFractionDigits:d});
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function rng(){S.rng^=S.rng<<13;S.rng^=S.rng>>>17;S.rng^=S.rng<<5;return(S.rng>>>0)/4294967296}
+const random=(a,b)=>a+rng()*(b-a),pick=a=>a[Math.floor(rng()*a.length)];
+const time=t=>new Date(S.start+t*1000).toLocaleTimeString('ko-KR',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const duration=n=>n>=3600?`${Math.floor(n/3600)}시간 ${Math.floor(n%3600/60)}분`:n>=60?`${Math.floor(n/60)}분 ${Math.floor(n%60)}초`:`${Math.floor(Math.max(0,n))}초`;
+const severityPill=s=>`<span class="pill" style="color:${SEV[s][2]}">${SEV[s][0]}</span>`;
+function initialState(){return{version:VERSION,start:Date.now(),elapsed:0,rng:((Date.now()%2147483647)||12345),seq:0,issueSeq:0,caseSeq:0,received:0,events:[],issues:[],cases:[],audit:[],metrics:{},history:{},serviceStats:{},serviceHistory:{},maintenance:{},thresholdHold:{},jobs:[],pending:[],nextFault:24,nextNotice:5,paused:false,prefs:{speed:1,sound:false,dedup:true,autoRecover:true,autoFault:true,alerts:true},thresholds:{cpu:85,mem:88,disk:90,latency:900,temp:32},savedAt:0}}
+function seedMetrics(){INVENTORY.forEach((d,i)=>{let m={cpu:18+i%6*4,mem:35+i%8*3,disk:43+i%7*4,latency:35+i%9*11,loss:0,temp:22+i%4,queue:Math.round(18+i%6*11),battery:100,at:S.elapsed};S.metrics[d.id]=m;S.history[d.id]=[]});SERVICES.forEach(s=>{S.serviceStats[s.id]={samples:0,success:0,latencySum:0,badSeconds:0};S.serviceHistory[s.id]=[]})}
+function activeIssues(host){return S.issues.filter(i=>!i.resolvedAt&&(host===undefined||i.host===host))}
+function activeCases(){return S.cases.filter(c=>c.state!=='resolved')}
+function inMaintenance(host){return (S.maintenance[host]||0)>S.elapsed}
+function missing(host){const d=DEVICE[host];return activeIssues(host).some(i=>['agent_loss','sensor_loss','collector_loss'].includes(i.fault))||!!(d.collector&&activeIssues(d.collector).some(i=>i.fault==='collector_loss'))}
+function hostStatus(host){const list=activeIssues(host);const min=list.length?Math.min(...list.map(i=>i.sev)):6;const lost=missing(host);return{label:lost?'미수신':list.length?min<=2?'중대 장애':min===3?'오류':'주의':'정상',color:lost?'#a99adb':list.length?SEV[min][2]:'#62dbc1',level:lost?'unknown':list.length?'fault':'normal',sev:min,issues:list,maintenance:inMaintenance(host)}}
+function metricsFor(d){if(d.type==='ups')return['battery','temp','latency'];if(d.type==='sensor')return['temp','latency'];if(['router','switch','firewall','lb','dns'].includes(d.type))return['cpu','loss','latency'];if(d.type==='mq')return['queue','mem','latency'];if(['nas','storage','backup'].includes(d.type))return['disk','latency','temp'];return['cpu','mem','disk','latency']}
+function affectedServices(host){return SERVICES.filter(s=>s.groups.some(k=>GROUPS[k].ids.includes(host))).map(s=>s.name)}
+function hostImpact(host,seen=new Set()){if(seen.has(host))return 0;const next=new Set(seen);next.add(host);const d=DEVICE[host],own=Math.max(0,...activeIssues(host).map(i=>FT[i.fault].impact));if(!d.deps.length)return own;const impacts=d.deps.map(id=>hostImpact(id,next));const upstream=host==='CORE-SW-01'?Math.min(...impacts):Math.max(...impacts);return Math.max(own,upstream)}
+function serviceHealth(s){let impact=0,risk=false;const reasons=[];for(const key of s.groups){const g=GROUPS[key],impacts=g.ids.map(id=>hostImpact(id)),v=Math.min(...impacts);impact=Math.max(impact,v);if(impacts.some(n=>n>0)){risk=true;g.ids.forEach(id=>{if(hostImpact(id)>0)reasons.push(id)})}}const state=impact>=.9?'중단':impact>.1?'저하':risk?'대체 운전':'정상';return{state,color:impact>=.9?'#ff7985':impact>.1?'#edd178':risk?'#80b4ff':'#62dbc1',impact,success:clamp(1-impact*.97,0,1),latency:Math.round(s.base+impact*2400+Math.sin(S.elapsed/12+s.base)*12),reasons:[...new Set(reasons)]}}
+function logAudit(message,actor='운영 담당자'){S.audit.unshift({at:S.elapsed,message,actor});S.audit=S.audit.slice(0,300)}
+function caseLog(c,message,actor='감시 엔진'){c.log.push({at:S.elapsed,message,actor});c.log=c.log.slice(-70)}
+function emit({host='MONITOR-SRV',cat='감시운영',sev=6,object='monitor/events',message,issueId=null,caseId=null,kind='info',fingerprint}){const e={id:++S.seq,at:S.elapsed,host,cat,sev,object,message,issueId,caseId,kind,suppressed:inMaintenance(host),fingerprint:fingerprint||`${issueId||S.seq}:${kind==='repeat'?'fault':kind}:${sev}`};S.events.unshift(e);S.received++;if(S.events.length>MAX_EVENTS)S.events.length=MAX_EVENTS;if(kind==='fault'&&!e.suppressed&&sev<=2&&booted&&S.prefs.alerts){if(S.prefs.sound)beep();if(S.elapsed-lastAlert>=12){lastAlert=S.elapsed;toast(`${SEV[sev][0]} 경보 · ${host} · ${message.replace(/^\[[^\]]+\]\s*/, '').slice(0,65)}`);}}return e}
+function issueMessage(i){const f=FT[i.fault],m=S.metrics[i.host];let extra='';if(f.metric&&S.thresholds[f.metric]!=null){const v=i.value??m[f.metric];extra=` 측정값=${fmt(v,1)}${METRICS[f.metric].unit}, 임계값=${S.thresholds[f.metric]}${METRICS[f.metric].unit}.`}return`[${i.host}] ${f.detail}${extra}`}
+function createIssue(host,faultId,caseObj=null,options={}){const f=FT[faultId];if(!f||!DEVICE[host]||!f.types.includes(DEVICE[host].type))return null;const existing=activeIssues(host).find(i=>i.fault===faultId);if(existing)return existing;const i={id:`AL-${String(++S.issueSeq).padStart(4,'0')}`,host,fault:faultId,sev:options.sev??f.sev,created:S.elapsed,last:S.elapsed,resolvedAt:null,value:options.value??f.value,measured:!!options.measured,ack:false,parent:caseObj?.rootId||null,caseId:null,repeatAt:S.elapsed+18};if(!caseObj){caseObj={id:`INC-${String(++S.caseSeq).padStart(4,'0')}`,title:f.title,rootId:i.id,created:S.elapsed,state:'new',owner:'미지정',ackAt:null,resolvedAt:null,scenario:options.scenario||null,log:[],note:'',autoAt:S.elapsed+random(110,210)};S.cases.unshift(caseObj);caseLog(caseObj,`${host}에서 최초 원인 경보를 수신했습니다.`)}i.caseId=caseObj.id;S.issues.push(i);if(i.parent)caseLog(caseObj,`${host}의 후속 증상을 같은 장애로 연결했습니다.`);if(f.metric&&!i.measured){S.metrics[host][f.metric]=i.value;S.metrics[host].at=S.elapsed}emit({host,cat:f.cat,sev:i.sev,object:f.object,message:issueMessage(i),issueId:i.id,caseId:caseObj.id,kind:'fault'});return i}
+function startScenario(id,manual=true){const sc=SCENARIOS.find(s=>s.id===id);if(!sc)return;const rootExisting=activeIssues(sc.root[0]).find(i=>i.fault===sc.root[1]);if(rootExisting){if(booted&&manual)toast('같은 장애가 이미 진행 중입니다. 해당 대응 기록을 열었습니다.');if(booted&&manual)openCase(rootExisting.caseId);return rootExisting.caseId}const i=createIssue(...sc.root,null,{scenario:id});if(!i)return;const c=S.cases.find(c=>c.id===i.caseId);c.title=sc.name;caseLog(c,'연쇄 장애 시나리오를 시작했습니다.','훈련 제어');for(const [delay,host,fault] of sc.children)S.pending.push({at:S.elapsed+delay,host,fault,caseId:c.id});logAudit(`시나리오 시작: ${sc.name}`);if(booted&&manual){toast(`${sc.name} 시나리오 시작${S.paused?' · 재개하면 후속 증상이 진행됩니다.':''}`);closeModal();navigate('incidents')}return c.id}
+function resolveIssue(i,actor){if(i.resolvedAt)return;i.resolvedAt=Math.max(.001,S.elapsed);const f=FT[i.fault];if(f.metric){const same=activeIssues(i.host).filter(x=>FT[x.fault].metric===f.metric&&!x.measured);S.metrics[i.host][f.metric]=same.length?Math.max(...same.map(x=>x.value||0)):normalMetric(f.metric,INVENTORY.findIndex(d=>d.id===i.host));}S.thresholdHold[`${i.host}:${f.metric}`]=0;emit({host:i.host,cat:f.cat,sev:5,object:f.object,message:`[${i.host}] 복구 확인: ${f.title}. ${f.fix} 완료.`,issueId:i.id,caseId:i.caseId,kind:'recovery'});const c=S.cases.find(c=>c.id===i.caseId);if(c)caseLog(c,`${i.host} · ${f.title} 복구 확인`,actor)}
+function ackCase(id,owner){const c=S.cases.find(c=>c.id===id);if(!c||c.state==='resolved')return;if(!c.ackAt)c.ackAt=Math.max(.001,S.elapsed);if(c.state==='new')c.state='ack';if(owner)c.owner=owner;S.issues.filter(i=>i.caseId===id).forEach(i=>i.ack=true);caseLog(c,`경보 확인${owner?' · 담당 '+owner:''}`,'운영 담당자');logAudit(`${id} 확인${owner?' / '+owner:''}`);if(booted)toast('경보를 확인했습니다. 장비의 장애 상태는 복구까지 유지됩니다.');saveState()}
+function requestRecovery(id,actor='운영 담당자'){const c=S.cases.find(c=>c.id===id);if(!c||['working','verifying','resolved'].includes(c.state))return false;c.state='working';if(!c.ackAt)c.ackAt=Math.max(.001,S.elapsed);if(c.owner==='미지정')c.owner=actor==='자동 복구'?'자동 복구':'운영 담당자';S.issues.filter(i=>i.caseId===id).forEach(i=>i.ack=true);caseLog(c,'복구 절차 시작 · 사전 상태 수집',actor);S.jobs.push({caseId:id,stage:0,due:S.elapsed+3,actor});S.pending=S.pending.filter(p=>p.caseId!==id);logAudit(`${id} 복구 절차 실행`,actor);if(booted&&actor!=='자동 복구')toast(S.paused?'복구 절차를 예약했습니다. 시뮬레이션을 재개하면 진행됩니다.':'복구 절차를 시작했습니다. 진행 단계와 검증 결과가 기록됩니다.');return true}
+function normalMetric(key,index){if(key==='cpu')return 24+index%7*3;if(key==='mem')return 41+index%7*3;if(key==='disk')return 45+index%8*3;if(key==='latency')return 38+index%8*9;if(key==='temp')return 23+index%4;if(key==='battery')return 100;if(key==='queue')return 20+index%6*8;return 0}
+function advanceJobs(){for(const j of S.jobs){if(S.elapsed<j.due)continue;const c=S.cases.find(c=>c.id===j.caseId);if(!c){j.done=true;continue}const root=S.issues.find(i=>i.id===c.rootId);if(j.stage===0){caseLog(c,FT[root.fault].fix,j.actor);j.stage=1;j.due=S.elapsed+5}else if(j.stage===1){S.issues.filter(i=>i.caseId===c.id&&!i.resolvedAt).forEach(i=>resolveIssue(i,j.actor));c.state='verifying';caseLog(c,'복구 후 8초간 상태 재확인 · 업무 검사 수행',j.actor);j.stage=2;j.due=S.elapsed+8}else{if(S.issues.some(i=>i.caseId===c.id&&!i.resolvedAt)){c.state='ack';caseLog(c,'재검증에서 잔여 경보 확인. 다시 대응이 필요합니다.',j.actor)}else{c.state='resolved';c.resolvedAt=Math.max(.001,S.elapsed);const affected=affectedServices(root.host),still=SERVICES.filter(s=>affected.includes(s.name)&&serviceHealth(s).impact>.1);caseLog(c,still.length?`이 장애의 복구 검증 완료. ${still.map(s=>s.name).join('·')}은 다른 장애의 영향을 받고 있습니다.`:'이 장애의 복구 검증 완료. 연결된 경보를 모두 종료했습니다.',j.actor);emit({cat:'감시운영',sev:5,message:`${c.id} 복구 검증 완료. 소요 ${duration(c.resolvedAt-c.created)}.`,caseId:c.id});}j.done=true}}S.jobs=S.jobs.filter(j=>!j.done)}
+function updateMetrics(){INVENTORY.forEach((d,index)=>{if(missing(d.id))return;const m=S.metrics[d.id],issues=activeIssues(d.id);for(const key of Object.keys(METRICS)){const forced=issues.filter(i=>FT[i.fault].metric===key&&!i.measured);if(forced.length){m[key]=Math.max(...forced.map(i=>i.value??0));continue}let base=normalMetric(key,index),v=m[key]+(base-m[key])*.08;if(key==='cpu'||key==='mem')v+=random(-2,2);if(key==='latency')v+=random(-9,9);if(key==='temp')v+=random(-.12,.12);if(key==='queue')v+=random(-4,4);m[key]=clamp(v,0,key==='latency'?6000:key==='queue'?20000:key==='temp'?60:100)}m.at=S.elapsed})}
+function thresholdCheck(){const map={cpu:'cpu_high',mem:'memory_high',disk:'disk_high',latency:'http_slow',temp:'temp_high'};for(const d of INVENTORY){if(missing(d.id))continue;for(const [metric,threshold] of Object.entries(S.thresholds)){if(!metricsFor(d).includes(metric)||!FT[map[metric]].types.includes(d.type))continue;const key=d.id+':'+metric,high=S.metrics[d.id][metric]>threshold;S.thresholdHold[key]=high?(S.thresholdHold[key]||0)+1:0;const issue=activeIssues(d.id).find(i=>i.fault===map[metric]);if(high&&S.thresholdHold[key]>=3&&!issue)createIssue(d.id,map[metric],null,{measured:true,value:Number(S.metrics[d.id][metric].toFixed(1))});if(issue&&issue.measured&&S.metrics[d.id][metric]<threshold*.93){resolveIssue(issue,'임계값 감시');const c=S.cases.find(c=>c.id===issue.caseId);if(c&&!['working','verifying'].includes(c.state)){c.state='verifying';S.jobs.push({caseId:c.id,stage:2,due:S.elapsed+8,actor:'임계값 감시'})}}}}}
+function sample(){INVENTORY.forEach(d=>{S.history[d.id].push({...S.metrics[d.id],receivedAt:S.metrics[d.id].at,at:S.elapsed,missing:missing(d.id)});S.history[d.id]=S.history[d.id].slice(-MAX_HISTORY)});SERVICES.forEach(s=>{const h=serviceHealth(s);S.serviceHistory[s.id].push({at:S.elapsed,success:h.success*100,latency:h.latency});S.serviceHistory[s.id]=S.serviceHistory[s.id].slice(-MAX_HISTORY)})}
+function tick(){if(S.paused)return;S.elapsed++;for(const [host,end] of Object.entries(S.maintenance)){if(end<=S.elapsed){delete S.maintenance[host];emit({host,cat:'감시운영',sev:5,message:`[${host}] 점검 시간이 종료되었습니다. 알림을 다시 허용합니다.`});logAudit(`${host} 점검 종료`,'감시 엔진');if(activeIssues(host).length)emit({host,cat:'감시운영',sev:3,message:`[${host}] 점검 종료 후에도 미복구 경보 ${activeIssues(host).length}건이 남아 있습니다.`,kind:'fault'})}}
+ for(const p of S.pending.filter(p=>p.at<=S.elapsed)){const c=S.cases.find(c=>c.id===p.caseId);if(c&&!['working','verifying','resolved'].includes(c.state)){const i=createIssue(p.host,p.fault,c);if(i&&c.ackAt)i.ack=true}}S.pending=S.pending.filter(p=>p.at>S.elapsed);
+ advanceJobs();updateMetrics();thresholdCheck();
+ for(const i of activeIssues()){if(S.elapsed>=i.repeatAt){i.last=S.elapsed;i.repeatAt=S.elapsed+random(18,30);emit({host:i.host,cat:FT[i.fault].cat,sev:i.sev,object:FT[i.fault].object,message:issueMessage(i),issueId:i.id,caseId:i.caseId,kind:'repeat'})}}
+ if(S.prefs.autoRecover){for(const c of activeCases())if(S.elapsed>=c.autoAt&&['new','ack'].includes(c.state))requestRecovery(c.id,'자동 복구')}
+ if(S.elapsed>=S.nextFault){S.nextFault=S.elapsed+random(20,36);if(S.prefs.autoFault&&activeCases().length<6){if(rng()<.4){const candidates=SCENARIOS.filter(sc=>!activeIssues(sc.root[0]).some(i=>i.fault===sc.root[1]));if(candidates.length){startScenario(pick(candidates).id,false)}}else{const f=pick(FAULTS),targets=INVENTORY.filter(d=>f.types.includes(d.type)&&!activeIssues(d.id).length&&!inMaintenance(d.id));if(targets.length)createIssue(pick(targets).id,f.id)}}}
+ if(S.elapsed>=S.nextNotice){S.nextNotice=S.elapsed+random(7,15);const n=pick(NOTICES),ds=INVENTORY.filter(d=>n.types.includes(d.type)&&!activeIssues(d.id).length&&!missing(d.id)&&hostImpact(d.id)<.1);if(ds.length){const d=pick(ds);emit({host:d.id,cat:n.cat,sev:n.sev,object:n.object,message:`[${d.id}] ${n.message}`})}}
+ for(const s of SERVICES){const h=serviceHealth(s),m=S.serviceStats[s.id];m.samples++;m.success+=h.success;m.latencySum+=h.latency;if(h.impact>.1)m.badSeconds++}if(S.elapsed%5===0)sample();if(S.elapsed%60===0)pruneHistory();
 }
-function tsDate() {
-  const d = new Date();
-  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${tsNow()}.${String(d.getMilliseconds()).padStart(3,'0')}`;
-}
-
-// ── 상태 ──────────────────────────────────────────────────────────────────────
-let paused = false;
-let counts = {total:0, crit:0, err:0, warn:0};
-let activeFilters = new Set([0,1,2,3,4,5]);
-const MAX = 300;
-
-// ── 이벤트 생성 ───────────────────────────────────────────────────────────────
-function generate() {
-  if (paused) return;
-  const tmpl = pick(EVENTS);
-  const sl = tmpl.sev();
-  if (!activeFilters.has(sl)) return;
-
-  const sev = SEV.find(s => s.l === sl);
-  const host = rh();
-  const prod = tmpl.prod;
-  const obj  = tmpl.obj();
-  const evid = tmpl.evid();
-  const msg  = tmpl.msg();
-  const ts   = tsDate();
-  const tsS  = tsNow();
-
-  // 긴급/경보 플래시
-  if (sl <= 1) {
-    const ring = document.getElementById('flashRing');
-    ring.classList.add('on');
-    setTimeout(() => ring.classList.remove('on'), 200);
-  }
-
-  // 카운터 갱신
-  counts.total++;
-  if (sl <= 2) counts.crit++;
-  else if (sl === 3) counts.err++;
-  else if (sl === 4) counts.warn++;
-  document.getElementById('stTotal').textContent = counts.total;
-  document.getElementById('stCrit').textContent  = counts.crit;
-  document.getElementById('stErr').textContent   = counts.err;
-  document.getElementById('stWarn').textContent  = counts.warn;
-
-  // 카드 생성
-  const card = document.createElement('div');
-  card.className = `ev-card s${sl}`;
-  card.innerHTML = `
-    <div class="card-top">
-      <span class="sev-pill">${sev.s}</span>
-      <span class="card-evid">EVT:${evid}</span>
-      <span class="card-time">${tsS}</span>
-    </div>
-    <div class="card-mid">
-      <span class="card-product">${prod}</span>
-      <span class="card-host">${host}</span>
-      <span class="card-obj" title="${obj}">${obj}</span>
-    </div>
-    <div class="card-msg">${msg}</div>
-  `;
-  card.addEventListener('click', () => openDrawer({ts, evid, prod, host, obj, msg, sev: sev.n, sl}));
-
-  const list = document.getElementById('eventList');
-  list.insertBefore(card, list.firstChild);
-  while (list.children.length > MAX) list.removeChild(list.lastChild);
-}
-
-// ── 드로어 ────────────────────────────────────────────────────────────────────
-function openDrawer(ev) {
-  const cols = ['var(--em)','var(--al)','var(--cr)','var(--er)','var(--wa)','var(--nt)','var(--inf)'];
-  const col = cols[ev.sl] || 'var(--txt2)';
-  document.getElementById('drawerTitle').innerHTML =
-    `<span style="color:${col}">${ev.sev}</span> &nbsp; EVT:${ev.evid}`;
-  document.getElementById('drawerSub').textContent = `${ev.prod} / ${ev.host}`;
-  document.getElementById('drawerBody').innerHTML = `
-    <div class="drow"><span class="dk">수신일시</span><span class="dv">${ev.ts}</span></div>
-    <div class="drow"><span class="dk">제품</span><span class="dv">${ev.prod}</span></div>
-    <div class="drow"><span class="dk">발생호스트</span><span class="dv">${ev.host}</span></div>
-    <div class="drow"><span class="dk">오브젝트</span><span class="dv">${ev.obj}</span></div>
-    <div class="drow"><span class="dk">이벤트 ID</span><span class="dv">EVT:${ev.evid}</span></div>
-    <div class="drow"><span class="dk">중요도</span><span class="dv" style="color:${col}">${ev.sev}</span></div>
-    <div class="drawer-msg-full">${ev.msg}</div>
-  `;
-  document.getElementById('drawer').classList.add('open');
-  document.getElementById('backdrop').classList.add('open');
-}
-function closeDrawer() {
-  document.getElementById('drawer').classList.remove('open');
-  document.getElementById('backdrop').classList.remove('open');
-}
-
-// ── 컨트롤 ────────────────────────────────────────────────────────────────────
-function togglePause() {
-  paused = !paused;
-  const btn   = document.getElementById('btnPause');
-  const badge = document.getElementById('pauseBadge');
-  if (paused) {
-    btn.textContent = '▶ 재개';
-    btn.classList.add('pause-active');
-    badge.classList.add('on');
-  } else {
-    btn.textContent = '■ 일시정지';
-    btn.classList.remove('pause-active');
-    badge.classList.remove('on');
-    scheduleNext();
-  }
-}
-function clearAll() {
-  document.getElementById('eventList').innerHTML = '';
-  counts = {total:0, crit:0, err:0, warn:0};
-  ['stTotal','stCrit','stErr','stWarn'].forEach(id => document.getElementById(id).textContent = '0');
-}
-function toggleChip(el) {
-  const s = parseInt(el.dataset.s);
-  if (activeFilters.has(s)) { activeFilters.delete(s); el.classList.remove('on'); }
-  else { activeFilters.add(s); el.classList.add('on'); }
-}
-
-// ── 스케줄러 (1~30초 랜덤) ───────────────────────────────────────────────────
-function scheduleNext() {
-  if (paused) return;
-  const delay = Math.floor(Math.random() * 29000) + 1000;
-  setTimeout(() => {
-    const burst = Math.random() < .15 ? Math.floor(Math.random()*2)+2 : 1;
-    for (let i = 0; i < burst; i++) setTimeout(generate, i * Math.floor(Math.random()*250)+50);
-    scheduleNext();
-  }, delay);
-}
-
-// ── 시계 ──────────────────────────────────────────────────────────────────────
-function updateClock() {
-  document.getElementById('clock').textContent = tsNow();
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// 스와이프 다운으로 드로어 닫기
-let touchStartY = 0;
-document.getElementById('drawer').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive:true});
-document.getElementById('drawer').addEventListener('touchmove', e => {
-  if (e.touches[0].clientY - touchStartY > 40) closeDrawer();
-}, {passive:true});
-
-// ── 초기 이벤트 ───────────────────────────────────────────────────────────────
-for (let i = 0; i < 4; i++) setTimeout(generate, i * 150);
-setTimeout(scheduleNext, 800);
+function pruneHistory(){const retainedCases=new Set(S.cases.filter(c=>c.state!=='resolved').map(c=>c.id));S.cases.filter(c=>c.state==='resolved').slice(0,120).forEach(c=>retainedCases.add(c.id));S.cases=S.cases.filter(c=>retainedCases.has(c.id));const linkedIssues=new Set(S.events.map(e=>e.issueId).filter(Boolean));S.issues=S.issues.filter(i=>!i.resolvedAt||retainedCases.has(i.caseId)||linkedIssues.has(i.id))}
+function setMaintenance(host,minutes){if(minutes>0)S.maintenance[host]=S.elapsed+minutes*60;else delete S.maintenance[host];emit({host,sev:5,cat:'감시운영',message:`[${host}] ${minutes>0?`점검 시작 · ${minutes}분 동안 경보음과 신규 경보 통지를 억제합니다. 수집은 계속합니다.`:'점검을 종료했습니다. 경보 알림을 다시 허용합니다.'}`});logAudit(`${host} 점검 ${minutes>0?minutes+'분 설정':'해제'}`);saveState();toast(minutes>0?'점검 중에도 상태·성능·이벤트는 계속 수집됩니다.':'점검을 종료했습니다.');openHost(host)}
+function beep(){if(S.elapsed-lastSound<8)return;lastSound=S.elapsed;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=660;g.gain.setValueAtTime(.035,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.2);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.22)}catch(e){}}
+function toast(message,error=false){const d=document.createElement('div');d.className='toast'+(error?' error':'');d.textContent=message;$('toasts').append(d);while($('toasts').children.length>3)$('toasts').firstChild.remove();setTimeout(()=>d.remove(),4700)}
+function saveState(){S.savedAt=Date.now();try{localStorage.setItem(STORAGE,JSON.stringify(S));saveError=false}catch(e){saveError=true}$('saveWarning').hidden=!saveError}
+function validateState(x){const fail=()=>{throw new Error('이 시뮬레이터의 유효한 기록 파일이 아닙니다.')};if(!x||x.version!==VERSION||!Number.isFinite(x.elapsed)||x.elapsed<0||!Number.isFinite(x.start)||!Number.isInteger(x.rng)||!x.rng||!Number.isFinite(x.received)||x.received<0)fail();for(const k of ['seq','issueSeq','caseSeq'])if(!Number.isInteger(x[k])||x[k]<0)fail();if(!x.prefs||![1,2,4].includes(x.prefs.speed)||['sound','dedup','autoRecover','autoFault','alerts'].some(k=>typeof x.prefs[k]!=='boolean'))fail();if(typeof x.paused!=='boolean')fail();for(const [k,min,max] of [['cpu',20,99],['mem',20,99],['disk',20,99],['latency',100,5000],['temp',20,50]])if(!Number.isFinite(x.thresholds?.[k])||x.thresholds[k]<min||x.thresholds[k]>max)fail();if(!Array.isArray(x.events)||x.events.length>MAX_EVENTS||!Array.isArray(x.issues)||x.issues.length>2000||!Array.isArray(x.cases)||x.cases.length>1000||!Array.isArray(x.audit)||x.audit.length>300||!Array.isArray(x.jobs)||!Array.isArray(x.pending)||x.jobs.length>1000||x.pending.length>1000)fail();const issueIds=new Set(x.issues.map(i=>i.id)),caseIds=new Set(x.cases.map(c=>c.id));if(issueIds.size!==x.issues.length||caseIds.size!==x.cases.length)fail();const validTime=t=>Number.isFinite(t)&&t>=0&&t<=x.elapsed+.001;for(const i of x.issues)if(!DEVICE[i.host]||!FT[i.fault]||!FT[i.fault].types.includes(DEVICE[i.host].type)||!/^AL-\d+$/.test(i.id)||!Number.isInteger(i.sev)||i.sev<0||i.sev>7||!validTime(i.created)||!Number.isFinite(i.repeatAt)||(i.resolvedAt!==null&&!validTime(i.resolvedAt))||typeof i.ack!=='boolean')fail();for(const e of x.events)if(!DEVICE[e.host]||!CATEGORIES.includes(e.cat)||!Number.isInteger(e.id)||e.id<1||e.id>x.seq||!Number.isInteger(e.sev)||e.sev<0||e.sev>7||!validTime(e.at)||typeof e.message!=='string'||e.message.length>4000||typeof e.object!=='string'||typeof e.fingerprint!=='string'||(e.issueId&&!issueIds.has(e.issueId))||!['info','fault','repeat','recovery'].includes(e.kind))fail();for(const c of x.cases){if(!/^INC-\d+$/.test(c.id)||!issueIds.has(c.rootId)||!['new','ack','working','verifying','resolved'].includes(c.state)||!validTime(c.created)||!Number.isFinite(c.autoAt)||typeof c.title!=='string'||typeof c.owner!=='string'||typeof c.note!=='string'||c.note.length>2000||!Array.isArray(c.log)||c.log.length>70)fail();if(c.log.some(l=>!validTime(l.at)||typeof l.message!=='string'||typeof l.actor!=='string'))fail()}
+ for(const d of INVENTORY){const m=x.metrics?.[d.id],h=x.history?.[d.id];if(!m||!Number.isFinite(m.at)||!Array.isArray(h)||h.length>MAX_HISTORY)fail();for(const k of Object.keys(METRICS))if(!Number.isFinite(m[k])||m[k]<0||m[k]>100000)fail();for(const a of h)if(!Number.isFinite(a.at)||typeof a.missing!=='boolean'||Object.keys(METRICS).some(k=>!Number.isFinite(a[k])))fail()}
+ for(const s of SERVICES){const m=x.serviceStats?.[s.id],h=x.serviceHistory?.[s.id];if(!m||!Array.isArray(h)||h.length>MAX_HISTORY||['samples','success','latencySum','badSeconds'].some(k=>!Number.isFinite(m[k])||m[k]<0)||m.success>m.samples+1e-6)fail();if(h.some(a=>!Number.isFinite(a.at)||!Number.isFinite(a.success)||!Number.isFinite(a.latency)))fail()}
+ if(!x.maintenance||Object.entries(x.maintenance).some(([k,v])=>!DEVICE[k]||!Number.isFinite(v))||!x.thresholdHold||Object.values(x.thresholdHold).some(v=>!Number.isFinite(v))||!Number.isFinite(x.nextFault)||!Number.isFinite(x.nextNotice))fail();for(const j of x.jobs)if(!caseIds.has(j.caseId)||![0,1,2].includes(j.stage)||!Number.isFinite(j.due)||typeof j.actor!=='string')fail();for(const p of x.pending)if(!caseIds.has(p.caseId)||!DEVICE[p.host]||!FT[p.fault]||!Number.isFinite(p.at))fail();if(x.audit.some(a=>!validTime(a.at)||typeof a.message!=='string'||typeof a.actor!=='string'))fail();return x}
+function exportFile(kind){let text,type,name;if(kind==='json'){saveState();text=JSON.stringify(S,null,2);type='application/json';name='monitoring-session.json'}else{const rows=[['이벤트번호','시뮬레이션시각','중요도','호스트','분류','대상','메시지','장애번호','알림억제','상태'],...S.events.map(e=>[e.id,new Date(S.start+e.at*1000).toISOString(),SEV[e.sev][0],e.host,e.cat,e.object,e.message,e.caseId||'',e.suppressed?'예':'아니오',eventState(e).label])];const quote=v=>'"'+String(v).replace(/^[=+\-@\t\r]/,"'$&").replace(/"/g,'""')+'"';text='\ufeff'+rows.map(r=>r.map(quote).join(',')).join('\r\n');type='text/csv;charset=utf-8';name='monitoring-events.csv'}const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);toast(kind==='json'?'세션 기록 파일을 내보냈습니다.':'보관 중인 전체 원본 이벤트를 CSV로 내보냈습니다.')}
+function eventState(e){const i=S.issues.find(i=>i.id===e.issueId);if(e.kind==='recovery')return{label:'복구 알림',color:'var(--teal)'};if(!i)return{label:e.suppressed?'점검 중 수집':'운영 기록',color:'var(--dim)'};if(i.resolvedAt)return{label:'복구 완료',color:'var(--teal)'};const c=S.cases.find(c=>c.id===i.caseId);return{label:c?.state==='working'?'복구 작업 중':i.ack?'확인됨':'미확인',color:i.ack?'var(--blue)':'var(--yellow)'}}
+function eventRows(){let rows=(UI.freeze||S.events).filter(e=>UI.severity.has(e.sev)&&(UI.cat==='all'||e.cat===UI.cat)&&(UI.host==='all'||e.host===UI.host));if(UI.search.trim()){const q=UI.search.toLowerCase().trim();rows=rows.filter(e=>[e.message,e.host,e.cat,e.object,e.caseId,'EVT-'+e.id].join(' ').toLowerCase().includes(q))}if(UI.life!=='all')rows=rows.filter(e=>{const i=S.issues.find(i=>i.id===e.issueId);return UI.life==='open'?i&&!i.resolvedAt:UI.life==='unack'?i&&!i.resolvedAt&&!i.ack:UI.life==='recovery'?e.kind==='recovery':e.suppressed});if(S.prefs.dedup){const groups=new Map();for(const e of rows){const key=e.fingerprint;const old=groups.get(key);if(old){old.count++;old.first=Math.min(old.first,e.at)}else groups.set(key,{...e,count:1,first:e.at})}return [...groups.values()]}return rows.map(e=>({...e,count:1,first:e.at}))}
+function eventHTML(e){const status=eventState(e);return `<button class="ev" data-action="event" data-id="${e.id}" style="--sev:${SEV[e.sev][2]}" aria-label="${esc(`${time(e.at)} ${SEV[e.sev][0]} ${e.host} ${e.message}`)}"><span class="ev-time">${time(e.at)}<small class="muted"><br>EVT-${String(e.id).padStart(5,'0')}</small></span><span class="ev-sev">${SEV[e.sev][0]}</span><span class="ev-host"><strong>${e.host}</strong><small>${esc(e.cat)}</small></span><span class="ev-msg">${esc(e.message)}<span class="ev-tags"><span>${esc(e.object)}</span>${e.caseId?`<span>${esc(e.caseId)}</span>`:''}${e.suppressed?'<span class="info">점검 중 알림 억제</span>':''}</span></span><span class="ev-state"><span style="color:${status.color}">${status.label}</span>${e.count>1?`<span class="repeat">×${e.count}</span>`:''}</span></button>`}
+function renderHeader(){const open=activeIssues(),crit=open.filter(i=>i.sev<=2).length,unack=open.filter(i=>!i.ack&&!inMaintenance(i.host)).length;const cells=[[fmt(S.received),'누적 수신','원본 이벤트','var(--text)'],[fmt(open.length),'미복구 경보','중복 제외','var(--yellow)'],[fmt(crit),'중대 경보','긴급·경보·치명','var(--red)'],[fmt(unack),'미확인 경보','점검 대상 제외','var(--blue)']];$('healthbar').innerHTML=cells.map(c=>`<div class="healthcell"><div class="healthnum" style="color:${c[3]}">${c[0]}</div><div class="healthlabel">${c[1]}<br><span class="secondary-label">${c[2]}</span></div></div>`).join('');$('clock').textContent=time(S.elapsed);$('simDuration').textContent=`감시 ${duration(S.elapsed)}`;$('liveText').textContent=S.paused?'PAUSED':'MONITORING';$('liveDot').style.color=S.paused?'var(--yellow)':'var(--teal)';$('pauseBtn').innerHTML=icon(S.paused?'play':'pause')+`<span class="btn-word">${S.paused?'재개':'정지'}</span>`;$('pauseBtn').setAttribute('aria-label',S.paused?'시뮬레이션 재개':'시뮬레이션 일시정지');$('pauseBtn').setAttribute('aria-pressed',String(S.paused));$('pauseBanner').hidden=!S.paused;$('speedSelect').value=S.prefs.speed;$('soundBtn').innerHTML=icon(S.prefs.sound?'sound':'mute');$('soundBtn').setAttribute('aria-label',S.prefs.sound?'경보음 끄기':'경보음 켜기');$('soundBtn').setAttribute('aria-pressed',String(S.prefs.sound))}
+function renderNav(){$('nav').innerHTML=NAV.map(([id,name,ico],index)=>`<button data-action="navigate" data-id="${id}" class="${UI.view===id?'active':''}" ${UI.view===id?'aria-current="page"':''}>${icon(ico)}<span>${name}</span>${index>=3&&index<=5?'<b class="navnew">NEW</b>':''}</button>`).join('')}
+function head(title,desc,actions=''){return`<div class="view-head"><div><h2>${title}</h2><p>${desc}</p></div><div class="view-actions">${actions}</div></div>`}
+function options(items,selected){return items.map(([v,n])=>`<option value="${esc(v)}" ${String(v)===String(selected)?'selected':''}>${esc(n)}</option>`).join('')}
+function navigate(view){if(!NAV.some(n=>n[0]===view))return;UI.view=view;UI.limit=100;$('main').scrollTop=0;renderNav();renderView()}
+function renderView(){const exportBtn=`<button class="quiet flex" data-action="export" data-id="csv">${icon('download')}<span>CSV</span></button>`;let html='';if(UI.view==='events'){html=head('이벤트 모니터','감시 대상의 상태 변화와 운영 기록',`<button id="freezeBtn" data-action="freeze">${UI.freeze?'목록 재개':'목록 고정'}</button>${exportBtn}`)+`<div class="toolbar"><label class="searchbox">${icon('search')}<input type="search" id="eventSearch" placeholder="장비·메시지·장애번호 검색" aria-label="이벤트 검색" value="${esc(UI.search)}"></label><select id="lifeFilter" aria-label="이벤트 처리 상태">${options([['all','모든 상태'],['open','미복구 경보'],['unack','미확인 경보'],['recovery','복구 알림'],['suppressed','점검 중 수집']],UI.life)}</select><button data-action="event-filters" class="flex">${icon('filter')}<span>필터${UI.cat!=='all'||UI.host!=='all'?' •':''}</span></button></div><div class="filter-chips">${SEV.map((s,i)=>`<button data-action="severity" data-id="${i}" class="${UI.severity.has(i)?'active':''}" style="--sev:${s[2]}" aria-pressed="${UI.severity.has(i)}">${s[0]}</button>`).join('')}</div><div id="content"></div>`}
+ else if(UI.view==='summary')html=head('운영 요약','업무 상태, 감시 품질, 대응 현황을 한눈에',`<button data-action="scenario">장애 시나리오</button>`)+`<div id="content"></div>`;
+ else if(UI.view==='hosts')html=head('감시 대상','21종의 장비 · 상태와 점검 시간을 함께 관리',`<span class="pill soft">${INVENTORY.length} DEVICES</span>`)+`<div class="toolbar"><label class="searchbox">${icon('search')}<input type="search" id="hostSearch" placeholder="장비명·역할·IP 검색" aria-label="장비 검색" value="${esc(UI.hostSearch)}"></label><select id="hostType" aria-label="장비 종류">${options([['all','모든 종류'],...Object.entries(TYPES).map(([k,v])=>[k,v[0]])],UI.hostType)}</select><select id="hostState" aria-label="장비 상태">${options([['all','모든 상태'],['fault','장애·주의'],['unknown','미수신'],['normal','정상'],['maintenance','점검 중']],UI.hostState)}</select><select id="hostZone" aria-label="센터">${options([['all','모든 센터'],['주센터','주센터'],['DR센터','DR센터']],UI.hostZone)}</select></div><div id="content"></div>`;
+ else if(UI.view==='map')html=head('구성·영향도 맵','업무가 의존하는 장비와 현재 영향 경로',`<span class="pill info">새 화면 01</span>`)+`<div id="content"></div>`;
+ else if(UI.view==='performance')html=head('성능 추이','5초 주기 수집 · 최근 10분의 시뮬레이션 시간',`<span class="pill info">새 화면 02</span>`)+`<div class="toolbar"><label for="performanceHost" class="muted">감시 대상</label><select class="grow" id="performanceHost">${options(INVENTORY.map(d=>[d.id,`${d.id} · ${d.role}`]),UI.performance)}</select><button data-action="host" data-id="${UI.performance}" id="perfDetailBtn">장비 상세</button></div><div id="content"></div>`;
+ else if(UI.view==='incidents')html=head('장애 대응실','원인 경보 → 후속 증상 → 복구 → 검증',`<button class="primary" data-action="scenario">시나리오 실행</button>`)+`<div class="toolbar"><div class="filter-chips" style="margin:0">${[['open','대응 중'],['unack','미확인'],['resolved','복구 완료'],['all','전체']].map(([v,n])=>`<button data-action="case-filter" data-id="${v}" class="${UI.caseState===v?'active':''}" style="--sev:var(--teal)">${n}</button>`).join('')}</div><span class="grow"></span><button class="quiet" data-action="ack-all">미확인 일괄 확인</button></div><div id="content"></div>`;
+ else html=head('운영 설정','감시 규칙, 자동 진행, 저장과 운영 기록')+`<div id="content"></div>`;
+ $('view').innerHTML=html;renderContent()}
+function renderContent(){const c=$('content');if(!c)return;const before=$('main').scrollTop;let html;if(UI.view==='events')html=renderEvents();else if(UI.view==='summary')html=renderSummary();else if(UI.view==='hosts')html=renderHosts();else if(UI.view==='map')html=renderMap();else if(UI.view==='performance')html=renderPerformance();else if(UI.view==='incidents')html=renderCases();else html=renderSettings();c.innerHTML=html;$('main').scrollTop=before}
+function renderEvents(){const rows=eventRows(),retained=UI.freeze||S.events;return `${UI.freeze?`<div class="freeze-note">목록이 고정되었습니다. 감시와 수집은 계속 진행 중입니다. 현재 추가 수신 ${Math.max(0,S.seq-UI.freezeSeq)}건.</div>`:''}${UI.cat!=='all'||UI.host!=='all'?`<div class="flex wrap small muted">표시 범위: ${esc(UI.cat==='all'?'모든 분류':UI.cat)} / ${esc(UI.host==='all'?'모든 장비':UI.host)} <button class="quiet small" data-action="clear-filters">필터 해제</button></div>`:''}<div class="list-status"><span>${fmt(rows.length)}${S.prefs.dedup?'개 묶음':'건'} · ${S.prefs.dedup?'반복 경보 통합':'원본 수신 순서'}</span><span>원본 ${fmt(retained.length)}/${fmt(MAX_EVENTS)}건 보관</span></div>${rows.length?`<div class="panel flat event-feed"><div class="event-table-head"><span>수신 시각</span><span>중요도</span><span>발생 장비</span><span>메시지 / 감시 대상</span><span style="text-align:right">처리 상태</span></div>${rows.slice(0,UI.limit).map(eventHTML).join('')}</div>${rows.length>UI.limit?`<div class="event-footer"><button data-action="more-events">이전 기록 ${Math.min(100,rows.length-UI.limit)}건 더 보기</button></div>`:''}`:`<div class="empty"><strong>표시 조건에 맞는 이벤트가 없습니다.</strong>필터는 화면 표시에만 적용됩니다. 수집은 계속 진행됩니다.<div class="spacer"></div><button data-action="reset-event-view">전체 이벤트 보기</button></div>`}`}
+function spark(values,color,max=100){if(values.length<2)return `<svg class="spark" viewBox="0 0 160 40" aria-hidden="true"><path d="M0 30H160" stroke="#314158" stroke-dasharray="3 5"/></svg>`;const pts=values.map((n,i)=>`${i/(values.length-1)*160},${36-clamp(n/max,0,1)*28}`).join(' ');return`<svg class="spark" viewBox="0 0 160 40" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.7" vector-effect="non-scaling-stroke"/></svg>`}
+function servicesHTML(selectable=false){return `<div class="grid5 services">${SERVICES.map(s=>{const h=serviceHealth(s),m=S.serviceStats[s.id],pct=m.samples?m.success/m.samples*100:100;return`<button class="panel service-card ${selectable&&s.id===UI.service?'selected':''}" data-action="service" data-id="${s.id}" aria-label="${s.name} ${h.state} 구성 보기"><div class="service-title"><strong>${s.name}</strong><span class="pill" style="color:${h.color}">${h.state}</span></div><div class="service-stat">${fmt(pct,2)}<span class="small muted"> %</span></div><div class="metric-caption">누적 시험 성공률 · 목표 ${s.slo}%</div>${spark(S.serviceHistory[s.id].map(p=>p.success),h.color)}</button>`}).join('')}</div>`}
+function renderSummary(){const counts={normal:0,fault:0,unknown:0};INVENTORY.forEach(d=>counts[hostStatus(d.id).level]++);const finished=S.cases.filter(c=>c.state==='resolved'),mean=finished.length?finished.reduce((n,c)=>n+c.resolvedAt-c.created,0)/finished.length:0;const suppressed=S.events.filter(e=>e.suppressed).length;const rows=eventRowsAll();const collapsed=S.events.length-rows;const latest=S.cases.slice(0,4);return servicesHTML()+`<div class="grid3"><div class="panel"><div class="kpi-name">감시 데이터 수신</div><div class="metric-value">${INVENTORY.length-counts.unknown}<span class="muted" style="font-size:17px"> / ${INVENTORY.length}</span></div><div class="bar"><i style="width:${(INVENTORY.length-counts.unknown)/INVENTORY.length*100}%"></i></div><p class="metric-caption" style="margin-top:9px">${counts.unknown?`<span style="color:var(--purple)">미수신 ${counts.unknown}대</span> · 마지막 수신값 유지`:'모든 장비에서 지표를 수신하고 있습니다.'}</p></div><div class="panel"><div class="kpi-name">평균 복구 시간</div><div class="metric-value">${finished.length?duration(mean):'—'}</div><div class="metric-caption">복구 검증까지 완료한 ${finished.length}건 기준<br>최초 발생부터 복구 검증 완료까지의 경과 시간입니다.</div></div><div class="panel"><div class="kpi-name">반복 경보 묶기 효과</div><div class="metric-value">${fmt(collapsed)}<span class="muted" style="font-size:16px">건</span></div><div class="metric-caption">보관 중인 원본 ${fmt(S.events.length)}건 → ${fmt(rows)}개 묶음<br>점검 중 수집된 원본 ${suppressed}건</div></div><div class="panel full"><div class="section-title"><h3>감시 대상 분포</h3><button class="quiet small" data-action="navigate" data-id="hosts">장비 보기</button></div><div class="distribution">${[['normal','#62dbc1'],['fault','#edd178'],['unknown','#af9adc']].map(([k,color])=>`<i style="width:${counts[k]/INVENTORY.length*100}%;background:${color}" title="${k}: ${counts[k]}"></i>`).join('')}</div><div class="legend"><span class="good">● 정상 ${counts.normal}</span><span class="warn">● 장애·주의 ${counts.fault}</span><span style="color:var(--purple)">● 미수신 ${counts.unknown}</span><span>점검 ${Object.keys(S.maintenance).length}대</span></div><div class="heat">${INVENTORY.map(d=>{const st=hostStatus(d.id);return`<button data-action="host" data-id="${d.id}" style="background:${st.color}55;border-color:${st.color}" title="${d.id} · ${st.label}" aria-label="${d.id} ${st.label}"></button>`}).join('')}</div></div></div><div class="spacer"></div><div class="grid2" style="margin-top:10px"><div class="panel"><div class="section-title"><h3>최근 장애</h3><button class="quiet small" data-action="navigate" data-id="incidents">대응실 열기</button></div>${latest.length?latest.map(c=>{const root=S.issues.find(i=>i.id===c.rootId);return`<button class="row list-link" data-action="case" data-id="${c.id}"><span class="row-main"><strong>${esc(c.title)}</strong><small>${c.id} · ${root.host} · ${time(c.created)}</small></span><span class="statuslabel" style="color:${caseColor(c)}">${caseLabel(c)}</span></button>`}).join(''):'<p class="muted">접수된 장애가 없습니다.</p>'}</div><div class="panel"><div class="section-title"><h3>업무 시험 현황</h3><span class="small muted">감시 시작 이후</span></div>${SERVICES.map(s=>{const h=serviceHealth(s),m=S.serviceStats[s.id],rate=m.samples?m.success/m.samples*100:100;return`<div class="row"><span class="row-main"><strong>${s.name}</strong><small>현재 응답 ${fmt(h.latency)}ms · 저하 ${duration(m.badSeconds)}</small></span><span class="statuslabel ${rate>=s.slo?'good':'bad'}">${rate>=s.slo?'목표 충족':'목표 미달'}</span></div>`}).join('')}<p class="metric-caption" style="margin-top:12px">매 시뮬레이션 초의 가상 시험 성공 비율을 누적합니다. 짧은 감시 구간에서는 수치 변동이 큽니다.</p></div></div>`}
+function eventRowsAll(){return new Set(S.events.map(e=>e.fingerprint)).size}
+function renderHosts(){const q=UI.hostSearch.toLowerCase();const ds=INVENTORY.filter(d=>{const st=hostStatus(d.id);return(UI.hostType==='all'||d.type===UI.hostType)&&(UI.hostZone==='all'||d.zone===UI.hostZone)&&(UI.hostState==='all'||(UI.hostState==='maintenance'?st.maintenance:st.level===UI.hostState))&&[d.id,d.role,d.ip,TYPES[d.type][0]].join(' ').toLowerCase().includes(q)});return`<div class="list-status"><span>${ds.length}대 표시 / 전체 ${INVENTORY.length}대</span><span>장비를 눌러 상세·점검 설정</span></div>${ds.length?`<div class="device-list">${ds.map(d=>{const st=hostStatus(d.id),m=S.metrics[d.id],keys=metricsFor(d).slice(0,3);return`<button class="device-card" data-action="host" data-id="${d.id}"><div class="device-top"><span class="device-icon">${icon(TYPES[d.type][1])}</span><span class="grow"><strong>${d.id}</strong><small>${TYPES[d.type][0]}</small></span><span class="device-status" style="color:${st.color}"><span class="dot"></span> ${st.label}</span></div><div class="mini-metrics">${keys.map(k=>`<div><span>${METRICS[k].name}</span><b style="${S.thresholds[k]&&m[k]>S.thresholds[k]?'color:var(--yellow)':''}">${missing(d.id)?'—':fmt(m[k],k==='temp'?1:0)+METRICS[k].unit}</b></div>`).join('')}</div><div class="device-footer"><span>${d.zone}${st.maintenance?' · 점검 중':''}</span><span class="ip mono">${d.ip}</span>${st.level==='unknown'?`<span>마지막 ${duration(S.elapsed-m.at)} 전</span>`:''}</div></button>`}).join('')}</div>`:'<div class="empty"><strong>조건에 맞는 장비가 없습니다.</strong>장비 종류나 검색어를 바꿔 주세요.</div>'}`}
+function dependencyClosure(ids){const found=new Set();function walk(id){if(found.has(id))return;found.add(id);DEVICE[id].deps.forEach(walk)}ids.forEach(walk);return [...found]}
+function renderMap(){const svc=SERVICES.find(s=>s.id===UI.service),h=serviceHealth(svc),groupList=svc.groups.map(k=>GROUPS[k]);const related=dependencyClosure(groupList.flatMap(g=>g.ids));const affected=activeIssues().filter(i=>related.includes(i.host));const width=720,height=90+groupList.length*86,serviceX=16,serviceY=height/2-34;let edges='',nodes='';groupList.forEach((g,gi)=>{const y=65+gi*86,impact=Math.min(...g.ids.map(id=>hostImpact(id)));edges+=`<path d="M176 ${serviceY+34}H216V${y}H295" class="map-links ${impact>.1?'affected':''}" marker-end="url(#arr)"/>`;nodes+=`<text x="234" y="${y-15}" fill="#9aadc5" font-size="11">${g.name}</text>`;g.ids.forEach((id,di)=>{const d=DEVICE[id],st=hostStatus(id),x=di?511:299,native=activeIssues(id),impact=hostImpact(id);if(di)edges+=`<path d="M288 ${y}V${y+37}H503V${y}" class="map-links ${impact>.1?'affected':''}"/>`;nodes+=`<g class="node" role="button" tabindex="0" data-action="host" data-id="${id}" aria-label="${id} ${st.label}"><rect x="${x}" y="${y-24}" width="194" height="52" rx="7" fill="#131f2e" stroke="${st.color}" stroke-opacity=".7"/><circle cx="${x+13}" cy="${y-5}" r="3" fill="${st.color}"/><text x="${x+23}" y="${y}" fill="#dfebfc" font-family="ui-monospace,monospace" font-size="12">${id}</text><text x="${x+12}" y="${y+17}" fill="${native.length||st.level==='unknown'?st.color:impact>.1?'#edd178':'#91a3bc'}" font-size="11">${st.level==='unknown'?'미수신':native.length?st.label:impact>.1?'상위 의존 장비의 영향':d.role.slice(0,20)}</text></g>`})});return servicesHTML(true)+`<div class="grid2"><div class="panel full"><div class="section-title"><h3>${svc.name} · 의존 경로</h3><span class="pill" style="color:${h.color}">${h.state}</span></div><p class="small muted mobile-note" style="margin-bottom:10px">지도를 좌우로 움직일 수 있습니다. 장비를 누르면 상세가 열립니다.</p><div class="map-wrap"><svg class="topology-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${svc.name} 업무의 의존 장비 지도"><defs><marker id="arr" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6" fill="#69829f"/></marker></defs>${edges}<rect x="${serviceX}" y="${serviceY}" width="160" height="68" rx="10" fill="#122e2a" stroke="${h.color}"/><text x="96" y="${serviceY+29}" text-anchor="middle" fill="#e0f7ef" font-size="17" font-weight="600">${svc.name}</text><text x="96" y="${serviceY+50}" text-anchor="middle" fill="${h.color}" font-size="12">${h.state} · ${fmt(h.latency)}ms</text>${nodes}<text x="16" y="26" fill="#91a3bc" font-size="11">업무 → 의존 장비 · 같은 행의 두 장비는 대체 가능</text></svg></div><div class="legend" style="margin-top:12px"><span class="bad">━ 업무에 영향이 있는 의존 경로</span><span>━ 정상 경로</span><span style="color:var(--purple)">● 미수신</span><span>점검 중에도 영향 계산 유지</span></div></div><div class="panel"><div class="section-title"><h3>영향 원인 ${affected.length}건</h3><span class="small muted">기반 장비 포함</span></div>${affected.length?affected.map(i=>`<button class="row list-link" data-action="case" data-id="${i.caseId}"><span class="row-main"><strong>${FT[i.fault].title}</strong><small>${i.host} · ${i.caseId}</small></span>${severityPill(i.sev)}</button>`).join(''):'<p class="muted">선택한 업무의 의존 장비에서 활성 경보가 없습니다.</p>'}</div><div class="panel"><div class="section-title"><h3>기반 장비 의존 관계</h3><span class="small muted">직접 연결 기준</span></div>${related.filter(id=>DEVICE[id].deps.length).slice(0,12).map(id=>`<div class="row"><span class="row-main"><strong class="mono" style="font-size:12px">${id}</strong><small>의존 대상: ${DEVICE[id].deps.join(' · ')}</small></span><button class="quiet small" data-action="host" data-id="${id}">보기</button></div>`).join('')}<p class="metric-caption" style="margin-top:12px">코어 스위치의 두 방화벽 경로는 대체 관계입니다. 나머지 기반 장비 의존 관계는 모두 필요 조건으로 계산합니다.</p></div></div>`}
+function chart(host,key){const all=S.history[host],meta=METRICS[key],max=Math.max(meta.max,...all.filter(p=>!p.missing).map(p=>p[key]*1.1)),threshold=S.thresholds[key];if(all.length<2)return '<div class="chart-empty">두 번째 측정값을 기다리는 중입니다.</div>';let segments=[],current=[];all.forEach((p,i)=>{if(p.missing){if(current.length)segments.push(current);current=[];return}current.push([i/(all.length-1)*500,130-clamp(p[key]/max,0,1)*116])});if(current.length)segments.push(current);const line=segments.map(pts=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${meta.color}" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join('');return`<svg class="trend-chart" viewBox="0 0 500 146" preserveAspectRatio="none" role="img" aria-label="${meta.name} 최근 ${all.length}개 측정값. 미수신 구간은 선을 연결하지 않습니다.">${[14,72,130].map(y=>`<path d="M0 ${y}H500" stroke="#2a394b" stroke-width=".7"/>`).join('')}${threshold?`<path class="threshold-line" d="M0 ${130-threshold/max*116}H500"/>`:''}${line}<text x="1" y="10" fill="#a0afc1" font-size="10">${fmt(max)}${meta.unit}</text></svg><div class="chart-labels"><span>${time(all[0].at)}</span><span>${threshold?'임계값 '+threshold+meta.unit:''}</span><span>${time(all.at(-1).at)}</span></div>`}
+function renderPerformance(){const d=DEVICE[UI.performance],m=S.metrics[d.id],st=hostStatus(d.id),keys=metricsFor(d);const ranking=INVENTORY.filter(x=>!missing(x.id)).sort((a,b)=>S.metrics[b.id].latency-S.metrics[a.id].latency).slice(0,8);return `${missing(d.id)?`<div class="note warn" style="margin-bottom:15px">${d.id}의 새 측정값을 수신하지 못하고 있습니다. 마지막 수신 ${time(m.at)} (${duration(S.elapsed-m.at)} 전). 미수신 구간은 그래프의 선을 끊어 표시합니다.</div>`:''}<div class="panel" style="margin-bottom:16px"><div class="flex between wrap"><div><strong class="mono">${d.id}</strong><p class="small muted">${d.role} · ${d.zone} · ${d.protocol}</p></div><span class="pill" style="color:${st.color}">${st.label}</span></div></div><div class="grid2">${keys.map(k=>`<div class="panel"><div class="chart-title"><h3>${METRICS[k].name}</h3><strong style="color:${METRICS[k].color}">${missing(d.id)?'—':fmt(m[k],k==='temp'?1:0)}<span class="small muted"> ${METRICS[k].unit}</span></strong></div>${chart(d.id,k)}</div>`).join('')}</div><div class="panel" style="margin-top:16px"><div class="section-title"><h3>응답 지연 상위 장비</h3><span class="small muted">미수신 대상 제외</span></div><div class="table-wrap"><table><thead><tr><th>장비</th><th>종류</th><th>응답시간</th><th>상태</th><th></th></tr></thead><tbody>${ranking.map(x=>{const st=hostStatus(x.id);return`<tr><td class="mono">${x.id}</td><td>${TYPES[x.type][0]}</td><td class="mono">${fmt(S.metrics[x.id].latency)}ms</td><td style="color:${st.color}">${st.label}</td><td><button class="quiet small" data-action="performance" data-id="${x.id}">추이</button></td></tr>`}).join('')}</tbody></table></div><p class="metric-caption" style="margin-top:12px">장비 그래프는 수집된 측정값입니다. 업무 성공률과 응답시간은 구성도의 의존 관계를 반영한 별도의 시험 값입니다.</p></div>`}
+function caseLabel(c){return({new:'미확인',ack:'확인됨',working:'복구 작업 중',verifying:'복구 검증 중',resolved:'복구 완료'})[c.state]}
+function caseColor(c){return c.state==='resolved'?'var(--teal)':c.state==='new'?'var(--yellow)':'var(--blue)'}
+function caseProgress(c){const j=S.jobs.find(j=>j.caseId===c.id);if(!j)return'';const pct=j.stage===0?20:j.stage===1?55:85;return`<div class="case-progress"><div class="flex between small muted" style="margin-bottom:7px"><span>${j.stage===0?'사전 상태 확인':j.stage===1?'복구 조치 적용':'복구 후 검증'}</span><span>다음 단계 ${Math.max(0,Math.ceil(j.due-S.elapsed))}초</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`}
+function renderCases(){let cases=S.cases.filter(c=>UI.caseState==='all'||(UI.caseState==='open'?c.state!=='resolved':UI.caseState==='unack'?c.state==='new':c.state==='resolved'));return `<div class="list-status"><span>${cases.length}건 표시 · 현재 대응 중 ${activeCases().length}건</span><span>${S.prefs.autoRecover?'자동 복구 켜짐':'자동 복구 꺼짐'}</span></div>${cases.length?`<div class="case-grid">${cases.map(c=>{const root=S.issues.find(i=>i.id===c.rootId),all=S.issues.filter(i=>i.caseId===c.id),hostSet=[...new Set(all.map(i=>i.host))],impact=[...new Set(hostSet.flatMap(affectedServices))];return `<article class="panel case" style="--sev:${c.state==='resolved'?'var(--teal)':SEV[root.sev][2]}"><div class="flex between wrap"><span class="mono small muted">${c.id}</span><span class="pill" style="color:${caseColor(c)}">${caseLabel(c)}</span></div><h3>${esc(c.title)}</h3><p class="meta">최초 원인 <b class="mono">${root.host}</b><br>${time(c.created)} · ${duration((c.resolvedAt||S.elapsed)-c.created)} 경과 · 담당 ${esc(c.owner)}</p><div class="case-tags">${impact.length?impact.map(n=>`<span>${n}</span>`).join(''):'<span>업무 직접 영향 없음</span>'}${inMaintenance(root.host)?'<span>점검 중</span>':''}<span>연결 경보 ${all.length}건</span></div><div class="small muted">${all.length>1?`원인 경보 1건에 후속 증상 ${all.length-1}건을 연결했습니다.`:FT[root.fault].detail}</div>${caseProgress(c)}<div class="case-actions"><button data-action="case" data-id="${c.id}">상세·대응 기록</button>${['new','ack'].includes(c.state)?`<button class="primary" data-action="recover-prompt" data-id="${c.id}">복구 절차</button>`:''}</div></article>`}).join('')}</div>`:`<div class="empty"><strong>${UI.caseState==='resolved'?'복구 완료 기록이 아직 없습니다.':'표시할 장애가 없습니다.'}</strong>${UI.caseState==='open'?'자동 감시를 지켜보거나 장애 시나리오를 직접 실행해 보세요.':'다른 처리 상태를 선택해 보세요.'}<div class="spacer"></div><button data-action="scenario">장애 시나리오 열기</button></div>`}`}
+function switchRow(key,title,desc){return`<div class="setting-row"><label for="pref-${key}">${title}<small>${desc}</small></label><input id="pref-${key}" type="checkbox" class="switch" data-pref="${key}" ${S.prefs[key]?'checked':''}></div>`}
+function renderSettings(){return`<div class="settings-grid"><div class="panel"><h3>자동 진행과 알림</h3>${switchRow('autoFault','자동 장애 발생','일상 이벤트와 간헐적 장애를 자동으로 진행')}${switchRow('autoRecover','자동 복구','발생 후 약 2~4분 사이 자동 절차 시작')}${switchRow('dedup','반복 경보 묶기','같은 경보를 한 줄로 묶고 수신 횟수 표시')}${switchRow('alerts','중대 경보 통지','긴급·경보·치명의 알림 허용 · 점검 제외')}${switchRow('sound','경보음','사용자 조작 후 활성화 · 8초 이상 간격 · 통지 허용 시 재생')}<p class="metric-caption" style="margin-top:13px">배속과 점검 시간은 시뮬레이션 시간을 기준으로 합니다. 다른 탭으로 이동하면 진행을 쉬고, 돌아오면 이어집니다.</p></div><div class="panel"><h3>자원 임계값</h3><p class="metric-caption" style="margin-top:8px">해당 지표가 있는 장비만 적용합니다. 3회 연속 초과하면 경보, 임계값의 93% 아래로 내려오면 해제합니다.</p><form id="thresholdForm"><div class="threshold-grid">${[['cpu','CPU 사용률 (%)',20,99],['mem','메모리 사용률 (%)',20,99],['disk','볼륨 사용률 (%)',20,99],['latency','웹·API 응답시간 (ms)',100,5000],['temp','환경 센서 온도 (°C)',20,50]].map(([key,label,min,max])=>`<label>${label}<input name="${key}" type="number" inputmode="numeric" min="${min}" max="${max}" step="1" value="${S.thresholds[key]}" required></label>`).join('')}</div><button class="primary" type="submit">임계값 적용</button></form><p class="metric-caption" style="margin-top:14px">장애 시나리오의 직접 경보는 임계값과 별개입니다. 예: 인증서 만료는 CPU 설정을 바꾸어도 해제되지 않습니다.</p></div><div class="panel"><h3>세션과 이벤트 기록</h3><div class="row"><span class="row-main"><strong>이 브라우저에 자동 저장</strong><small>약 15초마다 저장 · 현재 감시 ${duration(S.elapsed)}</small></span><span class="small ${saveError?'bad':'good'}">${saveError?'사용 불가':'사용 중'}</span></div><div class="row"><span class="row-main"><strong>원본 이벤트 ${fmt(S.events.length)}건 보관</strong><small>최대 ${fmt(MAX_EVENTS)}건 · CSV는 필터와 무관하게 전체 원본</small></span></div><div class="settings-buttons"><button data-action="export" data-id="csv">이벤트 CSV</button><button data-action="export" data-id="json">전체 기록 JSON</button></div><div class="settings-buttons"><button data-action="import">기록 불러오기</button><button data-action="save">지금 저장</button></div><div class="divider"></div><button class="danger" data-action="reset-prompt">시뮬레이션 새로 시작</button><p class="metric-caption" style="margin-top:12px">JSON에는 장비 상태·장애·메모·성능 이력이 포함됩니다. 파일을 다시 불러오면 이어서 볼 수 있습니다.</p></div><div class="panel"><div class="section-title"><h3>운영 감사 기록</h3><button class="quiet small" data-action="audit">전체 보기</button></div>${S.audit.slice(0,5).map(a=>`<div class="row"><span class="row-main"><strong style="font-size:13px">${esc(a.message)}</strong><small>${time(a.at)} · ${esc(a.actor)}</small></span></div>`).join('')||'<p class="muted">아직 운영 조작 기록이 없습니다.</p>'}<p class="metric-caption" style="margin-top:12px">담당자 지정, 점검, 임계값 변경, 복구 실행을 기록합니다.</p></div><details class="full"><summary>메시지·장비 도감 · ${CATEGORIES.length}개 분류 / ${FAULTS.length+NOTICES.length}개 기본 유형</summary><div><p class="small muted">아래 기본 유형 외에 장애별 반복 경보, 복구 알림, 운영 조작 기록이 생성됩니다. 중요도는 발생 조건에 따라 결정됩니다.</p><div class="catalog">${CATEGORIES.map(cat=>`<div><h3>${cat} <span class="muted small">${FAULTS.filter(f=>f.cat===cat).length+NOTICES.filter(n=>n.cat===cat).length}종</span></h3>${FAULTS.filter(f=>f.cat===cat).map(f=>`<p><span style="color:${SEV[f.sev][2]}">[${SEV[f.sev][0]}]</span> ${f.title}</p>`).join('')}${NOTICES.filter(n=>n.cat===cat).map(n=>`<p class="muted">[${SEV[n.sev][0]}] ${n.message}</p>`).join('')}</div>`).join('')}</div><div class="divider"></div><h3>감시 장비 ${Object.keys(TYPES).length}종 · ${INVENTORY.length}대</h3><p class="small muted" style="margin-top:9px">${Object.entries(TYPES).map(([k,v])=>`${v[0]} ${INVENTORY.filter(d=>d.type===k).length}대`).join(' · ')}</p></div></details><div class="full"><button class="quiet" data-action="help">원본 분석·변경 내용·사용 안내</button><span class="offline-mark" style="margin-left:12px">JP1 스타일 훈련 시뮬레이터 · v3 · 외부 연결 없음</span></div></div>`}
+function openModal(title,body,footer='',wide=false,meta=null){if(!UI.modal)UI.lastFocus=document.activeElement;UI.modal=meta||{type:'generic'};$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modalFooter').innerHTML=footer||'<button data-action="close">닫기</button>';$('modal').classList.toggle('wide',wide);$('modalBackdrop').hidden=false;$('app').inert=true;$('modalBody').scrollTop=0;$('modal').querySelector('.modal-close').focus()}
+function closeModal(){if($('modalBackdrop').hidden)return;$('modalBackdrop').hidden=true;$('app').inert=false;UI.modal=null;const focus=UI.lastFocus;if(focus?.isConnected)focus.focus();UI.lastFocus=null;renderHeader();if(UI.view!=='settings')renderContent()}
+function openEvent(id){const e=(UI.freeze||[]).find(e=>e.id===Number(id))||S.events.find(e=>e.id===Number(id));if(!e)return toast('이 이벤트는 보관 범위를 벗어났습니다.');const i=S.issues.find(i=>i.id===e.issueId),f=i?FT[i.fault]:null,c=S.cases.find(c=>c.id===e.caseId),st=eventState(e),same=(UI.freeze||S.events).filter(x=>x.fingerprint===e.fingerprint);openModal(`${SEV[e.sev][0]} · EVT-${String(e.id).padStart(5,'0')}`,`<div class="flex wrap" style="margin-bottom:17px">${severityPill(e.sev)}<span class="pill soft">${esc(e.cat)}</span><span class="pill" style="color:${st.color}">${st.label}</span>${e.suppressed?'<span class="pill info">점검 중 수집</span>':''}</div><dl class="detail-pairs"><dt>수신 시각</dt><dd class="mono">${time(e.at)}</dd><dt>발생 장비</dt><dd class="mono">${e.host} · ${DEVICE[e.host].ip}</dd><dt>장비 종류</dt><dd>${TYPES[DEVICE[e.host].type][0]} / ${DEVICE[e.host].zone}</dd><dt>감시 대상</dt><dd class="mono">${esc(e.object)}</dd><dt>연결 장애</dt><dd>${e.caseId||'—'}</dd><dt>반복 수신</dt><dd>보관 중 ${same.length}회${same.length>1?' · 최초 '+time(same.at(-1).at):''}</dd></dl><div class="note" style="margin-top:17px">${esc(e.message)}</div>${f?`<div class="spacer"></div><div class="row"><span class="row-main"><strong>권장 대응</strong><small>${f.fix}</small></span></div>`:''}${i?`<p class="small muted" style="margin-top:12px">${i.parent?'후속 증상입니다. 연결 장애의 최초 원인을 복구하면 이 경보도 함께 검증됩니다.':'장애 확인은 수신 확인입니다. 복구 절차가 완료되어야 실제 상태가 정상으로 돌아옵니다.'}</p>`:''}`,`<button data-action="host" data-id="${e.host}">장비 보기</button>${c?`<button class="primary" data-action="case" data-id="${c.id}">장애 대응 기록</button>`:''}`,false,{type:'event',id:e.id})}
+function openHost(id){const d=DEVICE[id];if(!d)return;const st=hostStatus(id),m=S.metrics[id],issues=activeIssues(id),downstream=INVENTORY.filter(x=>x.deps.includes(id));const affected=SERVICES.filter(s=>dependencyClosure(s.groups.flatMap(k=>GROUPS[k].ids)).includes(id));openModal(`${id} · 장비 상세`,`<div class="flex wrap" style="margin-bottom:16px"><span class="pill" style="color:${st.color}">${st.label}</span><span class="pill soft">${TYPES[d.type][0]}</span>${st.maintenance?`<span class="pill info">점검 종료까지 ${duration(S.maintenance[id]-S.elapsed)}</span>`:''}</div><dl class="detail-pairs"><dt>역할</dt><dd>${d.role}</dd><dt>위치 / 주소</dt><dd>${d.zone} / <span class="mono">${d.ip}</span></dd><dt>수집 방식</dt><dd>${d.protocol}</dd><dt>감시 수집기</dt><dd class="mono">${d.collector||'자체 수집'}</dd><dt>마지막 수신</dt><dd>${time(m.at)} · ${duration(S.elapsed-m.at)} 전</dd><dt>직접 의존</dt><dd>${d.deps.length?d.deps.join(' · '):'없음'}</dd><dt>참조 장비</dt><dd>${downstream.length?downstream.map(x=>x.id).join(' · '):'없음'}</dd><dt>관련 업무</dt><dd>${affected.map(s=>s.name).join(' · ')||'직접 업무 의존 없음'}</dd></dl><div class="grid2" style="margin-top:18px">${metricsFor(d).map(k=>`<div class="panel"><div class="kpi-name">${METRICS[k].name}${missing(id)?' · 마지막 수신값':''}</div><div class="metric-value" style="font-size:23px">${fmt(m[k],k==='temp'?1:0)}<span class="small muted">${METRICS[k].unit}</span></div></div>`).join('')}</div><div class="section-title" style="margin-top:20px"><h3>활성 경보 ${issues.length}건</h3></div>${issues.map(i=>`<button class="row list-link" data-action="case" data-id="${i.caseId}"><span class="row-main"><strong>${FT[i.fault].title}</strong><small>${i.caseId} · ${i.ack?'확인됨':'미확인'}</small></span>${severityPill(i.sev)}</button>`).join('')||`<p class="small muted">${missing(id)?'장비 자체의 경보는 없지만 감시 경로에서 데이터를 받지 못하고 있습니다.':'장비 자체에서 활성 경보가 없습니다.'}</p>`}<div class="divider"></div><h3>점검 시간 설정</h3><p class="small muted" style="margin:8px 0 12px">점검 중에는 경보음을 억제합니다. 이벤트 수집과 장애·업무 영향 표시는 유지합니다.</p><div class="flex wrap"><button data-action="maintenance" data-id="${id}" data-minutes="5">5분 점검</button><button data-action="maintenance" data-id="${id}" data-minutes="15">15분 점검</button><button data-action="maintenance" data-id="${id}" data-minutes="30">30분 점검</button>${st.maintenance?`<button class="primary" data-action="maintenance" data-id="${id}" data-minutes="0">점검 종료</button>`:''}</div>`,`<button data-action="host-events" data-id="${id}">이벤트 보기</button><button class="primary" data-action="performance" data-id="${id}">성능 추이 보기</button>`,false,{type:'host',id})}
+function openCase(id){const c=S.cases.find(c=>c.id===id);if(!c)return toast('이 장애 기록은 보관 범위를 벗어났습니다.');const root=S.issues.find(i=>i.id===c.rootId),f=FT[root.fault],issues=S.issues.filter(i=>i.caseId===id);openModal(`${id} · ${c.title}`,`<div class="flex between wrap" style="margin-bottom:17px"><div class="flex wrap">${severityPill(root.sev)}<span class="pill" style="color:${caseColor(c)}" id="caseModalStatus">${caseLabel(c)}</span></div><span class="small muted">최초 수신 ${time(c.created)}</span></div><div class="note"><strong>최초 원인 · ${root.host}</strong><p style="margin-top:6px">${f.detail}</p></div><div id="caseLiveProgress">${caseProgress(c)}</div><div class="divider"></div><form id="ownerForm" data-id="${c.id}" class="toolbar"><label for="caseOwner">담당자</label><input id="caseOwner" class="grow" name="owner" value="${esc(c.owner==='미지정'?'':c.owner)}" placeholder="예: 인프라 담당" maxlength="30" style="font-size:16px" required><button type="submit">지정·확인</button></form><div class="section-title"><h3>연결 경보 · 원인과 후속 증상</h3></div><div id="caseLinkedIssues">${caseLinkedHTML(c)}</div><div class="divider"></div><h3>복구 절차</h3><ol class="runbook"><li>최초 원인 장비의 현재 상태와 연관 경보를 확인합니다.</li><li>${f.fix}.</li><li>같은 장애의 후속 증상을 재검증하고 8초 동안 안정 상태를 확인합니다.</li><li>별도 장애가 남아 있다면 해당 업무의 저하 표시는 유지합니다.</li></ol><div class="divider"></div><form id="noteForm" data-id="${c.id}"><label for="caseNote"><strong>인계 메모</strong></label><textarea id="caseNote" name="note" placeholder="확인한 내용과 다음 담당자에게 전할 사항" maxlength="2000" style="margin:9px 0;font-size:16px">${esc(c.note)}</textarea><button type="submit">메모 저장</button></form><div class="divider"></div><div class="section-title"><h3>대응 타임라인</h3><span class="small muted">단계별 자동 기록</span></div><div id="caseTimeline">${timelineHTML(c)}</div>`,`<button data-action="ack-case" data-id="${id}" ${c.state==='resolved'?'disabled':''}>경보 확인</button><button class="primary" id="caseRecoverBtn" data-action="recover-prompt" data-id="${id}" ${['working','verifying','resolved'].includes(c.state)?'disabled':''}>복구 절차 실행</button>`,true,{type:'case',id})}
+function caseLinkedHTML(c){return S.issues.filter(i=>i.caseId===c.id).map(i=>`<div class="row"><span class="row-main"><strong>${i.parent?'후속 증상':'최초 원인'} · ${FT[i.fault].title}</strong><small>${i.host} · ${i.id}</small></span><span class="small ${i.resolvedAt?'good':'warn'}">${i.resolvedAt?'복구':'미복구'}</span></div>`).join('')}
+function timelineHTML(c){return`<ol class="timeline">${c.log.slice().reverse().map(l=>`<li><time>${time(l.at)} · ${esc(l.actor)}</time><p>${esc(l.message)}</p></li>`).join('')}</ol>`}
+function updateModalLive(){if(UI.modal?.type==='case'){const c=S.cases.find(c=>c.id===UI.modal.id);if(!c||!$('caseModalStatus'))return;$('caseModalStatus').textContent=caseLabel(c);$('caseModalStatus').style.color=caseColor(c);$('caseLiveProgress').innerHTML=caseProgress(c);$('caseLinkedIssues').innerHTML=caseLinkedHTML(c);$('caseTimeline').innerHTML=timelineHTML(c);$('caseRecoverBtn').disabled=['working','verifying','resolved'].includes(c.state)}}
+function recoveryPrompt(id){const c=S.cases.find(c=>c.id===id);if(!c)return;const root=S.issues.find(i=>i.id===c.rootId),f=FT[root.fault];openModal('복구 절차 실행',`<p><strong>${esc(c.title)}</strong>의 원인 장비 <span class="mono">${root.host}</span>에 다음 절차를 실행합니다.</p><ol class="runbook"><li>현재 상태 확인 · 3초</li><li>${f.fix} · 5초</li><li>원인·후속 증상 재검증 · 8초</li></ol><div class="note">같은 장애에 연결된 경보만 복구합니다. 별개로 발생한 장애는 해당 대응 기록에서 처리할 수 있습니다.</div>${S.paused?'<p class="warn" style="margin-top:12px">현재 일시정지 중입니다. 재개 후 절차가 진행됩니다.</p>':''}`,`<button data-action="case" data-id="${id}">상세로 돌아가기</button><button class="primary" data-action="recover" data-id="${id}">절차 실행</button>`)}
+function scenarioModal(){openModal('장애 시나리오',`<p class="muted" style="margin-bottom:15px">실행하면 원인 경보부터 후속 증상까지 순서대로 발생합니다. 자동 복구를 끄면 직접 대응할 때까지 장애가 유지됩니다.</p><div class="scenario-grid">${SCENARIOS.map((s,i)=>`<button class="scenario-button" data-action="start-scenario" data-id="${s.id}"><span class="mono small info">SCENARIO ${String(i+1).padStart(2,'0')}</span><strong>${s.name}</strong><small>${s.desc}</small></button>`).join('')}</div>`,'',true)}
+function filterModal(){openModal('이벤트 표시 범위',`<div class="stack"><label class="stack" style="gap:7px">메시지 분류<select id="modalCat">${options([['all','모든 분류'],...CATEGORIES.map(c=>[c,c])],UI.cat)}</select></label><label class="stack" style="gap:7px">발생 장비<select id="modalHost">${options([['all','모든 장비'],...INVENTORY.map(d=>[d.id,d.id+' · '+d.role])],UI.host)}</select></label><p class="small muted">필터는 기존 기록과 새 기록의 화면 표시에만 적용합니다. 원본 수집·통계·장애 처리에는 영향을 주지 않습니다.</p></div>`,`<button data-action="clear-filters">필터 해제</button><button class="primary" data-action="apply-filters">적용</button>`)}
+function helpModal(){openModal('사용 안내 · 원본 분석',`<div class="note"><strong>열어 두면 자동으로 진행됩니다.</strong><p>가끔 장비 상태와 메시지를 살펴보고, 장애가 궁금하면 대응실에서 원인과 복구 과정을 확인해 보세요.</p></div><ol class="runbook"><li><strong>이벤트:</strong> 메시지를 눌러 해당 장비와 장애를 확인합니다. 목록 고정은 읽는 화면만 멈춥니다.</li><li><strong>요약·장비:</strong> 업무 성공률과 수집 상태를 확인하고 필요한 장비의 점검 시간을 정합니다.</li><li><strong>구성도:</strong> 업무를 선택하면 관련 장비와 의존 경로가 표시됩니다.</li><li><strong>성능:</strong> 실제 수집한 값과 임계선을 비교합니다. 수집이 끊긴 구간은 선을 연결하지 않습니다.</li><li><strong>대응실:</strong> 확인·담당자 지정·메모·복구 절차를 사용할 수 있습니다. 경보 확인만으로는 복구되지 않습니다.</li><li><strong>설정:</strong> 자동 복구와 자동 장애 발생을 끄면 수동 훈련을 할 수 있습니다.</li></ol><div class="divider"></div><h3>원본에서 확인한 점</h3><ol class="runbook"><li>실제 화면은 이벤트 목록 하나였으며, 요약·호스트·설정 메뉴에는 동작이 연결되어 있지 않았습니다.</li><li>호스트·감시 대상·메시지를 따로 추첨하여 한 이벤트 안에 다른 장비가 표시될 수 있었습니다.</li><li>중요도와 메시지도 따로 추첨하여 정상 완료 메시지가 긴급 등급으로 나타날 수 있었습니다.</li><li>중요도 필터가 수집 단계에 적용되어 숨긴 중요도의 이벤트 자체가 사라졌습니다.</li><li>일시정지 시 예약 타이머를 취소하지 않아 재개를 반복하면 이벤트 발생 예약이 겹칠 수 있었습니다.</li><li>상태·복구·기록 저장이 없었고, 상세 창을 스크롤하는 동작이 닫기 동작으로 인식될 수 있었습니다.</li></ol><h3>이번 확장</h3><p class="small muted" style="margin-top:10px">기존 메뉴 4개를 완성하고 구성도·성능 추이·장애 대응실 3개를 추가했습니다. 장비 12대에서 ${INVENTORY.length}대로, 메시지 분류 5개에서 ${CATEGORIES.length}개로 확대했습니다. 기본 메시지 ${FAULTS.length+NOTICES.length}종에 장애별 반복·복구 알림을 더했습니다.</p><p class="small muted" style="margin-top:12px">외부 폰트·이미지·라이브러리 없이 하나의 HTML로 실행합니다. 실제 장비 접속이나 운영 명령 전송은 하지 않는 독립된 훈련 시뮬레이터입니다. 인터페이스와 메시지는 JP1 제품의 공식 사양을 복제한 것이 아닙니다.</p>`,'',true)}
+function resetSession(){S=initialState();seedMetrics();booted=false;emit({message:'통합감시 관리자 기동. 21종 44대의 장비와 5개 업무 감시를 시작합니다.',sev:5});for(let n=0;n<7;n++){const nt=NOTICES[n],ds=INVENTORY.filter(d=>nt.types.includes(d.type)),d=pick(ds);emit({host:d.id,cat:nt.cat,sev:nt.sev,object:nt.object,message:`[${d.id}] ${nt.message}`})}startScenario('database');sample();logAudit('새 감시 세션 시작','훈련 제어');booted=true;UI.freeze=null;UI.freezeSeq=0;UI.severity=new Set([0,1,2,3,4,5,6]);UI.search='';UI.host='all';UI.cat='all';UI.life='all';saveState()}
+function updatePreference(key,value){if(!(key in S.prefs))return;S.prefs[key]=value;if(key==='sound'&&value){lastSound=-99;beep()}logAudit(`${({autoFault:'자동 장애 발생',autoRecover:'자동 복구',dedup:'반복 경보 묶기',alerts:'중대 경보 통지',sound:'경보음'})[key]} ${value?'켜기':'끄기'}`);saveState();renderHeader()}
+function onAction(action,id,el){if(action==='navigate'){closeModal();navigate(id)}else if(action==='pause'){S.paused=!S.paused;renderHeader();saveState()}else if(action==='sound')updatePreference('sound',!S.prefs.sound);else if(action==='freeze'){if(UI.freeze)UI.freeze=null;else{UI.freeze=S.events.map(e=>({...e}));UI.freezeSeq=S.seq}renderView()}else if(action==='severity'){const i=Number(id);if(UI.severity.has(i))UI.severity.delete(i);else UI.severity.add(i);el.classList.toggle('active',UI.severity.has(i));el.setAttribute('aria-pressed',String(UI.severity.has(i)));renderContent()}else if(action==='event')openEvent(id);else if(action==='host')openHost(id);else if(action==='case')openCase(id);else if(action==='case-filter'){UI.caseState=id;renderView()}else if(action==='service'){UI.service=id;closeModal();navigate('map')}else if(action==='performance'){UI.performance=id;closeModal();navigate('performance')}else if(action==='host-events'){UI.host=id;UI.search='';UI.cat='all';UI.life='all';UI.severity=new Set(SEV.map((_,i)=>i));UI.freeze=null;closeModal();navigate('events')}else if(action==='scenario')scenarioModal();else if(action==='start-scenario')startScenario(id);else if(action==='recover-prompt')recoveryPrompt(id);else if(action==='recover'){requestRecovery(id);saveState();openCase(id)}else if(action==='ack-case'){ackCase(id);openCase(id)}else if(action==='ack-all'){const todo=activeCases().filter(c=>c.state==='new'&&!inMaintenance(S.issues.find(i=>i.id===c.rootId).host));if(!todo.length)return toast('확인할 미확인 장애가 없습니다.');todo.forEach(c=>ackCase(c.id));renderContent();toast(`${todo.length}건의 장애를 확인했습니다.`)}else if(action==='maintenance')setMaintenance(id,Number(el.dataset.minutes));else if(action==='event-filters')filterModal();else if(action==='apply-filters'){UI.cat=$('modalCat').value;UI.host=$('modalHost').value;closeModal();renderView()}else if(action==='clear-filters'){UI.cat='all';UI.host='all';closeModal();renderView()}else if(action==='reset-event-view'){UI.search='';UI.cat='all';UI.host='all';UI.life='all';UI.severity=new Set(SEV.map((_,i)=>i));renderView()}else if(action==='more-events'){UI.limit+=100;renderContent()}else if(action==='export')exportFile(id);else if(action==='save'){saveState();toast(saveError?'자동 저장이 불가능합니다. JSON으로 내보내 주세요.':'현재 상태를 저장했습니다.',saveError)}else if(action==='import')$('importFile').click();else if(action==='audit')openModal('운영 감사 기록',`<ol class="timeline">${S.audit.map(a=>`<li><time>${time(a.at)} · ${esc(a.actor)}</time><p>${esc(a.message)}</p></li>`).join('')||'<p class="muted">운영 기록이 없습니다.</p>'}</ol>`);else if(action==='help')helpModal();else if(action==='reset-prompt')openModal('새 감시 세션 시작',`<p>현재 브라우저에 저장된 이벤트·장애·메모·성능 이력을 초기화합니다. 보관하려면 먼저 전체 기록을 내보내 주세요.</p>`,`<button data-action="export" data-id="json">전체 기록 내보내기</button><button class="danger" data-action="reset">초기화하고 시작</button>`);else if(action==='reset'){closeModal();resetSession();navigate('events');renderHeader();toast('새 감시 세션을 시작했습니다.')}else if(action==='import-confirm'){if(!UI.importState)return;S=UI.importState;delete UI.importState;S.paused=true;UI.freeze=null;logAudit('기록 파일 불러오기 · 일시정지 상태로 복원');closeModal();saveState();renderHeader();navigate('summary');toast('기록을 복원했습니다. 재개를 누르면 이어집니다.')}else if(action==='close')closeModal()}
+function wireEvents(){document.addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(el&&!el.disabled)onAction(el.dataset.action,el.dataset.id,el)});document.addEventListener('input',e=>{if(e.target.id==='eventSearch'){UI.search=e.target.value;UI.limit=100;renderContent()}if(e.target.id==='hostSearch'){UI.hostSearch=e.target.value;renderContent()}});document.addEventListener('change',e=>{const el=e.target;if(el.dataset.pref){updatePreference(el.dataset.pref,el.checked);return}const mapping={lifeFilter:'life',hostType:'hostType',hostState:'hostState',hostZone:'hostZone',performanceHost:'performance'};if(mapping[el.id]){UI[mapping[el.id]]=el.value;if(el.id==='performanceHost')$('perfDetailBtn').dataset.id=el.value;renderContent()}if(el.id==='speedSelect'){S.prefs.speed=Number(el.value);saveState()}});document.addEventListener('submit',e=>{if(e.target.id==='thresholdForm'){e.preventDefault();const fd=new FormData(e.target),values={};for(const [key,min,max] of [['cpu',20,99],['mem',20,99],['disk',20,99],['latency',100,5000],['temp',20,50]]){const value=Number(fd.get(key));if(!Number.isInteger(value)||value<min||value>max)return toast('임계값의 허용 범위를 확인해 주세요.',true);values[key]=value}S.thresholds=values;S.thresholdHold={};logAudit(`임계값 변경: CPU ${values.cpu}%, 메모리 ${values.mem}%, 볼륨 ${values.disk}%, 응답 ${values.latency}ms, 온도 ${values.temp}°C`);emit({sev:5,message:'자원 감시 임계값을 변경했습니다. 이후 수집값부터 3회 연속 초과를 평가합니다.'});saveState();toast('임계값을 적용했습니다. 앞으로 수집되는 값에 반영됩니다.')}else if(e.target.id==='ownerForm'){e.preventDefault();const owner=new FormData(e.target).get('owner').trim().slice(0,30);if(!owner)return;const c=S.cases.find(c=>c.id===e.target.dataset.id);if(!c)return;c.owner=owner;ackCase(c.id,owner);updateModalLive()}else if(e.target.id==='noteForm'){e.preventDefault();const c=S.cases.find(c=>c.id===e.target.dataset.id);if(!c)return;c.note=new FormData(e.target).get('note').slice(0,2000);caseLog(c,'인계 메모를 저장했습니다.','운영 담당자');logAudit(`${c.id} 인계 메모 저장`);saveState();toast('인계 메모를 저장했습니다.');updateModalLive()}});$('modalBackdrop').addEventListener('click',e=>{if(e.target===$('modalBackdrop'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&UI.modal){e.preventDefault();closeModal()}if(e.key==='Tab'&&UI.modal){const f=[...$('modal').querySelectorAll('button:not(:disabled),input:not(:disabled),select,textarea,[tabindex="0"]')].filter(el=>el.offsetParent!==null);if(!f.length)return;const first=f[0],last=f.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}const n=e.target.closest('g[data-action]');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();onAction(n.dataset.action,n.dataset.id,n)}});$('importFile').addEventListener('change',async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>5*1024*1024)return toast('기록 파일은 5MB 이하로 선택해 주세요.',true);try{const parsed=validateState(JSON.parse(await file.text()));UI.importState=parsed;openModal('기록 불러오기',`<p>선택한 기록: <strong>${esc(file.name)}</strong></p><p class="muted" style="margin:10px 0">감시 ${duration(parsed.elapsed)} · 누적 이벤트 ${fmt(parsed.received)}건 · 장애 기록 ${parsed.cases.length}건</p><p>현재 세션을 이 기록으로 바꾸고 일시정지 상태로 복원합니다.</p>`,`<button data-action="export" data-id="json">현재 기록 내보내기</button><button class="primary" data-action="import-confirm">이 기록으로 복원</button>`)}catch(err){toast('불러올 수 없습니다. 유효한 전체 기록 JSON 파일을 선택해 주세요.',true)}});window.addEventListener('pagehide',saveState);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveState()})}
+function bootstrap(){let loaded=false;try{const saved=localStorage.getItem(STORAGE);if(saved){S=validateState(JSON.parse(saved));loaded=true}}catch(e){saveError=true}if(!loaded)resetSession();booted=true;wireEvents();renderNav();renderHeader();renderView();if(loaded&&S.paused)toast('저장된 기록을 일시정지 상태로 이어서 열었습니다.');let n=0;setInterval(()=>{if(document.hidden)return;for(let i=0;i<S.prefs.speed;i++)tick();renderHeader();updateModalLive();if(!UI.modal&&UI.view!=='settings'){if(++n%2===0)renderContent()}},1000);setInterval(saveState,15000)}
+bootstrap();
 </script>
 </body>
 </html>
