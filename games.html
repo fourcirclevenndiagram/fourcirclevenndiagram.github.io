@@ -133,6 +133,8 @@
       font-size: 6px; line-height: 1.7; text-align: right;
       color: var(--dim); opacity: 0.9;
     }
+    .card-date .registered, .card-date .updated { display: block; }
+    .card-date .registered { min-height: 1.7em; }
     .card-date .updated { color: var(--c); }
     .card-body { padding: 20px 22px 22px; }
     .card-num {
@@ -180,12 +182,34 @@
 
   <main class="game-grid">
 
-    <!-- ⚠ RULE: 새로 추가되는 앱은 항상 이 <main> 태그 바로 아래, 맨 첫 번째 카드로 삽입할 것.
+<!-- ⚠ RULE: 새로 추가되는 앱은 항상 이 <main> 태그 바로 아래, 맨 첫 번째 카드로 삽입할 것.
          가장 최근에 추가된 앱이 최상단에 오도록 유지 (역순 정렬). COMING SOON 카드는 항상 맨 마지막에 고정.
-         새 카드 추가 시 card-top 우측 상단에 등록일 표기: '2026/07/24 등록' 형식. 이후 수정 시 그 아래에 '2026/07/14 최근 업데이트' 형식으로 추가. -->
+         모든 게임 카드의 card-top 우측 상단에는 등록일과 최신 업데이트를 각각 한 줄로 표기. 등록일 미상은 첫 줄을 비워 두고, 최신 업데이트 미상은 '최신 업데이트 —'로 표기. -->
+
+    <a class="card" data-color="pink" href="mini_marathon_eight_8.html">
+      <div class="card-top">🏃<span class="pixel-deco tl">Ⅷ</span><span class="card-date"><span class="registered">2026/09/09 등록</span><span class="updated">2026/09/09 최신 업데이트</span></span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 33</div>
+        <div class="card-title">MINI MARATHON: SEVEN Ⅷ</div>
+        <div class="card-desc">7가지 미니게임이 이어지는 터치 아케이드 마라톤 여덟 번째 에피소드.</div>
+        <div class="card-tags"><span class="tag">터치</span><span class="tag">마라톤</span><span class="tag">Ⅷ</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
+
+    <a class="card" data-color="cyan" href="midnight-circuit-01.html">
+      <div class="card-top">🌃<span class="pixel-deco tl">01</span><span class="pixel-deco tr">55s</span><span class="card-date"><span class="registered">2026/09/09 등록</span><span class="updated">2026/09/09 최신 업데이트</span></span></div>
+      <div class="card-body">
+        <div class="card-num">GAME 32</div>
+        <div class="card-title">MIDNIGHT CIRCUIT 01<br>네온 항로</div>
+        <div class="card-desc">110×110 네온 격자 위에서 15가지 기믹을 넘고 55초 안에 완주하는 정밀 컨트롤 액션.</div>
+        <div class="card-tags"><span class="tag">ACTION</span><span class="tag">NEON</span><span class="tag">55초</span></div>
+        <div class="card-play">▶ PLAY</div>
+      </div>
+    </a>
 
     <a class="card" data-color="pink" href="mini_marathon_seven_7.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">Ⅶ</span><span class="card-date">2026/09/02 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">Ⅶ</span><span class="card-date"><span class="registered">2026/09/02 등록</span><span class="updated">2026/09/02 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 31</div>
         <div class="card-title">MINI MARATHON: SEVEN Ⅶ</div>
@@ -196,7 +220,7 @@
     </a>
 
     <a class="card" data-color="yel" href="mini_marathon_seven_6.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">Ⅵ</span><span class="card-date">2026/09/02 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">Ⅵ</span><span class="card-date"><span class="registered">2026/09/02 등록</span><span class="updated">2026/09/02 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 30</div>
         <div class="card-title">MINI MARATHON: SEVEN Ⅵ</div>
@@ -207,7 +231,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="mini_marathon_seven_5.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">Ⅴ</span><span class="card-date">2026/08/31 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">Ⅴ</span><span class="card-date"><span class="registered">2026/08/31 등록</span><span class="updated">2026/08/31 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 29</div>
         <div class="card-title">MINI MARATHON: SEVEN Ⅴ</div>
@@ -218,7 +242,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="cave-circuit-17.html">
-      <div class="card-top">🕳️<span class="pixel-deco tl">17</span><span class="card-date">2026/08/21 등록</span></div>
+      <div class="card-top">🕳️<span class="pixel-deco tl">17</span><span class="card-date"><span class="registered">2026/08/21 등록</span><span class="updated">2026/08/21 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 25</div>
         <div class="card-title">CAVE CIRCUIT 17</div>
@@ -229,7 +253,7 @@
     </a>
 
     <a class="card" data-color="pink" href="rune-rush-12sec.html">
-      <div class="card-top">🔯<span class="pixel-deco tl">12s</span><span class="card-date">2026/08/21 등록</span></div>
+      <div class="card-top">🔯<span class="pixel-deco tl">12s</span><span class="card-date"><span class="registered">2026/08/21 등록</span><span class="updated">2026/08/21 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 26</div>
         <div class="card-title">RUNE RUSH<br>12초의 위상도약</div>
@@ -240,7 +264,7 @@
     </a>
 
     <a class="card" data-color="yel" href="polarity-rush.html">
-      <div class="card-top">🧲<span class="pixel-deco tl">12s</span><span class="card-date">2026/08/21 등록</span></div>
+      <div class="card-top">🧲<span class="pixel-deco tl">12s</span><span class="card-date"><span class="registered">2026/08/21 등록</span><span class="updated">2026/08/21 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 27</div>
         <div class="card-title">POLARITY RUSH<br>12초 자력 공장</div>
@@ -251,7 +275,7 @@
     </a>
 
     <a class="card" data-color="grn" href="pattern-snap-12.html">
-      <div class="card-top">🧩<span class="pixel-deco tl">12</span><span class="card-date">2026/08/21 등록</span></div>
+      <div class="card-top">🧩<span class="pixel-deco tl">12</span><span class="card-date"><span class="registered">2026/08/21 등록</span><span class="updated">2026/08/21 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 28</div>
         <div class="card-title">PATTERN SNAP 12<br>숲속 패턴 수색대</div>
@@ -262,7 +286,7 @@
     </a>
 
     <a class="card" data-color="pink" href="mini_marathon_seven_4.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">Ⅳ</span><span class="card-date">2026/08/14 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">Ⅳ</span><span class="card-date"><span class="registered">2026/08/14 등록</span><span class="updated">2026/08/14 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 24</div>
         <div class="card-title">MINI MARATHON: SEVEN Ⅳ</div>
@@ -273,7 +297,7 @@
     </a>
 
     <a class="card" data-color="yel" href="mini_marathon_seven_3.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">Ⅲ</span><span class="card-date">2026/08/14 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">Ⅲ</span><span class="card-date"><span class="registered">2026/08/14 등록</span><span class="updated">2026/08/14 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 23</div>
         <div class="card-title">MINI MARATHON: SEVEN Ⅲ</div>
@@ -284,7 +308,7 @@
     </a>
 
     <a class="card" data-color="grn" href="mini_marathon_seven_2.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">Ⅱ</span><span class="card-date">2026/08/14 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">Ⅱ</span><span class="card-date"><span class="registered">2026/08/14 등록</span><span class="updated">2026/08/14 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 22</div>
         <div class="card-title">MINI MARATHON: SEVEN Ⅱ</div>
@@ -295,7 +319,7 @@
     </a>
 
     <a class="card" data-color="grn" href="10-second-house-repair.html">
-      <div class="card-top">🔨<span class="pixel-deco tl">ACTION</span><span class="card-date">2026/08/11 등록</span></div>
+      <div class="card-top">🔨<span class="pixel-deco tl">ACTION</span><span class="card-date"><span class="registered">2026/08/11 등록</span><span class="updated">2026/08/11 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 21</div>
         <div class="card-title">10초 집수리</div>
@@ -306,7 +330,7 @@
     </a>
 
     <a class="card" data-color="grn" href="mini_marathon_seven-cl.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">KR</span><span class="card-date">2026/08/07 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">KR</span><span class="card-date"><span class="registered">2026/08/07 등록</span><span class="updated">2026/08/07 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 19</div>
         <div class="card-title">MINI MARATHON: SEVEN<br>(한국어판)</div>
@@ -317,7 +341,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="mini_marathon_seven-ch.html">
-      <div class="card-top">🏃<span class="pixel-deco tl">EN</span><span class="card-date">2026/08/07 등록</span></div>
+      <div class="card-top">🏃<span class="pixel-deco tl">EN</span><span class="card-date"><span class="registered">2026/08/07 등록</span><span class="updated">2026/08/07 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 20</div>
         <div class="card-title">MINI MARATHON: SEVEN<br>(English)</div>
@@ -328,7 +352,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="pondside_fishing_3D.html">
-      <div class="card-top">🎣<span class="pixel-deco tl">3D</span><span class="card-date">2026/07/26 등록</span></div>
+      <div class="card-top">🎣<span class="pixel-deco tl">3D</span><span class="card-date"><span class="registered">2026/07/26 등록</span><span class="updated">2026/07/26 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 18</div>
         <div class="card-title">마당 끝 낚시생활</div>
@@ -339,7 +363,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="moonlight-fishing.html">
-      <div class="card-top">🎣<span class="pixel-deco tl">FISH</span><span class="card-date">2026/07/26 등록</span></div>
+      <div class="card-top">🎣<span class="pixel-deco tl">FISH</span><span class="card-date"><span class="registered">2026/07/26 등록</span><span class="updated">2026/07/26 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 15</div>
         <div class="card-title">달빛 오두막 낚시</div>
@@ -350,7 +374,7 @@
     </a>
 
     <a class="card" data-color="pink" href="clap_clap_ki_battle.html">
-      <div class="card-top">👏<span class="pixel-deco tl">BATTLE</span><span class="card-date">2026/07/26 등록</span></div>
+      <div class="card-top">👏<span class="pixel-deco tl">BATTLE</span><span class="card-date"><span class="registered">2026/07/26 등록</span><span class="updated">2026/07/26 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 16</div>
         <div class="card-title">짝짝! 기공대전<br>CLAP CLAP KI BATTLE</div>
@@ -361,7 +385,7 @@
     </a>
 
     <a class="card" data-color="grn" href="auto_tower_defense.html">
-      <div class="card-top">🏰<span class="pixel-deco tl">AUTO</span><span class="card-date">2026/07/26 등록</span></div>
+      <div class="card-top">🏰<span class="pixel-deco tl">AUTO</span><span class="card-date"><span class="registered">2026/07/26 등록</span><span class="updated">2026/07/26 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 17</div>
         <div class="card-title">오토 타워 디펜스</div>
@@ -372,7 +396,7 @@
     </a>
 
     <a class="card" data-color="yel" href="star-sniper.html">
-      <div class="card-top">🎯<span class="pixel-deco tl">ACTION</span><span class="card-date">2026/07/24 등록</span></div>
+      <div class="card-top">🎯<span class="pixel-deco tl">ACTION</span><span class="card-date"><span class="registered">2026/07/24 등록</span><span class="updated">2026/07/24 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 14</div>
         <div class="card-title">STAR SNIPER<br>별의 저격수</div>
@@ -383,7 +407,7 @@
     </a>
 
     <a class="card" data-color="pink" href="neon_relic.html">
-      <div class="card-top">💎<span class="pixel-deco tl">ACTION</span><span class="card-date">2026/07/24 등록</span></div>
+      <div class="card-top">💎<span class="pixel-deco tl">ACTION</span><span class="card-date"><span class="registered">2026/07/24 등록</span><span class="updated">2026/07/24 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 13</div>
         <div class="card-title">NEON RELIC</div>
@@ -394,7 +418,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="pixel_core.html">
-      <div class="card-top">🧩<span class="pixel-deco tl">ACTION</span><span class="card-date">2026/07/24 등록</span></div>
+      <div class="card-top">🧩<span class="pixel-deco tl">ACTION</span><span class="card-date"><span class="registered">2026/07/24 등록</span><span class="updated">2026/07/24 최신 업데이트</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 12</div>
         <div class="card-title">PIXEL CORE: OVERLOAD</div>
@@ -405,7 +429,7 @@
     </a>
 
     <a class="card" data-color="pink" href="pinball.html">
-      <div class="card-top">🎰<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-top">🎰<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★★</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 11</div>
         <div class="card-title">NEON FLIPPER</div>
@@ -416,7 +440,7 @@
     </a>
 
     <a class="card" data-color="grn" href="tenseconds.html">
-      <div class="card-top">⏱️<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-top">⏱️<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★☆</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 10</div>
         <div class="card-title">10초 맞추기</div>
@@ -427,7 +451,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="bpm_tapper.html">
-      <div class="card-top">🎵<span class="pixel-deco tl">TOOL</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-top">🎵<span class="pixel-deco tl">TOOL</span><span class="pixel-deco tr">★★☆</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 09</div>
         <div class="card-title">BPM TAPPER</div>
@@ -438,7 +462,7 @@
     </a>
 
     <a class="card" data-color="yel" href="molegame.html">
-      <div class="card-top">🦔<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-top">🦔<span class="pixel-deco tl">ACTION</span><span class="pixel-deco tr">★★☆</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 08</div>
         <div class="card-title">두더지 잡기</div>
@@ -449,7 +473,7 @@
     </a>
 
     <a class="card" data-color="pink" href="mhr-party-builder.html">
-      <div class="card-top">⚔️<span class="pixel-deco tl">TOOL</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-top">⚔️<span class="pixel-deco tl">TOOL</span><span class="pixel-deco tr">★★★</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 07</div>
         <div class="card-title">몬헌 랜덤 파티구성</div>
@@ -460,7 +484,7 @@
     </a>
 
     <a class="card" data-color="grn" href="damagigye.html">
-      <div class="card-top">🖥️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-top">🖥️<span class="pixel-deco tl">SIM</span><span class="pixel-deco tr">★★★</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 06</div>
         <div class="card-title">다마기간계</div>
@@ -471,7 +495,7 @@
     </a>
 
     <a class="card" data-color="pink" href="count_idle.html">
-      <div class="card-top">🔢<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★☆</span></div>
+      <div class="card-top">🔢<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★☆</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 05</div>
         <div class="card-title">NUMBER</div>
@@ -482,7 +506,7 @@
     </a>
 
     <a class="card" data-color="cyan" href="city_dev.html">
-      <div class="card-top">🏙️<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-top">🏙️<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 04</div>
         <div class="card-title">도시 개발 방치형</div>
@@ -493,7 +517,7 @@
     </a>
 
     <a class="card" data-color="yel" href="bakery_idle.html">
-      <div class="card-top">🍞<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-top">🍞<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 03</div>
         <div class="card-title">황금 빵집</div>
@@ -504,7 +528,7 @@
     </a>
 
     <a class="card" data-color="grn" href="watermelon-base.html">
-      <div class="card-top">🍉<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-top">🍉<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 02</div>
         <div class="card-title">수박 기지 방치형</div>
@@ -515,24 +539,13 @@
     </a>
 
     <a class="card" data-color="cyan" href="space-idle.html">
-      <div class="card-top">🚀<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span></div>
+      <div class="card-top">🚀<span class="pixel-deco tl">IDLE</span><span class="pixel-deco tr">★★★</span><span class="card-date"><span class="registered"></span><span class="updated">최신 업데이트 —</span></span></div>
       <div class="card-body">
         <div class="card-num">GAME 01</div>
         <div class="card-title">우주 방치형 포인트맵</div>
         <div class="card-desc">우주 테마의 방치형 게임. 포인트를 쌓고 맵을 확장하며 은하를 지배하라.</div>
         <div class="card-tags"><span class="tag">IDLE</span><span class="tag">SPACE</span><span class="tag">MAP</span></div>
         <div class="card-play">▶ PLAY</div>
-      </div>
-    </a>
-
-    <a class="card soon" data-color="cyan" href="#">
-      <div class="card-top">❓<span class="pixel-deco tl">???</span><span class="pixel-deco tr">LOCKED</span></div>
-      <div class="card-body">
-        <div class="card-num">GAME 12</div>
-        <div class="card-title">COMING SOON</div>
-        <div class="card-desc">다음 게임이 준비 중입니다. 기대해 주세요.</div>
-        <div class="card-tags"><span class="tag">???</span></div>
-        <div class="card-play">🔒 LOCKED</div>
       </div>
     </a>
 
