@@ -1,5 +1,10 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07060d"><meta name="description" content="110×110 네온 격자, 15가지 장치, 55초. 정밀한 컨트롤로 완주하는 MIDNIGHT CIRCUIT의 첫 번째 코스."><title>MIDNIGHT CIRCUIT 01 — 네온 항로</title><style>:root{color-scheme:dark;--black:#07060d;--panel:#100e1b;--line:#30233f;--purple:#aa78ff;--yellow:#ffe576;--pink:#ff65b7;--text:#f4effa;--muted:#a69db5;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;font-synthesis:none}
+/* Rapid taps are game input, including taps that land between controls. */
+.app{touch-action:manipulation}
+.controls,.controls *,#game{touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.pad-picker{border:0;padding:0;margin:12px 0 16px;display:grid;gap:7px;min-width:0}.pad-picker legend{font-size:14px;color:var(--purple);margin-bottom:8px}.pad-picker label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:10px;min-height:44px;font-size:14px;cursor:pointer}.pad-picker label:has(input:checked){border-color:var(--yellow);background:#ffe5760c}.pad-picker input{accent-color:var(--yellow);width:18px;height:18px;flex:none}.pad-picker small{font-size:12px;line-height:1.6;color:var(--muted)}
+.pad-directions{position:absolute;inset:0;pointer-events:none}.pad-directions span{position:absolute;left:var(--px);top:var(--py);transform:translate(-50%,-50%);font-size:22px;color:var(--purple);line-height:1}.pad-directions span.active{color:var(--yellow);text-shadow:0 0 12px #ffe576}.stick[data-mode="eight"]{border-radius:22%;background:#17101f}.stick[data-mode="eight"] .stick-knob{display:none}.stick[data-mode="eight"]:before,.stick[data-mode="eight"]:after{display:none}.stick[data-mode="floating"] .pad-directions{display:none}.stick.floating-active .stick-knob{position:fixed;left:calc(var(--float-x) - 22px);top:calc(var(--float-y) - 22px);z-index:5}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--black);color:var(--text)}body{overscroll-behavior:none}button,select{font:inherit;color:inherit}button{cursor:pointer;border:1px solid var(--line);background:#171221;border-radius:9px;min-height:44px;padding:10px 15px;transition:background .15s,transform .1s}button:hover{background:#292036}button:active{transform:translateY(1px)}button:focus-visible,select:focus-visible{outline:2px solid var(--yellow);outline-offset:3px}button.primary{background:var(--yellow);border-color:var(--yellow);color:#231521;font-weight:800}button.primary:hover{background:#fff0ac}button:disabled{opacity:.45;cursor:default}.hidden,[hidden]{display:none!important}.app{height:100vh;height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);display:flex;flex-direction:column;max-width:1920px;margin:auto;min-height:0}
 .topbar{height:88px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line);gap:20px}.brand{display:flex;align-items:center;gap:13px;min-width:0}.logo{width:38px;height:38px;flex:none;display:grid;grid-template-columns:1fr 1fr;gap:3px;transform:rotate(-8deg)}.logo i{background:var(--purple);border-radius:2px}.logo i:nth-child(2){background:var(--yellow)}.logo i:nth-child(3){background:var(--pink)}.logo i:last-child{background:#322240}.brand h1{font-size:19px;line-height:1.05;letter-spacing:.11em;font-weight:850;margin:0}.brand small{font-size:12px;color:var(--muted);letter-spacing:.19em;display:block;margin-top:7px}.top-actions{display:flex;gap:8px}.top-actions button{font-size:14px;padding:9px 12px}.episode{color:var(--muted);font-size:13px;letter-spacing:.08em}.episode b{color:var(--pink);margin-right:10px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 272px;flex:1;min-height:0;gap:0}.play-column{display:flex;flex-direction:column;min-width:0;min-height:0}.hud{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:88px;padding:12px 27px;flex:none}.clockbox{display:flex;align-items:baseline;gap:12px}.clock{font-variant-numeric:tabular-nums;font-size:44px;letter-spacing:-.04em;font-weight:700;color:var(--yellow);line-height:1}.clock.danger{color:var(--pink)}.clock-label{font-size:12px;color:var(--muted);line-height:1.5}.stagebox{text-align:right}.stagebox strong{font-size:15px;font-weight:650}.stagebox small{display:block;color:var(--muted);font-size:12px;margin-top:7px}.stagebox em{color:var(--purple);font-style:normal}.trackline{height:3px;display:flex;gap:4px;margin:0 26px 12px}.trackline i{background:#2c213c;flex:1;border-radius:2px}.trackline i.done{background:var(--purple)}.trackline i.active{background:var(--yellow);box-shadow:0 0 9px #ffe57670}
 .arena{position:relative;flex:1;min-height:0;overflow:hidden;background:#080710;border:1px solid #352642;border-radius:14px;margin:0 24px;isolation:isolate}.arena:after{content:'';position:absolute;inset:0;border-radius:14px;pointer-events:none;box-shadow:inset 0 0 75px #04030770}.arena canvas{display:block;width:100%;height:100%;touch-action:none}.world-meta{position:absolute;left:15px;top:14px;color:#b7a7c7;font-size:11px;letter-spacing:.11em;pointer-events:none;z-index:1}.world-meta b{font-weight:500;color:var(--purple)}.camera-switch{position:absolute;right:12px;top:12px;min-height:34px;padding:6px 10px;background:#100c1be8;font-size:12px;z-index:2}.hint{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:13px;background:#100c1ee6;padding:10px 14px;border:1px solid #4b355f;border-radius:8px;text-align:center;max-width:90%;width:max-content;z-index:2;pointer-events:none}.toast{position:absolute;top:58px;left:50%;transform:translateX(-50%);max-width:85%;text-align:center;background:#ffe576;color:#1b1520;padding:8px 14px;font-size:13px;font-weight:650;border-radius:7px;z-index:3;pointer-events:none}
@@ -13,23 +18,39 @@ dialog{background:#110d1b;color:var(--text);border:1px solid #58406e;border-radi
 @media(max-width:350px){.topbar{padding:0 10px}.brand h1{font-size:12px}.top-actions button{padding:7px}.controls{padding-left:15px;padding-right:15px;gap:8px}.control-right{gap:7px}.control-btn{width:74px}.clock-label{display:none}.stagebox small{max-width:155px}.launch{padding:18px}}
 @media(prefers-reduced-motion:reduce){button{transition:none}.arena:after{box-shadow:none}}
 @media(max-height:600px) and (orientation:landscape){body:not([data-screen="running"]) .controls{visibility:hidden;pointer-events:none}}
+.needle-beats{display:flex;justify-content:center;gap:6px;margin-bottom:5px}.beat{border:1px solid #70425d;border-radius:5px;padding:3px 8px;color:var(--pink);font-size:12px;line-height:1.3;white-space:nowrap}.beat.warning{color:#ffb376;border-color:#946b4a}.beat.open{color:var(--yellow);border-color:var(--yellow);background:#ffe57612}.needle-message{font-variant-numeric:tabular-nums;font-size:12px;line-height:1.5}.needle-message.go{color:var(--yellow);font-weight:800}
+@media(max-height:600px) and (orientation:landscape){.beat{padding:2px 5px;font-size:10px}.needle-message{font-size:10px}.needle-beats{gap:4px;margin-bottom:2px}}
 </style></head>
 <body><div class="app">
  <header class="topbar"><div class="brand"><div class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div><h1>MIDNIGHT<br>CIRCUIT</h1><small>PRECISION RUN SERIES</small></div></div><div class="episode"><b>VOL. 01</b> NEON PASSAGE / 네온 항로</div><div class="top-actions"><button id="soundBtn" class="sound" aria-label="음악 켜기" aria-pressed="false">♫ <span>OFF</span></button><button id="guideBtn">기믹 안내</button><button id="pauseBtn" aria-label="일시정지">Ⅱ</button></div></header>
  <main class="layout"><section class="play-column" aria-label="게임">
   <div class="hud"><div class="clockbox"><div class="clock" id="clock">55.00</div><div class="clock-label" id="clockLabel">TIME LEFT<br>남은 시간</div></div><div class="stagebox"><strong id="stageName">01 <em>/</em> 15 &nbsp; 회전 스위퍼</strong><small id="playerState">2 × 2 PLAYER &nbsp; · &nbsp; 준비</small></div></div><div class="trackline" id="trackline" aria-hidden="true"></div>
   <div class="arena" id="arena"><canvas id="game" aria-label="탑다운 네온 장애물 코스. 키보드 WASD 또는 방향키로 이동합니다."></canvas><div class="world-meta"><b>110 × 110</b> &nbsp; GRID / <span id="coords">005 : 092</span></div><button id="mapBtn" class="camera-switch">전체 지도 M</button><div id="demoBadge" class="demo-badge hidden"></div><div id="toast" class="toast hidden"></div><div class="hint" id="hint">15개 구간을 순서대로 통과해 출구로.</div><div id="veil" class="veil"><div class="launch" id="launch"></div></div></div>
-  <div class="controls"><div id="stick" class="stick" role="group" aria-label="이동 조이스틱"><div class="stick-knob" id="knob"></div><div class="stick-label">이동</div></div><div class="keyboard-help"><div><kbd>W A S D</kbd> / <kbd>↑ ↓ ← →</kbd> 이동</div><div><kbd>Shift</kbd> 정밀 브레이크 &nbsp; <kbd>E</kbd> 탑승 · 작동 &nbsp; <kbd>R</kbd> 재도전</div></div><div class="control-right"><button class="control-btn brake" id="brakeBtn">브레이크<small>누르는 동안 · SHIFT</small></button><button class="control-btn action" id="actionBtn">탑승 / 작동<small>한 번 누르기 · E</small></button></div></div>
+  <div class="controls"><div id="stick" class="stick" role="group" aria-label="이동 조이스틱"><div class="stick-knob" id="knob"></div><div class="stick-label">이동</div></div><div class="keyboard-help"><div><kbd>W A S D</kbd> / <kbd>↑ ↓ ← →</kbd> 이동</div><div><kbd>Shift</kbd> 정밀 브레이크 &nbsp; <kbd>E</kbd> 작동 · 궤도 잡기 &nbsp; <kbd>R</kbd> 재도전</div></div><div class="control-right"><button class="control-btn brake" id="brakeBtn">브레이크<small>누르는 동안 · SHIFT</small></button><button class="control-btn action" id="actionBtn"><span id="actionLabel">탑승 / 작동</span><small id="actionHelp">한 번 누르기 · E</small></button></div></div>
  </section><aside class="side"><div class="section-kicker">VOL. 01 / NIGHT DRIVE</div><h2>네온 항로</h2><div class="sub">검은 도시의 열다섯 관문.<br>완주는 오직 컨트롤로.</div><canvas id="minimap" class="minimap" width="440" height="440" aria-label="110×110 전체 지도"></canvas><div class="stat-row"><span>최고 기록</span><b id="bestTime">—</b></div><div class="stat-row"><span>접촉 / 완주</span><b id="hitCount">0 / 0</b></div><div class="stat-row"><span>기본 크기</span><b>2 × 2</b></div><div class="side-rule"></div><div class="section-kicker">NEXT MOVE</div><p class="side-tip" id="sideTip"></p><div class="side-actions"><button id="practiceBtn">구간 연습</button><button id="demoBtn">기준 주행 보기</button><button id="retryBtn">처음부터 재도전 R</button></div><div class="scale-legend"><i class="pixel"></i> 1칸 &nbsp; · &nbsp; 보라 구조 / 노랑 작동 / 핑크 위험</div></aside></main>
-</div><dialog id="guide"><div class="dialog-head"><h2>코스 매뉴얼</h2><button class="close" id="closeGuide" aria-label="안내 닫기">×</button></div><div class="dialog-body"><p>일반 모드는 55초 안에 15개 출구 링을 순서대로 통과합니다. 위험물 접촉 시 마지막 안전 지점으로 복귀하며 <b>0.65초</b>가 추가됩니다. 먼저 구간 연습으로 각 장치의 움직임을 익혀보세요.</p><div class="guide-grid" id="guideGrid"></div><h3>바닥 · 정확히 3종</h3><div class="legend-list"><div><i class="swatch floor1"></i>아스팔트 · 즉각 반응</div><div><i class="swatch floor2"></i>빙면 · 큰 관성, 긴 제동 거리</div><div><i class="swatch floor3"></i>감쇠 고무 · 이동 속도 72%</div></div><h3>벽 · 정확히 4종</h3><div class="legend-list"><div><i class="swatch wall1"></i>합금 · 통과 불가</div><div><i class="swatch wall2"></i>탄성 · 부딪히면 튕김</div><div><i class="swatch wall3"></i>전류 · 접촉 시 구간 복귀</div><div><i class="swatch wall4"></i>균열 · 차량 / 3×3 상태로 파괴</div></div><h3>기준 주행</h3><p id="referenceText"></p><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="precisionDemo">정밀 주행 보기</button><button id="steadyDemo">여유 주행 보기</button></div><h3>시리즈 공통 규칙</h3><div class="spec"><strong>110×110 / 기본 2×2 / 제한 55초 / 15장치 / 3바닥 / 4벽.</strong><br>이동·브레이크·작동의 세 입력, 고정된 장치 시작 위상, 구간 연습과 개인 최고 기록을 유지합니다. 맵과 장치 배치는 다음 편에서 교체할 수 있습니다. 검정 바탕, 보라 구조물, 노랑 상호작용, 핑크 위험의 색상 규칙도 공통입니다.<br><br>탭 전환·창 비활성·안내·전체 지도에서는 일시정지합니다. 경로는 고정이며 무작위 장애물은 없습니다. 모바일에서는 스틱을 기울인 만큼 속도가 달라집니다. 키보드 대각선과 스틱의 최대 속도는 같습니다. 음악은 기기에서 직접 합성하며 외부 파일을 불러오지 않습니다.</div></div></dialog><div class="sr-only" role="status" aria-live="polite" id="announcer"></div>
-<script>/* MIDNIGHT CIRCUIT / series engine 1.0. Pure, fixed-step simulation. */
+</div><dialog id="guide"><div class="dialog-head"><h2>코스 매뉴얼</h2><button class="close" id="closeGuide" aria-label="안내 닫기">×</button></div><div class="dialog-body"><p>일반 모드는 55초 안에 15개 출구 링을 순서대로 통과합니다. 위험물 접촉 시 마지막 안전 지점으로 복귀하며 <b>0.65초</b>가 추가됩니다. 먼저 구간 연습으로 각 장치의 움직임을 익혀보세요.</p><div class="guide-grid" id="guideGrid"></div><h3>바닥 · 정확히 3종</h3><div class="legend-list"><div><i class="swatch floor1"></i>아스팔트 · 즉각 반응</div><div><i class="swatch floor2"></i>빙면 · 큰 관성, 긴 제동 거리</div><div><i class="swatch floor3"></i>감쇠 고무 · 이동 속도 72%</div></div><h3>벽 · 정확히 4종</h3><div class="legend-list"><div><i class="swatch wall1"></i>합금 · 통과 불가</div><div><i class="swatch wall2"></i>탄성 · 부딪히면 튕김</div><div><i class="swatch wall3"></i>전류 · 접촉 시 구간 복귀</div><div><i class="swatch wall4"></i>균열 · 3×3 상태로 파괴</div></div><h3>기준 주행</h3><p id="referenceText"></p><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="precisionDemo">정밀 주행 보기</button><button id="steadyDemo">숙련 주행 보기</button></div><h3>시리즈 공통 규칙</h3><div class="spec"><strong>110×110 / 기본 2×2 / 제한 55초 / 15장치 / 3바닥 / 4벽.</strong><br>이동·브레이크·작동의 세 입력, 고정된 장치 시작 위상, 구간 연습과 개인 최고 기록을 유지합니다. 맵과 장치 배치는 다음 편에서 교체할 수 있습니다. 검정 바탕, 보라 구조물, 노랑 상호작용, 핑크 위험의 색상 규칙도 공통입니다.<br><br>탭 전환·창 비활성·안내·전체 지도에서는 일시정지합니다. 경로는 고정이며 무작위 장애물은 없습니다. 시작 화면과 일시정지 화면에서 8방향 패드 또는 고정 속도 스틱을 선택할 수 있습니다. 패드는 화살표를 누르고 밀어 방향을 바꾸며, 스틱은 화면 왼쪽 빈 곳을 터치한 지점을 중심으로 작동합니다. 두 방식 모두 8방향이며 대각선 속도는 직선과 같습니다. 손을 떼면 이동 입력이 풀리고, 관성을 빠르게 줄이려면 브레이크를 누르세요. 음악은 기기에서 직접 합성하며 외부 파일을 불러오지 않습니다.</div></div></dialog><div class="sr-only" role="status" aria-live="polite" id="announcer"></div>
+<script>/* MIDNIGHT CIRCUIT / series engine 1.4. Pure, fixed-step simulation. */
 const Circuit = (() => {
 'use strict';
 const N=110, DT=1/120, LIMIT=55;
 const C={speed:14.1,accel:13,brake:32,playerSize:2,ferryPhase:3.13};
-const names=['회전 스위퍼','축소 아치','이동 흡인 자석','조종 운반차','관성 회전판','왕복 압착기','확대 아치','주기 레이저','이동 반발 자석','전환 컨베이어','이동 발판','연결 포털','공전 위성','방향 가속기','추적 드론'];
+const NEEDLE={period:2.3,openStart:1,hold:.18,ramp:.08,stagger:.215,launchStart:.84,launchEnd:.98,gates:[89.5,92.5,95.5]};
+const GRAVITY={accel:60,steer:12,maxSpeed:19,lanes:[{x:70.5,y:90,w:3,h:3,sign:-1},{x:75.5,y:91.5,w:3,h:6,sign:1},{x:81.5,y:94.5,w:3,h:2,sign:-1}]};
+const SLING={x:96,y:92,radius:4.5,omega:2.8,brakeOmega:1.3,launchSpeed:22,minArc:1.1,releaseHalfAngle:.045,gate:{x:101.5,y:87.5,w:.35,h:3}};
+const LASER={x:54,y:55,length:7.2,omega:1.5,phase:1.5,width:.24,refuge:{x:54,y:46.5},gate:{x:47,y:55,w:.3,h:3}};
+const ECHO={delay:.24,lifetime:3.2,sample:.24,period:1.18,cutters:[
+ {x:102,y:51.5,amp:3.5,phase:.08,target:{x:102,y:48.5}},
+ {x:98,y:58.5,amp:3.5,phase:.43,target:{x:98,y:61.5}},
+ {x:94,y:51.5,amp:3.5,phase:.78,target:{x:94,y:48.5}}
+],gates:[{x:99.75,y:55},{x:95.75,y:55},{x:91.75,y:55}]};
+const names=['회전 스위퍼','바늘귀 · 세 박자 문','이동 흡인 자석','조종 운반차','관성 회전판','왕복 압착기','확대 아치','주기 레이저','이동 반발 자석','전환 컨베이어','이동 발판','연결 포털','공전 위성','방향 가속기','추적 드론'];
 const tips=['회전봉의 끝을 돌아가거나 회전 사이를 통과하세요.','노란 패드로 1×1 축소 → 한 칸 통로 → 원래 크기.','자석은 움직이며 당깁니다. 브레이크로 힘을 줄이세요.','차량 곁에서 작동. 같은 이동키로 운전해 금간 벽을 부수세요.','판 위에서는 시계 방향으로 휩니다. 반대 입력으로 보정.','중앙 압착기는 왕복합니다. 옆으로 돌아도 됩니다.','확대 패드로 3×3 → 금간 벽 파괴 → 출구에서 복귀.','점선은 예고, 진한 핑크는 작동 중. 멈추거나 끝을 우회.','움직이는 자석이 밀어냅니다. 밀리는 방향을 이용하세요.','벨트가 옆으로 밉니다. 중앙에서 작동하면 방향 반전.','발판 가까이에서 작동해 탑승. 위아래로 궤도를 조절하세요.','노란 포털에서 작동하면 같은 문양의 출구로 이동합니다.','공전하는 두 위성의 바깥을 돌거나 사이를 통과.','발판이 진행 방향으로 가속합니다. 곧바로 브레이크하면 제어.','드론이 표시된 위치로 돌진합니다. 표적이 고정되면 피하세요.'];
-const types=['rotor','shrink','pull','rover','turntable','crusher','grow','laser','repulse','conveyor','ferry','portal','orbit','boost','drone'];
+const types=['rotor','shrink','pull','gravity','slingshot','echoCutter','grow','laser','repulse','conveyor','ferry','portal','orbit','boost','drone'];
+tips[1]='1×1 축소 → 전류 벽 지그재그. 노란 대기선에서 출발등을 보고 아래로 전속력. 세 문 뒤 즉시 제동!';
+names[3]='중력 반전 계단';tips[3]='작동으로 중력 ↑↓ 전환. ↑·↓·↑ 세 수직로를 타고, 모서리 전에 브레이크!';
+names[4]='궤도 새총';tips[4]='노란 고리에서 작동을 누른 채 공전 → 위쪽 노란 호에서 손 떼기 → 오른쪽 착지 즉시 브레이크.';
+names[5]='잔상 절단 퍼즐';tips[5]='위·아래·위 표식까지 길을 그으세요. 잔상이 켜지면 왕복 절단기가 자를 때까지 숨고, 열린 문으로 돌아오세요.';
+names[7]='회전 레이저 바늘귀';tips[7]='위쪽 좁은 회랑에서 빔을 따라가세요. 노란 피난 홈에서 빔을 한 번 보내고, 왼쪽 출구로!';
 const rooms=names.map((name,i)=>({id:i,name,type:types[i],tip:tips[i],x:i<5?12+21*i:i<10?96-21*(i-5):12+21*(i-10),y:i<5?92:i<10?55:18,dir:i>=5&&i<10?-1:1}));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -48,11 +69,31 @@ function makeMap(){
   rect(r.x-7,r.y+9,14,1,r.id%3===1?12:r.id%3===2?11:10);
  }
  rect(100,53,6,41,1);rect(3,16,6,41,1);
- // Size lock: physical one-tile opening, no invisible gate.
- rect(33,82,1,20,10);rect(33,92,1,1,1);
- rect(77,82,1,20,13); // vehicle break wall
+ // Room 02: one continuous two-tile-wide route. No corridor bypass.
+ rect(24,82,18,20,10);rect(27,84,13,16,12);
+ rect(24,90,5,4,1); // safe shrink/respawn pocket
+ rect(28,86,2,8,1); // up
+ rect(28,86,6,2,1); // right, first hairpin
+ rect(32,86,2,12,1); // down, three sequenced press gates
+ rect(32,96,8,2,1); // right, brake before turning
+ rect(38,90,2,8,1); // up
+ rect(38,90,4,4,1); // safe restore/exit pocket
+ // Room 04: three gravity shafts joined by narrow braking landings.
+ rect(66,82,18,20,10);rect(68,84,15,16,12);
+ rect(66,90,6,4,1);rect(69,85,3,9,1);rect(69,85,8,3,1);
+ rect(74,85,3,13,1);rect(74,95,9,3,1);rect(80,90,3,8,1);rect(80,90,4,4,1);
+ // Room 05: closed orbital chamber, a three-tile tangent throat, icy landing.
+ rect(87,82,19,20,10);rect(88,84,17,16,12);rect(89,85,12,14,1);
+ rect(87,90,6,4,1);rect(99,86,6,3,1);rect(102,82,3,12,2);rect(105,84,1,16,12);
+ // Room 06: three trace chambers. Dynamic echo gates live on the central corridor.
+ rect(87,45,19,20,10);rect(87,53,19,4,1);
+ rect(100,47,4,10,1);rect(96,53,4,10,1);rect(92,47,4,10,1);
+ rect(100,53,6,12,1); // preserve the vertical connector down to the safe entry pocket
  rect(72,45,1,20,13); // enlarged break wall
- rect(52,45,1,7,12);rect(52,59,1,6,12); // laser flanking walls
+ // Room 08: three-tile U corridor, central emitter, and a recessed refuge.
+ rect(45,45,18,20,12);rect(45,53,5,4,1);rect(58,53,5,4,1);
+ rect(47,48,14,3,1);rect(47,48,3,9,1);rect(58,48,3,9,1);
+ rect(52,45,4,6,1); // refuge at (54,46.5), beyond the actual beam tips
  rect(10,8,5,20,12); // ferry crosses electric trench, still a wall material
  rect(31,8,1,20,10); // portal partition
  return tiles;
@@ -61,12 +102,94 @@ const MAP=makeMap();
 function create(mode='challenge',section=0){
  const r=rooms[section],s={mode,state:'running',time:0,wallTime:0,stage:section,practiceSection:section,hits:0,progress:section,player:{x:r.x-r.dir*7,y:r.y,vx:0,vy:0,size:2},broken:new Set(),vehicle:false,ferry:false,conveyor:1,boost:0,invul:0,respawn:0,actionLast:false,flash:0,message:'',messageTime:0,trail:[],splits:[],events:[],lastHit:'',droneTarget:null};
  if(section===10)s.player.x=5;
- s.respawnPoint={x:s.player.x,y:s.player.y};
+ s.respawnPoint={x:s.player.x,y:s.player.y};s.needleTime=0;s.needlePassed=0;
+ resetGravity(s);resetSling(s);resetEcho(s);resetLaser(s);
  return s;
 }
 function note(s,t){s.message=t;s.messageTime=2;}
+function resetGravity(s){s.gravity=1;s.gravityPassed=0;}
+function resetSling(s){s.tether=null;s.slingFlight=0;s.slingGate=0;s.slingLanded=false;}
+function resetEcho(s){s.echoTime=0;s.echoCuts=0;s.echoTrail=[];s.echoLast=null;s.echoStarted=false;s.echoArmed=[false,false,false];}
+function resetLaser(s){s.laserTime=0;s.laserStarted=false;s.laserSheltered=false;s.laserPassed=false;s.laserShelterBeat=null;}
+function laserBeams(s){const a=LASER.phase-s.laserTime*LASER.omega;return [a,a+Math.PI].map(angle=>({angle,ax:LASER.x,ay:LASER.y,bx:LASER.x+Math.cos(angle)*LASER.length,by:LASER.y+Math.sin(angle)*LASER.length}));}
+function laserHitAt(s,x,y){
+ if(s.stage!==7||!s.laserStarted)return false;
+ const h=s.player.size/2+LASER.width/2;
+ // Segment versus expanded square: respects all four corners of the 2x2 hero.
+ return laserBeams(s).some(b=>{let lo=0,hi=1;for(const [origin,delta,center] of [[b.ax,b.bx-b.ax,x],[b.ay,b.by-b.ay,y]]){if(Math.abs(delta)<1e-10){if(Math.abs(origin-center)>h)return false;}else{const a=(center-h-origin)/delta,c=(center+h-origin)/delta;lo=Math.max(lo,Math.min(a,c));hi=Math.min(hi,Math.max(a,c));if(lo>hi)return false;}}return true;});
+}
+function laserGateAt(s,x,y){const g=LASER.gate;return s.stage===7&&!s.laserPassed&&inRect({x,y},g.x,g.y,g.w,g.h,s.player.size/2-.015);}
+function laserBeat(s){return Math.floor((s.laserTime*LASER.omega-LASER.phase-Math.PI/2-.4)/Math.PI);}
+function inEchoRoom(p){return p.x>=87&&p.x<=106&&p.y>=45&&p.y<=65;}
+function suspendInput(s){s.actionLast=false;if(s.tether)s.tether.rearm=true;}
+function gravityLane(p){return GRAVITY.lanes.findIndex(l=>inRect(p,l.x,l.y,l.w,l.h));}
+function slingGateClosed(s){return s.stage===4&&s.slingGate<=0;}
+function slingStatus(s){
+ const p=s.player,a=s.tether?s.tether.angle:Math.atan2(p.y-SLING.y,p.x-SLING.x);
+ const error=Math.atan2(Math.sin(a+Math.PI/2),Math.cos(a+Math.PI/2));
+ return {angle:a,error,ready:!!s.tether&&s.tether.arc>=SLING.minArc,release:!!s.tether&&s.tether.arc>=SLING.minArc&&Math.abs(error)<SLING.releaseHalfAngle};
+}
+function echoCutters(s){return ECHO.cutters.map((c,i)=>{
+ const a=((s.echoTime/ECHO.period+c.phase)%1)*Math.PI*2;
+ return {index:i,x:c.x+Math.sin(a)*c.amp,y:c.y,w:1.1,h:.72,target:c.target};
+});}
+function echoGateAt(s,x,y,h=s.player.size/2-.015){
+ if(s.stage!==5)return 0;
+ for(let i=s.echoCuts;i<ECHO.gates.length;i++){const g=ECHO.gates[i];if(inRect({x,y},g.x,g.y,.34,3.35,h))return i+1;}
+ return 0;
+}
+function echoTrailAt(s,x,y,h=s.player.size/2-.015){
+ if(s.stage!==5)return 0;
+ for(let i=0;i<s.echoTrail.length;i++){const q=s.echoTrail[i];
+  if(q.cut===s.echoCuts&&i>=s.echoTrail.length-11)continue; // 2x2 player keeps a short live-head gap
+  if(s.echoTime-q.born>=ECHO.delay&&s.echoTime-q.born<=ECHO.lifetime&&Math.hypot(x-q.x,y-q.y)<h+.19)return q.cut+1;
+ }
+ return 0;
+}
+function echoCutterAt(s,x,y,h=s.player.size/2-.015){
+ if(s.stage!==5)return 0;
+ for(const c of echoCutters(s))if(inRect({x,y},c.x,c.y,c.w,c.h,h))return c.index+1;
+ return 0;
+}
+function echoStatus(s){
+ const next=Math.min(s.echoCuts,2),c=ECHO.cutters[next],active=s.echoTrail.filter(q=>q.cut===s.echoCuts&&s.echoTime-q.born>=ECHO.delay).length;
+ return {cuts:s.echoCuts,next:next+1,target:c.target,armed:s.echoArmed[next],active,cutters:echoCutters(s)};
+}
+function electricReason(s,x,y){
+ if(laserHitAt(s,x,y))return '회전 레이저 접촉';
+ if(laserGateAt(s,x,y))return '피난 확인 전 출구막 접촉';
+ const gate=needleHitAt(s,x,y);if(gate)return '압착문 '+gate+' 접촉';
+ if(echoCutterAt(s,x,y))return '절단기 접촉';
+ if(echoTrailAt(s,x,y))return '자기 잔상 접촉';
+ if(echoGateAt(s,x,y))return '잔상 봉인문 접촉';
+ if(slingGateClosed(s)&&inRect({x,y},SLING.gate.x,SLING.gate.y,SLING.gate.w,SLING.gate.h,s.player.size/2-.015))return '궤도 출구막 접촉';
+ return '전류 벽 접촉';
+}
 function resetSize(s,size){const p=s.player;const old=p.size;p.size=size;if(size>old&&solidAt(s,p.x,p.y,false))p.size=old;return p.size===size;}
 function tileAt(s,x,y){const ix=Math.floor(x),iy=Math.floor(y),id=iy*N+ix;if(ix<0||ix>=N||iy<0||iy>=N)return 10;return s.broken.has(id)?1:MAP[id];}
+function needleGate(s,index){
+ const start=NEEDLE.openStart+index*NEEDLE.stagger;
+ const phase=((s.needleTime-start)%NEEDLE.period+NEEDLE.period)%NEEDLE.period;
+ let aperture=0;
+ if(phase<NEEDLE.hold)aperture=2;
+ else if(phase<NEEDLE.hold+NEEDLE.ramp)aperture=2*(1-(phase-NEEDLE.hold)/NEEDLE.ramp);
+ else if(phase>NEEDLE.period-NEEDLE.ramp)aperture=2*(phase-(NEEDLE.period-NEEDLE.ramp))/NEEDLE.ramp;
+ const remaining=phase<NEEDLE.hold?NEEDLE.hold-phase:NEEDLE.period-phase;
+ return {x:33,y:NEEDLE.gates[index],aperture,phase,state:aperture>1.95?'open':phase>NEEDLE.period-.38?'warning':'closed',remaining};
+}
+function needlePanels(s,index){
+ const g=needleGate(s,index),reach=1-g.aperture/2;
+ return reach<.00001?[]:[{x:32+reach/2,y:g.y,w:reach,h:.3},{x:34-reach/2,y:g.y,w:reach,h:.3}];
+}
+function needleStatus(s){
+ const phase=s.needleTime%NEEDLE.period,go=phase>=NEEDLE.launchStart&&phase<=NEEDLE.launchEnd;
+ return {go,phase,wait:(NEEDLE.launchStart-phase+NEEDLE.period)%NEEDLE.period,gates:NEEDLE.gates.map((_,i)=>needleGate(s,i))};
+}
+function needleHitAt(s,x,y){
+ if(s.stage!==1||x<31||x>35||y<88||y>97)return 0;
+ for(let i=0;i<3;i++)for(const box of needlePanels(s,i))if(inRect({x,y},box.x,box.y,box.w,box.h,s.player.size/2-.015))return i+1;
+ return 0;
+}
 function solidAt(s,x,y,breakIt=true){
  const p=s.player,h=p.size/2-0.015;let hit=0;
  for(let yy=Math.floor(y-h);yy<=Math.floor(y+h);yy++)for(let xx=Math.floor(x-h);xx<=Math.floor(x+h);xx++){
@@ -75,6 +198,10 @@ function solidAt(s,x,y,breakIt=true){
   if(t===13&&(s.vehicle||p.size>2.5)&&breakIt){s.broken.add(yy*N+xx);continue;}
   hit=hit===12||t===12?12:Math.max(hit,t);
  }
+ if(needleHitAt(s,x,y))hit=12;
+ if(slingGateClosed(s)&&inRect({x,y},SLING.gate.x,SLING.gate.y,SLING.gate.w,SLING.gate.h,h))hit=12;
+ if(echoGateAt(s,x,y,h)||echoTrailAt(s,x,y,h)||echoCutterAt(s,x,y,h))hit=12;
+ if(laserHitAt(s,x,y)||laserGateAt(s,x,y))hit=12;
  return hit;
 }
 function hurt(s,reason){
@@ -82,11 +209,37 @@ function hurt(s,reason){
  s.hits++;s.lastHit=reason;s.events.push({t:s.time,type:'hit',reason,stage:s.stage});
  s.time+=.65;s.respawn=.3;s.invul=.95;s.flash=.6;
  Object.assign(s.player,{x:s.respawnPoint.x,y:s.respawnPoint.y,vx:0,vy:0,size:2});s.vehicle=false;s.ferry=false;s.boost=0;
- note(s,reason+' · 区간 복귀 +0.65초'.replace('区','구'));
+ if(s.stage===1){s.needleTime=0;s.needlePassed=0;}
+ if(s.stage===3)resetGravity(s);
+ if(s.stage===4)resetSling(s);
+ if(s.stage===5)resetEcho(s);
+ if(s.stage===7)resetLaser(s);
+ note(s,reason+' · 구간 복귀 +0.65초');
 }
 function nearSegment(p,ax,ay,bx,by,r){const dx=bx-ax,dy=by-ay,u=clamp(((p.x-ax)*dx+(p.y-ay)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-ax-u*dx,p.y-ay-u*dy)<r;}
 function hazards(s,r,dt){
  const p=s.player,t=s.wallTime,h=p.size/2,rr=h*1.1;
+ if(r.type==='shrink'){
+  for(let i=0;i<3;i++)for(const box of needlePanels(s,i))if(inRect(p,box.x,box.y,box.w,box.h,h-.015)){hurt(s,'압착문 '+(i+1)+' 접촉');return;}
+  for(let i=s.needlePassed;i<3;i++)if(p.y>NEEDLE.gates[i]+.7&&p.x>32&&p.x<34){s.needlePassed=i+1;s.events.push({type:'needle-gate',gate:i+1,t:s.time});}
+ }
+ if(r.type==='gravity'){
+  const i=s.gravityPassed,l=GRAVITY.lanes[i];
+  if(l&&Math.abs(p.x-l.x)<.55&&s.gravity===l.sign&&((i===0&&p.y<88.6)||(i===1&&p.y>94.4)||(i===2&&p.y<93.6))){
+   s.gravityPassed++;s.events.push({type:'gravity-shaft',shaft:i+1,t:s.time});
+  }
+ }
+ if(r.type==='slingshot'){
+  const dx=Math.max(Math.abs(p.x-SLING.x)-h,0),dy=Math.max(Math.abs(p.y-SLING.y)-h,0);
+  if(Math.hypot(dx,dy)<2.4)hurt(s,'중력 코어 접촉');
+ }
+ if(r.type==='echoCutter'){
+  const current=ECHO.cutters[s.echoCuts];
+  if(current&&!s.echoArmed[s.echoCuts]&&Math.hypot(p.x-current.target.x,p.y-current.target.y)<.72){s.echoArmed[s.echoCuts]=true;s.events.push({type:'echo-armed',room:s.echoCuts+1,t:s.time});note(s,`${s.echoCuts+1}번 표식 도달 · 절단을 기다리세요`);}
+  const blade=echoCutterAt(s,p.x,p.y,h-.015),trace=echoTrailAt(s,p.x,p.y,h-.015);
+  if(blade){hurt(s,'절단기 접촉');return;}
+  if(trace){hurt(s,'자기 잔상 접촉');return;}
+ }
  if(r.type==='rotor'){
   const a=t*1.25+.4,dx=Math.cos(a)*5.2,dy=Math.sin(a)*5.2;
   if(nearSegment(p,r.x-dx,r.y-dy,r.x+dx,r.y+dy,rr+.22))hurt(s,'회전봉 접촉');
@@ -96,8 +249,13 @@ function hazards(s,r,dt){
   if(inRect(p,x,r.y+off,2.1,4.2,h*.8))hurt(s,'압착기 접촉');
  }
  if(r.type==='laser'){
-  const phase=t%2.8;
-  if(phase>1.35&&phase<2.3&&Math.abs(p.x-(r.x-2))<h+.18&&Math.abs(p.y-r.y)<3.55+h*.8)hurt(s,'레이저 접촉');
+  if(laserHitAt(s,p.x,p.y)){hurt(s,'회전 레이저 접촉');return;}
+  const safe=Math.abs(p.x-LASER.refuge.x)<.65&&p.y<47;
+  if(safe&&!s.laserSheltered){s.laserSheltered=true;s.laserShelterBeat=laserBeat(s);s.events.push({type:'laser-refuge',t:s.time});note(s,'피난 홈 · 빔이 입구를 지날 때까지 대기');}
+  if(s.laserSheltered&&!s.laserPassed){
+   if(!safe){s.laserSheltered=false;s.laserShelterBeat=null;}
+   else if(laserBeat(s)>s.laserShelterBeat){s.laserPassed=true;s.events.push({type:'laser-shelter-pass',t:s.time});note(s,'빔 통과 · 왼쪽 회랑으로 출발!');}
+  }
  }
  if(r.type==='orbit'){
   for(let i=0;i<2;i++){const a=t*1.4+i*Math.PI,x=r.x+Math.cos(a)*4,y=r.y+Math.sin(a)*4;if(Math.hypot(p.x-x,p.y-y)<rr+.65)hurt(s,'공전 위성 접촉');}
@@ -111,45 +269,89 @@ function hazards(s,r,dt){
 function ferryPos(s){return s.ferry?{x:s.player.x,y:s.player.y}:{x:12+Math.sin(s.wallTime*1.8+C.ferryPhase)*6,y:18};}
 function step(s,input={},dt=DT){
  if(s.state!=='running')return;
- s.wallTime+=dt;s.time+=dt;s.invul=Math.max(0,s.invul-dt);s.flash=Math.max(0,s.flash-dt);s.messageTime=Math.max(0,s.messageTime-dt);s.boost=Math.max(0,s.boost-dt);
+ s.wallTime+=dt;s.time+=dt;s.invul=Math.max(0,s.invul-dt);s.flash=Math.max(0,s.flash-dt);s.messageTime=Math.max(0,s.messageTime-dt);s.boost=Math.max(0,s.boost-dt);s.slingGate=Math.max(0,s.slingGate-dt);
  if(s.mode==='challenge'&&s.time>=LIMIT){s.time=LIMIT;s.state='lost';return;}
  if(s.respawn>0){s.respawn-=dt;return;}
- const p=s.player,r=rooms[Math.min(s.stage,14)],edge=!!input.action&&!s.actionLast;s.actionLast=!!input.action;
+ if(s.stage===1)s.needleTime+=dt;
+ if(s.stage===5&&!s.echoStarted&&s.player.x<102.75&&s.player.y>53&&s.player.y<57)s.echoStarted=true;
+ if(s.stage===5&&s.echoStarted)s.echoTime+=dt;
+ if(s.stage===7&&!s.laserStarted&&s.player.x<60.8){s.laserStarted=true;note(s,'레이저 회전 시작 · 위쪽 회랑으로!');}
+ if(s.stage===7&&s.laserStarted)s.laserTime+=dt;
+ const p=s.player,r=rooms[Math.min(s.stage,14)],edge=!!input.action&&!s.actionLast,release=!input.action&&s.actionLast;s.actionLast=!!input.action;
  if(Math.hypot(p.x-(r.x-r.dir*7),p.y-r.y)<2)s.respawnPoint={x:r.x-r.dir*7,y:r.y};
  if(edge){
-  if(r.type==='rover'&&Math.hypot(p.x-(r.x-5),p.y-r.y)<4){s.vehicle=!s.vehicle;note(s,s.vehicle?'탑승 · 금간 벽을 향해 운전':'하차');}
+  if(r.type==='gravity'){s.gravity*=-1;note(s,s.gravity<0?'중력 ↑ · 착지 전에 제동':'중력 ↓ · 착지 전에 제동');}
   if(r.type==='conveyor'&&Math.hypot(p.x-r.x,p.y-r.y)<8){s.conveyor*=-1;note(s,'벨트 방향 반전');}
   if(r.type==='ferry'&&!s.ferry&&Math.hypot(p.x-ferryPos(s).x,p.y-18)<4.4){s.ferry=true;note(s,'탑승 · 위아래로 조향, 오른쪽에서 자동 하차');}
   if(r.type==='portal'&&Math.hypot(p.x-(r.x-5),p.y-(r.y+3))<3.3){p.x=r.x+4;p.y=r.y-3;s.events.push({type:'portal',t:s.time});note(s,'출구로 전송');}
  }
- if(r.type==='shrink'&&p.x<r.x-1&&Math.abs(p.x-(r.x-5))<2.6&&Math.abs(p.y-(r.y+.5))<3)resetSize(s,1);
- if(r.type==='shrink'&&p.x>r.x+3)resetSize(s,2);
+ if(r.type==='slingshot'){
+  const radius=Math.hypot(p.x-SLING.x,p.y-SLING.y);
+  if(input.action&&!s.tether&&!s.slingFlight&&!s.slingLanded&&p.x<92.5&&Math.abs(p.y-92)<.7&&Math.abs(radius-SLING.radius)<.13){
+   s.tether={angle:Math.atan2(p.y-SLING.y,p.x-SLING.x),radius,arc:0};
+   s.events.push({type:'orbit-capture',t:s.time});note(s,'궤도 고정 · 누른 채 공전, 노란 호에서 손 떼기');
+  }
+  if(release&&s.tether){
+   const orbit=s.tether;s.tether=null;
+   p.vx=-Math.sin(orbit.angle)*SLING.launchSpeed;p.vy=Math.cos(orbit.angle)*SLING.launchSpeed;
+   s.slingFlight=.8;s.slingGate=orbit.arc>=SLING.minArc?.8:0;
+   s.events.push({type:'orbit-release',angle:orbit.angle,arc:orbit.arc,x:p.x,y:p.y,vx:p.vx,vy:p.vy,t:s.time});
+   note(s,s.slingGate?'이탈 · 착지 구역에서 즉시 브레이크!':'충전 부족 · 출구막이 열리지 않았습니다');
+  }
+ }
+ if(r.type==='shrink'&&inRect(p,26.5,92,3.8,3.8))resetSize(s,1);
+ if(r.type==='shrink'&&p.x>39.4&&Math.abs(p.y-92)<.85)resetSize(s,2);
  if(r.type==='grow'&&Math.abs(p.x-(r.x+5))<2.8&&Math.abs(p.y-r.y)<3)resetSize(s,3);
  if(r.type==='boost'&&inRect(p,r.x-3,r.y,4,5)&&s.boost<.01){s.boost=.7;note(s,'가속 · 브레이크로 제어');}
  let ix=Number(input.x)||0,iy=Number(input.y)||0;const len=Math.hypot(ix,iy);if(len>1){ix/=len;iy/=len;}
  const floor=tileAt(s,p.x,p.y),brake=!!input.brake;
  let speed=C.speed*(floor===3?.72:1)*(p.size>2.5?.91:1)*(s.vehicle?1.25:1)*(s.boost>0?1.7:1)*(brake?.46:1);
  const drag=brake?C.brake:floor===2?3.6:C.accel,blend=1-Math.exp(-drag*dt);
- p.vx+=(ix*speed-p.vx)*blend;p.vy+=(iy*speed-p.vy)*blend;
+ if(s.tether){
+  const o=s.tether;if(input.action)o.rearm=false;
+  const da=o.rearm?0:(brake?SLING.brakeOmega:SLING.omega)*dt;o.angle+=da;o.arc+=da;
+  // Orbit starts at the exact capture radius. Collision uses the ordinary swept path.
+  p.vx=(SLING.x+Math.cos(o.angle)*o.radius-p.x)/dt;p.vy=(SLING.y+Math.sin(o.angle)*o.radius-p.y)/dt;
+ }else if(s.slingFlight>0){s.slingFlight=Math.max(0,s.slingFlight-dt);}
+ else{
+  p.vx+=(ix*speed-p.vx)*blend;
+  if(r.type==='gravity'&&gravityLane(p)>=0){
+   p.vy=p.vy*Math.exp(-(brake?22:.7)*dt)+(s.gravity*GRAVITY.accel*(brake?.25:1)+iy*GRAVITY.steer*(brake?.25:1))*dt;
+   p.vy=clamp(p.vy,-GRAVITY.maxSpeed,GRAVITY.maxSpeed);
+  }else p.vy+=(iy*speed-p.vy)*blend;
+ }
  if(r.type==='pull'||r.type==='repulse'){
   const mx=r.x,my=r.y+Math.sin(s.wallTime*1.3)*2.4,dx=mx-p.x,dy=my-p.y,d=Math.hypot(dx,dy);
   if(d<8&&d>.2){const f=(r.type==='pull'?1:-1)*(1-d/8)*68*(brake?.25:1);p.vx+=dx/d*f*dt;p.vy+=dy/d*f*dt;}
   if(d<.7+p.size*.35)hurt(s,'자석 코어 접촉');
  }
- if(r.type==='turntable'&&Math.hypot(p.x-r.x,p.y-r.y)<6){p.vx-=(p.y-r.y)*6*dt;p.vy+=(p.x-r.x)*6*dt;}
  if(r.type==='conveyor'&&inRect(p,r.x,r.y,13,9))p.vy+=s.conveyor*25*(brake?.2:1)*dt;
  if(s.ferry){p.vx=14.5;p.vy=iy*7;}
  const sub=Math.max(1,Math.ceil(Math.hypot(p.vx,p.vy)*dt/.22));
  for(let n=0;n<sub;n++){
   const nx=p.x+p.vx*dt/sub,tx=solidAt(s,nx,p.y);
-  if(!tx)p.x=nx;else{if(tx===12)hurt(s,'전류 벽 접촉');p.vx=tx===11?-p.vx*.6:0;}
+  if(!tx)p.x=nx;else{if(tx===12)hurt(s,electricReason(s,nx,p.y));p.vx=tx===11?-p.vx*.6:0;}
+  if(s.respawn>0)break;
   const ny=p.y+p.vy*dt/sub,ty=solidAt(s,p.x,ny);
-  if(!ty)p.y=ny;else{if(ty===12)hurt(s,'전류 벽 접촉');p.vy=ty===11?-p.vy*.6:0;}
+  if(!ty)p.y=ny;else{if(ty===12)hurt(s,electricReason(s,p.x,ny));p.vy=ty===11?-p.vy*.6:0;}
+  if(s.respawn>0)break;
  }
+ if(s.respawn>0)return;
+ if(r.type==='echoCutter'&&s.echoStarted){
+  const last=s.echoLast;
+  if(!last||Math.hypot(p.x-last.x,p.y-last.y)>=ECHO.sample){s.echoTrail.push({x:p.x,y:p.y,born:s.echoTime,cut:s.echoCuts});s.echoLast={x:p.x,y:p.y};}
+  s.echoTrail=s.echoTrail.filter(q=>s.echoTime-q.born<=ECHO.lifetime);
+  const cutter=echoCutters(s)[s.echoCuts];
+  if(cutter){
+   const hit=s.echoArmed[s.echoCuts]&&s.echoTrail.some(q=>q.cut===s.echoCuts&&s.echoTime-q.born>=ECHO.delay&&inRect(q,cutter.x,cutter.y,cutter.w,cutter.h,.16));
+   if(hit){const cut=s.echoCuts;s.echoTrail=s.echoTrail.filter(q=>q.cut!==cut);s.echoCuts++;s.echoLast=null;s.events.push({type:'echo-cut',cut:s.echoCuts,t:s.time});note(s,`${s.echoCuts}번 잔상 절단 · 문 개방`);}
+  }
+ }
+ if(s.slingFlight>0&&p.x>=102.4&&p.y>86.9&&p.y<88.1){s.slingFlight=0;s.slingLanded=true;s.events.push({type:'orbit-land',t:s.time});note(s,'착지 · 브레이크 후 아래 출구');}
  if(s.ferry&&p.x>17){s.ferry=false;note(s,'하차');}
  if(s.respawn<=0)hazards(s,r,dt);
  const gx=r.x+r.dir*7,gy=r.y;
- if(s.respawn<=0&&Math.hypot(p.x-gx,p.y-gy)<1.8){
+ if(s.respawn<=0&&Math.hypot(p.x-gx,p.y-gy)<1.8&&(s.stage!==1||(s.needlePassed===3&&p.x>39.6&&Math.abs(p.y-92)<.85))&&(s.stage!==3||(s.gravityPassed===3&&p.y<92.4))&&(s.stage!==4||s.slingLanded)&&(s.stage!==5||s.echoCuts===3)&&(s.stage!==7||s.laserPassed)){
   s.splits.push({stage:s.stage,time:s.time});s.events.push({type:'checkpoint',stage:s.stage,t:s.time});
   s.respawnPoint={x:p.x,y:p.y};s.stage++;s.progress=s.stage;s.vehicle=false;s.ferry=false;resetSize(s,2);
   if(s.mode==='practice'){s.state='practice-win';return;}
@@ -163,18 +365,27 @@ function paths(profile='precision'){
  const a=[];const add=(x,y,extra={})=>a.push({x,y,...extra});
  for(const r of rooms){
   const x=r.x,y=r.y,d=r.dir;
-  if(r.id===5){add(103,87);add(103,55);}
+  if(r.id===5){add(103.5,87,{tight:true});add(103.5,81,{tight:true});add(103,55);}
   if(r.id===10){add(5,50);add(5,18);}
   if(![5,10].includes(r.id))add(x-d*7,y);
   switch(r.type){
    case 'rotor':add(x-6,y-7);add(x+6,y-7);break;
-   case 'shrink':add(x-5,y+.5);add(x-1.1,y+.5);add(x+2.5,y+.5);add(x+5,y);break;
+   case 'shrink':
+    add(26.5,92,{tight:true});add(29,92,{tight:true});add(29,87,{tight:true});add(33,87,{tight:true});
+    add(33,88,{tight:true,wait:'needle'});add(33,96.2,{rush:true});add(33,97,{tight:true});
+    add(39,97,{tight:true});add(39,92,{tight:true});add(40,92,{tight:true});break;
    case 'pull':add(x-6,y-6);add(x+6,y-6);break;
-   case 'rover':add(x-5,y,{action:'rover'});add(x+5,y);break;
-   case 'turntable':add(x+1,y-.8);break;
-   case 'crusher':add(x+5,y-7.1);add(x-5,y-7.1);break;
+   case 'gravity':
+    add(70.5,92,{tight:true,polarity:-1});add(70.5,86.5,{gravityMove:true,polarity:-1});
+    add(75.5,86.5,{tight:true,polarity:1});add(75.5,96.5,{gravityMove:true,polarity:1});
+    add(81.5,96.5,{tight:true,polarity:-1});add(81.5,92,{gravityMove:true,polarity:-1});break;
+   case 'slingshot':add(91.5,92,{sling:true});add(103.5,87.5,{tight:true});add(103.5,92,{tight:true});break;
+   case 'echoCutter':
+    add(102,55,{tight:true,echoStart:true});add(102,52.95,{tight:true,cutter:0});add(102,48.5,{tight:true,echoCut:1});add(102,50.05,{tight:true,cutter:0});add(102,55,{tight:true});
+    add(98,55,{tight:true});add(98,57.05,{tight:true,cutter:1});add(98,61.5,{tight:true,echoCut:2});add(98,59.95,{tight:true,cutter:1});add(98,55,{tight:true});
+    add(94,55,{tight:true});add(94,52.95,{tight:true,cutter:2});add(94,48.5,{tight:true,echoCut:3});add(94,50.05,{tight:true,cutter:2});add(94,55,{tight:true});break;
    case 'grow':add(x+5,y);add(x-5,y);break;
-   case 'laser':add(x+1,y,{wait:'laser'});add(x-5,y);break;
+   case 'laser':add(59.5,55,{tight:true});add(59.5,49.5,{tight:true});add(54,49.5,{tight:true});add(54,46.5,{tight:true,laserRefuge:true});add(54,49.5,{tight:true});add(48.5,49.5,{tight:true});add(48.5,55,{tight:true});break;
    case 'repulse':add(x+6,y-6);add(x-6,y-6);break;
    case 'conveyor':add(x+4,y-1.5);add(x-4,y-1.5);break;
    case 'ferry':add(x-7,y,{action:'ferry'});add(x+6,y);break;
@@ -187,23 +398,54 @@ function paths(profile='precision'){
  }
  return a;
 }
-function pilot(profile='precision',startStage=0){return{profile,points:paths(profile),index:0,act:false};}
+function pilot(profile='precision',startStage=0){const points=paths(profile),prev=points.findIndex(p=>p.exit===startStage-1);let index=startStage>0?prev+1:0;if(startStage===5){const start=points.findIndex(p=>p.echoStart);if(start>=0)index=start;}return{profile,points,index,act:false};}
 function drive(s,b){
  const p=s.player,w=b.points[b.index];if(!w)return{x:0,y:0};
  const dx=w.x-p.x,dy=w.y-p.y,d=Math.hypot(dx,dy);
  const precision=b.profile==='precision';
+ if(w.laserRefuge&&d<.09){if(s.laserPassed){b.index++;return drive(s,b);}return{x:0,y:0,brake:true};}
+ if(w.cutter!==undefined&&d<.09){
+  const c=echoCutters(s)[w.cutter],base=ECHO.cutters[w.cutter],off=c.x-base.x;
+  const a=((s.echoTime/ECHO.period+base.phase)%1)*Math.PI*2,velocity=Math.cos(a);
+  if(Math.abs(off)>1.64&&off*velocity>0){b.index++;return drive(s,b);}return{x:0,y:0,brake:true};
+ }
+ if(w.echoCut&&d<.09){if(s.echoCuts>=w.echoCut){b.index++;return drive(s,b);}return{x:0,y:0,brake:true};}
+ if(w.polarity&&s.gravity!==w.polarity)return {x:0,y:0,brake:true,action:!s.actionLast};
+ if(w.sling){
+  if(s.slingLanded){b.index++;return drive(s,b);}
+  if(s.tether){const status=slingStatus(s);return {x:0,y:0,action:!!s.tether.rearm||!(status.ready&&status.error>=-.022&&status.error<=.024),brake:!precision&&status.error>-.7};}
+  if(s.slingFlight>0)return {x:0,y:0,brake:true};
+  return {x:clamp(dx*7-p.vx*.4,-1,1),y:clamp(dy*7-p.vy*.4,-1,1),action:true,brake:d<.6};
+ }
+ if(w.gravityMove){
+  if(d<.09&&Math.abs(p.vy)<.8){b.index++;return drive(s,b);}
+  const desired=Math.min(14,Math.abs(dy)*10)*Math.sign(dy),brake=Math.abs(dy)<1.9;
+  return {x:clamp(dx*7-p.vx*.4,-1,1),y:clamp((desired+(desired-p.vy)*2)/(C.speed*(brake?.46:1)),-1,1),brake};
+ }
+ if(w.rush){if(p.y>=w.y){b.index++;return drive(s,b);}return{x:clamp((w.x-p.x)*4-p.vx*.3,-.18,.18),y:1,brake:false};}
+ if(w.wait==='needle'&&d<.09&&Math.hypot(p.vx,p.vy)<.3){
+  const phase=s.needleTime%NEEDLE.period;
+  if(phase>=.89&&phase<=.94){b.index++;return drive(s,b);}
+  return{x:0,y:0,brake:true};
+ }
+ if(w.tight){
+  if(d<.085&&w.wait!=='needle'){b.index++;return drive(s,b);}
+  const desired=Math.min(C.speed*(precision?1:.95),d*(precision?12:10));
+  const tx=dx/(d||1)*desired,ty=dy/(d||1)*desired;
+  const brake=d<1.2,scale=C.speed*(brake?.46:1);
+  return{x:(tx+(tx-p.vx)*1.7)/scale,y:(ty+(ty-p.vy)*1.7)/scale,brake};
+ }
  const actionNeeded=w.action==='rover'?!s.vehicle:w.action==='ferry'?!s.ferry:w.action==='portal'?p.x<31:false;
  if(w.action&&actionNeeded&&d<1){b.act=!b.act;return{x:0,y:0,brake:true,action:b.act};}
  if(w.action&&!actionNeeded){b.index++;b.act=false;return drive(s,b);}
  if(w.action==='portal'&&p.x>31){b.index++;return drive(s,b);}
- if(w.wait==='laser'&&d<1.1){const ph=s.wallTime%2.8;if(ph>.75&&ph<2.32)return{x:0,y:0,brake:true};}
  if((d<(w.exit!==undefined?.8:precision?.38:.55)&&!actionNeeded)||(w.exit!==undefined&&s.stage>w.exit)){
   b.index++;b.act=false;return drive(s,b);
  }
- const cruise=precision?1:.88;
+ const cruise=1;
  const ux=dx/(d||1),uy=dy/(d||1);
- const stopping=precision?1.5:2.5;
- const desired=Math.min(C.speed*cruise,d* (precision?9:5.5));
+ const stopping=precision?1.5:1.7;
+ const desired=Math.min(C.speed*cruise,d* (precision?9:9));
  // Velocity feedback corrects ice, field forces and corner overshoot with real directional input.
  const gain=precision?2.1:1.4;
  let ax=ux*desired/C.speed+(ux*desired-p.vx)/C.speed*gain;
@@ -211,19 +453,20 @@ function drive(s,b){
  const l=Math.hypot(ax,ay);if(l>cruise){ax=ax/l*cruise;ay=ay/l*cruise;}
  return{x:ax,y:ay,brake:!precision&&d<stopping,action:false};
 }
-return{N,DT,LIMIT,C,MAP,rooms,names,tips,types,create,step,paths,pilot,drive,solidAt,tileAt,ferryPos,clamp};
+return{N,DT,LIMIT,C,NEEDLE,GRAVITY,SLING,ECHO,LASER,laserBeams,laserHitAt,laserGateAt,MAP,rooms,names,tips,types,create,step,paths,pilot,drive,solidAt,tileAt,ferryPos,needleGate,needlePanels,needleStatus,gravityLane,slingStatus,slingGateClosed,echoCutters,echoStatus,echoGateAt,echoTrailAt,echoCutterAt,inEchoRoom,suspendInput,clamp};
 })();
 if(typeof module!=='undefined')module.exports=Circuit;
 </script><script>(() => {
 'use strict';
 const $=id=>document.getElementById(id),cv=$('game'),ctx=cv.getContext('2d',{alpha:false}),mini=$('minimap'),mc=mini.getContext('2d',{alpha:false});
 const {rooms,MAP,N,DT,clamp}=Circuit;
-const REF={"precision":37,"steady":50.85833}; // generated by build after shared-physics verification
+const REF={"precision":51.00833,"steady":54.875}; // generated by build after shared-physics verification
+const RECORD_KEY='midnight-circuit-01-v1.4-rotating-laser';
 const COLORS={purple:'#ae7bff',yellow:'#ffe576',pink:'#ff65b7',ink:'#080710'};
 let game=Circuit.create(),screen='ready',demo=null,bot=null,fullMap=false,pausedBeforeMap=false,keys=new Set(),joy={x:0,y:0},braking=false,acting=false;
 let last=0,accumulator=0,frame=0,w=900,h=650,dpr=1,camera={x:9,y:91,z:15},count=0,countStart=0,record={best:null,wins:0},audioOn=false,stickId=null;
 const cancelHolds=[];
-try{const v=JSON.parse(localStorage.getItem('midnight-circuit-01-v1')||'{}');if(Number.isFinite(v.best)&&v.best>0&&v.best<=55)record.best=v.best;if(Number.isFinite(v.wins))record.wins=v.wins;}catch{}
+try{const v=JSON.parse(localStorage.getItem(RECORD_KEY)||'{}');if(Number.isFinite(v.best)&&v.best>0&&v.best<=55)record.best=v.best;if(Number.isFinite(v.wins))record.wins=v.wins;}catch{}
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let floorCanvas=document.createElement('canvas');floorCanvas.width=floorCanvas.height=1100;const fc=floorCanvas.getContext('2d');
 function rect(c,x,y,ww,hh,fill,stroke,lw=1){c.fillStyle=fill;c.fillRect(x,y,ww,hh);if(stroke){c.strokeStyle=stroke;c.lineWidth=lw;c.strokeRect(x,y,ww,hh);}}
@@ -264,26 +507,96 @@ function device(c,r,t){
   circle(c,x,y,5.6,'#6c365856',false,.09);circle(c,x,y,2.4,'#3c2439',false,.06);
   const a=t*1.25+.4,dx=Math.cos(a)*5.2,dy=Math.sin(a)*5.2;
   line(c,x-dx,y-dy,x+dx,y+dy,'#ff55ab33',1.1);line(c,x-dx,y-dy,x+dx,y+dy,COLORS.pink,.43);line(c,x-dx,y-dy,x+dx,y+dy,'#ffe7f3',.08);circle(c,x,y,.67,'#fda2d8',true);break;}
- case 'shrink':pad(c,x-5,y+.5,'1×1');pad(c,x+5,y,'2×2',COLORS.purple);line(c,x-1,y+.5,x+2,y+.5,COLORS.yellow,.1);break;
+ case 'shrink':{
+  pad(c,26.5,92,'1×1',COLORS.yellow,2.8,2.8);pad(c,40,92,'2×2',COLORS.purple,2.7,2.7);
+  const route=[[28.7,92],[29,87],[33,87],[33,97],[39,97],[39,92]];
+  c.setLineDash([.22,.32]);c.beginPath();route.forEach(([xx,yy],i)=>i?c.lineTo(xx,yy):c.moveTo(xx,yy));c.strokeStyle='#baa0d960';c.lineWidth=.075;c.stroke();c.setLineDash([]);
+  for(const [xx,yy] of [[29,87],[33,87],[33,97],[39,97]])circle(c,xx,yy,.28,'#ffe57677',false,.075);
+  line(c,32.1,88,33.9,88,COLORS.yellow,.1);
+  const state=Circuit.needleStatus(game);
+  for(let i=0;i<3;i++){
+   const g=state.gates[i],col=g.state==='open'?COLORS.yellow:g.state==='warning'?'#ffb376':COLORS.pink;
+   rect(c,31.6,g.y-.32,.4,.64,'#5b2443',col,.065);rect(c,34,g.y-.32,.4,.64,'#5b2443',col,.065);
+   c.setLineDash([.12,.18]);line(c,32,g.y,34,g.y,col+'55',.045);c.setLineDash([]);
+   for(const b of Circuit.needlePanels(game,i)){rect(c,b.x-b.w/2,b.y-b.h/2,b.w,b.h,'#a54b75',col,.055);line(c,b.x-b.w/2,b.y,b.x+b.w/2,b.y,'#ffe5f0',.035);}
+   circle(c,35.1,g.y,.32,col,true);text(c,String(i+1),35.1,g.y,.4,'#140914');
+   text(c,g.state==='open'?'OPEN':g.state==='warning'?'READY':'CLOSE',37.3,g.y,.43,col);
+  }
+  text(c,'3 BEAT',37,85.9,.62,COLORS.yellow);
+  text(c,state.go?'GO ↓':'WAIT',35.9,87.2,.72,state.go?COLORS.yellow:'#aa8eaf');
+  text(c,'BRAKE →',35.9,98.8,.53,COLORS.yellow);
+  break;}
  case 'pull':case 'repulse':{
   const yy=y+Math.sin(t*1.3)*2.4,col=r.type==='pull'?COLORS.purple:COLORS.pink;
   for(let rad=2;rad<=8;rad+=2){circle(c,x,yy,rad,col+'24',false,.07);const a=(r.type==='pull'?-1:1)*t*.7+rad;for(let k=0;k<4;k++){const aa=a+k*Math.PI/2,xx=x+Math.cos(aa)*rad,y2=yy+Math.sin(aa)*rad;line(c,xx,y2,xx+Math.cos(aa)*(r.type==='pull'?-.6:.6),y2+Math.sin(aa)*(r.type==='pull'?-.6:.6),col+'aa',.13);}}
   circle(c,x,yy,1.02,col+'30',true);circle(c,x,yy,.65,col,true);text(c,r.type==='pull'?'−':'+',x,yy,1.2,'#170e23');break;}
- case 'rover':{
-  if(!game.vehicle){const xx=x-5;rect(c,xx-1.8,y-1.1,3.6,2.2,'#67522a','#e1be60',.13);rect(c,xx-1.2,y-1.4,.65,.45,'#947843');rect(c,xx+.55,y-1.4,.65,.45,'#947843');rect(c,xx-1.2,y+.95,.65,.45,'#947843');rect(c,xx+.55,y+.95,.65,.45,'#947843');text(c,'E',xx,y,.85,COLORS.yellow);}
-  arrows(c,x+4,y,1);break;}
- case 'turntable':{
-  circle(c,x,y,6,'#70559530',true);circle(c,x,y,6,'#a576c4a0',false,.12);circle(c,x,y,4.5,'#64497580',false,.08);
-  for(let k=0;k<8;k++){const a=t*.7+k*Math.PI/4;line(c,x+Math.cos(a)*1.8,y+Math.sin(a)*1.8,x+Math.cos(a)*5.7,y+Math.sin(a)*5.7,'#9a72b560',.1);}circle(c,x,y,1.3,'#33203d',true);text(c,'↻',x,y,1.8,COLORS.purple);break;}
- case 'crusher':{
-  const off=4.9*Math.sin(t*1.65);line(c,x,y-7.2,x,y+7.2,'#704968',.28);for(let j=-7;j<=7;j+=2)line(c,x-.5,y+j,x+.5,y+j,'#87586c',.1);
-  rect(c,x-1.05,y+off-2.1,2.1,4.2,'#70314f',COLORS.pink,.15);for(let j=-1.4;j<2;j+=.7)line(c,x-.75,y+off+j,x+.75,y+off+j-.7,'#ffaad0a0',.12);break;}
+ case 'gravity':{
+  const sign=active?game.gravity:1;
+  for(const [i,l] of Circuit.GRAVITY.lanes.entries()){
+   rect(c,l.x-l.w/2,l.y-l.h/2,l.w,l.h,'#ae7bff24','#ae7bff66',.06);
+   c.save();c.beginPath();c.rect(l.x-l.w/2,l.y-l.h/2,l.w,l.h);c.clip();
+   for(let j=-4;j<5;j++){const yy=l.y+j*1.3+(t*sign*2%1.3);line(c,l.x-.35,yy-sign*.28,l.x,yy,COLORS.purple,.1);line(c,l.x,yy,l.x+.35,yy-sign*.28,COLORS.purple,.1);}c.restore();
+   const passed=game.stage>3||(active&&game.gravityPassed>i);
+   text(c,passed?'✓':`${i+1} ${l.sign<0?'↑':'↓'}`,l.x,l.y,.62,passed?COLORS.yellow:'#f6defa');
+  }
+  for(const [xx,yy] of [[70.5,86.5],[75.5,86.5],[75.5,96.5],[81.5,96.5]]){circle(c,xx,yy,.45,COLORS.yellow+'88',false,.065);}
+  text(c,'E : '+(sign<0?'↑':'↓'),78.8,91.6,.75,COLORS.yellow);
+  text(c,'BRAKE',72.3,84.2,.48,COLORS.yellow);text(c,'BRAKE',78,98.7,.48,COLORS.yellow);
+  break;}
+ case 'slingshot':{
+  const q=Circuit.SLING,p=game.player,status=Circuit.slingStatus(game),captured=active&&game.tether;
+  for(const rad of [2.8,3.4,4.5,5.7])circle(c,x,y,rad,rad===4.5?'#ae7bff99':'#ae7bff22',false,rad===4.5?.12:.05);
+  circle(c,x,y,2.4,'#35172d',true);circle(c,x,y,2.4,COLORS.pink,false,.1);circle(c,x,y,1.4,'#080710',true);text(c,'↻',x,y,1.5,COLORS.purple);
+  for(let j=0;j<8;j++){const a=t*.7+j*Math.PI/4;circle(c,x+Math.cos(a)*3.4,y+Math.sin(a)*3.4,.06,COLORS.purple,true);}
+  pad(c,91.5,92,'HOLD',COLORS.yellow,1.15,2.5);
+  c.beginPath();c.arc(x,y,q.radius,-Math.PI/2-q.releaseHalfAngle,-Math.PI/2+q.releaseHalfAngle);c.lineWidth=.5;c.strokeStyle=COLORS.yellow;c.stroke();
+  text(c,'RELEASE →',97.4,85.2,.48,COLORS.yellow);
+  c.setLineDash([.18,.25]);line(c,96,87.5,103.5,87.5,COLORS.yellow+'66',.065);c.setLineDash([]);
+  const gate=q.gate,closed=active?Circuit.slingGateClosed(game):game.stage<4;
+  rect(c,gate.x-gate.w/2,gate.y-gate.h/2,gate.w,gate.h,closed?'#ff65b777':'#ffe57611',closed?COLORS.pink:COLORS.yellow,.07);
+  if(captured){
+   line(c,x,y,p.x,p.y,'#ae7bff99',.08);
+   c.beginPath();c.arc(x,y,1.8,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,captured.arc/q.minArc));c.strokeStyle=COLORS.yellow;c.lineWidth=.14;c.stroke();
+   c.setLineDash([.2,.3]);line(c,p.x,p.y,p.x-Math.sin(status.angle)*7,p.y+Math.cos(status.angle)*7,status.release?COLORS.yellow:'#c1a4dc70',.09);c.setLineDash([]);
+  }
+  text(c,'↓',103.5,90,.75,COLORS.yellow);text(c,'BRAKE',103.5,85,.43,COLORS.yellow);
+  break;}
+ case 'echoCutter':{
+  const q=Circuit.ECHO,status=Circuit.echoStatus(game),cuts=game.stage>5?3:active?game.echoCuts:0;
+  for(let i=0;i<3;i++){
+   const cfg=q.cutters[i],done=cuts>i,current=active&&cuts===i,armed=current&&game.echoArmed[i];
+   c.setLineDash([.2,.25]);line(c,cfg.x,cfg.y,cfg.target.x,cfg.target.y,done?'#9b75ce66':current?COLORS.yellow+'99':'#624b7166',.075);c.setLineDash([]);
+   pad(c,cfg.target.x,cfg.target.y,done?'✓':`${i+1}${i===1?'↓':'↑'}`,done?COLORS.purple:current?COLORS.yellow:'#756680',1.8,1.35);
+   text(c,armed?'ARMED':done?'CUT':'DRAW',cfg.target.x,cfg.target.y+(i===1?1.15:-1.15),.38,done?COLORS.purple:current?COLORS.yellow:'#756680');
+  }
+  for(let i=0;i<3;i++){
+   const g=q.gates[i],closed=cuts<=i,col=closed?COLORS.pink:COLORS.yellow;
+   rect(c,g.x-.17,g.y-1.68,.34,3.36,closed?'#ff65b75c':'#ffe5760c',col,.07);
+   if(!closed)text(c,'✓',g.x,g.y,.48,COLORS.yellow);
+  }
+  if(active){
+   for(const e of game.echoTrail){const age=game.echoTime-e.born,live=age>=q.delay,alpha=live?Math.max(.2,1-age/q.lifetime):.3+age/q.delay*.35;circle(c,e.x,e.y,live?.23:.15,live?`rgba(255,101,183,${alpha})`:`rgba(174,123,255,${alpha})`,true);}
+  }
+  const cutters=active?status.cutters:Circuit.echoCutters({...game,echoTime:t});
+  for(const blade of cutters){
+   const cfg=q.cutters[blade.index];line(c,cfg.x-cfg.amp,cfg.y,cfg.x+cfg.amp,cfg.y,'#76465f88',.09);
+   rect(c,blade.x-blade.w/2,blade.y-blade.h/2,blade.w,blade.h,'#8b365e',COLORS.pink,.1);
+   for(let tooth=-.36;tooth<=.36;tooth+=.24){line(c,blade.x+tooth,blade.y-.36,blade.x+tooth+.11,blade.y-.58,'#ffb4d7',.075);line(c,blade.x+tooth,blade.y+.36,blade.x+tooth+.11,blade.y+.58,'#ffb4d7',.075);}
+  }
+  text(c,'TRACE → CUT → RETURN',96,46.1,.48,COLORS.yellow);break;}
  case 'grow':pad(c,x+5,y,'3×3',COLORS.yellow,3.5,3.5);pad(c,x-6,y,'2×2',COLORS.purple,2.6,3);break;
  case 'laser':{
-  const ph=t%2.8,on=ph>1.35&&ph<2.3,warn=ph>=.95&&ph<=1.35;
-  rect(c,x-2.65,y-3.8,1.3,.7,'#963b64',COLORS.pink,.08);rect(c,x-2.65,y+3.1,1.3,.7,'#963b64',COLORS.pink,.08);
-  if(on){line(c,x-2,y-3.55,x-2,y+3.55,'#ff64b73b',1);line(c,x-2,y-3.55,x-2,y+3.55,'#ff7dc4',.36);line(c,x-2,y-3.55,x-2,y+3.55,'#ffecf6',.08);}else{c.setLineDash([.3,.4]);line(c,x-2,y-3.55,x-2,y+3.55,warn?'#ffa3d4':'#824562',warn?.14:.07);c.setLineDash([]);}
-  text(c,on?'ON':warn?'!':'GO',x+3,y-3,1,on?COLORS.pink:COLORS.yellow);break;}
+  const q=Circuit.LASER,active=game.stage===7&&game.laserStarted,passed=game.laserPassed;
+  pad(c,q.refuge.x,q.refuge.y,passed?'GO':'숨기',passed?COLORS.yellow:COLORS.purple,2.8,2.5);
+  for(const b of Circuit.laserBeams(game)){
+   if(active){line(c,b.ax,b.ay,b.bx,b.by,'#ff65b733',.8);line(c,b.ax,b.ay,b.bx,b.by,COLORS.pink,q.width);line(c,b.ax,b.ay,b.bx,b.by,'#fff0fa',.065);}
+   else{c.setLineDash([.25,.35]);line(c,b.ax,b.ay,b.bx,b.by,'#b46b9566',.08);c.setLineDash([]);}
+  }
+  circle(c,x,y,1.35,'#27132f',true);circle(c,x,y,1.35,COLORS.pink,false,.12);circle(c,x,y,.55,COLORS.yellow,true);
+  c.save();c.translate(x,y);c.rotate(Circuit.LASER.phase-game.laserTime*q.omega);line(c,-1,0,1,0,'#fff4fb',.16);c.restore();
+  const g=q.gate;rect(c,g.x-g.w/2,g.y-g.h/2,g.w,g.h,passed?'#ffe57622':'#ff65b799',passed?COLORS.yellow:COLORS.pink,.06);
+  text(c,'↶',54,58,1.1,COLORS.yellow);text(c,active?'회전 중':'진입 시 가동',54,60,.55,COLORS.purple);
+  text(c,'↑',59.5,52,.75,COLORS.yellow);break;}
  case 'conveyor':{
   rect(c,x-6.5,y-4.5,13,9,'#43332088','#b6924844',.1);c.save();c.beginPath();c.rect(x-6.5,y-4.5,13,9);c.clip();for(let j=-6;j<7;j+=1.6){const yy=y+j+(t*2*game.conveyor%1.6);for(let xx=x-5;xx<x+6;xx+=2){line(c,xx-.5,yy,xx,yy+game.conveyor*.4,'#d1ac536a',.12);line(c,xx,yy+game.conveyor*.4,xx+.5,yy,'#d1ac536a',.12);}}c.restore();pad(c,x,y,'E',COLORS.yellow,1.8,1.8);break;}
  case 'ferry':{
@@ -351,22 +664,40 @@ function ui(){
  $('coords').textContent=String(Math.floor(game.player.x)).padStart(3,'0')+' : '+String(Math.floor(game.player.y)).padStart(3,'0');
  $('hitCount').textContent=game.hits+' / '+record.wins;$('bestTime').textContent=record.best===null?'—':record.best.toFixed(2)+' s';
  $('sideTip').innerHTML=`<strong>${String(r.id+1).padStart(2,'0')} ${r.name}</strong><br>${r.tip}`;
+ $('actionLabel').textContent=r.type==='gravity'?'중력 반전':r.type==='slingshot'?'궤도 잡기':'탑승 / 작동';
+ $('actionHelp').textContent=r.type==='slingshot'?'누르기 → 손 떼기':'한 번 누르기 · E';
  [...$('trackline').children].forEach((e,i)=>{e.className=i<game.stage?'done':i===game.stage?'active':'';});
  const msg=game.messageTime>0&&screen==='running';$('toast').classList.toggle('hidden',!msg);if(msg)$('toast').textContent=game.message;
- $('hint').textContent=fullMap?'전체 지도 · 시간이 멈췄습니다':game.mode==='practice'?`구간 연습 · ${r.tip}`:screen==='running'?r.tip:'15개 구간을 순서대로 통과해 출구로.';
- $('demoBadge').classList.toggle('hidden',!demo);$('demoBadge').textContent=demo?`기준 ${demo==='precision'?'정밀':'여유'} 주행 · 기록 제외`:'';
+ if(game.stage===1&&screen==='running'&&!fullMap){
+  const ns=Circuit.needleStatus(game),labels={closed:'닫힘',warning:'예고',open:'열림'};
+  const message=game.needlePassed===3?'3문 통과 · 코너에서 제동!':ns.go?'출발 ↓  브레이크를 놓고 전진':'대기 '+ns.wait.toFixed(2)+'초 · 노란 선에서 정렬';
+  $('hint').innerHTML=`<div class="needle-beats">${ns.gates.map((g,i)=>`<span class="beat ${g.state}">${i+1} ${labels[g.state]}</span>`).join('')}</div><div class="needle-message ${ns.go?'go':''}">${message}</div>`;
+ }else if(game.stage===3&&screen==='running'&&!fullMap){
+  $('hint').innerHTML=`<div class="needle-beats">${['↑','↓','↑'].map((a,i)=>`<span class="beat ${game.gravityPassed>i?'open':''}">${i+1} ${a}${game.gravityPassed>i?' ✓':''}</span>`).join('')}</div><div class="needle-message">현재 중력 ${game.gravity<0?'↑':'↓'} · 작동으로 반전 / 모서리 전에 제동</div>`;
+ }else if(game.stage===4&&screen==='running'&&!fullMap){
+  const ss=Circuit.slingStatus(game);
+  const hint=game.slingLanded?'브레이크! · 아래 출구로':game.slingFlight>0?'착지 준비 · 오른쪽 통로에서 제동':game.tether?.rearm?'작동을 다시 누르면 공전 재개':game.tether?(ss.release?'지금 손 떼기 →':ss.ready?'누른 채 대기 · 위쪽 노란 호에서 손 떼기':'누른 채 충전 · 브레이크로 공전 감속'):'노란 고리에서 작동을 꾹 누르세요';
+  $('hint').innerHTML=`<div class="needle-message ${ss.release?'go':''}">${hint}</div>`;
+ }else if(game.stage===5&&screen==='running'&&!fullMap){
+  const es=Circuit.echoStatus(game),dirs=['위','아래','위'];
+  const message=es.cuts===3?'세 잔상 절단 완료 · 왼쪽 출구로':es.armed?(es.active?`${es.next}번 잔상 점등 · 절단기 뒤에서 대기`:`${es.next}번 잔상 충전 중 · 표식에서 대기`):`${es.next}번 ${dirs[es.cuts]}쪽 표식까지 길을 그리세요`;
+  $('hint').innerHTML=`<div class="needle-beats">${[0,1,2].map(i=>`<span class="beat ${es.cuts>i?'open':es.cuts===i?'warning':''}">${i+1} ${es.cuts>i?'절단 ✓':es.cuts===i?'진행':'잠김'}</span>`).join('')}</div><div class="needle-message ${es.cuts===3?'go':''}">${message}</div>`;
+ }else if(game.stage===7&&screen==='running'&&!fullMap){
+  $('hint').innerHTML=`<div class="needle-message ${game.laserPassed?'go':''}">${game.laserPassed?'GO · 아래로 나와 왼쪽 회랑으로!':game.laserSheltered?'피난 확인 · 빔이 홈 입구를 지날 때까지 대기':game.laserStarted?'↑ 위로 → 왼쪽으로 꺾기 → 노란 홈에서 제동':'회랑 진입 시 회전 시작 · ↑ 위쪽으로 준비'}</div>`;
+ }else $('hint').textContent=fullMap?'전체 지도 · 시간이 멈췄습니다':game.mode==='practice'?`구간 연습 · ${r.tip}`:screen==='running'?r.tip:'15개 구간을 순서대로 통과해 출구로.';
+ $('demoBadge').classList.toggle('hidden',!demo);$('demoBadge').textContent=demo?`기준 ${demo==='precision'?'정밀':'숙련'} 주행 · 기록 제외`:'';
 }
 for(let i=0;i<15;i++)$('trackline').appendChild(document.createElement('i'));
-function bindLaunch(){document.querySelectorAll('#launch [data-do]').forEach(b=>b.onclick=()=>{const a=b.dataset.do;if(a==='start')start('challenge');if(a==='practice')openGuide();if(a==='resume')resume();if(a==='retry')start(game.mode,game.practiceSection,demo);if(a==='home')home();if(a==='demo')start('challenge',0,'precision');if(a==='next')start('practice',(game.practiceSection+1)%15);});}
-function setPanel(html){$('veil').classList.remove('hidden');$('launch').classList.remove('hidden');$('launch').innerHTML=html;bindLaunch();}
+function bindLaunch(){document.querySelectorAll('#launch [data-do]').forEach(b=>b.onclick=()=>{const a=b.dataset.do;if(a==='start')start('challenge');if(a==='practice')openGuide();if(a==='needle')start('practice',1);if(a==='gravity')start('practice',3);if(a==='slingshot')start('practice',4);if(a==='echo')start('practice',5);if(a==='laser')start('practice',7);if(a==='resume')resume();if(a==='retry')start(game.mode,game.practiceSection,demo);if(a==='home')home();if(a==='demo')start('challenge',0,'precision');if(a==='next')start('practice',(game.practiceSection+1)%15);});}
+function setPanel(html){$('veil').classList.remove('hidden');$('launch').classList.remove('hidden');$('launch').innerHTML=html;bindLaunch();if(screen==='ready'||screen==='paused'){const anchor=$('launch').querySelector('.start-button');if(anchor){anchor.insertAdjacentHTML('beforebegin',padPicker());$('launch').querySelectorAll('[name="padMode"]').forEach(el=>el.onchange=()=>{clearInput();padMode=el.value;try{localStorage.setItem(PAD_KEY,padMode);}catch{}applyPad();});applyPad();}}}
 function home(){clearInput();screen='ready';demo=null;fullMap=false;game=Circuit.create();camera.x=10;camera.y=92;$('mapBtn').textContent='전체 지도 M';
- setPanel(`<div class="eyebrow">MIDNIGHT CIRCUIT · VOL. 01</div><h2>네온 항로</h2><p>움직임을 읽고, 틈을 통과하고, 속도를 다뤄보세요.<br><b>55초.</b> 열다섯 관문 너머의 출구까지.</p><div class="target-times"><div><strong>${REF.precision.toFixed(2)}<span>초</span></strong>정밀 검증 주행</div><div><strong>49–52<span>초</span></strong>숙련 목표 기록</div><div><strong>15<span>개</span></strong>서로 다른 장치</div></div><button class="primary start-button" data-do="start">55초 도전 시작 →</button><div class="buttons"><button data-do="practice">구간 연습 · 안내</button><button data-do="demo">기준 주행 보기</button></div><p class="fine">이동 + 브레이크 + 탑승/작동. 처음이라면 연습을 권합니다.<br>37초는 검증 입력의 기준입니다. 사람마다 완주 시간은 달라집니다.</p>`);ui();}
+ setPanel(`<div class="eyebrow">MIDNIGHT CIRCUIT · VOL. 01 / 1.4</div><h2>네온 항로</h2><p><b>8구간, 회전 레이저 바늘귀.</b><br>좁은 회랑을 달리고, 피난 홈에 숨고,<br>빔이 지나가면 다시 출발하세요.</p><div class="target-times"><div><strong>${REF.precision.toFixed(2)}<span>초</span></strong>정밀 검증 주행</div><div><strong>${REF.steady.toFixed(2)}<span>초</span></strong>숙련 검증 주행</div><div><strong>55<span>초</span></strong>전체 제한시간</div></div><button class="primary start-button" data-do="start">55초 도전 시작 →</button><div class="buttons"><button data-do="gravity">4구간 연습</button><button data-do="slingshot">5구간 연습</button><button data-do="echo">6구간 연습</button></div><div class="buttons"><button data-do="laser">8구간 바로 연습</button><button data-do="demo">기준 주행 보기</button></div><p class="fine">기믹 안내에서 모든 구간을 연습할 수 있습니다.<br>1.4판 기록은 별도 저장합니다. 위 시간은 자동 입력 검증값입니다.</p>`);ui();}
 function start(mode='challenge',section=0,demoType=null){
  if($('guide').open)$('guide').close();clearInput();fullMap=false;$('mapBtn').textContent='전체 지도 M';game=Circuit.create(mode,section);demo=demoType;bot=demo?Circuit.pilot(demo):null;camera.x=game.player.x;camera.y=game.player.y;screen='countdown';countStart=performance.now();count=3;accumulator=0;
  $('launch').classList.add('hidden');$('veil').classList.remove('hidden');let el=$('countNum');if(!el){el=document.createElement('div');el.id='countNum';el.className='countdown';$('veil').appendChild(el);}el.textContent='3';el.classList.remove('hidden');ui();if(audioOn)ensureAudio();
 }
 function result(){screen='result';clearInput();const won=game.state==='won',practice=game.mode==='practice';
- if(won&&!demo){record.wins++;if(record.best===null||game.time<record.best)record.best=game.time;try{localStorage.setItem('midnight-circuit-01-v1',JSON.stringify(record));}catch{}}
+ if(won&&!demo){record.wins++;if(record.best===null||game.time<record.best)record.best=game.time;try{localStorage.setItem(RECORD_KEY,JSON.stringify(record));}catch{}}
  const title=practice?'구간 통과':won?'항로 완주.':'55초가 끝났습니다.';
  $('announcer').textContent=title;
  setPanel(`<div class="eyebrow">${demo?'REFERENCE RUN / 기록 제외':practice?'PRACTICE / 기록 제외':won?'CIRCUIT COMPLETE':'ONE MORE RUN'}</div><h2>${title}</h2><div class="big-number">${game.time.toFixed(2)}<span style="font-size:20px"> s</span></div><p>${won?'15 / 15 관문 통과':practice?rooms[game.practiceSection].name+' 연습 완료':game.stage+' / 15 관문 통과'} · 접촉 ${game.hits}회<br>${won?(game.hits===0?'한 번의 접촉 없이 네온 항로를 통과했습니다.':'정밀 브레이크와 더 짧은 경로로 기록을 줄여보세요.'):practice?'연습에는 시간 제한이 없습니다.':'다시 도전할 때 모든 장치는 같은 위상에서 출발합니다.'}</p><div class="buttons"><button class="primary" data-do="retry">다시 ${demo?'보기':'도전'}</button><button data-do="${practice?'next':'home'}">${practice?'다음 구간':'처음 화면'}</button></div>`);ui();
@@ -382,20 +713,65 @@ function toggleMap(){
 }
 function resultNoSave(){screen='paused';setPanel(`<div class="eyebrow">RUN FINISHED</div><h2>주행 종료</h2><p>${game.time.toFixed(2)}초 · ${game.stage} / 15 관문</p><div class="buttons"><button class="primary" data-do="retry">다시 도전</button><button data-do="home">처음 화면</button></div>`);}
 function openGuide(){if(screen==='running'||screen==='countdown')pause();$('guide').showModal();}
-const grid=$('guideGrid');rooms.forEach(r=>{const el=document.createElement('section');el.className='guide-item';el.innerHTML=`<header><span class="num">${String(r.id+1).padStart(2,'0')}</span><strong>${r.name}</strong></header><p>${r.tip}</p><button>이 구간 연습 →</button>`;el.querySelector('button').onclick=()=>start('practice',r.id);grid.appendChild(el);});
-function clearInput(){keys.clear();joy.x=joy.y=0;braking=false;acting=false;const old=stickId;stickId=null;if(old!==null){try{$('stick').releasePointerCapture(old);}catch{}}cancelHolds.forEach(fn=>fn());$('knob').style.transform='';$('brakeBtn').classList.remove('pressed');$('actionBtn').classList.remove('pressed');}
+const detail={1:'전류 벽에 닿으면 입구로 복귀합니다. 세 문은 노란 대기선에서 정지한 뒤 출발등에 맞춰 아래 방향을 끝까지 누르세요. 3문을 빠져나온 뒤 바로 제동하고 오른쪽으로 꺾습니다. 실패 후 문도 같은 위상으로 되돌아갑니다.',3:'기본 크기 2×2로 폭 3칸의 통로를 통과합니다. 중력장 안에서는 방향키만으로 중력을 거스를 수 없습니다. 첫 수직로는 위, 둘째는 아래, 셋째는 위로 중력을 바꿔 타세요. 노란 모서리 표시 전에 Shift 또는 브레이크를 눌러 착지하고 옆 통로로 이동합니다. 누른 채로는 중력이 반복해서 바뀌지 않습니다.',4:'왼쪽 노란 고리로 이동하며 E/Space 또는 작동 버튼을 계속 누르면 궤도에 붙습니다. 위쪽 작은 노란 호에서 버튼을 놓으면 접선 방향으로 발사됩니다. 공전 중 브레이크를 잡으면 천천히 돌지만 시간이 더 듭니다. 이탈 후에는 착지까지 궤도를 바꿀 수 없습니다. 오른쪽 빙면에 도착하면 브레이크로 멈춘 뒤 아래 출구로 가세요. 너무 이른 이탈, 늦은 이탈, 착지 제동 실패는 전류 벽에 부딪힙니다. 노란 호를 지나 계속 잡고 있어도 바깥 전류 벽에 닿습니다. 일시정지 후에는 작동을 다시 누르면 공전이 이어집니다.',5:'세 소실을 위→아래→위 순서로 풉니다. 현재 노란 표식까지 이동하면 보라색 이동 흔적이 0.24초 뒤 전류 잔상으로 켜집니다. 표식 안에서 기다리면 왕복 압착기가 그 선을 가르고 현재 소실의 잔상을 모두 지우며 왼쪽 봉인문을 엽니다. 압착기는 왕복하므로 절단 직후 달려들지 말고, 칼날이 통로 밖으로 빠지는 순간 그 뒤를 따라 되돌아오세요. 자기 잔상·압착기·닫힌 봉인문 접촉은 모두 구간 처음으로 복귀합니다. 표식에 도달하지 않은 선은 잘려도 문을 열지 못하며, 세 번 절단하기 전에는 출구가 승인되지 않습니다.'};
+detail[7]='진입하면 두 레이저가 반시계 방향으로 회전합니다. 폭 3칸 회랑에서 위로 달린 뒤 모서리 전에 제동하고 왼쪽으로 꺾으세요. 위쪽 노란 피난 홈 깊숙이 들어가 빔을 한 번 보내면 출구막이 열립니다. GO 표시가 나면 아래로 나와 왼쪽 회랑을 따라 탈출하세요. 홈을 너무 일찍 떠나면 피난 확인이 취소되며, 빔과 전류 벽 접촉 시 이 구간의 회전과 출구막이 초기화됩니다. 작동 버튼은 필요 없습니다.';
+const grid=$('guideGrid');rooms.forEach(r=>{const el=document.createElement('section');el.className='guide-item';el.innerHTML=`<header><span class="num">${String(r.id+1).padStart(2,'0')}</span><strong>${r.name}</strong></header><p>${r.tip}${detail[r.id]?'<br><br>'+detail[r.id]:''}</p><button>이 구간 연습 →</button>`;el.querySelector('button').onclick=()=>start('practice',r.id);grid.appendChild(el);});
+function clearInput(){keys.clear();joy.x=joy.y=0;braking=false;acting=false;Circuit.suspendInput(game);const old=stickId;stickId=null;if(old!==null){try{$('stick').releasePointerCapture(old);}catch{}}cancelHolds.forEach(fn=>fn());resetPad();$('brakeBtn').classList.remove('pressed');$('actionBtn').classList.remove('pressed');}
 function input(){if(demo)return Circuit.drive(game,bot);let x=joy.x,y=joy.y;if(keys.has('KeyA')||keys.has('ArrowLeft'))x--;if(keys.has('KeyD')||keys.has('ArrowRight'))x++;if(keys.has('KeyW')||keys.has('ArrowUp'))y--;if(keys.has('KeyS')||keys.has('ArrowDown'))y++;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l;}return{x,y,brake:braking||keys.has('ShiftLeft')||keys.has('ShiftRight'),action:acting||keys.has('KeyE')||keys.has('Space')};}
 document.addEventListener('keydown',e=>{if($('guide').open)return;const hot=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','KeyE'];if(hot.includes(e.code)){e.preventDefault();keys.add(e.code);}if(e.repeat)return;if(e.code==='KeyR'){e.preventDefault();start(game.mode,game.practiceSection,demo);}if(e.code==='KeyM')toggleMap();if(e.code==='Escape'||e.code==='KeyP'){if(screen==='paused')resume();else pause();}});
 document.addEventListener('keyup',e=>keys.delete(e.code));
-function updateStick(e){const b=$('stick').getBoundingClientRect(),max=b.width*.34,dx=e.clientX-b.left-b.width/2,dy=e.clientY-b.top-b.height/2,len=Math.hypot(dx,dy),m=Math.min(max,len);joy.x=len>5?dx/len*m/max:0;joy.y=len>5?dy/len*m/max:0;$('knob').style.transform=`translate(${joy.x*max}px,${joy.y*max}px)`;}
-$('stick').addEventListener('pointerdown',e=>{e.preventDefault();if(stickId!==null)return;stickId=e.pointerId;$('stick').setPointerCapture(e.pointerId);updateStick(e);});
-$('stick').addEventListener('pointermove',e=>{if(e.pointerId===stickId)updateStick(e);});
-for(const evt of ['pointerup','pointercancel','lostpointercapture'])$('stick').addEventListener(evt,e=>{if(e.pointerId===stickId){stickId=null;joy.x=joy.y=0;$('knob').style.transform='';}});
-function hold(id,kind){const el=$(id);let pid=null;cancelHolds.push(()=>{const old=pid;pid=null;if(old!==null){try{el.releasePointerCapture(old);}catch{}}});el.addEventListener('pointerdown',e=>{e.preventDefault();pid=e.pointerId;el.setPointerCapture(pid);if(kind==='brake')braking=true;else acting=true;el.classList.add('pressed');});for(const ev of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(ev,e=>{if(e.pointerId!==pid)return;pid=null;if(kind==='brake')braking=false;else acting=false;el.classList.remove('pressed');});}
+const PAD_KEY='midnight-circuit-mobile-pad';
+let padMode='eight',padOrigin=null,padSector=null;
+try{if(localStorage.getItem(PAD_KEY)==='floating')padMode='floating';}catch{}
+const padArrows=['→','↘','↓','↙','←','↖','↑','↗'];
+$('stick').insertAdjacentHTML('beforeend',`<div class="pad-directions" aria-hidden="true">${padArrows.map((a,i)=>`<span data-sector="${i}" style="--px:${50+Math.cos(i*Math.PI/4)*34}%;--py:${50+Math.sin(i*Math.PI/4)*34}%">${a}</span>`).join('')}</div>`);
+function padPicker(){return `<fieldset class="pad-picker"><legend>모바일 이동 방식</legend><label><input type="radio" name="padMode" value="eight" ${padMode==='eight'?'checked':''}> ① 8방향 패드</label><label><input type="radio" name="padMode" value="floating" ${padMode==='floating'?'checked':''}> ② 고정 속도 스틱</label><small id="padHelp"></small></fieldset>`;}
+function applyPad(){
+ $('stick').dataset.mode=padMode;
+ $('stick').setAttribute('aria-label',padMode==='eight'?'8방향 이동 패드':'터치 위치에서 시작하는 8방향 고정 속도 스틱');
+ $('stick').querySelector('.stick-label').textContent=padMode==='eight'?'8방향 이동':'터치 후 밀기';
+ if($('padHelp'))$('padHelp').textContent=padMode==='eight'?'화살표를 누르고 옆으로 밀어 방향 전환 · 가운데는 이동 입력 해제':'화면 왼쪽 빈 곳을 터치한 뒤 밀기 · 짧게 밀어도 같은 이동 속도';
+ resetPad();
+}
+function resetPad(){padOrigin=null;padSector=null;joy.x=joy.y=0;$('knob').style.transform='';$('stick').classList.remove('floating-active');$('stick').style.removeProperty('--float-x');$('stick').style.removeProperty('--float-y');$('stick').querySelectorAll('[data-sector]').forEach(el=>el.classList.remove('active'));}
+function updateStick(e){
+ const b=$('stick').getBoundingClientRect(),origin=padOrigin||{x:b.left+b.width/2,y:b.top+b.height/2};
+ const dx=e.clientX-origin.x,dy=e.clientY-origin.y,len=Math.hypot(dx,dy);
+ if(len<(padMode==='floating'?9:b.width*.15)){padSector=null;joy.x=joy.y=0;}
+ else{const angle=Math.atan2(dy,dx),step=Math.PI/4;
+  if(padSector===null||Math.abs(Math.atan2(Math.sin(angle-padSector*step),Math.cos(angle-padSector*step)))>step*.58)padSector=(Math.round(angle/step)+8)%8;
+  joy.x=Math.cos(padSector*step);joy.y=Math.sin(padSector*step);
+  if(Math.abs(joy.x)<1e-10)joy.x=0;if(Math.abs(joy.y)<1e-10)joy.y=0;
+ }
+ $('knob').style.transform=`translate(${joy.x*28}px,${joy.y*28}px)`;
+ $('stick').querySelectorAll('[data-sector]').forEach(el=>el.classList.toggle('active',Number(el.dataset.sector)===padSector));
+}
+function beginPad(e){
+ if(screen!=='running'||demo||stickId!==null)return;
+ e.preventDefault();stickId=e.pointerId;padSector=null;
+ if(padMode==='floating'){padOrigin={x:e.clientX,y:e.clientY};$('stick').style.setProperty('--float-x',e.clientX+'px');$('stick').style.setProperty('--float-y',e.clientY+'px');$('stick').classList.add('floating-active');}
+ $('stick').setPointerCapture(e.pointerId);updateStick(e);
+}
+$('stick').addEventListener('pointerdown',beginPad);
+$('game').addEventListener('pointerdown',e=>{const b=$('game').getBoundingClientRect();if(padMode==='floating'&&e.pointerType!=='mouse'&&e.clientX<b.left+b.width*.5)beginPad(e);});
+$('stick').addEventListener('pointermove',e=>{if(e.pointerId===stickId){e.preventDefault();updateStick(e);}});
+for(const evt of ['pointerup','pointercancel','lostpointercapture'])$('stick').addEventListener(evt,e=>{if(e.pointerId===stickId){stickId=null;resetPad();}});
+window.addEventListener('resize',clearInput);
+applyPad();
+function hold(id,kind){const el=$(id);let pid=null;cancelHolds.push(()=>{const old=pid;pid=null;if(old!==null){try{el.releasePointerCapture(old);}catch{}}});el.addEventListener('pointerdown',e=>{e.preventDefault();if(pid!==null)return;pid=e.pointerId;el.setPointerCapture(pid);if(kind==='brake')braking=true;else acting=true;el.classList.add('pressed');});for(const ev of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(ev,e=>{if(e.pointerId!==pid)return;pid=null;if(kind==='brake')braking=false;else acting=false;el.classList.remove('pressed');if(ev!=='pointerup'&&kind==='action'&&game.tether&&screen==='running')pause();});}
 hold('brakeBtn','brake');hold('actionBtn','action');
+// iOS can still interpret touch-end pairs as page zoom in embedded web views.
+// These surfaces use Pointer Events exclusively, so canceling their native
+// touch gestures does not discard a movement press or its release.
+function preventControlGesture(e){if(e.cancelable)e.preventDefault();}
+for(const id of ['stick','game','brakeBtn','actionBtn']){
+ const surface=$(id);
+ for(const type of ['touchmove','touchend','dblclick','gesturestart','gesturechange'])surface.addEventListener(type,preventControlGesture,{passive:false});
+}
+for(const type of ['gesturestart','gesturechange'])window.addEventListener(type,e=>{if(screen==='running')preventControlGesture(e);},{passive:false});
 $('pauseBtn').onclick=()=>screen==='paused'?resume():pause();$('guideBtn').onclick=openGuide;$('practiceBtn').onclick=openGuide;$('closeGuide').onclick=()=>$('guide').close();$('mapBtn').onclick=toggleMap;$('retryBtn').onclick=()=>start(game.mode,game.practiceSection,demo);$('demoBtn').onclick=()=>start('challenge',0,'precision');$('precisionDemo').onclick=()=>start('challenge',0,'precision');$('steadyDemo').onclick=()=>start('challenge',0,'steady');
 document.addEventListener('visibilitychange',()=>{if(document.hidden){pause();clearInput();}});window.addEventListener('blur',()=>{pause();clearInput();});window.addEventListener('pagehide',clearInput);window.addEventListener('contextmenu',e=>{if(e.target.closest('.controls'))e.preventDefault();});
-$('referenceText').textContent=`동일한 충돌·속도·장치 위상으로 실행한 입력 주행: 정밀 ${REF.precision.toFixed(2)}초, 여유 ${REF.steady.toFixed(2)}초. 정밀 주행은 빠른 경로 보정, 여유 주행은 낮은 스틱 기울기와 코너 제동을 사용합니다. 아래에서 실제 물리로 재생됩니다. 사람의 숙련도나 기기별 입력 지연까지 보장하는 수치는 아닙니다.`;
+$('referenceText').textContent=`동일한 충돌·속도·장치 위상으로 실행한 입력 주행: 정밀 ${REF.precision.toFixed(2)}초, 숙련 ${REF.steady.toFixed(2)}초. 정밀 주행은 빠른 경로 보정, 숙련 기준은 코너에서 더 느린 접근과 추가 제동을 사용합니다. 두 주행 모두 6구간의 잔상을 절단하고 8구간 피난 홈에서 회전 빔을 보낸 뒤 통과합니다. 아래에서 실제 물리로 재생됩니다. 사람의 숙련도나 기기별 입력 지연까지 보장하는 수치는 아닙니다.`;
 // Original local synth: soft extended chords and a syncopated bass at 104 BPM.
 let ac=null,master=null,musicTimer=null,beat=0,nextNote=0;
 function tone(freq,time,dur,type,gain){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.0001,time);g.gain.exponentialRampToValueAtTime(gain,time+.02);g.gain.exponentialRampToValueAtTime(.0001,time+dur);o.connect(g);g.connect(master);o.start(time);o.stop(time+dur+.05);}
@@ -408,10 +784,10 @@ function loop(now){
   if(raw>.3){pause();}else{accumulator+=raw;while(accumulator>=DT&&screen==='running'){Circuit.step(game,input(),DT);accumulator-=DT;if(game.state!=='running')result();}}
   if(frame%2===0&&!reduced){game.trail.push({x:game.player.x,y:game.player.y});if(game.trail.length>10)game.trail.shift();}
  }
- draw();if(frame%3===0)ui();requestAnimationFrame(loop);
+ draw();if(frame%3===0||[1,3,4,5,7].includes(game.stage))ui();requestAnimationFrame(loop);
 }
 home();resize();requestAnimationFrame(loop);
 // Read-only diagnostics use the exact shipped engine; no invincibility or shortcut controls.
-window.MidnightCircuit={version:'1.0',reference:REF,getSnapshot:()=>({screen,state:game.state,time:game.time,stage:game.stage,hits:game.hits,size:game.player.size})};
+window.MidnightCircuit={version:'1.4',reference:REF,getSnapshot:()=>({screen,state:game.state,time:game.time,stage:game.stage,hits:game.hits,size:game.player.size,needleGatesPassed:game.needlePassed,gravity:game.gravity,gravityShaftsPassed:game.gravityPassed,orbitCaptured:!!game.tether,orbitLanded:game.slingLanded,echoCuts:game.echoCuts,echoArmed:game.echoArmed,laserPassed:game.laserPassed,laserSheltered:game.laserSheltered})};
 })();
 </script></body></html>
