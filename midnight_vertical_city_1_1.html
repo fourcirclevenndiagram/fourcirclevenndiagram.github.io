@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#09111e"><meta name="description" content="100층의 밤과 20대의 엘리베이터. 배달원 하루, 야간 기사 서린, 뮤지션 도윤을 따라 구경하는 살아 있는 수직도시.">
+<title>심야 수직도시 · MIDNIGHT VERTICAL</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b1525'/%3E%3Cpath d='M8 5h16v22H8z' fill='none' stroke='%235ee0cb' stroke-width='2'/%3E%3Cpath d='M16 6v20M9 13h14M9 20h14' stroke='%235ee0cb'/%3E%3Crect x='10' y='15' width='5' height='4' fill='%23ffbf69'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#09111e;--panel:#101c2d;--line:#263347;--muted:#91a1b7;--text:#edf3f9;--mint:#64e2c6;--amber:#ffbf69;--pink:#e7a0e5;--blue:#79b9ff}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none}button,select{font:inherit;color:inherit}button{border:1px solid var(--line);background:#172437;border-radius:7px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button:hover{background:#25374b}button:active{transform:translateY(1px)}button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--mint);outline-offset:2px}button:disabled{opacity:.45;cursor:default}button:disabled:active{transform:none}button.active,button[aria-pressed=true]{border-color:var(--mint);background:#193a3d;color:#adfce9}svg{display:block}small{font-size:12px}button,.mono,time{font-variant-numeric:tabular-nums}#app{height:100%;height:100dvh;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}.topbar{height:78px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px;border-bottom:1px solid var(--line);gap:12px}.brand{display:flex;align-items:center;gap:13px}.brandmark{width:34px;height:42px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-top:2px solid #6ce3c8;border-bottom:2px solid #6ce3c8;padding:4px 2px}.brandmark i{border:1px solid #406d72}.brandmark i:nth-child(2){background:var(--mint);box-shadow:0 0 18px #64e2c636}.brand h1{font-size:22px;letter-spacing:-.8px;margin:0;font-weight:750}.brand .eyebrow{color:var(--mint);font-size:10px;letter-spacing:2.4px;font-weight:600}.version{font-size:12px;color:#677c97;align-self:flex-end;margin-bottom:5px}.top-right{display:flex;align-items:center;gap:22px}.clock-wrap{display:flex;gap:10px;align-items:center}.clock-wrap .moon{color:var(--amber);font-size:22px}.clock-wrap small{display:block;color:var(--muted);font-size:11px;letter-spacing:1px}.clock-wrap time{font-size:22px;line-height:1.1}.transport{display:flex;gap:4px}.transport button{height:34px;min-width:38px;font-size:13px}.transport #pause{min-width:62px;margin-right:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:18px;padding:18px 22px 16px;flex:1;min-height:0;max-width:2000px;width:100%;margin:0 auto}.play{min-width:0;min-height:0;display:flex;flex-direction:column}.viewbar{display:flex;align-items:center;justify-content:space-between;padding:0 2px 12px;gap:8px;flex:none}.view-title{display:flex;align-items:center;gap:10px;min-width:0}.view-title strong{font-size:14px;font-weight:650;white-space:nowrap}.view-title span{color:var(--muted);font-size:12px;white-space:nowrap}.floor-badge{font-family:ui-monospace,monospace;font-size:13px;color:var(--mint);border:1px solid #2e514f;border-radius:4px;padding:2px 7px;white-space:nowrap}.view-right{display:flex;gap:7px;align-items:center}.help{width:27px;height:27px;border-radius:50%;font-size:14px;color:var(--muted)}.stage-frame{position:relative;flex:1;min-height:140px;background:#080f1a;border:1px solid #344358;border-radius:9px;overflow:hidden;box-shadow:0 12px 35px #0002}.stage{position:absolute;inset:27px 0 0}.lane-head{height:27px;position:absolute;inset:0 0 auto;z-index:4;background:#142132;border-bottom:1px solid #334457}.lane-head canvas{width:100%;height:27px}#world{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}#worldScroll{position:absolute;inset:0 28px 0 0;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;scrollbar-width:none;outline-offset:-3px;-webkit-overflow-scrolling:touch}#worldScroll::-webkit-scrollbar{display:none}#worldSpace{width:100%;pointer-events:none}#minimap{position:absolute;right:0;top:0;width:28px;height:100%;touch-action:none;border-left:1px solid #324154;cursor:ns-resize}#floatHint{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-size:12px;background:#0b1629ed;border:1px solid #3b546b;border-radius:30px;padding:6px 14px;white-space:nowrap;pointer-events:none;transition:opacity .5s;color:#c6d3df}#trackingTag{position:absolute;left:10px;top:8px;padding:5px 9px;background:#101e30ee;border:1px solid #ffbf6970;border-radius:5px;font-size:12px;pointer-events:none;display:none}.floor-nav{display:flex;align-items:center;gap:5px;padding:8px 0 0;flex:none}.floor-nav button{height:29px;min-width:34px;flex:1;font-size:12px;background:#0e1928;color:#b7c8d8}.floor-nav .jump{flex:1.3;color:var(--mint)}.quick-people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;flex:none}.person-chip{display:flex;align-items:center;gap:10px;padding:9px 10px;min-width:0;text-align:left;background:#121f30;position:relative;border-color:#2a394d}.person-chip canvas{width:30px;height:35px;image-rendering:pixelated;flex:none}.person-chip strong{display:block;font-size:14px;line-height:1.4}.person-chip small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.person-chip .chip-body{min-width:0}.person-chip:after{content:'⌖';position:absolute;right:10px;top:12px;color:var(--muted);font-size:16px}.person-chip.active:after{color:var(--mint)}.person-chip.active{background:#172b32;border-color:#527e76}.follow-line{height:33px;display:flex;justify-content:space-between;gap:7px;align-items:center;font-size:12px;color:var(--muted);padding:0 2px;flex:none}.follow-line span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.follow-line button{font-size:12px;padding:2px 8px;white-space:nowrap;background:transparent}.ticker{display:flex;gap:9px;font-size:12px;color:#b5c5d7;align-items:center;border-top:1px solid var(--line);padding-top:8px;min-height:29px;flex:none;cursor:pointer}.ticker b{font-size:10px;font-family:ui-monospace,monospace;color:var(--amber);letter-spacing:1px;flex:none}.ticker span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.sidebar{display:flex;flex-direction:column;min-height:0;background:#101b2b;border:1px solid #29374a;border-radius:10px;overflow:hidden}.panel-tabs{display:flex;padding:0 12px;gap:16px;align-items:center;border-bottom:1px solid #2c394c;flex:none;min-height:48px}.panel-tabs button{border:0;border-radius:0;background:transparent;font-size:14px;color:var(--muted);padding:13px 1px 11px;white-space:nowrap}.panel-tabs button.active{color:var(--mint);border-bottom:2px solid var(--mint)}#closePanel{display:none;margin-left:auto;font-size:20px;padding:3px 7px}#panelContent{padding:19px 17px;overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;scrollbar-width:thin;scrollbar-color:#3c4e66 transparent}.panel-kicker{font-size:10px;color:var(--muted);letter-spacing:1.7px;margin-bottom:12px}.profile-head{display:flex;gap:14px;align-items:center;margin-bottom:16px}.profile-head canvas{width:52px;height:66px;background:#203044;border:1px solid #37475c;border-radius:8px;image-rendering:pixelated}.profile-head h2{font-size:24px;margin:0;letter-spacing:-.5px}.profile-head p{font-size:13px;margin:2px 0;color:var(--muted)}.quote{padding:12px 13px;border-left:2px solid var(--amber);font-size:14px;line-height:1.7;background:#1a2838;border-radius:0 6px 6px 0;margin:10px 0 18px;color:#f0dec1;min-height:65px}.section-label{font-size:12px;font-weight:600;color:#97adc2;display:flex;justify-content:space-between;gap:5px;margin:18px 0 8px}.destination{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2c394e;padding-bottom:13px}.destination strong{font-size:26px;font-family:ui-monospace,monospace;color:#eff7fd}.destination small{display:block;color:var(--muted);font-size:12px}.destination .arrow{color:#4d6a80;font-size:22px}.state-line{font-size:14px;margin:10px 0;color:#c0d7e6}.route-step{display:flex;gap:10px;align-items:center;font-size:13px;min-height:38px;position:relative}.route-step:not(:last-child):after{content:'';position:absolute;width:1px;background:#3b5367;left:14px;top:28px;bottom:-7px}.route-pill{border:1px solid #355c68;border-radius:4px;color:var(--mint);background:#16313b;font-size:10px;width:29px;line-height:21px;text-align:center;flex:none}.route-step .route-floor{margin-left:auto;color:#b2c7d7}.story-entry{font-size:12px;color:#96abbe;border-bottom:1px solid #1f3042;padding:9px 0;line-height:1.65}.story-entry time{font-size:10px;color:#618298;margin-right:7px}.panel-btn{width:100%;padding:9px 10px;font-size:14px;background:#203f41;border-color:#416a61;color:#b9f4de;margin-top:12px}.subtle{font-size:12px;color:var(--muted);line-height:1.7}.empty{color:var(--muted);padding:10px 0;font-size:13px}.lift-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:15px}.lift-summary div{background:#18273a;border-radius:5px;padding:8px;text-align:center}.lift-summary b{display:block;font-size:20px;color:var(--mint);font-weight:600}.lift-summary small{color:var(--muted);font-size:11px}.lift-item{width:100%;display:flex;align-items:center;gap:8px;text-align:left;margin:5px 0;background:#142233;padding:8px;border-color:#2b3a4d;border-radius:5px}.lift-item .lift-num{font-size:11px;padding:2px 4px;border:1px solid currentColor;border-radius:3px;min-width:31px;text-align:center}.lift-item strong{font-size:12px;font-weight:600;display:block}.lift-item small{font-size:11px;color:var(--muted);display:block}.lift-item .lift-pos{margin-left:auto;text-align:right;font-size:14px;white-space:nowrap}.change-dot{color:var(--amber);font-size:11px}.lift-detail{border:1px solid #40576b;border-radius:7px;background:#182a3b;padding:12px;margin-bottom:12px}.lift-detail h3{font-size:16px;margin:0 0 6px}.lift-detail p{font-size:12px;margin:5px 0;color:#bacddd}.floor-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.floor-chips button{font-size:11px;min-width:25px;height:24px;background:#223f4c;border-color:#386172}.event-card{background:#1b2a3c;border:1px solid #394558;border-radius:7px;padding:12px;margin:10px 0}.event-card strong{font-size:14px;color:var(--amber);display:block}.event-card p{font-size:13px;color:#bccddd;line-height:1.7;margin:6px 0}.event-card .countdown{height:3px;background:#33485a;border-radius:2px;margin-top:9px;overflow:hidden}.event-card .countdown i{display:block;height:100%;background:var(--amber)}.city-stat{display:flex;justify-content:space-between;font-size:13px;border-bottom:1px solid #28374b;padding:8px 0;color:#a8bed0}.city-stat b{color:#ebf4fb;font-weight:500}.control-note{font-size:11px;line-height:1.6;color:#859fb5;margin:7px 0 14px}.mobile-tabs{display:none}.toast{position:fixed;z-index:80;bottom:70px;left:50%;transform:translate(-50%,20px);opacity:0;transition:.2s;background:#213847f5;border:1px solid #548783;color:#e2fbf5;font-size:14px;padding:10px 17px;border-radius:8px;max-width:90vw;pointer-events:none;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}dialog{color:var(--text);background:#122236;border:1px solid #3c536e;border-radius:12px;padding:24px;width:min(470px,calc(100vw - 36px));max-height:85dvh;overflow-y:auto;box-shadow:0 25px 100px #000b}dialog::backdrop{background:#000a}dialog h2{font-size:21px;margin:0 0 14px}dialog p{font-size:14px;line-height:1.9;color:#b8cde0}dialog strong{color:var(--mint)}dialog button{width:100%;padding:10px;margin-top:8px}dialog .help-row{border-bottom:1px solid #314154;padding:10px 0}dialog .help-row b{font-size:15px}dialog .help-row p{margin:4px 0}.noscript{position:fixed;inset:30%;z-index:100;background:#142134;padding:24px}
+@media(min-width:1550px){.layout{grid-template-columns:minmax(0,1fr) 344px;padding:22px 30px}.topbar{padding:0 34px}.quick-people{margin-top:15px}.person-chip{padding:12px}}
+@media(max-width:900px){.topbar{height:63px;padding:0 14px}.brand h1{font-size:19px}.brandmark{width:27px;height:35px}.brand .eyebrow{font-size:8px;letter-spacing:1.7px}.version{display:none}.top-right{gap:12px}.clock-wrap time{font-size:19px}.clock-wrap small{font-size:9px}.clock-wrap .moon{display:none}.transport button{min-width:32px;height:31px}.transport #pause{min-width:51px}.layout{display:flex;padding:10px 12px 0;gap:0}.play{width:100%}.sidebar{display:none;position:fixed;z-index:50;left:12px;right:12px;bottom:calc(57px + env(safe-area-inset-bottom));max-height:64dvh;box-shadow:0 -12px 60px #0009}.sidebar.open{display:flex}.panel-tabs{min-height:44px;gap:25px}#closePanel{display:block}.mobile-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:7px 12px 6px;flex:none}.mobile-tabs button{height:35px;font-size:12px;background:#152335}.viewbar{padding-bottom:8px}.view-title span{display:none}.person-chip{padding:7px 9px;gap:5px}.person-chip:after{right:7px;font-size:13px}.person-chip strong{font-size:13px}.person-chip canvas{width:25px;height:32px}.quick-people{gap:6px;margin-top:8px}.ticker{min-height:27px;padding-top:6px}.follow-line{height:29px}.stage-frame{border-radius:7px}.floor-nav{gap:4px;padding-top:6px}.floor-nav button{min-width:28px;height:28px;font-size:11px}.toast{bottom:85px}#panelContent{padding:15px 18px}.profile-head canvas{width:43px;height:55px}.profile-head h2{font-size:22px}.profile-head{margin-bottom:9px}.quote{min-height:0;margin:8px 0}.section-label{margin-top:14px}}
+@media(max-width:430px){.topbar{height:57px;padding:0 10px;gap:6px}.brand{gap:8px}.brand h1{font-size:17px}.brandmark{width:21px;height:31px;gap:2px}.brand .eyebrow{font-size:7px;letter-spacing:1.3px}.top-right{gap:8px}.clock-wrap time{font-size:17px}.clock-wrap small{font-size:8px}.transport{gap:2px}.transport button{min-width:27px;height:29px;font-size:11px;border-radius:4px}.transport #pause{min-width:39px;margin-right:0}.layout{padding:8px 7px 0}.view-title strong{font-size:12px}.floor-badge{font-size:11px}.viewbar{gap:4px}.view-right{gap:5px}.help{width:24px;height:24px}.person-chip{padding:5px;gap:3px}.person-chip strong{font-size:12px}.person-chip small{font-size:10px}.person-chip:after{right:5px;top:6px;font-size:11px}.person-chip canvas{width:22px;height:29px}.mobile-tabs{padding:6px 7px 4px;gap:5px}.mobile-tabs button{height:32px}.floor-nav button{font-size:10px;min-width:24px}.floor-nav .jump{flex:1.2}.follow-line{font-size:11px}.follow-line button{font-size:11px}.ticker{font-size:11px}.ticker b{font-size:9px}.sidebar{left:7px;right:7px}}
+@media(max-height:590px) and (min-width:700px){.topbar{height:50px}.layout{padding-top:7px;grid-template-columns:minmax(0,1fr) 275px}.quick-people{margin-top:5px}.person-chip{padding:3px 9px}.person-chip canvas{height:24px}.follow-line{height:24px}.ticker{display:none}.mobile-tabs{padding-top:3px}.viewbar{padding-bottom:5px}}
+@media(max-width:360px){.brandmark{display:none}.topbar{padding:0 8px}.brand h1{font-size:16px}.top-right{gap:5px}.clock-wrap time{font-size:16px}}
+
+[hidden]{display:none!important}.panel-tabs{gap:13px;padding:0 10px}.panel-tabs button{font-size:13px}.mobile-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.mobile-tabs button{white-space:nowrap;font-size:11px;padding:0 3px}.event-ribbon{position:absolute;z-index:6;top:8px;right:37px;display:flex;gap:8px;align-items:center;max-width:230px;padding:6px 10px;background:#152a36ef;border-color:#638171;text-align:left;box-shadow:0 4px 20px #0004}.event-ribbon>b{font:600 18px ui-monospace,monospace;color:#ffcf86}.event-ribbon>span{font-size:12px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.event-ribbon small{display:block;font-size:11px;color:#9fdbc2}.life-lead strong{font-size:16px}.life-lead p{font-size:13px;color:var(--muted);margin:5px 0 12px}.supply-path{display:flex;align-items:center;gap:4px;margin:14px 0}.supply-path button{flex:1;padding:7px 3px;font-size:12px;white-space:nowrap;color:#c3ead7;border-color:#426052;background:#1d3736}.supply-path b{color:#5e877a;font-size:12px}.room-card{padding:12px;background:#1a2c3c;border:1px solid #3a595d;border-radius:7px;margin:12px 0}.room-card .section-label{margin:0 0 9px;align-items:center}.room-card>strong{display:block;font-size:14px;color:#d8ecdc}.tiny-go{font-size:11px;padding:3px 6px;white-space:nowrap}.room-stock{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.room-stock span{font-size:12px;color:#9db2c3;background:#152536;padding:5px 7px;display:flex;justify-content:space-between}.room-stock b{color:#ecdbc1}.shipment{border-bottom:1px solid #2b4051;padding:11px 0}.shipment>div:first-child{display:flex;gap:6px;align-items:center}.shipment strong{font-size:13px}.shipment button{margin-left:auto;font-size:11px;background:transparent;padding:3px 6px;color:#badbcc}.shipment small{font-size:12px;color:#9db4c6;display:block;margin-top:5px}.cargo-mark{color:#f1be71}.cargo-mark.meal{color:#8dddc2}.cargo-mark.props{color:#bda5ed}.cargo-mark.waste{color:#a28c70}.shipment-track{display:flex;gap:5px;margin-top:7px}.shipment-track i{font-size:10px;font-style:normal;flex:1;text-align:center;border-top:2px solid #334a5b;color:#6a879b;padding-top:3px}.shipment-track i.lit{border-color:#87d8b3;color:#b4dfc9}.episode-steps{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:9px 0}.episode-steps span{font-size:11px;color:#718a9f;background:#152333;padding:5px 6px;border-radius:3px;border:1px solid #2d4254}.episode-steps .current{color:#ffdc9d;background:#4b3e2d;border-color:#957348}.episode-steps .done{color:#abcfbb;border-color:#476654}.event-heading{display:flex;gap:6px;align-items:center;justify-content:space-between}.event-heading button{font-size:11px;white-space:nowrap;padding:4px 6px;border-color:#6c6450;background:#3e392e;color:#f4d6a2}.event-actions{display:flex;gap:6px;margin:10px 0}.event-actions button{flex:1;padding:8px;font-size:13px;color:#edcfb0}.event-card{margin-bottom:13px}
+@media(max-width:600px){.event-ribbon{max-width:164px;padding:4px 6px;gap:5px}.event-ribbon>b{font-size:15px}.event-ribbon>span{font-size:10px}.event-ribbon small{font-size:9px}.panel-tabs{gap:12px}.panel-tabs button{font-size:12px}}
+
+</style>
+</head>
+<body>
+<noscript><div class="noscript">이 도시는 JavaScript를 켜면 움직이기 시작해요.</div></noscript>
+<div id="app">
+ <header class="topbar"><div class="brand"><div class="brandmark" aria-hidden="true"><i></i><i></i><i></i></div><div><div class="eyebrow">MIDNIGHT VERTICAL</div><h1>심야 수직도시</h1></div><span class="version">v1.1</span></div><div class="top-right"><div class="clock-wrap"><span class="moon">☾</span><div><small>도시의 시간</small><time id="cityClock">20:40</time></div></div><div class="transport" aria-label="시간 조절"><button id="pause" aria-label="시뮬레이션 일시정지">Ⅱ 정지</button><button data-speed="1" class="active" aria-pressed="true">1×</button><button data-speed="2" aria-pressed="false">2×</button><button data-speed="4" aria-pressed="false">4×</button></div></div></header>
+ <main class="layout"><section class="play" aria-label="수직도시 관찰 화면">
+  <div class="viewbar"><div class="view-title"><strong id="districtLabel">01 / 불 꺼지지 않는 골목</strong><span>100층 · 승강기 20대</span></div><div class="view-right"><span class="floor-badge" id="floorRange">01 — 08 F</span><button class="help" id="helpBtn" aria-label="관찰 안내">?</button></div></div>
+  <div class="stage-frame"><div class="lane-head"><canvas id="laneHead" aria-hidden="true"></canvas></div><div class="stage" id="stage"><canvas id="world" aria-hidden="true"></canvas><div id="worldScroll" tabindex="0" role="region" aria-label="100층 건물. 위아래로 스크롤하거나 방향키로 층을 이동하세요."><div id="worldSpace"></div></div><canvas id="minimap" role="slider" tabindex="0" aria-label="건물 전체 층 이동" aria-valuemin="1" aria-valuemax="100" aria-valuenow="4"></canvas><div id="floatHint">위아래로 쓸어 올려 도시를 둘러보세요</div><div id="trackingTag"></div><button id="eventRibbon" class="event-ribbon" hidden aria-label="진행 중인 사건 보러 가기"></button></div></div>
+  <nav class="floor-nav" aria-label="층 바로가기"><button class="jump" data-move="8" aria-label="8개 층 위로">↑ 8층</button><button data-floor="1">1F</button><button data-floor="20">20F</button><button data-floor="40">40F</button><button data-floor="60">60F</button><button data-floor="80">80F</button><button data-floor="100">100F</button><button class="jump" data-move="-8" aria-label="8개 층 아래로">↓ 8층</button></nav>
+  <div class="quick-people" id="quickPeople" aria-label="주요인물 추적"></div>
+  <div class="follow-line"><span id="followStatus">자유 관찰 · 인물을 누르면 카메라가 따라갑니다</span><button id="followToggle" hidden>추적 재개</button></div>
+  <div class="ticker" id="ticker" role="button" tabindex="0" aria-label="도시 소식 열기"><b>ON AIR</b><span id="tickerText">20대의 승강기가 오늘 밤의 도시를 연결합니다.</span></div>
+ </section><aside class="sidebar" id="sidebar" aria-label="도시 정보"><nav class="panel-tabs" aria-label="정보 종류"><button data-tab="people" class="active">인물</button><button data-tab="lifts">승강기 <small>20</small></button><button data-tab="life">생활·물류</button><button data-tab="events">도시 소식</button><button id="closePanel" aria-label="정보창 닫기">×</button></nav><div id="panelContent"></div></aside></main>
+ <nav class="mobile-tabs" aria-label="도시 정보 열기"><button data-tab="people">⌖ 인물 이야기</button><button data-tab="lifts">↕ 승강기 20대</button><button data-tab="life">▣ 생활·물류</button><button data-tab="events">◷ 도시 소식</button></nav>
+</div>
+<div id="toast" class="toast" role="status"></div>
+<dialog id="helpDialog"><h2>100층의 밤을 구경하세요</h2><div class="help-row"><b>화면에는 언제나 8개 층</b><p>건물을 위아래로 스크롤하세요. 오른쪽의 작은 건물 지도를 드래그하거나 층 버튼으로 멀리 이동할 수 있어요.</p></div><div class="help-row"><b>세 사람을 따라가는 밤</b><p><strong>하루 · 서린 · 도윤</strong>을 누르면 자동 추적합니다. 직접 스크롤하면 자유 관찰로 바뀌고, ‘추적 재개’로 다시 따라갈 수 있어요.</p></div><div class="help-row"><b>20대, 서로 다른 노선</b><p>정차층에는 작은 불빛이 켜집니다. 비어 있는 승강로는 그 층에 설치되지 않은 구간이에요. 승강기나 상단 번호를 누르면 실제 정차층을 볼 수 있어요.</p></div><div class="help-row"><b>도시는 스스로 움직여요</b><p>야시장, 퇴근 인파, 점검, 응급 호출로 노선이 바뀝니다. 승객은 새 경로로 환승하고, 이미 탑승한 승객은 예정된 층에 안전하게 내립니다. ‘도시 소식’에서 가끔 급행 지원도 보내보세요.</p></div><p class="subtle">방을 누르면 그 층의 생활·재고와 배송을 볼 수 있어요. 식재료는 1층→12층→7층, 도시락은 7층→34·63층으로 실제 운반됩니다. 사건은 준비·운영·절정·정리로 이어집니다. 별도의 저장 없이 매번 새로운 밤이 시작됩니다. 소리는 없고, 화면을 벗어나면 시간이 잠시 멈춥니다.</p><button id="helpClose">도시로 돌아가기</button></dialog>
+<script id="simulation">
+'use strict';
+(() => {
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
+const COLORS=['#ffbf69','#64e2c6','#86baff','#d6acff','#ed9cb6'];
+const SPECIAL={1:['중앙 로비','lobby'],5:['모퉁이 커피','cafe'],7:['새벽식당','food'],8:['동네 의원','clinic'],12:['공동 물류창고','warehouse'],16:['달빛 야시장','market'],20:['아래마당 환승홀','hub'],28:['야간 응급센터','clinic'],34:['별빛 디자인 사무소','office'],40:['구름마당 환승홀','hub'],46:['공조 관리실','engine'],52:['중앙 전력실','engine'],60:['달마당 환승홀','hub'],63:['야근 중인 개발팀','office'],68:['도윤의 작은 집','home'],72:['승강기 관제실','engine'],76:['라디오 녹음실','studio'],80:['별마당 환승홀','hub'],88:['밤이 긴 아파트','home'],96:['네온 라이브 클럽','club'],100:['별빛 옥상 정원','garden']};
+const AREA=['불 꺼지지 않는 골목','야근하는 사람들','도시의 심장','창문 너머의 일상','하늘 가까운 밤'];
+const KINDS=[['home','food','shop','cafe','warehouse','market'],['office','office','cafe','studio','shop','office'],['engine','warehouse','office','engine','garden','studio'],['home','home','cafe','studio','home','garden'],['home','garden','club','cafe','studio','home']];
+const LABELS={home:['작은 아파트','불 켜진 거실','밤의 기숙사'],food:['늦은 저녁','국수 한 그릇','심야 주방'],shop:['24시 잡화점','골목 책방','동네 세탁소'],cafe:['잠들지 않는 카페','창가 커피','새벽 찻집'],warehouse:['공동 창고','택배 보관소','도시 물류실'],market:['작은 장터','야식 골목','저녁 상점가'],office:['스튜디오 오피스','야간 사무실','조용한 작업실'],studio:['작업하는 방','작은 녹음실','필름 스튜디오'],engine:['설비 관리실','환기 시스템','전력 제어실'],garden:['실내 정원','나무 쉼터','공중 산책로'],club:['밤의 라운지','작은 공연장','심야 음악실']};
+function floorInfo(f){if(SPECIAL[f])return {name:SPECIAL[f][0],kind:SPECIAL[f][1],zone:Math.min(4,Math.floor((f-1)/20))};const z=Math.floor((f-1)/20),kind=KINDS[z][f%6];return {name:LABELS[kind][f%3],kind,zone:z};}
+const HEROES=[
+ {name:'하루',role:'심야 배달원',age:24,color:'#ffbf69',tag:'도시락이 식기 전에',start:1,stops:[7,63,12,88,34,1],tasks:['도시락 받아오기','야근팀에 도시락 배달','늦은 택배 받아오기','88층에 소포 배달','디자인팀에 간식 배달','로비에서 잠깐 쉬기'],quotes:{walk:['오늘도 따뜻하게 도착하자.','도시락은 아직 따끈해.'],wait:['급행을 잘 갈아타면 금방이야.','저 문만 열리면 출발!'],ride:['저 창문 뒤에도 누군가 깨어 있겠지.','이번 환승만 놓치지 말자.'],arrive:['도착! 아직 따뜻할 거예요.','고생했어, 다음 집으로 가볼까.'],reroute:['정차층이 바뀌었네. 다른 길을 찾자!']}},
+ {name:'서린',role:'야간 설비 기사',age:32,color:'#64e2c6',tag:'누군가는 밤을 지킨다',start:46,stops:[72,52,20,96,46,5],tasks:['승강기 관제실 점검','전력실 계기 확인','환승홀 안전 순찰','공연장 음향 전원 점검','공조 장치 필터 교체','교대 전 커피 한 잔'],quotes:{walk:['오늘 밤도 별일 없이 지나가길.','발소리가 유난히 잘 들리는 시간이네.'],wait:['기계도 가끔 숨 돌릴 시간이 필요해.','운행표가 바뀌었나 확인해 보자.'],ride:['진동은 정상. 소리도 괜찮고.','100층이 모두 연결되어 있다는 건 멋진 일이야.'],arrive:['여기는 이상 없음. 다음 구역으로.','조금 손봤으니 이제 괜찮을 거야.'],reroute:['점검 구간이 생겼군. 우회해서 가자.']}},
+ {name:'도윤',role:'옥상 뮤지션',age:29,color:'#d6acff',tag:'오늘의 마지막 곡',start:68,stops:[7,76,96,100,68],tasks:['공연 전 늦은 저녁','녹음실에서 기타 찾기','라이브 클럽 리허설','옥상에서 마지막 곡 연주','집으로 돌아가기'],quotes:{walk:['오늘 밤은 어떤 노래가 어울릴까.','저 불빛들도 다 자기만의 박자가 있어.'],wait:['엘리베이터 소리로 곡을 써볼까.','조금 늦어도 괜찮아. 아직 밤은 길어.'],ride:['도시가 천천히 아래로 흐르네.','위로 올라갈수록 별이 가까워져.'],arrive:['좋아, 이제 나만의 시간을 시작해 볼까.','오늘 밤 이 장면을 기억해야지.'],reroute:['돌아가는 길도 노래가 될 수 있지.']}}
+];
+class City {
+ constructor(seed=Date.now()){
+  this.seed=seed>>>0;this.t=0;this.served=0;this.revision=0;this.people=[];this.lifts=[];this.active=[];this.logs=[];this.sequence=0;this.nextEvent=24;this.nextDispatch=0;this.cache=new Map();this.eventIndex=0;this.userCooldown=0;this.pathFailures=0;
+  for(let z=0;z<5;z++){const lo=z?z*20:1,hi=(z+1)*20;for(let k=0;k<3;k++){const stops=range(lo,hi).filter(f=>k===0||f===lo||f===hi||f%2===(k===1?0:1));this.addLift({name:[['골목 완행','골목 짝수','골목 홀수'],['업무 완행','업무 짝수','업무 홀수'],['설비 완행','설비 짝수','설비 홀수'],['주거 완행','주거 짝수','주거 홀수'],['상층 완행','상층 짝수','상층 홀수']][z][k],min:lo,max:hi,stops,color:COLORS[z],speed:.8+k*.08,cap:k?7:9,zone:z});}}
+  this.addLift({name:'스카이라인 급행',min:1,max:100,stops:[1,20,40,60,80,100],color:'#75caff',speed:2.5,cap:15,zone:5});
+  this.addLift({name:'도시 연결 급행',min:1,max:100,stops:[1,10,20,30,40,50,60,70,80,90,100],color:'#8ddcec',speed:2.1,cap:12,zone:5});
+  this.addLift({name:'병원 연결선',min:1,max:100,stops:[1,8,20,28,40,48,60,68,80,88,100],color:'#f49fa6',speed:1.7,cap:8,zone:5});
+  this.addLift({name:'공동 화물선',min:1,max:100,stops:[1,6,12,20,32,40,52,60,72,80,92,100],color:'#ffcf7c',speed:1.25,cap:11,zone:5});
+  this.addLift({name:'심야 순환선',min:1,max:100,stops:[1,7,16,20,26,36,40,46,56,60,66,76,80,86,96,100],color:'#d1b5ff',speed:1.6,cap:10,zone:5});
+  this.lifts[0].pos=2;this.lifts[1].pos=6;this.lifts[2].pos=12;this.lifts[15].pos=1;this.lifts[16].pos=24;this.lifts[17].pos=65;this.lifts[18].pos=4;this.lifts[19].pos=7;
+  this.rebuild(false);
+  HEROES.forEach((h,i)=>{const p=this.newPerson(h.start,i);p.hero=i;p.color=h.color;p.name=h.name;p.step=0;p.journal=[];p.done=0;p.quote=h.quotes.walk[0];p.goal=h.stops[0];p.task=h.tasks[0];this.plan(p);this.story(p,`${p.floor}층에서 오늘의 밤을 시작했다.`);});
+  for(let i=0;i<143;i++){const f=i<18?1:this.pickFloor();const p=this.newPerson(f);if(i%4===0){p.state='rest';p.timer=this.rand()*35+5;}else{p.goal=this.pickFloor(f);this.plan(p);}}
+  this.log('도시의 밤이 시작되었습니다. 승강기 20대 정상 운행.','system');
+ }
+ rand(){this.seed=(Math.imul(1664525,this.seed)+1013904223)>>>0;return this.seed/4294967296;}
+ choose(a){return a[Math.floor(this.rand()*a.length)];}
+ clock(){let n=Math.floor(1240+this.t*.65)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+ addLift(o){const id=this.lifts.length;this.lifts.push({...o,id,baseStops:o.stops.slice(),baseSpeed:o.speed,pos:o.min+(o.max-o.min)*this.rand(),target:null,direction:1,door:0,open:0,pass:[],trips:0,reason:'정상 운행',protect:[]});}
+ newPerson(f){const p={id:this.people.length,hero:-1,name:'주민',color:this.choose(['#6d9fad','#af9581','#8395bd','#b0a16e','#a7819e','#6eab99']),floor:f,goal:f,x:this.rand()<.5?.055:.96,state:'walk',route:[],timer:0,eid:null,wait:0,restCount:0,seed:this.rand(),walkSpeed:.045+this.rand()*.03,lastTransfer:0};this.people.push(p);return p;}
+ liftX(id){return .16+(id+.5)*.0375;}
+ pickFloor(except){let n;for(let tries=0;tries<8;tries++){const hot=this.active.find(a=>a.hot);n=hot&&this.rand()<.25?hot.hot:this.rand()<.48?this.choose([1,5,7,12,16,20,28,34,40,46,52,60,63,68,72,76,80,88,96,100]):1+Math.floor(this.rand()*100);if(n!==except)return n;}return except===1?20:1;}
+ rebuild(reroute=true){
+  this.revision++;this.cache.clear();
+  for(const e of this.lifts){let stops=e.baseStops.slice();e.speed=e.baseSpeed;const reasons=[];for(const a of this.active){if(a.ids.includes(e.id)){if(a.remove)stops=stops.filter(f=>!a.remove.includes(f));if(a.add)stops.push(...a.add.filter(f=>f>=e.min&&f<=e.max));if(a.slow)e.speed*=a.slow;reasons.push(a.title);}}e.stops=[...new Set(stops)].sort((a,b)=>a-b);e.reason=reasons.join(' · ')||'정상 운행';e.changed=!!reasons.length;}
+  this.graph=Array.from({length:101},()=>[]);
+  for(const e of this.lifts)for(const from of e.stops)for(const to of e.stops)if(from!==to)this.graph[from].push({to,eid:e.id,cost:Math.abs(to-from)/e.speed+11+(e.id===18?5:0)});
+  if(reroute)for(const p of this.people)if(p.state==='wait'||p.state==='walk'){const old=p.route.map(r=>r.eid).join(','),first=p.route[0]?.eid,waiting=p.state==='wait';this.plan(p);if(waiting&&p.route[0]?.eid===first){p.state='wait';p.x=this.liftX(first);}if(p.hero>=0&&old!==p.route.map(r=>r.eid).join(',')){p.quote=HEROES[p.hero].quotes.reroute[0];this.story(p,'운행 변경에 맞춰 환승 경로를 다시 찾았다.');}}
+ }
+ route(from,to,avoid=-1){
+  if(from===to)return [];const key=from+'>'+to+':'+avoid;if(this.cache.has(key))return this.cache.get(key).map(e=>({...e}));
+  const dist=Array(101).fill(Infinity),used=Array(101).fill(false),prev=Array(101);dist[from]=0;
+  for(let k=0;k<100;k++){let u=-1;for(let n=1;n<=100;n++)if(!used[n]&&(u===-1||dist[n]<dist[u]))u=n;if(u<0||!isFinite(dist[u])||u===to)break;used[u]=true;for(const g of this.graph[u]){if(g.eid===avoid)continue;const d=dist[u]+g.cost;if(d<dist[g.to]){dist[g.to]=d;prev[g.to]={from:u,to:g.to,eid:g.eid};}}}
+  if(!isFinite(dist[to]))return null;const path=[];let cur=to;while(cur!==from){path.unshift({...prev[cur]});cur=prev[cur].from;}
+  const merged=[];for(const leg of path){if(merged.length&&merged[merged.length-1].eid===leg.eid)merged[merged.length-1].to=leg.to;else merged.push(leg);}this.cache.set(key,merged);return merged.map(e=>({...e}));
+ }
+ plan(p){const avoid=p.avoidUntil>this.t?p.avoidLift:-1;const route=this.route(p.floor,p.goal,avoid)??this.route(p.floor,p.goal);if(route===null){this.pathFailures++;p.route=[];p.state='stranded';p.timer=3;return;}p.route=route;p.eid=null;if(!p.route.length){p.state='exit';p.exitX=p.x<.5?.065:.958;}else{p.state='walk';p.walkTarget=this.liftX(p.route[0].eid);}}
+ story(p,message){if(p.hero<0)return;p.journal.unshift({time:this.clock(),text:message});if(p.journal.length>14)p.journal.pop();}
+ log(text,type='event'){this.logs.unshift({id:++this.sequence,time:this.clock(),text,type});if(this.logs.length>70)this.logs.pop();}
+ talk(p,kind){if(p.hero>=0)p.quote=this.choose(HEROES[p.hero].quotes[kind]);}
+ arrived(p){this.served++;p.state='rest';p.timer=p.hero>=0?12+this.rand()*10:18+this.rand()*55;p.route=[];p.eid=null;if(p.hero>=0){p.done++;this.talk(p,'arrive');this.story(p,`${p.floor}층 도착 · ${p.task}`);}}
+ nextTrip(p){if(p.hero>=0){const h=HEROES[p.hero];p.step=(p.step+1)%h.stops.length;p.goal=h.stops[p.step];p.task=h.tasks[p.step];this.talk(p,'walk');this.story(p,`${p.goal}층으로 출발 · ${p.task}`);}else p.goal=this.pickFloor(p.floor);p.wait=0;this.plan(p);}
+ effectiveStops(e){return [...new Set([...e.stops,...e.pass.map(id=>this.people[id].route[0].to),...(e.target===null?[]:[e.target])])];}
+ chooseTarget(e){
+  const pickups=e.pass.length>=e.cap?[]:this.people.filter(p=>p.state==='wait'&&p.route[0]?.eid===e.id&&e.stops.includes(p.floor)&&(Math.abs(p.floor-e.pos)>.005||!e.pass.length||Math.sign(p.route[0].to-p.floor)===e.direction)).map(p=>p.floor);
+  const targets=[...new Set([...e.pass.map(id=>this.people[id].route[0].to),...pickups])];if(!targets.length){e.target=null;return;}
+  const here=targets.find(f=>Math.abs(f-e.pos)<.005);if(here!==undefined){e.target=here;return;}
+  let ahead=targets.filter(f=>(f-e.pos)*e.direction>.001);if(!ahead.length){e.direction*=-1;ahead=targets.filter(f=>(f-e.pos)*e.direction>.001);}e.target=ahead.sort((a,b)=>Math.abs(a-e.pos)-Math.abs(b-e.pos))[0]??targets[0];
+ }
+ arriveLift(e){
+  const f=Math.round(e.pos);e.pos=f;e.target=null;e.door=2.2;e.open=1;e.trips++;
+  const remaining=[];for(const id of e.pass){const p=this.people[id];if(p.route[0].to!==f){remaining.push(id);continue;}p.floor=f;p.x=this.liftX(e.id);p.route.shift();p.eid=null;p.lastTransfer=this.t;if(f===p.goal){p.state='exit';p.exitX=p.x<.5?.065:.958;}else{this.plan(p);if(p.hero>=0)this.story(p,`${f}층 하차 · ${p.route[0]?'E'+String(p.route[0].eid+1).padStart(2,'0')+'로 환승':'목적지 이동'}`);}}
+  e.pass=remaining;this.board(e);
+ }
+ board(e){
+  const f=Math.round(e.pos);if(!e.stops.includes(f))return;
+  const waiting=this.people.filter(p=>p.state==='wait'&&p.floor===f&&p.route[0]?.eid===e.id).sort((a,b)=>b.wait-a.wait);
+  if(!e.pass.length&&waiting.length)e.direction=Math.sign(waiting[0].route[0].to-f)||1;
+  for(const p of waiting){if(e.pass.length>=e.cap)break;if(Math.sign(p.route[0].to-f)!==e.direction)continue;p.state='ride';p.eid=e.id;p.wait=0;e.pass.push(p.id);this.talk(p,'ride');if(p.hero>=0)this.story(p,`E${String(e.id+1).padStart(2,'0')} 탑승 · ${p.route[0].to}층까지`);}
+ }
+ event(kind,manual=false){
+  const n=kind??this.eventIndex++%8;let a;
+  if(n===0)a={title:'달빛 야시장 개장',desc:'16층에 야식 손님이 모입니다. E20이 5·14·18층에도 임시 정차합니다.',ids:[19],add:[5,14,18],duration:68,hot:16};
+  if(n===1)a={title:'야근팀의 늦은 퇴근',desc:'34·63층 퇴근 인파를 위해 E17이 두 층에 추가 정차합니다.',ids:[16],add:[34,63],duration:64,hot:1};
+  if(n===2){const z=Math.floor(this.rand()*5),lo=z?z*20:1;const id=z*3+1;a={title:`E${String(id+1).padStart(2,'0')} 문 센서 점검`,desc:`${lo+5}~${lo+13}층 정차를 잠시 건너뜁니다. 승객은 인접 노선으로 우회합니다.`,ids:[id],remove:range(lo+5,lo+13),duration:57};}
+  if(n===3)a={title:'야간 응급센터 호출',desc:'E18 병원 연결선이 33·65·67층에 임시 정차합니다.',ids:[17],add:[33,65,67],duration:55,hot:28};
+  if(n===4)a={title:'96층 라이브 시작',desc:'옥상 아래에 음악이 흐릅니다. E16 급행이 76·96층에 추가 정차합니다.',ids:[15],add:[76,96],duration:76,hot:96};
+  if(n===5)a={title:'중층 전력 부하 조정',desc:'E08·E09는 속도를 낮춥니다. E17이 46·52·58층에 추가 정차해 돕습니다.',ids:[7,8],slow:.58,duration:60};
+  if(n===6)a={title:'공동 물류의 밤 배송',desc:'E19 화물선이 15·35·55·75·95층으로 운행 범위를 넓힙니다.',ids:[18],add:[15,35,55,75,95],duration:70,hot:12};
+  if(n===7)a={title:'옥상 별빛 산책',desc:'100층 정원에 사람들이 모입니다. E20이 85·91·99층을 연결합니다.',ids:[19],add:[85,91,99],duration:65,hot:100};
+  if(!a)return false;if(this.active.some(x=>x.title===a.title))return false;
+  a.id=++this.sequence;a.start=this.t;a.end=this.t+a.duration;this.active.push(a);
+  if(n===5){this.active.push({id:++this.sequence,title:'전력 조정 급행 지원',desc:'E17의 46·52·58층 추가 정차',ids:[16],add:[46,52,58],duration:60,start:this.t,end:this.t+60,secondary:true});}
+  this.log(a.title+' · '+a.desc);this.rebuild();
+  if(n===1){this.people.filter(p=>p.hero<0&&p.state==='rest').slice(0,8).forEach(p=>{p.goal=1;this.plan(p);});}
+  return true;
+ }
+ assist(){if(this.t<this.userCooldown)return {ok:false,message:`${Math.ceil(this.userCooldown-this.t)}초 뒤에 다시 지원할 수 있어요.`};const counts={};for(const p of this.people)if(p.state==='wait')counts[p.floor]=(counts[p.floor]||0)+1;const floor=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]||16);const a={id:++this.sequence,title:`${floor}층 급행 지원`,desc:`관찰자의 요청으로 E17이 ${floor}층에 50초 동안 추가 정차합니다.`,ids:[16],add:[floor],duration:50,start:this.t,end:this.t+50,hot:floor};this.active.push(a);this.userCooldown=this.t+55;this.log(a.title+' · '+a.desc);this.rebuild();return {ok:true,message:`E17이 ${floor}층의 대기 승객을 도우러 갑니다.`};}
+ position(p){return p.state==='ride'?this.lifts[p.eid].pos:p.floor;}
+ update(dt){
+  this.t+=dt;let changed=false;this.active=this.active.filter(a=>{if(a.end>this.t)return true;if(!a.secondary)this.log(a.title+' 종료 · 기존 운행으로 돌아갑니다.');changed=true;return false;});if(changed)this.rebuild();if(this.t>=this.nextEvent){this.event();this.nextEvent=this.t+38+this.rand()*12;}
+  for(const p of this.people){
+   if(p.state==='walk'){const d=p.walkTarget-p.x;p.x+=Math.sign(d)*Math.min(Math.abs(d),p.walkSpeed*dt);if(Math.abs(d)<.003){p.x=p.walkTarget;p.state='wait';p.wait=0;this.talk(p,'wait');}}
+   else if(p.state==='wait'){p.wait+=dt;const e=this.lifts[p.route[0].eid];if(e.door>.25&&Math.abs(e.pos-p.floor)<.001)this.board(e);if(p.state==='wait'&&p.wait>65&&this.t>=(p.rerouteAt||0)){p.rerouteAt=this.t+75;const alternative=this.route(p.floor,p.goal,e.id);if(alternative?.length){p.avoidLift=e.id;p.avoidUntil=this.t+95;p.route=alternative;p.state='walk';p.walkTarget=this.liftX(p.route[0].eid);p.wait=0;if(p.hero>=0){p.quote='여기는 붐비네. 다른 승강기로 가보자.';this.story(p,`긴 대기를 피해 E${String(p.route[0].eid+1).padStart(2,'0')} 쪽으로 이동했다.`);}}}}
+   else if(p.state==='exit'){const d=p.exitX-p.x;p.x+=Math.sign(d)*Math.min(Math.abs(d),p.walkSpeed*dt);if(Math.abs(d)<.003)this.arrived(p);}
+   else if(p.state==='rest'){p.timer-=dt;if(p.timer<=0)this.nextTrip(p);}
+   else if(p.state==='stranded'){p.timer-=dt;if(p.timer<=0)this.plan(p);}
+  }
+  for(const e of this.lifts){
+   if(e.door>0){e.door=Math.max(0,e.door-dt);e.open=Math.min(1,e.door/.7);continue;}
+   e.open=0;if(e.target===null)this.chooseTarget(e);if(e.target===null)continue;
+   const d=e.target-e.pos;if(Math.abs(d)<=e.speed*dt){e.pos=e.target;this.arriveLift(e);}else{e.direction=Math.sign(d);e.pos+=e.direction*e.speed*dt;}
+  }
+ }
+ snapshot(){return {time:this.clock(),elapsed:Math.round(this.t),arrivals:this.served,people:this.people.length,waiting:this.people.filter(p=>p.state==='wait').length,activeEvents:this.active.filter(a=>!a.secondary).map(a=>a.title),heroes:this.people.slice(0,3).map(p=>({name:p.name,floor:Number(this.position(p).toFixed(1)),destination:p.goal,state:p.state,task:p.task,completed:p.done})),lifts:this.lifts.map(e=>({number:e.id+1,floor:Number(e.pos.toFixed(1)),installed:[e.min,e.max],stops:e.stops.slice(),passengers:e.pass.length,reason:e.reason}))};}
+}
+globalThis.VerticalCity={City,HEROES,floorInfo,AREA,COLORS,clamp};
+})();
+</script>
+<script id="living-systems">
+'use strict';
+(() => {
+const {City:BaseCity,floorInfo,clamp}=VerticalCity;
+const CARGO_NAMES={raw:'식재료',meal:'도시락',props:'행사 장비',waste:'회수 상자'};
+const PHASE_NAMES=[['좌판 준비','야시장 개장','북적이는 밤','마감·청소'],['퇴근 준비','퇴근 시작','환승 혼잡','일상 복귀'],['현장 준비','센서 점검','복구 시험','장비 정리'],['의료진 준비','야간 접수','집중 진료','소독·정리'],['무대 설치','리허설','라이브 공연','철수·청소'],['사전 점검','부하 조정','안정화 시험','정상 복귀'],['입고 준비','하역 시작','배송 집중','창고 정리'],['등불 설치','산책 시작','별빛 관측','소등·청소']];
+class LivingCity extends BaseCity {
+ constructor(seed){
+  super(seed);
+  this.rooms=Array.from({length:101},(_,f)=>({floor:f,kind:f?floorInfo(f).kind:'lobby',raw:0,meals:0,props:0,waste:0,orders:0,cooked:0,consumed:0,received:0,cooking:false,cookRemaining:0,cookDuration:8,cookClock:0,orderClock:f%14,mealClock:f%4,mealUntil:0,dirt:0,cleanupUntil:0,customerCount:0,sales:0,saleClock:0,phaseOffset:(f*.713)%1}));
+  this.rooms[1].raw=64;this.rooms[12].raw=42;this.rooms[12].props=18;this.rooms[7].raw=9;this.rooms[7].meals=6;this.rooms[16].raw=6;this.rooms[16].props=1;this.rooms[96].props=1;this.rooms[100].props=1;
+  this.rooms[63].orders=9;this.rooms[34].orders=6;
+  this.economy={rawSupplied:121,rawUsed:0,mealsProduced:6,mealsEaten:0,marketSales:0,jobsDelivered:0,boxesReturned:0,restockClock:0};
+  this.jobs=[];this.jobSequence=0;this.cargoHistory=[];this.dispatchClock=0;this.supplyClock=0;this.completedEpisodes=[];this.episodeSequence=0;this.nextEvent=14;
+  this.active.push({id:++this.sequence,title:'생활 물류 예약 정차',ids:[18],add:[7,16,34,63,96],secondary:true,end:Infinity,start:0,duration:Infinity});
+  this.porters=[];
+  for(let i=0;i<8;i++){const p=this.newPerson(i<4?12:7);p.role=i<4?'porter':'courier';p.name=(i<4?'운반원 ':'배달원 ')+(i%4+1);p.color=i<4?'#f1bf72':'#80d9c8';p.state='rest';p.timer=2+i*.2;p.job=null;p.cargo=null;p.workStep='idle';p.x=this.roomDoor(p.floor);p.walkSpeed=.08;this.porters.push(p.id);}
+  const h=this.people[0];h.role='courier';h.job=null;h.cargo=null;h.workStep='idle';h.walkSpeed=.075;h.task='새벽식당에서 도시락 받아오기';
+  this.rebuild();this.createJob('raw',12,7,6);this.createJob('meal',7,63,3);this.dispatchJobs();
+ }
+ roomDoor(f){const slots=[];for(const e of this.lifts)if(f<e.min||f>e.max)slots.push(e.id);return slots.length?this.liftX(slots[Math.floor(slots.length/2)]):.95;}
+ rebuild(reroute=true){
+  const all=this.active;this.active=all.filter(a=>!a.episode||a.phase===1||a.phase===2);
+  try{super.rebuild(reroute);}finally{this.active=all;}
+  if(this.rooms)for(const p of this.people){if((p.role==='porter')&&p.cargo&&(p.state==='walk'||p.state==='wait'))this.plan(p);}
+ }
+ plan(p){
+  if(p.role==='porter'&&p.cargo&&p.floor!==p.goal){const e=this.lifts[18];if(e.stops.includes(p.floor)&&e.stops.includes(p.goal)){const waiting=p.state==='wait'&&p.route[0]?.eid===18;p.route=[{eid:18,from:p.floor,to:p.goal}];p.eid=null;p.walkTarget=this.liftX(18);p.state=waiting?'wait':'walk';return;}}
+  super.plan(p);
+ }
+ board(e){
+  // Reserve the freight cabin for physical cargo when loaded porters are waiting.
+  const f=Math.round(e.pos);
+  if(e.id!==18||!e.stops.includes(f))return super.board(e);
+  const waiting=this.people.filter(p=>p.state==='wait'&&p.floor===f&&p.route[0]?.eid===e.id).sort((a,b)=>(Number(!!b.cargo)-Number(!!a.cargo))*10000+b.wait-a.wait);
+  if(!e.pass.length&&waiting.length)e.direction=Math.sign(waiting[0].route[0].to-f)||1;
+  const cargoWaiting=this.people.some(p=>p.state==='wait'&&p.role==='porter'&&p.cargo&&p.route[0]?.eid===18);
+  for(const p of waiting){if(e.pass.length>=e.cap)break;if(Math.sign(p.route[0].to-f)!==e.direction)continue;if(!p.cargo&&cargoWaiting&&e.pass.length>=e.cap-4)continue;p.state='ride';p.eid=e.id;p.wait=0;e.pass.push(p.id);this.talk(p,'ride');if(p.hero>=0)this.story(p,`E19 탑승 · ${p.route[0].to}층까지`);}
+ }
+ chooseTarget(e){
+  if(e.id===18&&e.pass.length===0){const cargo=this.people.filter(p=>p.state==='wait'&&p.cargo&&p.route[0]?.eid===18).sort((a,b)=>b.wait-a.wait);if(cargo.length&&cargo[0].wait>22){e.target=cargo[0].floor;e.direction=Math.sign(e.target-e.pos)||Math.sign(cargo[0].route[0].to-e.pos)||1;return;}}
+  if(e.id!==18)return super.chooseTarget(e);
+  const cargoWaiting=this.people.some(p=>p.state==='wait'&&p.cargo&&p.route[0]?.eid===18);
+  const pickups=this.people.filter(p=>p.state==='wait'&&p.route[0]?.eid===18&&e.stops.includes(p.floor)&&e.pass.length<e.cap&&(p.cargo||!cargoWaiting||e.pass.length<e.cap-4)&&(Math.abs(p.floor-e.pos)>.005||!e.pass.length||Math.sign(p.route[0].to-p.floor)===e.direction)).map(p=>p.floor);
+  const targets=[...new Set([...e.pass.map(id=>this.people[id].route[0].to),...pickups])];if(!targets.length){e.target=null;return;}
+  if(targets.some(f=>Math.abs(f-e.pos)<.005)){e.target=Math.round(e.pos);return;}
+  let ahead=targets.filter(f=>(f-e.pos)*e.direction>0);if(!ahead.length){e.direction*=-1;ahead=targets.filter(f=>(f-e.pos)*e.direction>0);}e.target=ahead.sort((a,b)=>Math.abs(a-e.pos)-Math.abs(b-e.pos))[0]??targets[0];
+ }
+ arriveLift(e){const before=e.pass.slice();super.arriveLift(e);if(this.rooms)for(const id of before){const p=this.people[id];if(p.state==='exit')p.exitX=this.roomDoor(p.floor);}}
+ inbound(f,type){return this.jobs.filter(j=>j.to===f&&j.type===type&&j.status!=='delivered').reduce((n,j)=>n+j.amount,0);}
+ pending(f,type){return this.jobs.filter(j=>j.from===f&&j.type===type&&(j.status==='queued'||j.status==='assigned')).reduce((n,j)=>n+j.amount,0);}
+ createJob(type,from,to,amount,episodeId=null){
+  if(!this.rooms||this.jobs.filter(j=>j.status!=='delivered').length>=32||!CARGO_NAMES[type]||from===to)return null;
+  const field=type==='meal'?'meals':type;const stock=this.rooms[from][field];amount=Math.min(amount,stock);if(!Number.isFinite(amount)||amount<1)return null;
+  this.rooms[from][field]-=amount;
+  const j={id:++this.jobSequence,type,from,to,amount,status:'queued',created:this.t,carrier:null,episodeId,pickedAt:null,deliveredAt:null};this.jobs.push(j);return j;
+ }
+ assignJob(p,j){j.status='assigned';j.carrier=p.id;p.job=j.id;p.workStep='pickup';p.cargo=null;p.goal=j.from;p.wait=0;p.avoidUntil=0;p.task=`${j.from}층에서 ${CARGO_NAMES[j.type]} ${j.amount}개 받기`;if(p.floor===j.from&&p.state==='rest'){this.pickup(p,j);}else this.plan(p);if(p.hero>=0)this.story(p,`${p.task} · 목적지 ${j.to}층`);}
+ pickup(p,j){
+  if(j.status!=='assigned'||j.carrier!==p.id||p.floor!==j.from)return;
+  j.status='transit';j.pickedAt=this.t;p.cargo={job:j.id,type:j.type,amount:j.amount};p.workStep='dropoff';p.state='rest';p.timer=3.5;p.goal=j.to;p.task=`${j.to}층에 ${CARGO_NAMES[j.type]} ${j.amount}개 배달`;
+  if(p.hero>=0){p.quote='따뜻한 도시락 받았어. 이제 배달하러 가자!';this.story(p,`${j.from}층에서 ${CARGO_NAMES[j.type]} ${j.amount}개를 받았다.`);}
+ }
+ dropoff(p,j){
+  if(j.status!=='transit'||p.floor!==j.to||p.cargo?.job!==j.id)return;
+  this.rooms[j.to][j.type==='meal'?'meals':j.type]+=j.amount;this.rooms[j.to].received+=j.amount;this.rooms[j.from].waste+=1;
+  j.status='delivered';j.deliveredAt=this.t;this.economy.jobsDelivered++;
+  if(j.type==='props'&&j.to!==12){const episode=this.active.find(a=>a.episodeId===j.episodeId);if(!episode||episode.phase>=3)this.createJob('props',j.to,12,Math.max(0,this.rooms[j.to].props-1),j.episodeId);}
+  if(j.type==='waste'){this.economy.boxesReturned+=j.amount;this.rooms[j.to].waste=Math.max(0,this.rooms[j.to].waste-j.amount);}
+  this.cargoHistory.unshift({time:this.clock(),text:`${j.from}→${j.to}층 · ${CARGO_NAMES[j.type]} ${j.amount}개 도착`,type:j.type,from:j.from,to:j.to});this.cargoHistory.length=Math.min(this.cargoHistory.length,20);
+  if(p.hero>=0){p.quote='도시락 도착했어요. 따뜻할 때 드세요!';this.story(p,`${j.to}층에 ${CARGO_NAMES[j.type]} ${j.amount}개를 건넸다.`);}
+  p.cargo=null;p.job=null;p.workStep='idle';p.state='rest';p.timer=4;
+ }
+ arrived(p){super.arrived(p);if(!this.rooms)return;const j=this.jobs.find(x=>x.id===p.job);if(j){if(p.workStep==='pickup')this.pickup(p,j);else if(p.workStep==='dropoff')this.dropoff(p,j);}else if(p.role==='porter'||p.role==='courier'){p.state='rest';p.timer=3;p.workStep='idle';}}
+ nextTrip(p){
+  if(!this.rooms||(!p.role))return super.nextTrip(p);
+  const j=this.jobs.find(x=>x.id===p.job);
+  if(j&&p.workStep==='dropoff'){p.goal=j.to;p.wait=0;this.plan(p);return;}
+  if(j&&p.workStep==='pickup'){p.goal=j.from;if(p.floor===j.from)this.pickup(p,j);else this.plan(p);return;}
+  p.state='rest';p.timer=3;p.task=p.role==='porter'?'운반 의뢰를 기다리는 중':'도시락 포장을 기다리는 중';
+  if(p.hero===0&&p.floor!==7){p.goal=7;p.task='새벽식당으로 돌아가기';this.plan(p);}
+ }
+ dispatchJobs(){
+  const workers=[this.people[0],...this.porters.map(id=>this.people[id])];
+  for(const p of workers){if(p.job||p.state!=='rest')continue;const candidates=this.jobs.filter(j=>j.status==='queued'&&(p.role==='courier'?j.type==='meal':j.type!=='meal'));
+   candidates.sort((a,b)=>((b.episodeId?25:0)-(a.episodeId?25:0))+(a.created-b.created)*.4+Math.abs(p.floor-a.from)-Math.abs(p.floor-b.from));if(candidates[0])this.assignJob(p,candidates[0]);}
+ }
+ tickEconomy(dt){
+  const k=this.rooms[7],e=this.economy;e.restockClock+=dt;
+  if(e.restockClock>=90){e.restockClock-=90;const qty=Math.min(32,80-this.rooms[1].raw);if(qty>0){this.rooms[1].raw+=qty;e.rawSupplied+=qty;}}
+  if(!k.cooking&&k.raw>0&&k.meals+this.pending(7,'meal')<24){k.raw--;e.rawUsed++;k.cooking=true;k.cookDuration=7+(Math.floor(this.t/24)%3);k.cookRemaining=k.cookDuration;}
+  if(k.cooking){k.cookRemaining-=dt;if(k.cookRemaining<=0){k.cooking=false;k.meals+=3;k.cooked+=3;e.mealsProduced+=3;}}
+  for(const f of [34,63]){const r=this.rooms[f];r.orderClock+=dt;r.mealClock+=dt;if(r.orderClock>9){r.orderClock-=9;r.orders=Math.min(30,r.orders+1);}if(r.mealClock>4){r.mealClock-=4;if(r.meals>0&&r.orders>0){r.meals--;r.orders--;r.consumed++;r.mealUntil=this.t+5.5;r.dirt=Math.min(12,r.dirt+.3);e.mealsEaten++;}}}
+  for(let f=1;f<=100;f++){const r=this.rooms[f];if(r.cleanupUntil>this.t)r.dirt=Math.max(0,r.dirt-dt*.5);}
+  this.supplyClock+=dt;this.dispatchClock+=dt;
+  if(this.supplyClock>=2){this.supplyClock=0;
+   if(this.rooms[12].raw+this.inbound(12,'raw')<22)this.createJob('raw',1,12,18);
+   if(k.raw+this.inbound(7,'raw')<7)this.createJob('raw',12,7,9);
+   for(const f of [63,34]){const r=this.rooms[f],need=r.orders-r.meals-this.inbound(f,'meal');if(need>=3&&k.meals>=3)this.createJob('meal',7,f,Math.min(6,need,k.meals));}
+   const a=this.active.find(x=>x.episode&&x.kind===0&&x.phase<3);if(a&&this.rooms[16].raw+this.inbound(16,'raw')<6)this.createJob('raw',12,16,9,a.episodeId);
+   for(const f of [16,96,100]){if(this.rooms[f].props>1&&!this.active.some(a=>a.episode&&a.floor===f&&a.phase<3))this.createJob('props',f,12,this.rooms[f].props-1);}
+   for(const f of [7,16,34,63,96,100]){if(this.rooms[f].waste>=5&&!this.jobs.some(j=>j.from===f&&j.type==='waste'&&j.status!=='delivered'))this.createJob('waste',f,12,5);}
+   const done=this.jobs.filter(j=>j.status==='delivered');if(done.length>40){const trim=new Set(done.slice(0,done.length-40).map(j=>j.id));this.jobs=this.jobs.filter(j=>!trim.has(j.id));}
+  }
+  if(this.dispatchClock>=1){this.dispatchClock=0;this.dispatchJobs();}
+ }
+ event(kind,manual=false){
+  if(!this.rooms)return super.event(kind,manual);
+  const n=kind??this.eventIndex++%8;if(this.active.some(a=>a.episode&&a.kind===n))return false;
+  const defs=[
+   {title:'달빛 야시장',floor:16,desc:'좌판이 펼쳐지고 손님이 모입니다. 재료가 늦으면 일부 가게는 매진됩니다.',ids:[19],add:[5,14,18],hot:16},
+   {title:'야근팀의 늦은 퇴근',floor:63,floors:[34,63],desc:'모니터가 꺼지고 사무실 사람들이 환승홀로 향합니다.',ids:[16],add:[34,63],hot:1},
+   {title:'승강기 센서 점검',floor:8,desc:'차단봉과 작업등이 설치됩니다. 점검 동안 정차층을 우회합니다.',ids:[1],remove:[6,8,10,12,14]},
+   {title:'야간 응급센터',floor:28,desc:'의료진이 접수를 준비하고 진료 뒤 침상과 복도를 소독합니다.',ids:[17],add:[33,65,67],hot:28},
+   {title:'96층 네온 라이브',floor:96,desc:'장비 운반, 리허설, 조명과 관객, 공연 뒤 철수까지 이어집니다.',ids:[15],add:[76,96],hot:96},
+   {title:'중층 전력 부하 조정',floor:52,floors:[46,52],desc:'작업등 아래 설비를 점검하고, 전력 안정화 뒤 조명이 돌아옵니다.',ids:[7,8],slow:.58},
+   {title:'공동 물류의 밤 배송',floor:12,desc:'컨베이어를 가동하고 화물을 정리합니다. 운반원이 승강기로 물건을 옮깁니다.',ids:[18],add:[15,35,55,75,95],hot:12},
+   {title:'옥상 별빛 산책',floor:100,desc:'등불 설치, 산책과 망원경 관측, 소등과 청소가 차례로 이어집니다.',ids:[19],add:[85,91,99],hot:100}
+  ];
+  const a={...defs[n],id:++this.sequence,episode:true,episodeId:++this.episodeSequence,kind:n,phase:0,stageStarted:this.t,start:this.t,end:Infinity,duration:130,durations:[20+this.rand()*8,30+this.rand()*10,40+this.rand()*15,25+this.rand()*8],phaseUntil:0,prepWait:0,limited:false,attendees:0,sales:0};
+  if(n===2){const z=Math.floor(this.rand()*5),lo=z?z*20:1;a.ids=[z*3+1];a.remove=this.lifts[a.ids[0]].baseStops.slice(3,8);a.floor=a.remove[1];a.floors=a.remove.slice(0,4);a.title='E'+String(a.ids[0]+1).padStart(2,'0')+' 센서 점검';}
+  a.phaseUntil=this.t+a.durations[0];this.active.push(a);
+  if([0,4,7].includes(n))this.createJob('props',12,a.floor,3,a.episodeId);
+  if(n===0)this.createJob('raw',12,16,6,a.episodeId);
+  this.log(`${a.floor}층 ${a.title} · ${PHASE_NAMES[n][0]}`);this.rebuild();return true;
+ }
+ phaseName(a){return a.episode?PHASE_NAMES[a.kind][a.phase]:a.title;}
+ stageProgress(a){return a.episode?clamp((this.t-a.stageStarted)/(a.durations[a.phase]||1),0,1):clamp((this.t-a.start)/a.duration,0,1);}
+ eventAt(f){return this.active.find(a=>a.episode&&(a.floor===f||a.floors?.includes(f)));}
+ enterPhase(a,index){
+  a.phase=index;a.stageStarted=this.t;a.phaseUntil=this.t+a.durations[index];const r=this.rooms[a.floor];
+  if(index===1){
+   a.limited=[0,4,7].includes(a.kind)&&r.props<2;
+   const visitors=this.people.filter(p=>!p.role&&p.hero<0&&p.state==='rest').sort((p,q)=>Math.abs(p.floor-a.floor)-Math.abs(q.floor-a.floor)).slice(0,a.kind===0?14:9);
+   for(const p of visitors){p.goal=a.kind===1?1:a.floor;p.wait=0;this.plan(p);}
+   if(a.kind===5)this.active.push({id:++this.sequence,title:'전력 조정 급행 지원',ids:[16],add:[46,52,58],start:this.t,end:this.t+a.durations[1]+a.durations[2],duration:a.durations[1]+a.durations[2],secondary:true});
+  }
+  if(index===3){r.cleanupUntil=this.t+a.durations[3]+12;for(const f of a.floors||[])this.rooms[f].cleanupUntil=r.cleanupUntil;
+   if([0,4,7].includes(a.kind))this.createJob('props',a.floor,12,Math.max(0,r.props-1),a.episodeId);
+   const leaving=this.people.filter(p=>!p.role&&p.hero<0&&p.floor===a.floor&&p.state==='rest');for(const p of leaving){p.goal=this.pickFloor(p.floor);this.plan(p);}
+  }
+  this.log(`${a.floor}층 ${a.title} · ${PHASE_NAMES[a.kind][index]}${a.limited&&index===1?' (도착한 장비부터 운영)':''}`);this.rebuild();
+ }
+ tickEpisodes(dt){
+  const finished=[];
+  for(const a of this.active){if(!a.episode)continue;const r=this.rooms[a.floor];a.attendees=this.people.filter(p=>p.floor===a.floor&&p.state!=='ride').length;
+   if(a.phase===2){r.dirt=Math.min(16,r.dirt+dt*.055);if(a.kind===0){r.saleClock+=dt;if(r.saleClock>=4){r.saleClock=0;if(r.raw>0){r.raw--;r.sales++;a.sales++;this.economy.rawUsed++;this.economy.marketSales++;r.mealUntil=this.t+3;}}}}
+   if(this.t<a.phaseUntil)continue;
+   if(a.phase===0&&[0,4,7].includes(a.kind)&&r.props<2&&a.prepWait<42){a.prepWait+=7;a.phaseUntil+=7;continue;}
+   if(a.phase<3)this.enterPhase(a,a.phase+1);else finished.push(a);
+  }
+  if(finished.length){for(const a of finished){this.completedEpisodes.unshift({kind:a.kind,floor:a.floor,title:a.title,at:this.t,sales:a.sales,limited:a.limited});this.log(`${a.floor}층 ${a.title} 마감 · 다시 일상으로 돌아갑니다.`);}this.completedEpisodes.length=Math.min(20,this.completedEpisodes.length);this.active=this.active.filter(a=>!finished.includes(a));this.rebuild();}
+ }
+ update(dt){const next=this.nextEvent;this.nextEvent=Infinity;super.update(dt);this.nextEvent=next;this.tickEconomy(dt);this.tickEpisodes(dt);if(this.t>=this.nextEvent){this.event();this.nextEvent=this.t+64+this.rand()*20;}}
+ roomActivity(f){const r=this.rooms[f],a=this.eventAt(f);if(a)return this.phaseName(a);if(f===7)return r.cooking?'냄비에서 조리 중':r.raw?'도시락 포장 중':'식재료 도착 대기';if([34,63].includes(f))return this.t<r.mealUntil?'따뜻한 도시락으로 식사 중':r.orders?'배달 기다리며 야근 중':'커피 한 잔의 휴식';if(f===12)return '재료 분류 · 화물 운반';const lists={home:['TV 보는 중','빨래 너는 중','고양이와 쉬는 중'],office:['키보드 두드리는 중','커피 가지러 가는 중','의자에서 기지개 켜는 중'],food:['요리하는 주방','손님에게 음식 전달','따뜻한 한 끼'],cafe:['커피 추출 중','손님에게 커피 전달','컵을 정리하는 중'],shop:['진열대 정리','손님 계산 중','포장하는 중'],warehouse:['상자 운반 중','컨베이어 가동','선반 정리'],engine:['계기 확인 중','환기팬 점검','설비 순찰'],studio:['녹음하는 중','기타 연습 중','파형 확인 중'],garden:['식물에 물 주는 중','산책하는 중','벤치에서 쉬는 중'],club:['악기 점검 중','리듬 연습 중','테이블 정리'],clinic:['침상 돌보는 중','의료진 순찰','기구 소독'],hub:['승객 환승 중','안내 직원 순찰','잠시 쉬어 가는 곳'],lobby:['도착한 물건 정리','택배 접수','주민 안내'],market:['가게 진열 중','손님 맞이','음식 준비']};return (lists[r.kind]||lists.home)[Math.floor(this.t/6+f)%3];}
+ snapshot(){const s=super.snapshot();return {...s,version:'1.1',economy:{...this.economy},rooms:[1,7,12,16,34,63,96,100].map(f=>({floor:f,name:floorInfo(f).name,raw:this.rooms[f].raw,meals:this.rooms[f].meals,props:this.rooms[f].props,orders:this.rooms[f].orders,activity:this.roomActivity(f)})),shipments:this.jobs.filter(j=>j.status!=='delivered').map(j=>({id:j.id,type:j.type,from:j.from,to:j.to,amount:j.amount,status:j.status,carrier:j.carrier===null?null:this.people[j.carrier].name})),episodes:this.active.filter(a=>a.episode).map(a=>({title:a.title,floor:a.floor,phase:this.phaseName(a),phaseIndex:a.phase,progress:this.stageProgress(a),attendees:a.attendees,sales:a.sales})),completedEpisodes:this.completedEpisodes.slice(0,8)};}
+}
+Object.assign(VerticalCity,{City:LivingCity,CARGO_NAMES,PHASE_NAMES});
+})();
+
+</script>
+<script id="application">
+'use strict';
+(() => {
+const {City,HEROES,floorInfo,AREA,COLORS,clamp}=VerticalCity;
+const $=id=>document.getElementById(id),sim=new City(),world=$('world'),ctx=world.getContext('2d'),stage=$('stage'),scroller=$('worldScroll'),space=$('worldSpace'),mini=$('minimap'),mc=mini.getContext('2d'),head=$('laneHead'),hc=head.getContext('2d');
+let width=0,height=0,rowH=60,dpr=1,top=0,speed=1,paused=false,selectedHero=0,hasSelected=false,following=false,selectedLift=-1,tab='people',last=performance.now(),uiAcc=0,drawAcc=0,pointerStart=null,panelKey='',panelStamp='',toastTimer=null,hintUntil=performance.now()+10000,lastView='',miniDragging=false,focusBeforePanel=null,selectedRoom=7;
+const sceneW=()=>width-28,liftX=i=>sim.liftX(i)*sceneW(),floorY=f=>(100-f)*rowH-top;
+const fmt=n=>String(n).padStart(2,'0'),lf=i=>'E'+fmt(i+1);
+const floorLabel=p=>p.state==='ride'?Math.round(sim.position(p))+'층 이동':p.floor+'층';
+function stateText(p){if(p.state==='ride')return `${lf(p.eid)} 탑승 · ${p.route[0].to}층 ${p.route[0].to===p.goal?'하차 예정':'환승 예정'}`;if(p.state==='wait')return `${lf(p.route[0].eid)} 기다리는 중 · ${Math.floor(p.wait)}초`;if(p.state==='walk')return `${lf(p.route[0].eid)} 승강장으로 걷는 중`;if(p.state==='exit')return '도착한 층에서 목적지로 이동 중';if(p.state==='stranded')return '변경된 노선 확인 중';return (p.task||'휴식').endsWith('중')?p.task:(p.task||'휴식')+' 중';}
+function say(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3400);}
+function dimensions(){const previous=rowH?scroller.scrollTop/rowH:92;const rect=stage.getBoundingClientRect();width=Math.max(1,rect.width);height=Math.max(1,rect.height);rowH=height/8;dpr=Math.min(window.devicePixelRatio||1,2);for(const [c,w,h] of [[world,width,height],[mini,28,height],[head,width,27]]){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);}space.style.height=(rowH*100)+'px';scroller.scrollTop=clamp(previous,0,92)*rowH;top=scroller.scrollTop;drawHead();render();}
+function freeCamera(){if(following){following=false;updateQuick();}hintUntil=0;}
+function goFloor(f){freeCamera();const bottom=clamp(Math.round(f)-3,1,93);scroller.scrollTop=(101-bottom-8)*rowH;top=scroller.scrollTop;updateUI(true);render();}
+function followHero(i){if(!Number.isInteger(i)||i<0||i>2)return;selectedHero=i;hasSelected=true;following=true;selectedLift=-1;tab='people';panelKey='';const p=sim.people[i];scroller.scrollTop=clamp((100-sim.position(p)-3.5)*rowH,0,92*rowH);top=scroller.scrollTop;hintUntil=0;updateUI(true);}
+function selectLift(i,show=true){if(!Number.isInteger(i)||i<0||i>=20)return;selectedLift=i;tab='lifts';panelKey='';if(show)openPanel('lifts');updateUI(true);}
+function openPanel(t){tab=t;panelKey='';focusBeforePanel=document.activeElement;if(innerWidth<=900){$('sidebar').classList.add('open');$('sidebar').setAttribute('data-open','true');}updateUI(true);}
+function closePanel(){$('sidebar').classList.remove('open');$('sidebar').removeAttribute('data-open');if(focusBeforePanel&&focusBeforePanel.isConnected)focusBeforePanel.focus({preventScroll:true});}
+function updateQuick(){for(let i=0;i<3;i++){const p=sim.people[i],b=$('hero'+i);b.classList.toggle('active',hasSelected&&selectedHero===i);b.setAttribute('aria-pressed',String(following&&selectedHero===i));$('heroState'+i).textContent=p.state==='ride'?lf(p.eid)+' · '+Math.round(sim.position(p))+'F':p.floor+'F → '+p.goal+'F';}const p=sim.people[selectedHero];$('followStatus').textContent=hasSelected?(following?'⌖ '+p.name+' 추적 중 · ':'자유 관찰 · ')+stateText(p):'자유 관찰 · 인물을 누르면 카메라가 따라갑니다';$('followToggle').hidden=!hasSelected;$('followToggle').textContent=following?'추적 해제':'추적 재개';$('trackingTag').style.display=following?'block':'none';$('trackingTag').style.borderColor=p.color+'88';$('trackingTag').textContent='⌖ '+p.name+' · '+p.goal+'층으로';}
+function updateUI(force=false,viewOnly=false){
+ $('cityClock').textContent=sim.clock();updateQuick();
+ const low=clamp(100-Math.floor((top+height-1)/rowH),1,100),high=clamp(100-Math.floor(top/rowH),1,100),z=clamp(Math.floor(((low+high)/2-1)/20),0,4);const view=low+':'+high;
+ if(view!==lastView||force){lastView=view;$('floorRange').textContent=fmt(low)+' — '+fmt(high)+' F';$('districtLabel').textContent='0'+(z+1)+' / '+AREA[z];mini.setAttribute('aria-valuenow',String(Math.round((low+high)/2)));}
+ $('tickerText').textContent=sim.logs[0]?.text||'도시 운행 중';
+ const episode=sim.active.filter(a=>a.episode).at(-1);const ribbon=$('eventRibbon');ribbon.hidden=!episode;if(episode){ribbon.dataset.floor=String(episode.floor);ribbon.innerHTML=`<b>${episode.floor}F</b><span>${episode.title}<small>${sim.phaseName(episode)}</small></span>`;}document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+ if(!viewOnly&&(innerWidth>900||$('sidebar').classList.contains('open')))renderPanel(force);
+}
+function portrait(c,i,big=false){if(!c)return;const cctx=c.getContext('2d');cctx.clearRect(0,0,c.width,c.height);cctx.save();const scale=big?4:3;cctx.translate(c.width/2,c.height-5);cctx.scale(scale,scale);sprite(cctx,0,0,HEROES[i].color,i,0,1);cctx.restore();}
+function renderPanel(force){
+ const content=$('panelContent'),key=tab+':'+selectedHero+':'+selectedLift;
+ const active=document.activeElement,focusAction=active&&content.contains(active)?active.getAttribute('data-action'):null;const focusFloor=active&&content.contains(active)?active.getAttribute('data-goto'):null;
+ if(tab==='people'){
+  const p=sim.people[selectedHero],h=HEROES[selectedHero];
+  if(panelKey!==key){content.innerHTML=`<div class="panel-kicker">PEOPLE OF THE NIGHT / 0${selectedHero+1}</div><div class="profile-head"><canvas id="portrait" width="72" height="80"></canvas><div><h2 style="color:${h.color}">${h.name}</h2><p>${h.role} · ${h.age}세</p><p>${h.tag}</p></div></div><div class="quote" id="personQuote" style="border-color:${h.color}"></div><div class="section-label"><span>이번 목적지</span><span id="personTaskCount"></span></div><div class="destination"><div><small>지금</small><strong id="personFloor"></strong></div><span class="arrow">→</span><div style="text-align:right"><small id="destName"></small><strong id="personGoal"></strong></div></div><div class="state-line" id="personStatus"></div><div class="subtle" id="personTask"></div><button class="panel-btn" data-action="follow" id="panelFollow"></button><div class="section-label"><span>남은 이동 경로</span><span id="transfers"></span></div><div id="personRoute"></div><div class="section-label"><span>이 사람의 밤</span></div><div id="personJournal"></div>`;portrait($('portrait'),selectedHero,true);}
+  $('personQuote').textContent='“'+p.quote+'”';$('personTaskCount').textContent=p.done+'회 도착';$('personFloor').textContent=Math.round(sim.position(p))+'F';$('personGoal').textContent=p.goal+'F';$('destName').textContent=floorInfo(p.goal).name;$('personStatus').textContent=stateText(p);$('personTask').textContent=p.task;$('panelFollow').textContent=following?'⌖ 추적 중 · 자유 관찰로 전환':'⌖ '+h.name+'의 발걸음 따라가기';$('transfers').textContent=p.route.length>1?(p.route.length-1)+'회 환승':'';
+  $('personRoute').innerHTML=p.route.length?p.route.map((r,j)=>`<div class="route-step"><span class="route-pill" style="color:${sim.lifts[r.eid].color};border-color:${sim.lifts[r.eid].color}55">${lf(r.eid)}</span><span>${j===0&&p.state==='ride'?'이동 중':sim.lifts[r.eid].name}</span><span class="route-floor">${r.from} → ${r.to}F</span></div>`).join(''):'<div class="empty">이 층에서 잠시 머무르고 있어요.</div>';
+  const stamp=p.journal[0]?.time+':'+p.journal[0]?.text+':'+p.journal.length;if(stamp!==panelStamp||force){$('personJournal').innerHTML=p.journal.slice(0,8).map(e=>`<div class="story-entry"><time>${e.time}</time>${e.text}</div>`).join('');panelStamp=stamp;}
+ }else if(tab==='lifts'){
+  const scrollY=content.scrollTop;let detail='';if(selectedLift>=0){const e=sim.lifts[selectedLift];detail=`<div class="lift-detail"><h3 style="color:${e.color}">${lf(e.id)} · ${e.name}</h3><p>설치 구간 ${e.min}–${e.max}층 · 정원 ${e.cap}명</p><p>${e.reason}${e.pass.some(id=>!e.stops.includes(sim.people[id].route[0].to))?' · 기존 탑승객 하차 보장':''}</p><button class="panel-btn" data-action="findLift">현재 ${Math.round(e.pos)}층 · 위치 보기</button><div class="section-label">지금 정차하는 층 <span>눌러서 이동</span></div><div class="floor-chips">${e.stops.map(f=>`<button data-goto="${f}">${f}</button>`).join('')}</div></div>`;}
+  content.innerHTML=`<div class="panel-kicker">TWENTY LINES / ONE CITY</div><div class="lift-summary"><div><b>20</b><small>운행 중</small></div><div><b>${sim.lifts.filter(e=>e.changed).length}</b><small>노선 변화</small></div><div><b>${sim.people.filter(p=>p.state==='ride').length}</b><small>탑승 중</small></div></div>${detail}<p class="subtle">승강기를 누르면 설치 구간과 정차층을 확인할 수 있어요. 20·40·60·80층은 주요 환승층입니다.</p>${sim.lifts.map(e=>`<button class="lift-item ${selectedLift===e.id?'active':''}" data-lift="${e.id}"><span class="lift-num" style="color:${e.color}">${lf(e.id)}</span><span><strong>${e.name} ${e.changed?'<span class="change-dot">변경</span>':''}</strong><small>${e.min}–${e.max}층 · ${e.stops.length}개 정차층</small></span><span class="lift-pos">${e.target===null?'·':e.direction>0?'↑':'↓'} ${Math.round(e.pos)}F<small>${e.pass.length}/${e.cap}명</small></span></button>`).join('')}`;content.scrollTop=scrollY;
+ }else if(tab==='life'){renderLifePanel(content);
+ }else{renderEventsPanel(content);
+ }
+ panelKey=key;
+ if(focusAction){const el=content.querySelector(`[data-action="${focusAction}"]`);if(el&&!el.disabled)el.focus({preventScroll:true});}else if(focusFloor){content.querySelector(`[data-goto="${focusFloor}"]`)?.focus({preventScroll:true});}
+}
+function sprite(c,x,y,color,hero,phase=0,scale=1,face=1){
+ c.save();c.translate(Math.round(x),Math.round(y));c.scale(scale,scale);const stride=phase?Math.sin(phase)*1.4:0;
+ c.fillStyle='#07121d';c.fillRect(-3,0,7,2);c.fillStyle=hero===1?'#577284':'#202c40';c.fillRect(-2,-4,2,4+stride);c.fillRect(1,-4,2,4-stride);
+ c.fillStyle=color;c.fillRect(-3,-10,6,7);c.fillStyle='#e3b891';c.fillRect(-2,-15,5,5);c.fillStyle=hero===0?'#71583c':hero===1?'#c9a481':'#333644';c.fillRect(-3,-16,6,3);c.fillStyle='#283044';c.fillRect(face>0?1:-2,-12,1,1);c.fillStyle=color;c.fillRect(-4,-9,2,4);c.fillRect(3,-9,2,4);
+ if(hero===0){c.fillStyle='#bd773b';c.fillRect(-6,-10,4,6);c.fillStyle='#ffda8f';c.fillRect(-6,-10,4,1);c.fillStyle='#ffbf69';c.fillRect(-3,-17,7,2);}if(hero===1){c.fillStyle='#96edcf';c.fillRect(-3,-17,6,2);c.fillStyle='#efdb8a';c.fillRect(2,-16,2,2);c.fillStyle='#3b4d60';c.fillRect(4,-6,4,4);}if(hero===2){c.fillStyle='#372940';c.fillRect(-6,-12,3,10);c.fillStyle='#ae825d';c.fillRect(-5,-17,1,7);}
+ c.restore();
+}
+function textFit(c,text,x,y,max,font=12,color='#a7b9ca'){c.font=`${font}px -apple-system,BlinkMacSystemFont,sans-serif`;c.fillStyle=color;while(text.length>1&&c.measureText(text).width>max)text=text.slice(0,-1);if(max>8)c.fillText(text,x,y);}
+function roomPerson(c,x,y,scale,color,role,action,t){
+ const walking=action==='walk';sprite(c,x,y,color,-1,walking?t*7:0,scale,Math.sin(t*.5)>0?1:-1);
+ c.save();c.translate(x,y);c.scale(scale,scale);
+ if(role==='chef'){c.fillStyle='#f6e9cb';c.fillRect(-4,-18,8,4);c.fillRect(-2,-20,4,3);c.fillRect(-2,-9,4,6);}
+ if(role==='engineer'){c.fillStyle='#f1c568';c.fillRect(-3,-18,7,3);c.fillStyle='#263748';c.fillRect(4,-6,4,5);}
+ if(role==='doctor'){c.fillStyle='#e0f0e8';c.fillRect(-3,-10,6,7);c.fillStyle='#eb909d';c.fillRect(-1,-9,2,4);}
+ if(action==='type'||action==='stir'||action==='serve'){const dy=Math.sin(t*(action==='type'?9:4))*1.6;c.strokeStyle='#ecc6a4';c.lineWidth=2;c.beginPath();c.moveTo(3,-8);c.lineTo(7,-7+dy);c.stroke();if(action==='stir'){c.strokeStyle='#d4d5c2';c.lineWidth=1;c.beginPath();c.moveTo(7,-8+dy);c.lineTo(10,-5+dy);c.stroke();}}
+ if(action==='stretch'){const ang=Math.sin(t*1.1)*.25;c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.moveTo(-3,-9);c.lineTo(-7,-17+ang*5);c.moveTo(3,-9);c.lineTo(7,-17-ang*5);c.stroke();}
+ if(action==='coffee'||action==='eat'){const lift=(Math.sin(t*2)+1)*2;c.fillStyle=action==='eat'?'#e9cb8d':'#e9e2c7';c.fillRect(4,-8-lift,4,3);c.strokeStyle='#e4bd9e';c.lineWidth=2;c.beginPath();c.moveTo(3,-7);c.lineTo(5,-7-lift);c.stroke();}
+ if(action==='sweep'){c.strokeStyle='#c5aa79';c.lineWidth=1.3;c.beginPath();c.moveTo(4,-7);c.lineTo(10+Math.sin(t*4)*3,0);c.stroke();c.fillStyle='#98ba9a';c.fillRect(7+Math.sin(t*4)*3,-1,7,2);}
+ c.restore();
+}
+function parcel(c,x,y,s,type='raw',n=1){c.save();c.translate(x,y);c.scale(s,s);const col=type==='meal'?'#8dddc2':type==='props'?'#bda5ed':type==='waste'?'#a28c70':'#f1be71';c.fillStyle='#111c26';c.fillRect(-5,-8,10,9);c.fillStyle=col;c.fillRect(-4,-7,8,7);c.fillStyle='#6b5746';c.fillRect(-.5,-7,1,7);c.fillStyle='#f0e2b2';c.fillRect(-4,-5,8,1);if(n>1){c.fillStyle=col;c.fillRect(-3,-10,6,2);}c.restore();}
+function steam(c,x,y,t,s=1){c.save();c.lineWidth=1.3*s;for(let k=0;k<3;k++){const age=(t*.7+k*.31)%1;c.globalAlpha=(1-age)*.6;c.strokeStyle='#e0dacc';c.beginPath();c.moveTo(x+(k-1)*4*s,y-age*15*s);c.quadraticCurveTo(x+(k-1)*4*s+Math.sin(t+k)*5*s,y-age*15*s-5*s,x+(k-1)*4*s,y-age*15*s-10*s);c.stroke();}c.restore();}
+function cat(c,x,y,s,t){c.save();c.translate(x,y);c.scale(s,s);c.fillStyle='#d2b591';c.fillRect(-5,-4,9,4);c.fillRect(2,-7,5,5);c.fillRect(2,-9,2,3);c.fillRect(5,-9,2,3);c.fillRect(-4,-1,2,3);c.fillRect(2,-1,2,3);c.fillStyle='#29283b';c.fillRect(5,-6,1,1);c.strokeStyle='#c5a480';c.lineWidth=2;c.beginPath();c.moveTo(-5,-3);c.quadraticCurveTo(-11,-9,-8+Math.sin(t*3)*2,-11);c.stroke();c.restore();}
+function room(c,x,y,w,h,f,kind,accent){
+ if(w<9)return;c.save();c.beginPath();c.rect(x+1,y+2,w-2,h*.76-2);c.clip();
+ const r=sim.rooms[f],event=sim.eventAt(f),t=sim.t+f*.61,cycle=(t%18)/18,scale=Math.max(.42,Math.min(1.13,h/65,w/125)),X=u=>x+w*u,Y=v=>y+h*v;
+ const box=(u,v,ww,hh,col)=>{c.fillStyle=col;c.fillRect(X(u),Y(v),w*ww,h*hh);};
+ const person=(u,v,col,role='resident',action='stand',phase=t)=>roomPerson(c,X(u),Y(v),scale,col,role,action,phase);
+ const wall={home:'#242c40',office:'#202f41',food:'#3a302b',cafe:'#302d35',warehouse:'#2a3038',engine:'#1d343a',garden:'#1d3837',club:'#2d2545',studio:'#292941',clinic:'#28403e',hub:'#263b45',lobby:'#253746',market:'#392e35',shop:'#322d38'}[kind]||'#273644';
+ box(0,0,1,.76,wall);box(0,.69,1,.07,'#172638');box(.02,.03,.96,.025,accent+'50');
+ if(w<60){box(.08,.21,.79,.3,'#102135');box(.11,.25,.68,.035,accent+'80');box(.13,.54,.68,.12,'#5b6264');c.fillStyle=accent;c.fillRect(X(.2+Math.sin(t*.5)*.1),Y(.4),Math.max(1,w*.06),2);if(w>30)person(.65,.7,'#91b4bc','resident',cycle<.5?'type':'coffee');c.restore();return;}
+ const eventHandled=event&&drawEpisodeRoom(c,x,y,w,h,f,event,scale);
+ if(!eventHandled){
+  if(kind==='shop'){
+   if(f%3===2){
+    for(let j=0;j<3;j++){const u=.08+j*.24;box(u,.3,.19,.34,'#97aaa8');box(u+.02,.32,.15,.055,'#485e6b');const xx=X(u+.095),yy=Y(.49),rad=Math.min(w*.07,h*.1);c.fillStyle='#284553';c.beginPath();c.arc(xx,yy,rad,0,Math.PI*2);c.fill();c.strokeStyle=j%2?'#c7b6d7':'#b0d8c5';c.lineWidth=2;const rot=t*(.8+j*.2);c.beginPath();c.arc(xx,yy,rad*.57,rot,rot+Math.PI*1.1);c.stroke();}
+    person(.22+.45*cycle,.72,'#c7aca4','resident',cycle<.5?'walk':'serve');for(let j=0;j<4;j++)box(.8,.64-j*.035,.15,.025,['#afc4b3','#c9ae9e','#a6b3cd'][j%3]);
+   }else{
+    for(let j=0;j<2;j++){box(.05+j*.27,.26,.23,.35,'#6d6359');for(let k=0;k<7;k++){box(.068+j*.27+k*.027,.31,.018,.105,['#caa88c','#93bbaa','#b7a0c2','#c6bf8c'][(k+f)%4]);box(.068+j*.27+k*.027,.47,.018,.095,['#899dba','#bd9088','#b2b97d'][k%3]);}}
+    box(.68,.55,.25,.1,'#96775d');box(.75,.39,.09,.1,'#223b45');box(.762,.407,.065,.06,'#92c9b3');person(.71,.56,'#c5b297','resident','type');person(.87,.71,'#91b6bc','resident','serve');person(.13+.39*cycle,.7,'#b4a6bd','resident','walk');
+   }
+  }else if(kind==='cafe'){
+   box(.06,.55,.44,.12,'#8b6e59');box(.045,.53,.48,.035,'#c9b290');box(.12,.29,.2,.23,'#768b90');box(.14,.31,.12,.075,'#283e4e');box(.15,.41,.03,.08,'#dae0d1');box(.24,.41,.03,.08,'#dae0d1');box(.15,.5,.055,.03,'#ebdab7');steam(c,X(.18),Y(.47),t,scale*.8);person(.34,.54,'#b8ccb4','resident',cycle<.5?'type':'serve');
+   box(.65,.57,.29,.035,'#b39878');box(.69,.61,.02,.1,'#667d7d');box(.86,.61,.02,.1,'#667d7d');person(.71,.56,'#b7a3c0','resident','coffee');person(.9,.56,'#b6c4a3','resident','coffee',t+4);const server=.42+.15*Math.sin(t*.4);person(server,.71,'#bdaca4','resident','walk');box(server+.03,.57,.04,.025,'#e0d4b5');
+  }else if(kind==='food'||kind==='market'){
+   box(.04,.28,.2,.22,'#142333');box(.055,.3,.17,.025,'#b28256');
+   for(let j=0;j<5;j++){box(.065+j*.032,.36,.018,.065,['#ddba77','#a3c18a','#d3887b'][j%3]);}
+   box(.05,.58,.39,.1,'#81634e');box(.04,.56,.41,.03,'#c6a879');box(.13,.47,.11,.075,'#42515a');box(.12,.46,.13,.025,'#b3c7bf');box(.155,.53,.06,.02,'#f0bb68');
+   const cooking=f===7?r.cooking:cycle<.56;person(.095,.57,'#e2d7b2','chef',cooking?'stir':'serve');if(cooking)steam(c,X(.19),Y(.43),t,scale);
+   box(.54,.6,.37,.035,'#a3886a');box(.59,.635,.025,.07,'#7c6f61');box(.83,.635,.025,.07,'#7c6f61');
+   const server=.35+.33*((t%9)/9);person(cycle<.5?server:.67,.72,'#bca0ac','resident',cycle<.5?'walk':'serve');person(.87,.59,'#b2c5b0','resident','eat');
+   const plateX=cycle<.5?server:.75;box(plateX-.03,.52,.07,.012,'#ebe4c9');box(plateX-.015,.49,.04,.03,'#d3a564');
+   if(kind==='cafe'){box(.27,.3,.1,.24,'#667683');box(.29,.32,.055,.06,'#abd2be');steam(c,X(.31),Y(.52),t,scale*.8);}
+   if(f===7){const waiting=sim.pending(7,'meal'),packs=Math.min(9,r.meals+waiting);for(let j=0;j<packs;j++)parcel(c,X(.47+(j%3)*.042),Y(.57-Math.floor(j/3)*.087),scale*.65,'meal');for(let j=0;j<Math.min(5,Math.ceil(r.raw/3));j++)parcel(c,X(.25+j*.034),Y(.42),scale*.65,'raw');if(!r.raw&&!r.cooking){textFit(c,'재료 대기',X(.07),Y(.41),w*.24,Math.max(8,h*.14),'#ffc787');}}
+  }else if(kind==='office'||kind==='studio'){
+   const n=w>260?4:3,exit=event?.kind===1&&(event.phase===1||event.phase===2);
+   for(let j=0;j<n;j++){const u=.06+j*.9/n,bw=.79/n,off=exit&&sim.stageProgress(event)>(j/n)*.5;
+    box(u,.28,bw,.28,'#172234');box(u+.015,.31,bw-.03,.13,off?'#263344':j%2?'#63989a':'#537d9f');
+    if(!off)for(let k=0;k<3;k++)box(u+.024,.34+k*.025,(bw-.04)*(.4+((Math.floor(t*2)+j+k)%3)*.2),.012,'#9dd7ca');
+    box(u-.015,.57,bw+.03,.028,'#8c8c83');box(u+.02,.6,.012,.12,'#566572');box(u+bw-.03,.6,.012,.12,'#566572');
+    const action=f===34||f===63?(sim.t<r.mealUntil?'eat':(Math.floor(t/6+j)%3===1?'coffee':'type')):['type','coffee','stretch'][Math.floor(t/6+j)%3];
+    if(!off)person(u+bw*.5,.68,['#82bdb3','#b49abb','#c7b088'][j%3],'resident',action,t+j*3);
+   }
+   if(kind==='studio'){for(let j=0;j<12;j++)box(.04+j*.021,.2,.013,.025+.07*(.5+.5*Math.sin(t*4+j)),'#cba7ea');}
+   if(f===34||f===63){for(let j=0;j<Math.min(6,r.meals);j++)parcel(c,X(.79+(j%3)*.049),Y(.69-Math.floor(j/3)*.11),scale*.6,'meal');if(r.orders&&r.meals===0){box(.84,.2,.12,.17,'#614f3c');textFit(c,'배달',X(.85),Y(.33),w*.11,8,'#e8c48b');}}
+  }else if(kind==='home'){
+   box(.035,.28,.26,.25,'#0a1a2b');const tvCol=['#5c889c','#846daf','#638f90'][Math.floor(t/6)%3];box(.05,.295,.23,.2,tvCol);box(.06+.08*(.5+.5*Math.sin(t)),.34,.07,.07,'#acc6c0');box(.05,.465,.23,.015,'#bfd0c0');box(.15,.53,.025,.07,'#555f75');
+   box(.08,.62,.3,.075,'#89728e');box(.065,.58,.33,.04,'#a4889e');person(.21,.58,'#acb89c','resident',cycle<.33?'coffee':'stand');
+   box(.46,.23,.013,.41,'#5d6a78');box(.92,.23,.013,.41,'#5d6a78');c.strokeStyle='#bfc7b3';c.lineWidth=.8;c.beginPath();c.moveTo(X(.46),Y(.25));c.lineTo(X(.94),Y(.25));c.stroke();
+   const hung=2+Math.floor(cycle*4);for(let j=0;j<hung;j++){const xx=.5+j*.066;box(xx,.28,.043,.14,['#d8ba95','#91afb6','#b19bbc','#aaba98'][j%4]);box(xx-.01,.29,.063,.04,['#d8ba95','#91afb6','#b19bbc','#aaba98'][j%4]);}
+   person(.57+.24*cycle,.68,'#b2a3bc','resident',cycle<.6?'stretch':'walk');
+   const ct=(t%8)/8,cx=.4+.47*(.5-.5*Math.cos(ct*Math.PI*2)),jump=Math.sin((ct% .5)*Math.PI*2)*.12;cat(c,X(cx),Y(.69-Math.max(0,jump)),scale*.68,t);
+  }else if(kind==='warehouse'||kind==='lobby'){
+   for(let j=0;j<3;j++){box(.04+j*.18,.29,.15,.32,'#45525c');box(.045+j*.18,.43,.14,.015,'#7b8790');box(.045+j*.18,.6,.14,.015,'#7b8790');}
+   const stock=f===12?r.raw:f===1?r.raw:15;for(let j=0;j<Math.min(16,Math.ceil(stock/4));j++)parcel(c,X(.072+(j%8)*.063),Y(.425-Math.floor(j/8)*.13),scale*.7,'raw');
+   const count=f===12?sim.pending(12,'raw')+sim.pending(12,'props'):4;for(let j=0;j<Math.min(7,Math.ceil(count/3));j++)parcel(c,X(.68+(j%3)*.082),Y(.59-Math.floor(j/3)*.105),scale*.8,j%2?'props':'raw');
+   box(.05,.65,.85,.025,'#899596');box(.05,.685,.85,.025,'#3d5464');for(let j=0;j<13;j++){const u=.05+((j/13+t*.035)%1)*.84;box(u,.66,.015,.02,'#3b5360');}
+   const mover=.08+(t%12)/12*.73;person(mover,.65,'#cfb486','engineer','walk');parcel(c,X(mover+.027),Y(.54),scale*.8,'raw');
+   box(.065,.19,.16,.06,'#7aad97');
+  }else if(kind==='engine'){
+   for(let j=0;j<3;j++){box(.05+j*.2,.23,.15,.43,'#455c62');box(.065+j*.2,.27,.12,.1,'#142c39');box(.075+j*.2,.31,.02,.025,(Math.floor(t+j)%4===0)?'#e4b667':'#92d9bb');for(let k=0;k<4;k++)box(.07+j*.2,.43+k*.045,.1,.012,'#263c4a');}
+   const cx=X(.82),cy=Y(.42),rad=Math.min(w*.105,h*.2);c.strokeStyle='#93abb0';c.lineWidth=2;c.beginPath();c.arc(cx,cy,rad,0,Math.PI*2);c.stroke();for(let j=0;j<3;j++){const a=t*2+j*Math.PI*2/3;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(a)*rad*.8,cy+Math.sin(a)*rad*.8);c.stroke();}person(.18+.58*(.5+.5*Math.sin(t*.22)),.7,'#91baae','engineer',cycle<.55?'walk':'type');
+  }else if(kind==='garden'){
+   for(let j=0;j<5;j++){const u=.08+j*.17,sway=Math.sin(t*.8+j)*.012;box(u,.56,.07,.13,'#7b8573');box(u-.015+sway,.34,.1,.2,'#4d9278');box(u+.006+sway,.24,.058,.17,'#6aab84');}
+   const gardener=.15+.57*(.5+.5*Math.sin(t*.24));person(gardener,.69,'#bcc39b','resident','serve');for(let j=0;j<4;j++){c.fillStyle='#9bd3cb';c.fillRect(X(gardener+.05+j*.01),Y(.5+((t*.3+j*.09)% .18)),1,2);}
+  }else if(kind==='clinic'){
+   for(let j=0;j<3;j++){const u=.08+j*.29;box(u,.51,.22,.055,'#d7dccc');box(u+.05,.43,.16,.07,'#91b7a9');box(u,.43,.045,.065,'#f0e8cf');box(u+.02,.565,.015,.1,'#748e8d');box(u+.18,.565,.015,.1,'#748e8d');box(u+.18,.24,.06,.12,'#142d33');box(u+.185,.3,.04,.02,'#8be2b8');}
+   person(.1+.76*cycle,.71,'#d3e4d8','doctor','walk');
+  }else if(kind==='club'){
+   box(.07,.29,.12,.34,'#12182a');box(.81,.29,.12,.34,'#12182a');for(let j=0;j<2;j++){box(.09,.34+j*.16,.08,.1,'#635479');box(.83,.34+j*.16,.08,.1,'#635479');}box(.25,.65,.48,.04,'#7d6a89');person(.46,.64,'#c2a3d5','resident','serve');c.strokeStyle='#cfb087';c.lineWidth=3;c.beginPath();c.moveTo(X(.46),Y(.49));c.lineTo(X(.6),Y(.37));c.stroke();
+  }else{
+   box(.1,.59,.65,.06,'#698180');box(.08,.55,.69,.045,'#9eaa95');person(.24,.56,'#b8adbb','resident','coffee');person(.64,.68,'#9bbcb3','resident','walk');
+  }
+ }
+ if(r.dirt>0){for(let j=0;j<Math.min(12,Math.ceil(r.dirt));j++){c.fillStyle=j%2?'#bca589':'#8ba9a7';c.fillRect(X(.07+((j*.173+f*.13)% .85)),Y(.72),Math.max(2,scale*3),1);}}
+ if(r.cleanupUntil>sim.t){const u=.12+.7*((t%10)/10);person(u,.73,'#9dc6b9','resident','sweep');}
+ if(event?.kind===5&&[1,2].includes(event.phase)){c.fillStyle='#06172288';c.fillRect(x,y,w,h*.73);box(.07,.16,.02,.39,'#a79262');box(.02,.18,.14,.025,'#f4c880');person(.48,.71,'#a5d3c1','engineer','type');}
+ const sign=event?sim.phaseName(event):floorInfo(f).name;c.fillStyle='#101a28df';const signW=Math.min(w-9,sign.length*(width<500?8.5:10)+12);c.fillRect(x+4,y+4,signW,Math.min(17,h*.25));textFit(c,sign,x+8,y+Math.min(17,h*.25),w-15,width<500?9:11,event?'#ffd88b':accent);
+ c.restore();
+}
+function drawEpisodeRoom(c,x,y,w,h,f,a,scale){
+ if(![0,4,7].includes(a.kind))return false;
+ const r=sim.rooms[f],t=sim.t,u=sim.stageProgress(a),deploy=a.phase===0?Math.min(1,u*1.4):a.phase===3?1-u:1,X=n=>x+w*n,Y=n=>y+h*n;
+ const box=(xx,yy,ww,hh,col)=>{c.fillStyle=col;c.fillRect(X(xx),Y(yy),w*ww,h*hh);};
+ const person=(xx,yy,color,act='walk')=>roomPerson(c,X(xx),Y(yy),scale,color,'resident',act,t+xx*7);
+ if(a.kind===0){
+  box(0,.08,1,.66,a.phase===2?'#533638':'#3d3338');const total=w>250?4:3,open=Math.min(total,1+r.props);
+  for(let j=0;j<total;j++){const left=.04+j*.94/total,sw=.86/total,built=j<open?deploy:deploy*.15;
+   box(left,.58,sw,.1,'#92674e');box(left+.02,.38,sw-.04,.19,'#2b2630');
+   box(left,.3,sw,.035,'#d9a974');box(left,.34,sw,.11*built,['#a85965','#4d8e8b','#c59b58','#8471a5'][j%4]);
+   for(let k=0;k<5;k++)box(left+k*sw/5,.34,sw/10,.11*built,'#efd5a955');
+   if(built>.65){for(let k=0;k<3;k++){box(left+.025+k*sw*.22,.53,sw*.14,.035,['#ecbb79','#c7d394','#e4a080'][k]);}roomPerson(c,X(left+sw*.2),Y(.58),scale,'#ead7bd','chef',a.phase===2?'serve':'stand',t+j);}
+   if(a.phase===2&&r.raw===0){box(left+.015,.4,sw-.03,.14,'#1b202c');textFit(c,'매진',X(left+.04),Y(.5),w*(sw-.06),9,'#ffbf85');}
+  }
+  if(deploy>.3){c.strokeStyle='#a78264';c.lineWidth=1;c.beginPath();c.moveTo(X(.02),Y(.22));c.quadraticCurveTo(X(.5),Y(.3),X(.98),Y(.22));c.stroke();for(let j=0;j<10;j++){const xx=.04+j*.1,yy=.22+Math.sin(j/9*Math.PI)*.04;const bright=a.phase===2?.7+.2*Math.sin(t*.8+j):.65;c.fillStyle=`rgba(255,206,128,${bright*deploy})`;c.beginPath();c.arc(X(xx),Y(yy),2.4*scale,0,Math.PI*2);c.fill();}}
+  if(a.phase===0||a.phase===3){const xx=.12+.68*((t%12)/12);roomPerson(c,X(xx),Y(.72),scale,'#9fc1bb','engineer','walk',t);parcel(c,X(xx+.035),Y(.58),scale*.8,'props');}
+  else{const n=Math.min(10,3+a.attendees);for(let j=0;j<n;j++){const xx=.08+(j*.129)% .84;person(xx,.73,['#b6c6b2','#d2a48c','#ac9bbf'][j%3],j%3===0?'eat':'stand');}if(r.raw>0)steam(c,X(.25),Y(.51),t,scale);}
+ }else if(a.kind===4){
+  box(0,.1,1,.64,'#251d39');box(.07,.6,.86,.06,'#786281');const curtain=a.phase===0?(.42*(1-deploy)):a.phase===3?.42*u:0;box(.03,.2,curtain,.4,'#754762');box(.97-curtain,.2,curtain,.4,'#754762');
+  for(const xx of [.08,.83]){box(xx,.31,.09,.28,'#101521');box(xx+.015,.35,.06,.07,'#705c83');box(xx+.015,.48,.06,.08,'#705c83');}
+  const live=a.phase===2,lit=a.phase===1||live;
+  if(lit){c.save();c.globalCompositeOperation='screen';for(let j=0;j<(r.props>=2?3:1);j++){const ox=.17+j*.32,end=.5+Math.sin(t*.65+j*2)*.34;c.fillStyle=['#68cbbb35','#e695d735','#8d9fea35'][j];c.beginPath();c.moveTo(X(ox),Y(.17));c.lineTo(X(end-.13),Y(.63));c.lineTo(X(end+.13),Y(.63));c.closePath();c.fill();}c.restore();}
+  if(a.phase===1||live){person(.49,.59,'#d4ace8','serve');box(.56,.3,.01,.29,'#c4bdd0');box(.535,.3,.06,.02,'#d4badc');c.strokeStyle='#dfb785';c.lineWidth=2.5*scale;c.beginPath();c.moveTo(X(.48),Y(.49));c.lineTo(X(.62),Y(.36));c.stroke();person(.32,.58,'#8ac7bc','type');
+   if(live){const n=Math.min(14,6+a.attendees);for(let j=0;j<n;j++){const xx=.13+(j*.077)% .74,yy=.74-Math.abs(Math.sin(t*3+j))*.018;roomPerson(c,X(xx),Y(yy),scale*.86,['#d5ad9b','#bca7d1','#90c8bd','#c2c893'][j%4],'resident',j%2?'stretch':'stand',t+j);}}
+  }else{person(.23+.45*((t%10)/10),.7,'#9bbbad','walk');for(let j=0;j<Math.min(5,r.props+sim.pending(f,'props'));j++)parcel(c,X(.24+j*.11),Y(.62),scale*.9,'props');}
+  if(live){for(let j=0;j<7;j++){const age=(t*.1+j*.143)%1;c.fillStyle=['#e8b1d7','#96dace','#d6c184'][j%3];c.fillRect(X(.12+((j*.19+Math.sin(t+j)*.02)% .76)),Y(.22+age*.48),scale*2,scale);}}
+ }else{
+  box(0,.1,1,.66,'#16363e');for(let j=0;j<5;j++){const xx=.1+j*.18;box(xx,.52,.075,.15,'#747b63');box(xx-.02,.34,.11,.2,'#568b74');box(xx,.27,.075,.2,'#73a483');if(deploy>.3){c.fillStyle=`rgba(246,218,143,${deploy*.9})`;c.beginPath();c.arc(X(xx+.03),Y(.24),2.6*scale,0,Math.PI*2);c.fill();}}
+  if(a.phase===1||a.phase===2){person(.25+.16*Math.sin(t*.12),.7,'#c6c3a4','walk');person(.69,.68,'#d2aec1','stand');c.strokeStyle='#c8d3cf';c.lineWidth=3*scale;c.beginPath();c.moveTo(X(.7),Y(.5));c.lineTo(X(.78),Y(.4));c.stroke();c.lineWidth=1;c.beginPath();c.moveTo(X(.73),Y(.5));c.lineTo(X(.7),Y(.67));c.moveTo(X(.73),Y(.5));c.lineTo(X(.78),Y(.67));c.stroke();}
+  else person(.2+.58*((t%11)/11),.7,'#aac3b0',a.phase===3?'sweep':'stretch');
+ }
+ return true;
+}
+function drawFloorEffects(f,y){
+ const a=sim.eventAt(f),r=sim.rooms[f],w=sceneW();
+ if(a){
+  const u=sim.stageProgress(a),warm=a.kind===0?'#ffc371':a.kind===4?'#cfa2ef':a.kind===2?'#efb568':'#8bdbc1';
+  ctx.fillStyle=warm+(a.phase===2?'24':'12');ctx.fillRect(26,y+rowH*.76,w-26,rowH*.22);ctx.fillStyle=warm;ctx.fillRect(27,y+rowH-3,(w-27)*u,1.5);
+  for(let j=0;j<4;j++){ctx.fillStyle=j<=a.phase?warm:'#405162';ctx.fillRect(6+j*4.5,y+rowH*.75,3,3);}
+  if(a.kind===2){
+   const e=sim.lifts[a.ids[0]],x=liftX(e.id),cw=w*.0375;ctx.fillStyle='#d5a65a';ctx.fillRect(x-cw*.48,y+rowH*.8,cw*.96,2);
+   for(const dx of [-cw*.44,cw*.44]){ctx.fillStyle='#e9ad62';ctx.beginPath();ctx.moveTo(x+dx,y+rowH*.82);ctx.lineTo(x+dx-3,y+rowH*.91);ctx.lineTo(x+dx+3,y+rowH*.91);ctx.fill();}
+   if(a.phase===1||a.phase===2){ctx.fillStyle='#f3c978';ctx.fillRect(x-cw*.2,y+rowH*.28,Math.max(3,cw*.4),2);ctx.fillStyle='#efba6f33';ctx.fillRect(x-cw/2,y+rowH*.3,cw,rowH*.46);}
+   const workerX=x+cw*.75;roomPerson(ctx,workerX,y+rowH*.94,width<500?.48:.85,'#b1cba9','engineer',a.phase===3?'walk':'type',sim.t);parcel(ctx,workerX+6,y+rowH*.94,width<500?.5:.8,'props');
+  }
+  if(a.kind===3){ctx.fillStyle=a.phase===2?'#9adcbd':'#7ca7c1';ctx.fillRect(w*.05,y+rowH*.15,3,rowH*.39);ctx.fillRect(w*.94,y+rowH*.15,3,rowH*.39);if(a.phase===3){const xx=sim.roomDoor(f)*w+Math.sin(sim.t*.5)*w*.07;roomPerson(ctx,xx,y+rowH*.91,width<500?.5:.85,'#e1f0e0','doctor','sweep',sim.t);}}
+  if(a.kind===1&&(a.phase===1||a.phase===2)){const left=sim.roomDoor(f),goal=sim.liftX(16);for(let j=0;j<8;j++){const t=((sim.t-a.stageStarted)*.05+j*.12)%1,xx=(left+(goal-left)*t)*w;roomPerson(ctx,xx,y+rowH*.92,width<500?.37:.67,['#aab7c7','#c2ad99','#b5b29c'][j%3],'resident','walk',sim.t+j);}}
+ }
+ if(tab==='life'&&selectedRoom===f){ctx.strokeStyle='#7dddb4';ctx.lineWidth=1;ctx.strokeRect(26,y+1,w-27,rowH-3);}
+}
+function phaseChips(a){return `<div class="episode-steps">${VerticalCity.PHASE_NAMES[a.kind].map((s,i)=>`<span class="${i===a.phase?'current':i<a.phase?'done':''}">${i+1} ${s}</span>`).join('')}</div>`;}
+function renderLifePanel(content){
+ const sy=content.scrollTop,r=sim.rooms[selectedRoom],f=selectedRoom,info=floorInfo(f),e=sim.economy,activeJobs=sim.jobs.filter(j=>j.status!=='delivered');
+ content.innerHTML=`<div class="panel-kicker">LIFE BETWEEN THE FLOORS</div><div class="life-lead"><strong>도시를 움직이는 작은 일들</strong><p>방을 누르면 그 층의 생활과 재고를 볼 수 있어요.</p></div><div class="supply-path"><button data-room="12">12F 창고</button><b>→</b><button data-room="7">7F 주방</button><b>→</b><button data-room="63">63F 식사</button></div><div class="lift-summary"><div><b>${e.mealsProduced}</b><small>도시락 완성</small></div><div><b>${e.mealsEaten}</b><small>식사 완료</small></div><div><b>${e.jobsDelivered}</b><small>화물 도착</small></div></div><div class="room-card"><div class="section-label"><span>${f}F · ${info.name}</span><button data-goto="${f}" class="tiny-go">이 층 보기</button></div><strong>${sim.roomActivity(f)}</strong><div class="room-stock"><span>식재료 <b>${r.raw}</b></span><span>도시락 <b>${r.meals}</b></span><span>식사 주문 <b>${r.orders}</b></span><span>장비 <b>${r.props}</b></span></div>${f===7?`<p class="subtle">${r.cooking?`조리 중 · ${Math.max(1,Math.ceil(r.cookRemaining))}초 뒤 3개 완성`:r.raw?'포장한 도시락의 출고를 기다려요.':'재료가 도착하면 다시 조리합니다.'}<br>포장 후 픽업 대기 ${sim.pending(7,'meal')}개 · 식재료 배송 중 ${sim.inbound(7,'raw')}개</p>`:''}${f===12?`<p class="subtle">출고 대기 식재료 ${sim.pending(12,'raw')}개 · 장비 ${sim.pending(12,'props')}개<br>1층의 외부 납품을 받아 분류하고, 운반원이 각 층으로 옮깁니다.</p>`:''}</div><div class="section-label"><span>지금 옮기는 물건</span><span>${activeJobs.length}건</span></div>${activeJobs.slice(0,16).map(j=>{const p=j.carrier===null?null:sim.people[j.carrier];const s=j.status==='queued'?'운반원 배정 대기':j.status==='assigned'?`${p.name} · ${j.from}층으로 픽업 이동`:`${p.name} · ${p.state==='ride'?lf(p.eid)+' 탑승':Math.round(sim.position(p))+'층 이동'}`;return `<div class="shipment"><div><span class="cargo-mark ${j.type}">▣</span><strong>${VerticalCity.CARGO_NAMES[j.type]} ${j.amount}개</strong><button data-goto="${j.to}">${j.from} → ${j.to}F</button></div><small>${s}</small><div class="shipment-track"><i class="${j.status!=='queued'?'lit':''}">픽업</i><i class="${j.status==='transit'?'lit':''}">운송</i><i>전달</i></div></div>`;}).join('')||'<p class="empty">모든 물건이 제자리에 도착했어요.</p>'}<div class="section-label">최근 도착</div>${sim.cargoHistory.slice(0,8).map(j=>`<div class="story-entry"><time>${j.time}</time>${j.text}</div>`).join('')}`;content.scrollTop=sy;
+}
+function renderEventsPanel(content){
+ const sy=content.scrollTop,wait=sim.people.filter(p=>p.state==='wait'),episodes=sim.active.filter(a=>a.episode);
+ content.innerHTML=`<div class="panel-kicker">EVERY NIGHT HAS A STORY</div><div class="city-stat"><span>이동하는 주민과 운반원</span><b>${sim.people.length}명</b></div><div class="city-stat"><span>누적 목적지 도착</span><b>${sim.served}회</b></div><div class="city-stat"><span>승강장 대기</span><b>${wait.length}명</b></div><button class="panel-btn" data-action="assist" ${sim.t<sim.userCooldown?'disabled':''}>${sim.t<sim.userCooldown?Math.ceil(sim.userCooldown-sim.t)+'초 뒤 지원 가능':'↗ 혼잡층에 급행 지원'}</button><div class="event-actions"><button data-action="market" ${episodes.some(a=>a.kind===0)?'disabled':''}>${episodes.some(a=>a.kind===0)?'야시장 진행 중':'야시장 준비'}</button><button data-action="concert" ${episodes.some(a=>a.kind===4)?'disabled':''}>${episodes.some(a=>a.kind===4)?'공연 진행 중':'공연 준비'}</button></div><div class="section-label"><span>준비부터 마지막 청소까지</span><span>${episodes.length}건</span></div>${episodes.map(a=>`<div class="event-card"><div class="event-heading"><strong>${a.title}</strong><button data-goto="${a.floor}">${a.floor}F 보기</button></div><p>${a.desc}</p>${phaseChips(a)}<small class="subtle">${a.phase===0&&a.prepWait?'장비 반입을 기다리는 중 · ':''}${Math.max(0,Math.ceil(a.phaseUntil-sim.t))}초 뒤 다음 단계${a.kind===0?' · 판매 '+a.sales+'개':''}</small><div class="countdown"><i style="width:${sim.stageProgress(a)*100}%"></i></div></div>`).join('')||'<div class="empty">각 층에서 평소의 밤이 이어지고 있어요.</div>'}<div class="section-label">도시의 기록</div>${sim.logs.slice(0,15).map(e=>`<div class="story-entry"><time>${e.time}</time>${e.text}</div>`).join('')}`;content.scrollTop=sy;
+}
+
+function drawFloor(f,y){
+ const c=ctx,w=sceneW(),info=floorInfo(f),accent=COLORS[info.zone],hub=f%20===0||f===1,walk=y+rowH*.91;
+ c.fillStyle=hub?'#1c2b3b':'#121f30';c.fillRect(0,y,w,rowH);c.fillStyle=hub?'#66818b':'#33465b';c.fillRect(0,y+rowH-2,w,2);c.fillStyle='#203143';c.fillRect(w*.04,y+rowH*.76,w*.96,1);c.fillStyle='#344353';c.fillRect(w*.041,y+rowH*.89,w*.948,1);
+ const labelW=Math.max(25,w*.04);c.fillStyle=hub?'#284245':'#111d2c';c.fillRect(0,y,labelW,rowH-2);c.font=(width<500?'11':'13')+'px ui-monospace,monospace';c.fillStyle=hub?'#a7e5cc':'#afc1d1';c.textAlign='center';c.fillText(width<500?String(f):fmt(f),labelW/2,y+rowH*.56);c.textAlign='start';
+ room(c,labelW+3,y,w*.157-labelW-3,rowH,f,info.kind,accent);
+ let run=-1;for(let i=0;i<=20;i++){const e=sim.lifts[i],absent=i<20&&(f<e.min||f>e.max);if(absent&&run<0)run=i;if(!absent&&run>=0){const x=liftX(run)-w*.0375*.47,right=liftX(i-1)+w*.0375*.47;room(c,x,y,right-x,rowH,f,info.kind,accent);run=-1;}if(i===20)break;if(absent)continue;
+  const x=liftX(i),cw=w*.0375*.76,stop=e.stops.includes(f),selected=selectedLift===i;
+  c.fillStyle=selected?'#163143':'#090f1a';c.fillRect(x-cw/2,y,cw,rowH-2);c.fillStyle=selected?e.color+'66':'#2d3b4c';c.fillRect(x-cw*.37,y,1,rowH-2);c.fillRect(x+cw*.33,y,1,rowH-2);c.fillStyle='#182234';c.fillRect(x-1,y,2,rowH-2);
+  if(stop){c.fillStyle=e.changed?'#e7be6b':e.color+'aa';c.fillRect(x-cw/2-2,y+rowH*.78,2,Math.max(4,rowH*.13));c.fillStyle=e.color+'40';c.fillRect(x-cw/2,y+rowH*.94,cw,2);}else{c.fillStyle='#243347';c.fillRect(x-cw/2,y+rowH*.81,cw,1);}
+ }
+ room(c,w*.915,y,w*.08,rowH,f,info.kind,accent);
+ const t=sim.t;for(let j=0;j<3;j++){const phase=f*1.39+j*2.21;const x=(.05+((Math.sin(phase)*.5+.5)*.87+Math.sin(t*.03+phase)*.027))*w;const s=width<500?.3:Math.min(.7,rowH/73);sprite(c,x,walk,['#667c8c','#9d9a87','#786f84'][(f+j)%3],-1,t*2+phase,s);}
+ drawFloorEffects(f,y);
+ if(sim.active.some(a=>a.hot===f&&a.episode&&(a.phase===1||a.phase===2))){c.fillStyle='#ffcf7866';c.fillRect(w*.046,y+rowH-4,w*.1,2);if(w>600)textFit(c,'● '+(f===16?'OPEN':'EVENT'),w*.935,y+rowH*.6,w*.055,10,'#ffd58b');}
+}
+function drawLifts(){
+ const w=sceneW(),carH=Math.min(rowH*.56,42);for(const e of sim.lifts){const y=floorY(e.pos)+rowH*.49;if(y< -rowH||y>height+rowH)continue;const x=liftX(e.id),cw=w*.0375*.76,selected=selectedLift===e.id,heroInside=e.pass.some(id=>id<3),col=e.color;
+ ctx.fillStyle=col+(selected||heroInside?'3a':'13');ctx.fillRect(x-cw*.8,y-carH*.7,cw*1.6,carH*1.4);
+ ctx.fillStyle='#081019';ctx.fillRect(x-cw/2-1,y-carH/2-1,cw+2,carH+3);ctx.fillStyle=col;ctx.fillRect(x-cw/2,y-carH/2,cw,carH);ctx.fillStyle='#14283a';ctx.fillRect(x-cw/2+2,y-carH/2+3,cw-4,carH-7);
+ const doorW=Math.max(0,(cw-4)/2*(1-e.open));ctx.fillStyle=col+'aa';ctx.fillRect(x-cw/2+2,y-carH/2+3,doorW,carH-7);ctx.fillRect(x+cw/2-2-doorW,y-carH/2+3,doorW,carH-7);ctx.fillStyle=col;ctx.fillRect(x-cw/2,y+carH/2-2,cw,2);
+ if(cw>19){ctx.fillStyle='#eff8fb';ctx.font='9px ui-monospace,monospace';ctx.textAlign='center';ctx.fillText(fmt(e.id+1),x,y-2);ctx.textAlign='start';}
+ if(e.pass.length){const cols=Math.max(1,Math.min(5,Math.floor(cw/4)));for(let k=0;k<Math.min(e.pass.length,10);k++){ctx.fillStyle=sim.people[e.pass[k]].color;ctx.fillRect(x-cw/2+3+(k%cols)*((cw-6)/cols),y+carH/2-7-Math.floor(k/cols)*4,2,2);}}
+ if(e.pass.some(id=>sim.people[id].cargo)){const p=sim.people[e.pass.find(id=>sim.people[id].cargo)];parcel(ctx,x,y+carH*.3,Math.min(1.1,cw/12),p.cargo.type,p.cargo.amount);}
+ if(heroInside){const p=sim.people[e.pass.find(id=>id<3)];ctx.strokeStyle=p.color;ctx.lineWidth=1.5;ctx.strokeRect(x-cw/2-3,y-carH/2-3,cw+6,carH+6);}
+ }
+}
+function drawPeople(){
+ const w=sceneW(),occupied={};for(const p of sim.people){if(p.state==='ride'||(p.state==='rest'&&p.hero<0))continue;const y=floorY(p.floor)+rowH*.9;if(y<0||y>height+rowH)continue;let x=p.x*w,offset=0;if(p.state==='wait'){const k=p.floor+':'+p.route[0].eid;offset=occupied[k]||0;occupied[k]=offset+1;x+=(offset%3-1)*(width<500?2.7:5);}
+ const hero=p.hero>=0,s=hero?(width<500?.53:Math.min(1.03,rowH/61)):(p.role?(width<500?.5:Math.min(.88,rowH/65)):(width<500?.31:Math.min(.64,rowH/83)));
+ if(hero){ctx.fillStyle=p.color+'24';ctx.beginPath();ctx.ellipse(x,y-4,10*s,13*s,0,0,Math.PI*2);ctx.fill();}
+ sprite(ctx,x,y-Math.floor(offset/3)*2,p.color,p.hero,p.state==='walk'||p.state==='exit'?sim.t*8+p.seed*6:0,s,p.walkTarget>p.x?1:-1);
+ if(p.cargo)parcel(ctx,x+5*s,y-3*s,s*.82,p.cargo.type,p.cargo.amount);
+ if(hero&&!following){ctx.font=(width<500?'10':'12')+'px -apple-system,sans-serif';const txt=p.name,tw=ctx.measureText(txt).width;ctx.fillStyle='#091625ee';ctx.fillRect(x-tw/2-4,y-32*s-8,tw+8,15);ctx.fillStyle=p.color;ctx.fillText(txt,x-tw/2,y-32*s+3);}
+ }
+ if(hasSelected){const p=sim.people[selectedHero],pf=sim.position(p),y=floorY(pf)+rowH*(p.state==='ride'?.49:.87),x=p.state==='ride'?liftX(p.eid):p.x*w;if(y>-rowH&&y<height+rowH){ctx.strokeStyle=p.color;ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(x,y-5,width<500?10:15,0,Math.PI*2);ctx.stroke();ctx.fillStyle=p.color;ctx.beginPath();ctx.moveTo(x,y-22);ctx.lineTo(x-4,y-29);ctx.lineTo(x+4,y-29);ctx.fill();if(p.state==='wait'&&width>500){ctx.fillStyle=p.color+'55';ctx.fillRect(x-17,y+3,34,2);}}
+ }
+}
+function drawHead(){const w=sceneW();hc.clearRect(0,0,width,27);hc.fillStyle='#142132';hc.fillRect(0,0,width,27);hc.font='10px ui-monospace,monospace';hc.fillStyle='#869db3';hc.fillText('F',5,18);if(w>550)hc.fillText('CITY',w*.062,18);for(const e of sim.lifts){const x=liftX(e.id);if(selectedLift===e.id){hc.fillStyle=e.color+'44';hc.fillRect(x-w*.017,0,w*.034,27);}hc.fillStyle=e.color;hc.textAlign='center';hc.font=(width<500?'8':'10')+'px ui-monospace,monospace';hc.fillText(fmt(e.id+1),x,17);hc.fillStyle=e.color+'66';hc.fillRect(x-w*.012,24,w*.024,2);}hc.textAlign='start';}
+function drawMini(){mc.clearRect(0,0,28,height);mc.fillStyle='#0c1725';mc.fillRect(0,0,28,height);const mh=height/100;for(let f=1;f<=100;f++){const y=(100-f)*mh;mc.fillStyle=COLORS[Math.floor((f-1)/20)]+'38';mc.fillRect(5,y,18,Math.max(1,mh-.4));if(f%20===0){mc.fillStyle='#7696ad';mc.fillRect(3,y,22,1);}}
+ for(const e of sim.lifts){mc.fillStyle=e.color+'aa';mc.fillRect(6+(e.id%5)*3,(100-e.pos)*mh,2,Math.max(2,mh));}
+ for(let i=0;i<3;i++){const p=sim.people[i];mc.fillStyle=p.color;mc.fillRect(1+i*8,(100-sim.position(p))*mh,7,3);}
+ for(const a of sim.active){if(!a.episode)continue;mc.fillStyle=a.phase===2?'#ffcf85':'#b1bf95';mc.fillRect(0,(100-a.floor)*mh,4,Math.max(4,mh));}
+ const vy=top/rowH*mh;mc.fillStyle='#d8f5fa1a';mc.fillRect(1,vy,26,mh*8);mc.strokeStyle='#bbebea';mc.lineWidth=1;mc.strokeRect(1.5,vy+.5,25,mh*8-1);
+}
+function render(){if(!width)return;ctx.clearRect(0,0,width,height);ctx.fillStyle='#091420';ctx.fillRect(0,0,width,height);top=scroller.scrollTop;const hi=clamp(100-Math.floor(top/rowH),1,100),lo=clamp(100-Math.ceil((top+height)/rowH),1,100);for(let f=hi;f>=lo;f--)drawFloor(f,floorY(f));drawLifts();drawPeople();drawMini();drawHead();$('floatHint').style.opacity=performance.now()<hintUntil?'1':'0';}
+function frame(now){const dt=Math.min((now-last)/1000,.1);last=now;if(!paused&&!document.hidden){let left=dt*speed;while(left>0){const step=Math.min(left,.05);sim.update(step);left-=step;}}if(following){const p=sim.people[selectedHero],target=clamp((100-sim.position(p)-3.5)*rowH,0,92*rowH);const delta=target-scroller.scrollTop;if(Math.abs(delta)>.6)scroller.scrollTop+=delta*Math.min(1,dt*7);top=scroller.scrollTop;}
+ drawAcc+=dt;uiAcc+=dt;if(drawAcc>1/(width<600?30:60)){drawAcc=0;render();}if(uiAcc>.45){uiAcc=0;updateUI();}requestAnimationFrame(frame);}
+function setSpeed(v){if(![1,2,4].includes(v))throw new Error('속도는 1, 2, 4 중 하나여야 합니다.');speed=v;document.querySelectorAll('[data-speed]').forEach(b=>{const on=Number(b.dataset.speed)===v;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});return speed;}
+function setPause(v){paused=!!v;$('pause').textContent=paused?'▶ 재생':'Ⅱ 정지';$('pause').classList.toggle('active',paused);$('pause').setAttribute('aria-label',paused?'시뮬레이션 재생':'시뮬레이션 일시정지');return paused;}
+document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.dataset.hero!==undefined){followHero(Number(b.dataset.hero));return;}if(b.dataset.speed){setSpeed(Number(b.dataset.speed));return;}if(b.dataset.floor){goFloor(Number(b.dataset.floor));return;}if(b.dataset.move){freeCamera();scroller.scrollTop-=Number(b.dataset.move)*rowH;updateUI(true);return;}if(b.dataset.tab){openPanel(b.dataset.tab);return;}if(b.dataset.room){selectedRoom=Number(b.dataset.room);goFloor(selectedRoom);updateUI(true);return;}if(b.dataset.lift!==undefined){selectLift(Number(b.dataset.lift),false);$('panelContent').scrollTop=0;return;}if(b.dataset.goto){goFloor(Number(b.dataset.goto));if(innerWidth<=900)closePanel();return;}if(b.dataset.action==='follow'){if(following){freeCamera();updateUI(true);}else followHero(selectedHero);if(innerWidth<=900)closePanel();return;}if(b.dataset.action==='findLift'){goFloor(Math.round(sim.lifts[selectedLift].pos));if(innerWidth<=900)closePanel();return;}if(b.dataset.action==='assist'){say(sim.assist().message);updateUI(true);return;}if(b.dataset.action==='concert'){if(sim.event(4,true)){say('96층 공연을 준비합니다. 무대 설치부터 지켜보세요.');goFloor(96);}else say('공연이 이미 진행 중이에요.');updateUI(true);return;}if(b.dataset.action==='market'){if(sim.event(0,true)){say('16층에서 야시장 준비를 시작합니다. 장비와 재료가 오고 있어요.');goFloor(16);}else say('야시장은 이미 영업 중이에요.');updateUI(true);}});
+$('pause').onclick=()=>setPause(!paused);$('helpBtn').onclick=()=>$('helpDialog').showModal();$('helpClose').onclick=()=>$('helpDialog').close();$('helpDialog').addEventListener('click',e=>{if(e.target===$('helpDialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});$('closePanel').onclick=closePanel;$('followToggle').onclick=()=>{if(following){freeCamera();updateUI(true);}else followHero(selectedHero);};$('ticker').onclick=()=>openPanel('events');$('ticker').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPanel('events');}};
+scroller.addEventListener('scroll',()=>{top=scroller.scrollTop;updateUI(false,true);render();},{passive:true});scroller.addEventListener('wheel',freeCamera,{passive:true});scroller.addEventListener('touchstart',freeCamera,{passive:true});scroller.addEventListener('pointerdown',e=>{pointerStart={x:e.clientX,y:e.clientY,t:performance.now()};});scroller.addEventListener('pointerup',e=>{if(!pointerStart)return;const start=pointerStart;pointerStart=null;if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>8||performance.now()-start.t>500)return;const r=stage.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let hit=null;for(let i=0;i<3;i++){const p=sim.people[i],py=floorY(sim.position(p))+rowH*(p.state==='ride'?.49:.87),px=p.state==='ride'?liftX(p.eid):p.x*sceneW();if(Math.hypot(x-px,y-py)<16)hit=i;}if(hit!==null){followHero(hit);return;}const idx=Math.round((x/sceneW()-.16)/.0375-.5),f=clamp(100-Math.floor((top+y)/rowH),1,100);if(idx>=0&&idx<20&&Math.abs(x-liftX(idx))<sceneW()*.0188&&f>=sim.lifts[idx].min&&f<=sim.lifts[idx].max)selectLift(idx);else{selectedRoom=f;openPanel('life');}});scroller.addEventListener('pointercancel',()=>pointerStart=null);
+head.addEventListener('click',e=>{const x=e.clientX-head.getBoundingClientRect().left,idx=Math.round((x/sceneW()-.16)/.0375-.5);if(idx>=0&&idx<20)selectLift(idx);});
+function miniGo(e){const y=e.clientY-mini.getBoundingClientRect().top;goFloor(clamp(100-y/height*100,1,100));}mini.addEventListener('pointerdown',e=>{miniDragging=true;mini.setPointerCapture(e.pointerId);miniGo(e);});mini.addEventListener('pointermove',e=>{if(miniDragging)miniGo(e);});mini.addEventListener('pointerup',()=>miniDragging=false);mini.addEventListener('pointercancel',()=>miniDragging=false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();if($('helpDialog').open)return;if(e.target.closest('button,input,select,textarea'))return;if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key)){e.preventDefault();freeCamera();if(e.key==='Home')goFloor(100);else if(e.key==='End')goFloor(1);else{scroller.scrollTop+=((e.key==='ArrowUp'||e.key==='PageUp')?-1:1)*rowH*(e.key.startsWith('Page')?8:1);updateUI(true);}}else if(e.code==='Space'){e.preventDefault();setPause(!paused);}});
+document.addEventListener('visibilitychange',()=>last=performance.now());
+$('quickPeople').innerHTML=HEROES.map((h,i)=>`<button id="hero${i}" class="person-chip" data-hero="${i}" aria-label="${h.name}, ${h.role} 추적" aria-pressed="false"><canvas id="chipPortrait${i}" width="40" height="55" aria-hidden="true"></canvas><span class="chip-body"><strong style="color:${h.color}">${h.name} <small style="display:inline;color:#88a0b2;font-size:10px">${['배달원','설비 기사','뮤지션'][i]}</small></strong><small id="heroState${i}"></small></span></button>`).join('');HEROES.forEach((_,i)=>portrait($('chipPortrait'+i),i));
+dimensions();scroller.scrollTop=92*rowH;top=scroller.scrollTop;updateUI(true);render();new ResizeObserver(dimensions).observe(stage);requestAnimationFrame(frame);
+window.midnightCity={snapshot:()=>({...sim.snapshot(),camera:{bottom:Math.max(1,100-Math.floor((scroller.scrollTop+height-1)/rowH)),visibleFloors:8,following:following?HEROES[selectedHero].name:null},speed,paused}),followHero,goFloor,setSpeed,setPause};
+if(document.modelContext?.registerTool){const life=new AbortController();const register=t=>{try{Promise.resolve(document.modelContext.registerTool(t,{signal:life.signal})).catch(()=>{});}catch{}};register({name:'read_midnight_city',title:'도시 상태 보기',description:'현재 승강기 노선, 주민, 주요인물과 카메라 상태를 확인합니다.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>window.midnightCity.snapshot()});register({name:'follow_city_person',title:'주요인물 추적',description:'하루, 서린, 도윤 중 한 사람을 선택해 카메라로 따라갑니다.',inputSchema:{type:'object',properties:{name:{type:'string',enum:['하루','서린','도윤']}},required:['name'],additionalProperties:false},annotations:{readOnlyHint:false},execute:input=>{const i=HEROES.findIndex(h=>h.name===input?.name);if(i<0)throw new Error('존재하지 않는 주요인물입니다.');followHero(i);return window.midnightCity.snapshot().camera;}});register({name:'navigate_city_floor',title:'도시 층 이동',description:'자동 추적을 멈추고 지정한 층을 포함하는 8개 층을 봅니다.',inputSchema:{type:'object',properties:{floor:{type:'integer',minimum:1,maximum:100}},required:['floor'],additionalProperties:false},annotations:{readOnlyHint:false},execute:input=>{if(!Number.isInteger(input?.floor)||input.floor<1||input.floor>100)throw new Error('1~100 사이의 정수 층을 입력하세요.');goFloor(input.floor);return window.midnightCity.snapshot().camera;}});window.addEventListener('pagehide',()=>life.abort(),{once:true});}
+})();
+</script>
+</body>
+</html>
