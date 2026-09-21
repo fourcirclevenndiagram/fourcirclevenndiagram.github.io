@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10161b">
+<meta name="description" content="공을 키우고 두 가지 방향으로 진화시키는 성장 핀볼. 공별 숙련도, 보스, 피버, 환생과 다음 목표가 이어지는 나만의 성장 여정.">
+<title>그로우볼 · 핀볼 성장 실험실</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2310161b'/%3E%3Cpath d='M13 45L31 51L51 40' stroke='%23c5f76b' stroke-width='7' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='34' cy='22' r='11' fill='%2372f1c0'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#10161b;--panel:#192127;--line:#2c373e;--text:#edf3ec;--muted:#a3b1b5;--accent:#7af2c4;--accent-rgb:122,242,196;--lime:#c7f76b;--gold:#ffd279;--radius:18px;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-width:300px;background:radial-gradient(ellipse at 33% 40%,rgba(var(--accent-rgb),.035),transparent 60%);color:var(--text);font-size:16px;-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer;color:inherit;border:0}button:disabled{cursor:default}button:focus-visible{outline:3px solid white;outline-offset:4px}button,input{touch-action:manipulation}svg{display:block;flex-shrink:0}.app{max-width:1010px;margin:auto;padding:26px 28px 22px;padding-bottom:max(22px,env(safe-area-inset-bottom))}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px}.brand-icon{width:44px;height:44px;border-radius:13px;background:var(--lime);color:#172318;display:grid;place-items:center;transform:rotate(-5deg)}h1{font-size:24px;letter-spacing:-1px;margin:0;font-weight:850;line-height:1.2}.brand-caption{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;letter-spacing:2px;color:var(--muted);margin-top:5px}.top-right{display:flex;align-items:center;gap:15px}.endless{color:var(--muted);font-size:12px;letter-spacing:1.2px;display:flex;align-items:center;gap:7px}.wallet{display:flex;align-items:center;gap:10px;border:1px solid #514831;background:#29281f;border-radius:13px;padding:10px 15px;min-width:98px;justify-content:center;color:var(--gold);transition:transform .2s}.wallet.pop{animation:wallet-pop .35s}.coin{width:21px;height:21px;border:2px solid currentColor;border-radius:50%;display:inline-grid;place-items:center;flex-shrink:0;font-size:12px;font-weight:850}.money{font-size:20px;font-variant-numeric:tabular-nums;font-weight:800;white-space:nowrap}.arena{display:grid;grid-template-columns:minmax(0,450px) minmax(260px,315px);gap:35px;align-items:start;justify-content:center}.game-column{width:min(100%,calc((100svh - 285px) * .72));min-width:280px;justify-self:center;position:relative}.board-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}.stage-label{display:flex;align-items:center;gap:9px;min-width:0}.stage-label b{font-size:13px;font-family:ui-monospace,monospace;color:var(--accent);letter-spacing:.5px;white-space:nowrap}.stage-label span{font-size:13px;color:#c3cecd;white-space:nowrap}.board-actions{display:flex;align-items:center;gap:6px}.icon-button{width:31px;height:31px;border:1px solid var(--line);border-radius:9px;background:#1b252c;display:grid;place-items:center;color:#bdc9c9}.icon-button:hover{background:#2c383e}.machine{border:1px solid #4b5d5c;border-radius:21px;padding:7px;background:linear-gradient(135deg,#394843,#17251f 40%,#253531 90%);box-shadow:0 14px 45px #0004,inset 0 0 0 2px #1118;position:relative;transition:background .7s,border-color .7s;overflow:hidden}.machine.level-up{animation:board-pop .75s}canvas{display:block;width:100%;height:auto;aspect-ratio:540/750;border-radius:14px;background:#0b1b18;touch-action:none;user-select:none}.pause-overlay{position:absolute;inset:7px;background:#0c151ccf;backdrop-filter:blur(5px);z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;border-radius:15px}.pause-overlay[hidden]{display:none}.pause-overlay strong{font-size:25px}.resume-button{padding:13px 24px;border-radius:12px;background:var(--lime);color:#16200e;font-weight:800}.board-toast{position:absolute;top:27%;left:50%;transform:translate(-50%,-12px);background:#162a25ed;border:1px solid var(--accent);border-radius:15px;padding:15px 24px;text-align:center;white-space:nowrap;pointer-events:none;opacity:0;z-index:4;transition:opacity .2s,transform .25s;box-shadow:0 8px 40px #0006}.board-toast.show{opacity:1;transform:translate(-50%,0)}.board-toast .toast-overline{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:2px;color:var(--accent);margin-bottom:4px}.board-toast strong{font-size:25px}.board-toast small{display:block;color:#d4dfd8;font-size:13px;margin-top:3px}.play-controls{display:grid;grid-template-columns:1fr auto 1fr;gap:7px;margin-top:9px}.flipper-btn{border:1px solid var(--line);border-radius:9px;background:#1d272d;min-height:34px;font-size:12px;font-weight:700;color:#bdc9c9;user-select:none;touch-action:none;display:flex;align-items:center;justify-content:center;gap:6px}.flipper-btn.pressed,.flipper-btn:active{background:var(--accent);color:#15231f;border-color:var(--accent)}.keycap{font-family:ui-monospace,monospace;font-size:10px;border:1px solid #75858077;border-radius:4px;padding:1px 4px}.auto-button{border:1px solid #3d5a4b;border-radius:9px;background:#20372d;color:var(--accent);padding:0 13px;font-size:12px;font-weight:750;white-space:nowrap}.auto-button[aria-pressed=false]{background:#1d272d;color:var(--muted);border-color:var(--line)}.growth-area{position:relative;margin-top:15px}.xp-meta{display:flex;justify-content:space-between;gap:12px;font-size:12px;margin-bottom:7px;color:#c3cfca;font-variant-numeric:tabular-nums}.xp-meta strong{color:var(--accent);font-size:13px}.xp-track{height:5px;background:#303d3e;border-radius:9px;margin-bottom:10px;overflow:hidden}.xp-fill{height:100%;background:var(--accent);width:0%;border-radius:9px;transition:width .15s}.grow-button{display:flex;align-items:center;gap:10px;width:100%;min-height:59px;padding:11px 14px;background:var(--lime);color:#1b2a14;border-radius:13px;box-shadow:0 4px 0 #6c9140;position:relative;user-select:none;touch-action:none;transition:transform .08s,filter .1s}.grow-button:hover{filter:brightness(1.07)}.grow-button:active{transform:translateY(3px);box-shadow:0 1px 0 #6c9140}.grow-symbol{font-size:25px;width:27px;font-weight:500;line-height:1}.grow-name{font-size:16px;font-weight:850;letter-spacing:-.5px}.grow-gain{margin-left:auto;white-space:nowrap;font-size:13px;font-weight:800;background:#27381917;padding:6px 7px;border-radius:7px;font-variant-numeric:tabular-nums}.grow-button:disabled{background:#42563d;color:#d1e0ca;box-shadow:0 4px 0 #283c26}.hold-hint{font-size:11px;text-align:center;color:#84988e;margin:9px 0 10px}.upgrade-button{width:100%;border:1px solid #7d663a;border-radius:13px;background:linear-gradient(115deg,#343122,#24271e);display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;min-height:60px;transition:background .2s,transform .1s,box-shadow .2s}.upgrade-button:not(:disabled){box-shadow:0 0 22px #f7c26310}.upgrade-button:not(:disabled):active{transform:scale(.985)}.upgrade-button:disabled{border-color:#3c4138;background:#202721}.upgrade-mark{color:var(--gold);font-size:14px;font-weight:850;letter-spacing:-.5px}.upgrade-title{font-size:14px;font-weight:800;letter-spacing:-.5px;display:block}.upgrade-desc{font-size:11px;color:#a5b39b;display:block;margin-top:4px;font-variant-numeric:tabular-nums}.upgrade-cost{margin-left:auto;white-space:nowrap;font-size:14px;font-weight:800;color:var(--gold)}.upgrade-button:disabled .upgrade-cost{color:#a7ac9c}.float-exp{position:absolute;left:50%;top:50px;pointer-events:none;color:var(--lime);font-size:18px;font-weight:900;z-index:6;animation:float-exp .65s ease-out forwards;text-shadow:0 2px 10px #000}.side{padding-top:4px}.eyebrow{font-size:11px;font-family:ui-monospace,monospace;letter-spacing:2px;color:#889d93;margin:0 0 13px}.level-heading{display:flex;align-items:baseline;gap:10px}.level-number{font-size:64px;font-weight:850;letter-spacing:-5px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums;transition:color .5s}.level-total{color:#61766b;font-size:24px;font-weight:650}.level-title{font-size:21px;font-weight:750;letter-spacing:-.6px;margin:13px 0 6px}.level-note{font-size:14px;color:var(--muted);line-height:1.6;margin:0}.palette{display:grid;grid-template-columns:repeat(15,1fr);gap:5px;margin:20px 0 8px}.swatch{height:15px;border-radius:4px;opacity:.24;transition:opacity .5s,transform .4s}.swatch.reached{opacity:.8}.swatch.current{opacity:1;transform:translateY(-3px);box-shadow:0 3px 0 var(--bg),0 5px 0 var(--text)}.palette-labels{display:flex;justify-content:space-between;font-family:ui-monospace,monospace;font-size:10px;color:#87958d;letter-spacing:.5px}.session-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:23px 0;padding:17px 0}.session-stats span{font-size:12px;color:var(--muted);display:block}.session-stats strong{font-size:22px;margin-top:7px;display:block;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}.session-stats small{font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}.gimmicks-heading{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px}.gimmicks-heading h2{font-size:16px;margin:0;letter-spacing:-.5px}.gimmicks-heading span{font-family:ui-monospace,monospace;font-size:11px;color:#8f9e98;letter-spacing:1px}.gimmick-list{padding:0;margin:0;list-style:none;display:grid;gap:4px}.gimmick-row{display:flex;align-items:center;gap:11px;min-height:47px;padding:6px 8px;margin:0 -8px;border-radius:10px;border:1px solid transparent;transition:background .2s,border-color .2s}.gimmick-row.active{background:color-mix(in srgb,var(--gcolor) 9%,transparent);border-color:color-mix(in srgb,var(--gcolor) 30%,transparent)}.gimmick-num{width:29px;height:29px;display:grid;place-items:center;flex-shrink:0;border:1px solid color-mix(in srgb,var(--gcolor) 45%,transparent);border-radius:9px;color:var(--gcolor);background:color-mix(in srgb,var(--gcolor) 7%,transparent);font:600 11px ui-monospace,monospace}.gimmick-copy{flex:1}.gimmick-copy strong{font-size:14px;font-weight:700;display:block;letter-spacing:-.2px}.gimmick-copy span{font-size:12px;display:block;color:#96a7a5;margin-top:3px}.drop-note{font-size:12px;line-height:1.7;color:#aab6a9;background:#1b251f;border:1px solid #334330;border-radius:12px;padding:11px 13px;margin:18px 0 0}.drop-note b{color:var(--gold);font-weight:750}.footer{display:flex;justify-content:space-between;margin-top:23px;padding-top:13px;border-top:1px solid #27312f;font-size:11px;letter-spacing:.4px;color:#6e837a}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@keyframes float-exp{from{opacity:1;transform:translate(-50%,0) scale(.9)}to{opacity:0;transform:translate(-50%,-70px) scale(1.05)}}@keyframes wallet-pop{50%{transform:scale(1.08)}}@keyframes board-pop{30%{box-shadow:0 0 40px rgba(var(--accent-rgb),.35)}}
+@media(min-width:1400px){.app{padding-top:35px}.arena{gap:45px}.topbar{margin-bottom:30px}}
+@media(max-width:720px){.app{max-width:480px;padding:14px 15px 20px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}.topbar{margin-bottom:14px}.brand{gap:9px}.brand-icon{width:36px;height:36px;border-radius:11px}.brand-icon svg{width:26px;height:26px}h1{font-size:22px}.brand-caption{font-size:9px;letter-spacing:1.7px;margin-top:3px}.endless{display:none}.wallet{padding:8px 11px;min-width:84px;border-radius:11px;gap:7px}.money{font-size:18px}.coin{width:19px;height:19px;font-size:11px}.arena{display:flex;flex-direction:column;gap:28px;align-items:center}.game-column{width:min(100%,calc((100svh - 278px) * .72));min-width:min(280px,100%)}.board-meta{margin-bottom:7px}.stage-label{gap:7px}.stage-label b,.stage-label span{font-size:12px}.machine{padding:5px;border-radius:18px}.board-actions{gap:5px}.icon-button{width:29px;height:29px;border-radius:8px}.play-controls{margin-top:7px;gap:6px}.growth-area{margin-top:11px}.xp-track{margin-bottom:8px}.grow-button{min-height:54px;padding:10px 12px;gap:5px}.grow-name{font-size:15px}.grow-gain{font-size:12px}.grow-symbol{font-size:22px;width:24px}.hold-hint{margin:8px 0;font-size:10px}.upgrade-button{min-height:56px;padding:9px 11px;gap:8px}.upgrade-title{font-size:13px}.upgrade-desc{font-size:10px}.upgrade-mark{font-size:12px}.upgrade-cost{font-size:13px}.side{width:100%;padding:21px 3px 0;border-top:1px solid var(--line)}.level-summary{display:grid;grid-template-columns:auto 1fr;column-gap:20px;align-items:center}.level-summary .eyebrow{grid-column:1/-1;margin-bottom:10px}.level-heading{grid-row:2/4}.level-number{font-size:49px}.level-total{font-size:19px}.level-title{font-size:18px;margin:0}.level-note{font-size:13px;margin-top:4px}.palette{margin-top:20px}.session-stats{margin:18px 0;padding:15px 0}.gimmick-list{grid-template-columns:1fr 1fr;column-gap:13px;row-gap:8px}.gimmick-row{gap:8px;margin:0;padding:5px 0}.gimmick-copy strong{font-size:13px}.gimmick-copy span{font-size:11px;line-height:1.45}.gimmick-num{width:26px;height:26px;font-size:10px}.footer{margin-top:22px;font-size:10px}.drop-note{font-size:12px}.keycap{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+.map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:9px;color:#b0c5bb;font-size:12px;font-variant-numeric:tabular-nums}.map-toolbar button{background:#22362d;border:1px solid #42594d;color:var(--accent);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;white-space:nowrap}.map-toolbar span{white-space:nowrap}.map-title{font-size:14px;color:var(--accent);font-weight:750;margin:9px 0 0}.map-measures{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.map-measures div{background:#1b2621;border:1px solid #304239;border-radius:10px;padding:10px}.map-measures span{font-size:12px;color:var(--muted);display:block}.map-measures strong{font-size:19px;display:block;margin-top:4px;font-variant-numeric:tabular-nums}.map-help{font-size:12px;line-height:1.6;color:#9db0a6;margin:11px 0 0}.mini-map{position:absolute;right:13px;top:52px;width:38px;height:181px!important;aspect-ratio:auto;border-radius:7px;border:1px solid #73978388;background:#0c151ce6!important;z-index:2;touch-action:none;cursor:crosshair}.mini-map[hidden]{display:none}.camera-hud{position:absolute;left:14px;top:15px;padding:5px 8px;background:#0b181dda;border:1px solid #547d6755;border-radius:7px;font:600 11px ui-monospace,monospace;color:#c9e7db;z-index:2;pointer-events:none}.back-to-ball{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:#152e25ec;color:var(--accent);border:1px solid var(--accent);padding:8px 14px;border-radius:10px;font-size:12px;z-index:2}.back-to-ball[hidden]{display:none}.upgrade-odds{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:12px;margin:11px 0 7px;color:#bacab9}.upgrade-odds b{color:var(--gold);font-size:14px;font-variant-numeric:tabular-nums}.upgrade-odds small{font-size:11px;color:#96ac9c}.upgrade-rule{font-size:11px;line-height:1.55;color:#91a696;margin:8px 1px 0}.upgrade-result{font-size:12px;line-height:1.6;min-height:19px;margin:5px 1px 0;color:#c6d3bf}.gimmick-quantity{margin-left:auto;color:#91a69c;font:600 12px ui-monospace,monospace;white-space:nowrap}.board-toast.failure{border-color:#ffa590;background:#3b241ff0}.board-toast.failure .toast-overline{color:#ffb29f}.level-note{min-height:44px}.game-column{width:min(100%,calc((100svh - 367px) * .72))}
+@media(max-width:720px){.game-column{width:min(100%,calc((100svh - 366px) * .72))}.map-toolbar{font-size:11px;margin-top:7px}.map-toolbar button{font-size:11px;padding:5px 8px}.map-title{font-size:13px}.mini-map{width:31px;height:150px!important;top:48px;right:11px}.upgrade-odds{font-size:11px}.upgrade-rule{font-size:11px}.upgrade-result{font-size:11px}.side .map-title{grid-column:1/-1}.map-measures{margin-top:12px}.gimmick-quantity{font-size:10px}.camera-hud{font-size:10px;top:12px;left:11px}.level-note{min-height:0}}
+.mini-map{height:auto!important}
+.ball-dock{margin:10px 0 0}.dock-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:10px;color:#9bafa4}.collection-jump{background:none;color:var(--accent);padding:4px 0;font-size:11px;font-weight:750}.ball-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.ball-slot{display:flex;align-items:center;justify-content:center;gap:5px;min-height:38px;padding:6px 3px;border:1px solid #3a4c41;border-radius:9px;background:#18281f;font-size:11px;font-weight:700;white-space:nowrap}.ball-slot[aria-pressed=true]{border-color:var(--ball-color,var(--accent));background:color-mix(in srgb,var(--ball-color,var(--accent)) 11%,#14201c)}.ball-slot:disabled{color:#88998e;background:#18201e;border-style:dashed}.slot-dot{width:8px;height:8px;display:inline-block;border-radius:50%;background:var(--ball-color);box-shadow:0 0 8px color-mix(in srgb,var(--ball-color) 50%,transparent)}.ball-status{font-size:11px;color:#adc0b4;margin:7px 0 0;min-height:17px}
+.collection-panel{margin:0 0 26px;border:1px solid #3b4c40;border-radius:16px;background:linear-gradient(150deg,#202e24,#17211e);padding:15px}.collection-panel>summary{cursor:pointer;font-size:17px;font-weight:800;letter-spacing:-.5px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}.collection-panel>summary::-webkit-details-marker{display:none}.collection-panel>summary::after{content:'＋';color:var(--accent)}.collection-panel[open]>summary::after{content:'−'}.collection-count{font:600 11px ui-monospace,monospace;letter-spacing:1px;color:var(--accent);margin-left:auto}.collection-intro{font-size:12px;line-height:1.6;color:#a9bcaf;margin:10px 0 12px}.collection-grid{display:grid;gap:8px}.ball-card{display:grid;grid-template-columns:37px 1fr;gap:0 10px;background:#101c17;border:1px solid #304436;border-radius:12px;padding:11px}.ball-card.owned{border-color:color-mix(in srgb,var(--ball-color) 38%,#20382b)}.ball-card.equipped{background:color-mix(in srgb,var(--ball-color) 7%,#111c17)}.ball-orb{width:35px;height:35px;border-radius:50%;background:radial-gradient(circle at 32% 24%,#fff 0,var(--ball-color) 38%,var(--ball-shade) 95%);box-shadow:0 0 15px color-mix(in srgb,var(--ball-color) 25%,transparent),inset 0 -3px 5px #0005;display:grid;place-items:center;font-size:19px;font-weight:800;color:#143025;grid-row:1/3;margin-top:3px}.ball-card[data-ball=ghost] .ball-orb{border-radius:48% 48% 30% 30%;color:#48315f}.ball-card[data-ball=lightning] .ball-orb{color:#183359}.ball-name{font-size:14px;font-weight:800;margin-right:6px}.ball-rarity{font:600 8px ui-monospace,monospace;letter-spacing:.6px;color:var(--ball-color);white-space:nowrap}.ball-description{font-size:11px;color:#abbbb0;line-height:1.55;margin:4px 0 8px}.ball-action{grid-column:2;min-height:32px;border:1px solid color-mix(in srgb,var(--ball-color) 35%,#2b4233);border-radius:7px;background:color-mix(in srgb,var(--ball-color) 13%,#17241d);color:var(--ball-color);font-size:12px;font-weight:750;padding:6px 8px}.ball-action:hover:not(:disabled){filter:brightness(1.2)}.ball-action:disabled{color:#9eafa3;background:#1c2921;border-color:#334238}.collection-message{color:var(--accent);font-size:12px;line-height:1.6;min-height:19px;margin:10px 0 0}.save-status{font-size:10px;line-height:1.6;color:#8ea493;margin:9px 0 0;padding-top:8px;border-top:1px solid #334339}.save-status.error{color:#ffb79b}.side>.level-summary{margin-top:3px}.gimmick-copy span{line-height:1.4}
+@media(max-width:720px){.collection-panel{padding:15px;margin-bottom:24px}.ball-card{padding:12px}.ball-description{font-size:12px}.ball-action{min-height:36px}.collection-intro{font-size:12px}.ball-status{font-size:10px}.ball-slot{min-height:35px}.side{padding-top:0;border-top:0}}
+.boss-hud{border:1px solid #6b593d;border-radius:12px;background:linear-gradient(110deg,#2d291f,#1a241e);padding:10px 11px;margin:0 0 9px}.boss-hud-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}.boss-hud-heading strong{color:#ffdb96;font-size:14px;letter-spacing:-.3px}.boss-hud-heading span{color:#d3c8ae;white-space:nowrap;font:600 12px ui-monospace,monospace}.boss-hp-track{height:6px;border-radius:5px;overflow:hidden;background:#443c2b;margin:8px 0}.boss-hp-fill{height:100%;background:linear-gradient(90deg,#dc9566,#ffe6a7);transition:width .12s}.boss-hud-bottom{display:flex;align-items:center;justify-content:space-between;gap:7px}.boss-state{font-size:12px;color:#c7b999;line-height:1.5}.boss-hud-actions{display:flex;gap:5px;flex-shrink:0}.boss-hud-actions button{background:#463b24;color:#ffe0a0;border:1px solid #72613f;border-radius:7px;padding:7px 8px;font-size:12px;font-weight:750;min-height:32px;white-space:nowrap}.boss-hud-actions button:disabled{color:#8e8a7c;border-color:#444437;background:#2c3025}.boss-hud-actions button.ready{background:#f4d17e;color:#312511}.boss-panel{padding:16px;margin-bottom:18px;border:1px solid #6c5738;border-radius:16px;background:linear-gradient(145deg,#302a20,#19221c)}.boss-panel h2{font-size:17px;letter-spacing:-.5px;margin:0;display:flex;align-items:center;justify-content:space-between;gap:8px}.boss-panel h2 span{font:600 12px ui-monospace,monospace;color:#ffdb96}.boss-panel-intro{font-size:12px;color:#c4b89d;line-height:1.65;margin:10px 0 12px}.boss-milestones{display:grid;gap:7px}.boss-row{display:grid;grid-template-columns:1fr auto;column-gap:7px;padding:10px;border:1px solid #514837;border-radius:10px;background:#1b211a}.boss-row.active{border-color:var(--boss-color);background:color-mix(in srgb,var(--boss-color) 9%,#1b211a)}.boss-row-title{font-size:13px;font-weight:750;line-height:1.5}.boss-row-title small{color:var(--boss-color);font-size:11px;margin-right:5px}.boss-row-reward{grid-column:1;font-size:11px;color:#bcb9a6;margin-top:4px;line-height:1.6}.boss-row button{grid-column:2;grid-row:1/3;align-self:center;background:#3d3827;color:#ffe0a1;border:1px solid #6b5d3c;border-radius:7px;font-size:12px;padding:8px;min-height:34px}.boss-row button:disabled{color:#969c8c;background:#282c23;border-color:#424738}.boss-fragments{display:flex;align-items:center;justify-content:space-between;color:#d9c7a5;font-size:13px;margin:13px 0 9px}.boss-fragments b{font-size:18px;color:#ffd591;font-variant-numeric:tabular-nums}.craft-button{width:100%;padding:11px 8px;border-radius:10px;color:#282210;background:#ffd68d;font-size:14px;font-weight:800;min-height:42px}.craft-button:disabled{background:#333728;color:#a8ac96;border:1px solid #4d5240}.boss-message{font-size:12px;line-height:1.65;color:#d2c0a0;min-height:20px;margin:10px 0 0}.ball-attack{display:block;font-size:11px;color:var(--ball-color);margin:4px 0 8px}.ball-card[data-ball=crown]{border-color:#bb7b46}.ball-card[data-ball=crown] .ball-orb{color:#713929}.boss-explainer{font-size:11px;line-height:1.6;color:#9bac9b;margin:9px 0 0}
+@media(max-width:720px){.boss-panel{margin-bottom:16px}.boss-hud{padding:9px 10px}.boss-hud-heading strong{font-size:13px}.boss-state{font-size:11px}.boss-hud-actions button{font-size:11px;padding:7px}.boss-row-title{font-size:14px}.boss-panel-intro{font-size:13px}.boss-row-reward{font-size:12px}.boss-hud-bottom{align-items:flex-start}}
+.rebirth-badge{display:flex;align-items:center;gap:5px;background:#29233b;border:1px solid #675388;border-radius:10px;color:#e1caff;padding:9px;font-size:11px;white-space:nowrap}.rebirth-badge b{font:800 16px ui-monospace,monospace}.rebirth-panel{background:linear-gradient(140deg,#29243e,#182026);border:1px solid #70568c;border-radius:17px;padding:17px;margin-bottom:18px}.rebirth-panel h2{font-size:18px;letter-spacing:-.6px;display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}.rebirth-panel h2 span{font:600 11px ui-monospace,monospace;letter-spacing:1px;color:#c4a6e6}.rebirth-head{display:flex;align-items:center;gap:13px}.rebirth-seal{width:58px;height:58px;border-radius:50%;border:1px solid #bda0df;background:radial-gradient(circle,#9374bf24,#211b2c);display:grid;place-items:center;color:#e2c5ff;font-size:34px;flex-shrink:0}.rebirth-count{font-size:32px;color:#ebd9ff;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}.rebirth-count small{font-size:14px;margin-left:4px;font-weight:500}.rebirth-subtitle{font-size:13px;line-height:1.5;color:#bdb2ce;margin:6px 0 0}.rebirth-bonuses{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0 12px}.rebirth-bonuses div{background:#171725;border:1px solid #4c405e;border-radius:10px;padding:10px}.rebirth-bonuses span{display:block;font-size:12px;color:#baadce}.rebirth-bonuses b{display:block;font-size:22px;color:#e5c7ff;margin-top:5px;font-variant-numeric:tabular-nums}.rebirth-bonuses small{display:block;font-size:12px;color:#b89acb;margin-top:5px}.rebirth-rule{font-size:12px;line-height:1.7;color:#b9aec8;margin:0 0 12px}.rebirth-checks{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.rebirth-checks span{font-size:12px;padding:6px 8px;border-radius:7px;background:#262331;border:1px solid #51475e;color:#9f95ac}.rebirth-checks span.done{background:#293531;border-color:#598a6e;color:#a6edc6}.rebirth-button{width:100%;min-height:45px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:1px solid #d0a8fc;border-radius:11px;background:linear-gradient(100deg,#c4a6f6,#efd0ff);color:#2b1e3c;font-weight:850;font-size:14px;transition:filter .15s,transform .1s}.rebirth-button:not(:disabled):hover{filter:brightness(1.08)}.rebirth-button:not(:disabled):active{transform:translateY(1px)}.rebirth-button:disabled{border-color:#514558;background:#302b37;color:#aea2ba}.rebirth-message{font-size:12px;color:#c9b9da;line-height:1.65;margin:10px 0 0;min-height:20px}.rebirth-quick{margin-top:11px}.rebirth-quick[hidden]{display:none}.machine.reborn{box-shadow:0 0 0 1px #b48bdd55,0 0 30px #bf87ed26,0 14px 45px #0004}.rebirth-dialog{width:min(530px,calc(100% - 28px));max-height:calc(100svh - 32px);overflow:auto;margin:auto;padding:23px;border:1px solid #a584c4;border-radius:20px;background:radial-gradient(ellipse at 100% 0,#49345966,transparent 65%),#1c1c29;color:var(--text);box-shadow:0 24px 100px #0009}.rebirth-dialog::backdrop{background:#060811bc;backdrop-filter:blur(5px)}.rebirth-dialog .eyebrow{color:#cbb0e9;margin:0 0 10px}.rebirth-dialog h2{font-size:25px;margin:0 0 9px;letter-spacing:-.7px}.rebirth-dialog .rebirth-bonuses b{font-size:18px;line-height:1.45}.rebirth-dialog>p{font-size:14px;color:#c9bfd7;line-height:1.65;margin:8px 0 12px}.rebirth-review{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.rebirth-review section{border:1px solid #4c4358;border-radius:12px;background:#14162088;padding:12px}.rebirth-review h3{font-size:14px;margin:0 0 8px;color:#e4c9fa}.rebirth-review ul{margin:0;padding-left:17px;font-size:13px;line-height:1.8;color:#c9c2d1}.rebirth-review li+li{margin-top:5px}.rebirth-dialog-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:9px;margin-top:18px}.rebirth-cancel{border:1px solid #61576e;border-radius:11px;background:#2a2833;color:#d0c7de;min-height:45px;padding:10px;font-size:14px;font-weight:700}.rebirth-note{font-size:11px!important;color:#a79ab9!important}.boss-history{font-size:12px;color:#baa98b;margin:8px 0 0}
+@media(max-width:720px){.top-right{gap:7px}.endless{display:none}.rebirth-badge{font-size:10px;padding:8px 6px;gap:3px}.rebirth-badge b{font-size:14px}.rebirth-panel{padding:16px}.rebirth-dialog{padding:19px}.rebirth-dialog h2{font-size:23px}.rebirth-rule,.rebirth-message{font-size:13px}.rebirth-dialog-actions{grid-template-columns:1fr}.rebirth-dialog-actions .rebirth-button{grid-row:1}.rebirth-review{grid-template-columns:1fr}.rebirth-review ul{font-size:14px}.rebirth-checks span{font-size:12px}}
+@media(max-width:350px){.brand-caption{letter-spacing:.5px}.brand{gap:6px}.brand h1{font-size:20px}.wallet{padding:8px;min-width:74px}.rebirth-badge{flex-direction:column;gap:1px;padding:4px 6px}.topbar{gap:6px}}
+.fever-panel{margin-top:12px;padding:11px 12px;border:1px solid #65503d;border-radius:13px;background:linear-gradient(120deg,#30271f,#211f26)}.fever-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.fever-heading h2{margin:0;font-size:14px;color:#ffc697;letter-spacing:-.3px}.fever-heading span{font:700 12px ui-monospace,monospace;color:#d3b79e;font-variant-numeric:tabular-nums}.fever-track{height:7px;overflow:hidden;border-radius:8px;background:#44352f;margin-bottom:9px;position:relative}.fever-fill{height:100%;width:0;background:linear-gradient(90deg,#ff966f,#ffdc82);border-radius:8px;transition:width .14s linear}.fever-track::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(20% - 2px),#201c2444 calc(20% - 2px),#201c2444 20%)}.fever-button{width:100%;display:flex;justify-content:center;align-items:center;gap:8px;border-radius:9px;padding:10px;min-height:43px;font-size:14px;font-weight:850;color:#2b1b12;background:linear-gradient(110deg,#ffb381,#ffe18d);border:1px solid #ffdbb0}.fever-button:disabled{color:#bfaa99;background:#342c28;border-color:#695245}.fever-button:not(:disabled):hover{filter:brightness(1.09)}.fever-panel.ready{border-color:#ffcd8b;box-shadow:0 0 20px #ffa56815}.fever-panel.active{border-color:#ffaf83;background:linear-gradient(120deg,#4a2c27,#342438)}.fever-panel.active .fever-button{color:#ffe0bc;background:#593a31;border-color:#ae6d50}.fever-panel.active .fever-heading h2{color:#ffdd9e}.fever-status{margin:8px 0 0;line-height:1.6;font-size:11px;color:#ccb49c}.fever-help{margin-top:5px;color:#ac9d91;font-size:11px;line-height:1.7}.fever-help summary{cursor:pointer;color:#d0b69f}.fever-help p{margin:6px 0 0}.machine.fever-active{box-shadow:0 0 0 2px #ffb87999,0 0 32px #ff7c5936,0 14px 45px #0004}.board-toast.fever-toast{border-color:#ffbc82;background:#38261fef}.board-toast.fever-toast .toast-overline{color:#ffd796}
+@media(max-width:720px){.fever-panel{padding:10px;margin-top:10px}.fever-status,.fever-help{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.fever-fill{transition:none}}
+
+.next-goal{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:8;width:100%;max-width:800px;margin:0 auto 18px;padding:12px 15px;border:1px solid #506f80;border-radius:15px;background:linear-gradient(120deg,#23343ef5,#192831fa);box-shadow:0 8px 28px #060d1466;backdrop-filter:blur(15px)}.goal-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px;color:#a9c7d6}.goal-kicker{font-weight:800;letter-spacing:1px;color:#aedcf4}.goal-step{font:700 10px ui-monospace,monospace;border:1px solid #567080;border-radius:5px;padding:2px 5px}.goal-toggle{margin-left:auto;padding:4px 7px;background:#2d424f;border:1px solid #486575;border-radius:6px;font-size:11px;color:#c5deeb;min-height:26px}.goal-body{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center}.goal-copy{min-width:0}.goal-copy h2{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.4px;color:#eff9ff}.goal-hint{margin:4px 0 7px;font-size:12px;color:#a9c2cf;line-height:1.5}.goal-progress-info{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0;color:#bed0da;font-size:11px;line-height:1.5;font-variant-numeric:tabular-nums}.goal-progress-info strong{font-weight:800;color:#dbf2fe;white-space:nowrap}.goal-reward{color:#f6d794}.goal-track{height:4px;background:#3b5361;border-radius:6px;overflow:hidden}.goal-fill{width:0;height:100%;background:linear-gradient(90deg,#83caff,#b9efff);border-radius:6px;transition:width .2s}.goal-claim{border:1px solid #b9e7ff;border-radius:10px;background:#bde9ff;color:#1b3544;font-size:13px;font-weight:850;min-width:91px;min-height:46px;padding:10px 12px}.goal-claim:disabled{background:#2a3b46;border-color:#49616f;color:#8ea6b4}.next-goal.ready{border-color:#a9e2c0;background:linear-gradient(120deg,#274338f5,#1c302bfa)}.next-goal.ready .goal-fill{background:#a8e9b8}.next-goal.ready .goal-claim{background:#c5f7a6;color:#25401c;border-color:#ddffd0}.goal-roadmap{margin:12px 0 0;padding-top:12px;border-top:1px solid #49606b;max-height:min(300px,45svh);overflow-y:auto;overscroll-behavior:contain}.goal-roadmap[hidden]{display:none}.goal-roadmap ol{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:7px}.goal-roadmap li{padding:9px 10px;background:#14232c;border:1px solid #3a4f5c;border-radius:9px}.goal-roadmap li.current{border-color:#9dd9fa;background:#293e4b}.goal-roadmap li.done{opacity:.62}.goal-roadmap li strong{display:block;font-size:12px;color:#deeff6;line-height:1.5}.goal-roadmap li small{display:block;font-size:11px;color:#a8bdc8;margin-top:4px;line-height:1.5}.goal-roadmap .goal-road-reward{color:#e2c98f}.goal-roadmap p{font-size:11px;line-height:1.7;color:#adc4d0;margin:9px 0 0}.goal-roadmap .goal-repeat{color:#d2e8f3}.board-toast.goal-toast{border-color:#a9ddfa;background:#1d3340f5}.board-toast.goal-toast .toast-overline{color:#aadffd}.collection-panel,.boss-panel,.rebirth-panel,.growth-area{scroll-margin-top:170px}
+@media(max-width:720px){.next-goal{padding:10px 11px;margin-bottom:13px;top:max(6px,env(safe-area-inset-top));border-radius:12px}.goal-body{gap:9px}.goal-copy h2{font-size:15px}.goal-hint{font-size:11px;margin:4px 0 5px}.goal-claim{min-width:76px;font-size:12px;padding:9px 7px}.goal-progress-info{font-size:11px;gap:2px 7px;margin:5px 0}.goal-roadmap ol{grid-template-columns:1fr}.goal-roadmap li strong{font-size:13px}.goal-roadmap li small,.goal-roadmap p{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.goal-fill{transition:none}}
+
+.mastery-box{grid-column:1/-1;margin-top:12px;padding-top:11px;border-top:1px solid #425044}.mastery-heading{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;line-height:1.5}.mastery-heading b{color:var(--ball-color);font-variant-numeric:tabular-nums}.mastery-heading span{font-size:12px;color:#afc1b6}.mastery-track{height:6px;margin:7px 0;border-radius:5px;background:#334039;overflow:hidden}.mastery-fill{height:100%;width:0;background:var(--ball-color);transition:width .2s}.mastery-next{font-size:12px;line-height:1.6;color:#b5c8bb;margin:0}.evolution-options{margin-top:9px}.evolution-options summary{font-size:14px;line-height:1.5;font-weight:750;color:var(--ball-color);cursor:pointer;padding:5px 0;min-height:32px}.evolution-options.ready summary{color:#ffe19b}.evolution-choice{display:block;width:100%;margin-top:8px;min-height:54px;text-align:left;border:1px solid #53675a;background:#1d2a23;border-radius:10px;padding:10px;color:#e5f0e9;line-height:1.6}.evolution-choice strong,.evolution-choice span,.evolution-choice small{display:block}.evolution-choice strong{font-size:14px;color:var(--route-color)}.evolution-choice span{font-size:13px}.evolution-choice small{font-size:12px;color:#adbcaf}.evolution-choice[aria-pressed=true]{border-color:var(--route-color);background:color-mix(in srgb,var(--route-color) 12%,#14201a)}.evolution-choice:disabled{cursor:default;opacity:.65}.evolution-choice:not(:disabled):hover{filter:brightness(1.1)}.evolution-choice .route-state{margin-top:5px;color:var(--route-color);font-weight:750}.mastery-help{font-size:13px;line-height:1.7;color:#b8cabc;padding:10px 11px;background:#14271f;border:1px solid #3e5c48;border-radius:10px;margin:10px 0 12px}.mastery-help summary{font-size:14px;font-weight:700;cursor:pointer;color:#d1efdb}.mastery-help p{margin:8px 0 0}.ball-orb.evolved{outline:2px solid var(--ball-color);outline-offset:3px}.ball-orb.final-evolution{outline-style:double;outline-width:4px;box-shadow:0 0 24px color-mix(in srgb,var(--ball-color) 45%,transparent)}.mastery-shortcut{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;margin:8px 0 0;border:1px solid #506454;border-radius:10px;background:#1b2b22;text-align:left;color:#d0e7d6;font-size:13px;line-height:1.5}.mastery-shortcut strong{color:var(--ball-color,var(--accent));white-space:nowrap}.mastery-shortcut span{flex:1}.mastery-shortcut.ready{border-color:#e2c574;color:#ffe4a0;background:#353020}.ball-status{line-height:1.6}.ball-card>div{min-width:0}.board-toast.mastery-toast{border-color:#9ee6c1;background:#152f29f2}.board-toast small{white-space:normal;max-width:260px}.board-toast.mastery-toast strong{font-size:21px}
+@media(max-width:720px){.mastery-shortcut{font-size:12px}.ball-status{font-size:12px}.evolution-choice{min-height:64px}.collection-intro{font-size:14px}.mastery-help{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="app">
+ <header class="topbar">
+  <div class="brand"><div class="brand-icon" aria-hidden="true"><svg width="31" height="31" viewBox="0 0 32 32" fill="none"><circle cx="18" cy="10" r="6" fill="currentColor"/><path d="M5 23L15 27L27 21" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div><div><h1>그로우볼</h1><div class="brand-caption">PINBALL GROWTH LAB</div></div></div>
+  <div class="top-right"><span class="endless"><svg width="20" height="14" viewBox="0 0 24 16" fill="none" aria-hidden="true"><path d="M12 8C8-2 1 0 1 8S8 18 12 8S23-2 23 8S16 18 12 8" stroke="currentColor" stroke-width="1.5"/></svg>ENDLESS PLAY</span><button class="rebirth-badge" id="rebirth-badge" aria-label="환생 정보 보기">환생 <b id="rebirth-badge-count">0</b></button><div class="wallet" id="wallet" aria-label="보유한 돈"><span class="coin" aria-hidden="true">₩</span><span class="money" id="money">0원</span></div></div>
+ </header>
+ <section class="next-goal" id="next-goal" aria-labelledby="goal-title"><div class="goal-top"><span class="goal-kicker">다음 목표</span><span class="goal-step" id="goal-step">01 / 08</span><button class="goal-toggle" id="goal-toggle" aria-expanded="false" aria-controls="goal-roadmap">여정 보기</button></div><div class="goal-body"><div class="goal-copy"><h2 id="goal-title">범퍼 50회 적중</h2><p class="goal-hint" id="goal-hint">초록색 원형 범퍼를 맞혀요. 번개 타격도 포함!</p><div class="goal-progress-info"><strong id="goal-progress-text">0 / 50회</strong><span class="goal-reward" id="goal-reward">보상: 2번째 슬롯 영구 해금 · 80원</span></div><div class="goal-track" id="goal-track" role="progressbar" aria-label="다음 목표 진행도" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0"><div class="goal-fill" id="goal-fill"></div></div></div><button class="goal-claim" id="goal-claim" disabled>보상 받기</button></div><div class="goal-roadmap" id="goal-roadmap" hidden><ol id="goal-list"></ol><p class="goal-repeat" id="goal-repeat">여정을 끝내면 다음 환생 목표가 계속 이어져요.</p><p>다음 목표의 기록도 미리 쌓여요. 보상은 위에서부터 순서대로 한 번씩 받아요. 환생해도 진행·수령 기록과 열린 슬롯은 유지돼요.<br>돈 보상에는 현재 환생·피버 배수가 반영돼요. 화면에 표시된 금액을 그대로 받아요. 이미 격파한 보스와 환생 기록도 인정해요.</p></div></section>
+ <main class="arena">
+  <section class="game-column" aria-label="무한 핀볼 게임">
+   <div class="board-meta"><div class="stage-label"><b id="stage">LV. 01</b><span id="theme-name">민트 아케이드</span></div><div class="board-actions"><button class="icon-button" id="sound" aria-label="소리 켜기" aria-pressed="false" title="소리 켜기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 4L5 9H2V15H5L11 20V4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path id="sound-mark" d="M16 9L22 15M22 9L16 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button><button class="icon-button" id="pause" aria-label="게임 일시정지" aria-pressed="false" title="일시정지"><svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path id="pause-mark" d="M4 3H8V17H4ZM12 3H16V17H12Z"/></svg></button></div></div>
+   <div class="boss-hud" id="boss-hud" aria-label="상층부 보스"><div class="boss-hud-heading"><strong id="boss-title">보스 상자 · LV. 5 해금</strong><span id="boss-hp-text">LOCKED</span></div><div class="boss-hp-track" id="boss-hp-track" role="progressbar" aria-label="보스 체력" aria-valuemin="0" aria-valuemax="80" aria-valuenow="0"><div class="boss-hp-fill" id="boss-hp-fill"></div></div><div class="boss-hud-bottom"><span class="boss-state" id="boss-state">상층부 보물상자를 찾아요</span><div class="boss-hud-actions"><button id="boss-view" disabled>보스 보기</button><button id="boss-launch" disabled title="추적 중인 공을 보스 앞으로 발사 · 8초마다 사용">공 쏘기 ↑</button></div></div></div>
+   <div class="machine" id="machine"><canvas id="board" width="1080" height="1500" role="img" aria-label="7가지 기믹과 아래를 막는 긴 플리퍼가 있는 핀볼 게임판. 자동 플리퍼가 켜져 있습니다.">이 게임은 HTML Canvas를 지원하는 브라우저가 필요합니다.</canvas><div class="pause-overlay" id="pause-overlay" hidden><strong>잠깐 쉬어가요</strong><button class="resume-button" id="resume">다시 튕기기</button></div><div class="board-toast" id="board-toast"><div class="toast-overline" id="toast-label">LEVEL UP</div><strong id="toast-title">레벨 2</strong><small id="toast-detail">새로운 게임판 컬러!</small></div></div>
+   <div class="map-toolbar"><span id="map-info">기믹 13개 · 높이 ×1.00</span><button id="camera-view" aria-pressed="false">전체 맵 보기</button></div>
+   <div class="ball-dock"><div class="dock-heading"><span id="slot-count">장착 1 / 1 · 공을 누르면 추적</span><button class="collection-jump" id="collection-jump">공 컬렉션 ↗</button></div><div class="ball-slots" id="ball-slots" aria-label="장착 슬롯과 추적할 공"></div><p class="ball-status" id="ball-status">기본공 · 함께 튕겨요!</p><button class="mastery-shortcut" id="mastery-jump" aria-label="추적 중인 공의 숙련도와 진화 보기"><strong id="mastery-focus-level">공 숙련도 1</strong><span id="mastery-focus-next">5레벨에 첫 진화</span><span aria-hidden="true">↗</span></button></div>
+   <div class="play-controls"><button class="flipper-btn" id="left-flipper" aria-label="왼쪽 플리퍼"><svg width="12" height="10" viewBox="0 0 12 10" aria-hidden="true"><path d="M10 1L2 5L10 9" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>왼쪽<span class="keycap">A</span></button><button class="auto-button" id="auto" aria-pressed="true">자동 ON</button><button class="flipper-btn" id="right-flipper" aria-label="오른쪽 플리퍼">오른쪽<span class="keycap">D</span><svg width="12" height="10" viewBox="0 0 12 10" aria-hidden="true"><path d="M2 1L10 5L2 9" stroke="currentColor" fill="none" stroke-width="1.5"/></svg></button></div>
+   <section class="fever-panel" id="fever-panel" aria-labelledby="fever-title"><div class="fever-heading"><h2 id="fever-title">ϟ 피버 타임</h2><span id="fever-meter-text">0 / 100</span></div><div class="fever-track" id="fever-track" role="progressbar" aria-label="피버 충전" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fever-fill" id="fever-fill"></div></div><button class="fever-button" id="fever-start" aria-describedby="fever-status" disabled><span id="fever-button-text">피버 충전 중</span><span class="keycap" aria-hidden="true">F</span></button><p class="fever-status" id="fever-status" role="status">기믹 적중 +2 · 가득 채우면 원하는 순간 발동!</p><details class="fever-help"><summary>20초 · 임시 공 +2 · 획득 금액 ×2</summary><p>기본 충전으로 기믹 50회 적중하면 준비 완료! 진화 공은 더 빠르게 충전할 수 있어요. 번개 추가 타격도 충전돼요. 발동 중에는 다시 충전되지 않아요.<br>피버공은 숙련도·진화가 없는 기본공 성능이며 보스도 공격해요. 황금공·환생 보너스 적용 금액을 2배로 받고, 보스 돈 보상도 2배! 드롭 확률은 5% 그대로예요.<br>일시정지·다른 탭에서는 시간이 멈춰요. 남은 시간도 자동 저장하며, 환생하면 피버는 초기화돼요.</p></details></section>
+   <div class="growth-area" id="growth-area">
+    <div class="xp-meta"><strong id="level-progress-label">레벨 1 → 2</strong><span id="xp-text">0 / 60 EXP</span></div><div class="xp-track" id="xp-track" role="progressbar" aria-label="게임판 경험치" aria-valuemin="0" aria-valuemax="60" aria-valuenow="0"><div class="xp-fill" id="xp-fill"></div></div>
+    <button class="grow-button" id="grow"><span class="grow-symbol" aria-hidden="true">✦</span><span class="grow-name">핀볼 게임판 성장</span><span class="grow-gain" id="grow-gain">+10 EXP</span></button><p class="hold-hint" id="hold-hint">한 번씩 누르거나, 꾹 눌러서 쭉 성장!</p>
+    <div class="upgrade-odds"><span>이번 성공률 <b id="upgrade-chance">100%</b></span><small id="upgrade-attempts">성공 0 / 시도 0</small></div>
+    <button class="upgrade-button" id="upgrade" disabled><span class="upgrade-mark">+10%</span><span><span class="upgrade-title">성장의 성장 엌ㅋㅋ</span><span class="upgrade-desc" id="upgrade-desc">클릭 효율 1.00배 → 1.10배</span></span><span class="upgrade-cost" id="upgrade-cost">50원</span></button>
+    <p class="upgrade-rule">성공·실패 모두 50원 사용 · 시도마다 다음 성공률 ×8/9</p><p class="upgrade-result" id="upgrade-result" role="status">첫 시도는 100% 성공해요.</p><button class="rebirth-button rebirth-quick" id="rebirth-quick" hidden disabled>황금 금고 격파 후 환생</button>
+   </div>
+  </section>
+  <aside class="side" aria-label="보스 도전, 공 컬렉션과 게임판 정보">
+   <section class="rebirth-panel" id="rebirth-panel" aria-labelledby="rebirth-title"><h2 id="rebirth-title">다시, 더 강하게 <span>REBIRTH</span></h2><div class="rebirth-head"><div class="rebirth-seal" aria-hidden="true">↻</div><div><div class="rebirth-count"><span id="rebirth-count">0</span><small>회 환생</small></div><p class="rebirth-subtitle" id="rebirth-run">첫 번째 성장 여정</p></div></div><div class="rebirth-bonuses"><div><span>영구 경험치</span><b id="rebirth-xp">×1.00</b><small id="rebirth-next-xp">다음 ×1.25</small></div><div><span>영구 획득 금액</span><b id="rebirth-money">×1.00</b><small id="rebirth-next-money">다음 ×1.10</small></div></div><p class="rebirth-rule">매 환생마다 기본 경험치의 25%, 기본 금액의 10%가 추가돼요. 경험치는 성장공에도, 돈은 보스 보상에도 적용!</p><div class="rebirth-checks"><span id="rebirth-level-check">○ 15레벨 달성</span><span id="rebirth-boss-check">○ 황금 금고 격파</span></div><button class="rebirth-button" id="rebirth-open" disabled>15레벨 + 황금 금고 격파 필요</button><p class="rebirth-message" id="rebirth-message" role="status">공·조각·3개 장착 슬롯을 간직하고, 1레벨부터 다시 성장해요.</p></section>
+   <section class="boss-panel" aria-labelledby="boss-panel-title"><h2 id="boss-panel-title">상층부 보스 상자 <span id="boss-clear-count">0 / 3 CLEAR</span></h2><p class="boss-panel-intro">공마다 다른 공격력으로 상자를 격파해요.<br>빛나는 아래쪽 자물쇠는 <b>피해 2배</b> 약점!</p><div class="boss-milestones" id="boss-milestones"></div><div class="boss-fragments"><span>모은 보스 조각</span><span><b id="boss-shards">0</b> / 10</span></div><button class="craft-button" id="craft-crown" disabled>조각 10개로 왕관공 합성</button><p class="boss-message" id="boss-message" role="status">5레벨에 첫 상자가 등장해요. 최초 격파 보상: 100원 + 조각 2개.</p><p class="boss-history" id="boss-history">누적 보스 격파 0회</p><p class="boss-explainer">공 쏘기: 선택한 공을 상층부로 발사, 8초마다 사용.<br>지나친 보스도 순서대로 도전해요.<br>환생하면 보스를 다시 만나 첫 격파 보상도 다시 받아요.</p></section>
+   <details class="collection-panel" id="collection-panel" open><summary>공 컬렉션 <span class="collection-count" id="collection-count">01 / 06</span></summary><p class="collection-intro">모은 돈으로 새로운 공을 영구 수집!<br>첫 목표 보상 또는 5레벨에 2개, 10레벨에 3개를 함께 굴려요.<br>환생 후에도 공·숙련도·진화와 열린 슬롯은 유지돼요.</p><details class="mastery-help"><summary>공 숙련도 · 5레벨 첫 진화 / 10레벨 최종 진화</summary><p>장착한 공이 기믹에 직접 적중하면 그 공의 숙련도 +1. 번개 추가 타격·보스 적중·임시 피버공은 숙련도에서 제외해요.<br>숙련도 레벨마다 기본 보스 공격력 +3%, 최대 +27%. 게임판 레벨과 별도로 성장해요.<br>5레벨부터 진화 방향 2개 중 하나를 선택! 10레벨에는 선택한 방향의 최종 진화가 적용돼요. 언제든 무료로 방향을 바꿀 수 있어요.<br>5레벨까지 누적 280회, 10레벨까지 1,080회 직접 적중. 환생해도 보존되며, 이전 버전의 공은 숙련도 1부터 시작해요.</p></details><div class="collection-grid" id="collection-grid"></div><p class="collection-message" id="collection-message" role="status">첫 목표: 80원으로 황금공 수집하기.</p><p class="save-status" id="save-status">이 브라우저에 자동 저장 · 다른 기기·파일과는 별도 진행</p></details>
+   <div class="level-summary"><p class="eyebrow">YOUR GROWING MACHINE</p><div class="level-heading"><span class="level-number" id="big-level">01</span><span class="level-total">/ 15</span></div><h2 class="level-title" id="level-title">첫 번째 게임판</h2><p class="level-note" id="level-note">레벨마다 다른 배치로 진화하고<br>새 구간이 위쪽으로 확장돼요.</p><p class="map-title" id="layout-name">01 · 클래식 아케이드</p></div>
+   <div class="map-measures"><div><span>설치된 기믹</span><strong id="map-count">13 / 39개</strong></div><div><span>1레벨 대비 높이</span><strong id="map-height">×1.00 / ×3.50</strong></div></div><p class="map-help">공을 따라 자동으로 이동해요. 게임판을 위아래로 드래그하거나 미니맵을 눌러 다른 구간을 볼 수 있어요.</p>
+   <div class="palette" id="palette" aria-label="레벨별 게임판 색상"></div><div class="palette-labels"><span>LV. 01</span><span>15 COLORS TO UNLOCK</span><span>MAX</span></div>
+   <div class="session-stats"><div><span>기믹 적중</span><strong><span id="hit-count" style="font:inherit;color:inherit;display:inline">0</span><small>회</small></strong></div><div><span>성장 효율</span><strong><span id="efficiency" style="font:inherit;color:inherit;display:inline">1.00</span><small>배</small></strong></div></div>
+   <div class="gimmicks-heading"><h2>7가지 기믹</h2><span>HIT & COLLECT</span></div>
+   <ol class="gimmick-list" id="gimmick-list">
+    <li class="gimmick-row" style="--gcolor:#77f2bb" data-gimmick="0"><span class="gimmick-num">01</span><div class="gimmick-copy"><strong>팝 범퍼</strong><span>맞으면 강하게 튕겨요</span></div></li>
+    <li class="gimmick-row" style="--gcolor:#ffd379" data-gimmick="1"><span class="gimmick-num">02</span><div class="gimmick-copy"><strong>크리스털</strong><span>반짝이며 방향 전환</span></div></li>
+    <li class="gimmick-row" style="--gcolor:#83c6ff" data-gimmick="2"><span class="gimmick-num">03</span><div class="gimmick-copy"><strong>회전 날개</strong><span>회전 방향으로 휙!</span></div></li>
+    <li class="gimmick-row" style="--gcolor:#f5ae80" data-gimmick="3"><span class="gimmick-num">04</span><div class="gimmick-copy"><strong>가속 레일</strong><span>위로 빠르게 쏘아 올려요</span></div></li>
+    <li class="gimmick-row" style="--gcolor:#c5a0ff" data-gimmick="4"><span class="gimmick-num">05</span><div class="gimmick-copy"><strong>트윈 포털</strong><span>반대편으로 순간 이동</span></div></li>
+    <li class="gimmick-row" style="--gcolor:#fb91b7" data-gimmick="5"><span class="gimmick-num">06</span><div class="gimmick-copy"><strong>자석 코어</strong><span>끌어당긴 뒤 다시 발사</span></div></li>
+    <li class="gimmick-row" style="--gcolor:#f4eb90" data-gimmick="6"><span class="gimmick-num">07</span><div class="gimmick-copy"><strong>슈퍼 스프링</strong><span>꾹 눌렸다가 위로 팡!</span></div></li>
+   </ol>
+   <p class="drop-note">기믹 적중마다 <b>5%</b> 확률로 기본 <b>1~15원</b>! 황금공은 금액 <b>×2</b>, 보상 진화 시 더 늘어나요. 환생 금액 보너스 <b id="drop-rebirth-bonus">×1.00</b>.<br>돈으로 공을 모으거나 50원 강화에 도전해요. 성공 시 효율 <b>×1.1</b>, 실패 시 효율은 그대로예요.</p>
+  </aside>
+ </main>
+ <footer class="footer"><span>GROWBALL / JJMARBLOCITY LAB</span><span>15레벨 다음에는, 더 강한 환생.</span></footer>
+ <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
+</div>
+<dialog class="rebirth-dialog" id="rebirth-dialog" aria-labelledby="rebirth-dialog-title" aria-describedby="rebirth-dialog-description"><p class="eyebrow">A NEW GROWTH CYCLE</p><h2 id="rebirth-dialog-title">첫 환생을 시작할까요?</h2><p id="rebirth-dialog-description">1레벨에서 다시 출발해요. 수집한 공과 영구 보너스는 계속 함께해요.</p><div class="rebirth-bonuses"><div><span>영구 경험치</span><b id="rebirth-review-xp">×1.00 → ×1.25</b></div><div><span>영구 획득 금액</span><b id="rebirth-review-money">×1.00 → ×1.10</b></div></div><div class="rebirth-review"><section><h3>다시 시작하는 것</h3><ul><li>게임판 15 → 1레벨, 경험치 0</li><li id="rebirth-review-cash">보유 금액 → 0원</li><li id="rebirth-review-upgrades">일반 강화와 시도 횟수 → 0</li><li>보스 체력·이번 회차 격파 기록</li><li>피버 충전·남은 시간·임시 공</li></ul></section><section><h3>간직하는 것</h3><ul><li id="rebirth-review-balls">수집한 공과 현재 장착</li><li id="rebirth-review-shards">보스 조각</li><li>열린 장착 슬롯 3개</li><li>환생 보너스·누적 적중·누적 보스 기록</li><li>목표 진행과 보상 수령 기록</li><li>공별 숙련도와 선택한 진화 방향</li></ul></section></div><p class="rebirth-note">일반 강화의 첫 성공률은 100%로 돌아와요. 돈 보너스는 적용 후 1원 단위로 반올림합니다.</p><div class="rebirth-dialog-actions"><button class="rebirth-cancel" id="rebirth-cancel" autofocus>계속 즐기기</button><button class="rebirth-button" id="rebirth-confirm">환생하고 1레벨부터</button></div></dialog>
+<script id="game-core">
+'use strict';
+const THEMES=[
+ {name:'민트 아케이드',h:157,s:55,l:13,accent:'#7af2c4'},
+ {name:'아쿠아 웨이브',h:182,s:58,l:15,accent:'#6fe9ec'},
+ {name:'블루 스카이',h:206,s:58,l:17,accent:'#84c9ff'},
+ {name:'코발트 나이트',h:228,s:56,l:18,accent:'#a2b0ff'},
+ {name:'라벤더 드림',h:252,s:43,l:20,accent:'#bda4ff'},
+ {name:'바이올렛 펄스',h:276,s:51,l:18,accent:'#d299ff'},
+ {name:'핑크 팝',h:319,s:45,l:18,accent:'#ffa6de'},
+ {name:'로즈 레이서',h:347,s:51,l:18,accent:'#ffa1b5'},
+ {name:'오렌지 부스트',h:20,s:52,l:17,accent:'#ffb17e'},
+ {name:'앰버 스파크',h:39,s:57,l:17,accent:'#ffd477'},
+ {name:'라임 일렉트릭',h:76,s:47,l:15,accent:'#d5f878'},
+ {name:'에메랄드 포레스트',h:128,s:44,l:14,accent:'#8fee8c'},
+ {name:'아이스 크롬',h:193,s:24,l:25,accent:'#c4efff'},
+ {name:'선셋 네뷸라',h:293,s:47,l:22,accent:'#ffc0f2'},
+ {name:'골든 마스터',h:46,s:63,l:21,accent:'#ffe89b'}
+];
+const GCOL=['#77f2bb','#ffd379','#83c6ff','#f5ae80','#c5a0ff','#fb91b7','#f4eb90'];
+const TAU=Math.PI*2;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const BALLS=[
+ {id:'basic',name:'기본공',rarity:'COMMON',color:'#dff8ed',shade:'#729b8a',icon:'●',price:0,r:9.5,description:'처음부터 함께하는 공. 모든 기믹을 튕기며 돈을 모아요.'},
+ {id:'gold',name:'황금공',rarity:'RARE',color:'#ffd477',shade:'#b17a20',icon:'₩',price:80,r:11,description:'돈을 얻으면 금액 ×2! 기본 2~30원에 환생의 돈 보너스도 함께 적용돼요.'},
+ {id:'lightning',name:'번개공',rarity:'EPIC',color:'#83c6ff',shade:'#377cb1',icon:'ϟ',price:140,r:9,description:'10번 적중마다 가장 가까운 기믹 2개를 추가 타격해요. 추가 타격도 돈 획득 가능!'},
+ {id:'growth',name:'성장공',rarity:'EPIC',color:'#bbf578',shade:'#598e30',icon:'✦',price:180,r:10.5,description:'기믹 적중마다 기본 +2 EXP. 환생의 경험치 보너스도 함께 적용돼요!'},
+ {id:'ghost',name:'유령공',rarity:'LEGENDARY',color:'#d6b2ff',shade:'#8763af',icon:'◇',price:240,r:10,description:'8초마다 장애물 통과! 통과 중 일반 기믹은 건너뛰고, 보스 방패를 관통해 공격력 ×1.5.'},
+ {id:'crown',name:'왕관공',rarity:'BOSS REWARD',color:'#ffb87d',shade:'#ac4f34',icon:'♛',price:null,r:12,description:'보스 조각 10개로 합성. 보스 공격력 22! 묵직한 한 방으로 금고를 열어요.'}
+];
+const BALL_BY_ID=Object.fromEntries(BALLS.map(b=>[b.id,b]));
+const BALL_ATTACK={basic:8,gold:10,lightning:12,growth:7,ghost:9,crown:22};
+// Permanent mastery belongs to the collected ball, never to a temporary instance.
+const MASTERY_MAX_LEVEL=10;
+const MASTERY_THRESHOLDS=[0];
+for(let level=1;level<MASTERY_MAX_LEVEL;level++)MASTERY_THRESHOLDS.push(MASTERY_THRESHOLDS[level-1]+40+20*(level-1));
+const EVOLUTIONS={
+ basic:[
+  {id:'fortune',names:['행운의 구슬','별빛 행운구'],color:'#fff39c',icon:'✧',effects:['이 공의 돈 드롭 금액 ×1.2','이 공의 돈 드롭 금액 ×1.5']},
+  {id:'spark',names:['피버 구슬','오로라 피버구'],color:'#ffafa0',icon:'✦',effects:['직접 기믹 적중 시 피버 충전 +1 (총 +3)','직접 기믹 적중 시 피버 충전 +2 (총 +4)']}
+ ],
+ gold:[
+  {id:'treasure',names:['황금 저금통','황금 보물성'],color:'#ffe98b',icon:'₩',effects:['이 공의 돈 드롭 금액 ×2.5 (기본 ×2 포함)','이 공의 돈 드롭 금액 ×3 (기본 ×2 포함)']},
+  {id:'festival',names:['금빛 응원단','황금 축제왕'],color:'#ffa86e',icon:'✺',effects:['직접 기믹 적중 시 피버 충전 +2 (총 +4)','직접 기믹 적중 시 피버 충전 +3 (총 +5)']}
+ ],
+ lightning:[
+  {id:'storm',names:['연쇄 폭풍','무한 뇌우'],color:'#9cddff',icon:'ϟ',effects:['10회 직접 적중마다 가까운 대상 3개 추가 타격','10회 직접 적중마다 가까운 대상 4개 추가 타격']},
+  {id:'thunder',names:['천둥 망치','심판의 번개'],color:'#c3abff',icon:'ϟ',effects:['이 공의 보스 피해 ×1.35 · 연쇄 타격에도 적용','이 공의 보스 피해 ×1.75 · 연쇄 타격에도 적용']}
+ ],
+ growth:[
+  {id:'garden',names:['새싹 정원','세계수 씨앗'],color:'#aaffb9',icon:'✦',effects:['직접 기믹 적중 시 기본 경험치 +3 (기본 +2 대체)','직접 기믹 적중 시 기본 경험치 +4 (기본 +2 대체)']},
+  {id:'bloom',names:['피버 새싹','축제의 꽃'],color:'#fff0a1',icon:'✿',effects:['직접 기믹 적중 시 피버 충전 +2 (총 +4)','직접 기믹 적중 시 피버 충전 +4 (총 +6)']}
+ ],
+ ghost:[
+  {id:'eternal',names:['영원의 유령','차원의 유령'],color:'#aaa8ff',icon:'◇',effects:['8초마다 통과 시간 2.3초 (기본 1.6초 대체)','8초마다 통과 시간 3초 (기본 1.6초 대체)']},
+  {id:'hunter',names:['그림자 사냥꾼','심연의 사냥꾼'],color:'#ffa6df',icon:'◆',effects:['통과 중 보스 피해 ×2 (기본 ×1.5 대체)','통과 중 보스 피해 ×2.5 (기본 ×1.5 대체)']}
+ ],
+ crown:[
+  {id:'crusher',names:['금고 분쇄자','황금 파괴왕'],color:'#ffbd94',icon:'♛',effects:['이 공의 보스 피해 ×1.3','이 공의 보스 피해 ×1.6']},
+  {id:'precision',names:['약점의 왕관','백발백중 왕관'],color:'#ffeda3',icon:'♛',effects:['열린 자물쇠 약점 피해 ×2.5 (기본 ×2 대체)','열린 자물쇠 약점 피해 ×3.2 (기본 ×2 대체)']}
+ ]
+};
+class BallMastery{
+ constructor(){this.records=Object.fromEntries(BALLS.map(b=>[b.id,{hits:0,branch:null}]));}
+ progress(id){
+  const r=this.records[id]||{hits:0,branch:null};let level=1;
+  while(level<MASTERY_MAX_LEVEL&&r.hits>=MASTERY_THRESHOLDS[level])level++;
+  const base=MASTERY_THRESHOLDS[level-1],max=level===MASTERY_MAX_LEVEL,need=max?0:MASTERY_THRESHOLDS[level]-base;
+  return {hits:r.hits,branch:r.branch,level,tier:level>=10?2:level>=5?1:0,xp:max?0:r.hits-base,need,max};
+ }
+ hit(id,type,chain=false,temporary=false){
+  const r=this.records[id];if(!r||temporary||chain||!Number.isInteger(type)||type<0||type>6)return null;
+  const before=this.progress(id);if(before.max)return null;r.hits++;
+  const after=this.progress(id);return {...after,levels:after.level-before.level};
+ }
+ choose(id,branch){const r=this.records[id];if(!r||this.progress(id).tier===0||!EVOLUTIONS[id].some(e=>e.id===branch)||r.branch===branch)return false;r.branch=branch;return true;}
+ snapshot(){return Object.fromEntries(BALLS.map(b=>[b.id,{...this.records[b.id]}]));}
+ restore(data,owned){
+  for(const def of BALLS){const saved=data?.[def.id],r=this.records[def.id];r.hits=0;r.branch=null;if(!owned.includes(def.id)||!saved||typeof saved!=='object')continue;
+   r.hits=Number.isFinite(saved.hits)?clamp(Math.floor(saved.hits),0,MASTERY_THRESHOLDS[9]):0;
+   if(this.progress(def.id).tier>0&&EVOLUTIONS[def.id].some(e=>e.id===saved.branch))r.branch=saved.branch;
+  }
+ }
+}
+function ballStats(id,mastery=null){
+ const def=BALL_BY_ID[id],p=mastery?.progress(id)||{level:1,tier:0,branch:null},evolution=p.tier?EVOLUTIONS[id].find(e=>e.id===p.branch):null,tier=evolution?p.tier:0;
+ const stats={level:p.level,tier,branch:evolution?.id||null,name:tier?evolution.names[tier-1]:def.name,color:tier?evolution.color:def.color,shade:def.shade,icon:tier?evolution.icon:def.icon,attack:BALL_ATTACK[id]*(1+(p.level-1)*.03),money:id==='gold'?2:1,feverBonus:0,chainTargets:2,growthXP:2,phaseDuration:1.6,phaseDamage:1.5,weakDamage:2};
+ if(!tier)return stats;
+ const value=(first,final)=>tier===1?first:final;
+ switch(evolution.id){
+  case 'fortune':stats.money=value(1.2,1.5);break;
+  case 'spark':stats.feverBonus=value(1,2);break;
+  case 'treasure':stats.money=value(2.5,3);break;
+  case 'festival':stats.feverBonus=value(2,3);break;
+  case 'storm':stats.chainTargets=value(3,4);break;
+  case 'thunder':stats.attack*=value(1.35,1.75);break;
+  case 'garden':stats.growthXP=value(3,4);break;
+  case 'bloom':stats.feverBonus=value(2,4);break;
+  case 'eternal':stats.phaseDuration=value(2.3,3);break;
+  case 'hunter':stats.phaseDamage=value(2,2.5);break;
+  case 'crusher':stats.attack*=value(1.3,1.6);break;
+  case 'precision':stats.weakDamage=value(2.5,3.2);break;
+ }
+ return stats;
+}
+const BOSS_DEFS=[
+ {level:5,name:'태엽 보물상자',hp:80,color:'#98edc1',money:100,shards:2,replayMoney:35,pattern:'좌우로 움직여요. 6초 중 2.4초 동안 아래쪽 자물쇠가 약점!',short:'이동 · 자물쇠 약점'},
+ {level:10,name:'회전 방패 금고',hp:180,color:'#8acbff',money:200,shards:3,replayMoney:60,pattern:'방패 3개가 회전해요. 7초마다 방패가 열리면 아래쪽 약점을 노려요.',short:'회전 방패 · 틈새 공략'},
+ {level:15,name:'황금 금고',hp:360,color:'#ffcf71',money:400,shards:5,replayMoney:100,pattern:'장갑이 닫히면 피해 50%. 충격파 뒤 약점 노출! 체력 절반부터 빨라져요.',short:'장갑 · 충격파 · 분노'}
+];
+class BossJourney{
+ constructor(){this.records=Object.fromEntries(BOSS_DEFS.map(d=>[d.level,{hp:d.hp,clears:0,pending:false}]));this.activeLevel=0;this.shards=0;this.totalClears=Object.fromEntries(BOSS_DEFS.map(d=>[d.level,0]));}
+ resetCycle(){this.records=Object.fromEntries(BOSS_DEFS.map(d=>[d.level,{hp:d.hp,clears:0,pending:false}]));this.activeLevel=0;}
+ get definition(){return BOSS_DEFS.find(d=>d.level===this.activeLevel)||null;}
+ get record(){return this.records[this.activeLevel]||null;}
+ syncLevel(level){if(this.definition&&this.activeLevel<=level&&(this.record.hp>0||this.record.pending))return this.activeLevel;this.activeLevel=BOSS_DEFS.find(d=>d.level<=level&&this.records[d.level].clears===0)?.level||0;return this.activeLevel;}
+ damage(amount){const r=this.record;if(!r||r.hp<=0||!Number.isFinite(amount)||amount<=0)return null;const damage=Math.min(r.hp,Math.max(1,Math.round(amount)));r.hp-=damage;if(r.hp===0)r.pending=true;return {level:this.activeLevel,damage,hp:r.hp,killed:r.pending};}
+ claim(econ){const d=this.definition,r=this.record;if(!d||!r.pending||r.hp!==0)return null;const first=r.clears===0,money=econ.moneyAmount(first?d.money:d.replayMoney),shards=first?d.shards:1;r.pending=false;r.clears++;this.totalClears[d.level]++;this.shards+=shards;econ.money+=money;econ.earned+=money;econ.fever.recordMoney(money);this.activeLevel=0;return {level:d.level,name:d.name,color:d.color,first,money,shards};}
+ replay(level,boardLevel){const d=BOSS_DEFS.find(b=>b.level===level);if(!d||level>boardLevel||this.activeLevel||this.records[level].clears===0)return false;this.records[level].hp=d.hp;this.records[level].pending=false;this.activeLevel=level;return true;}
+ craft(collection){if(this.shards<10||collection.owned.includes('crown'))return false;this.shards-=10;collection.owned.push('crown');return true;}
+ snapshot(){return {activeLevel:this.activeLevel,shards:this.shards,totalClears:{...this.totalClears},records:Object.fromEntries(BOSS_DEFS.map(d=>[d.level,{...this.records[d.level]}]))};}
+ restore(data,boardLevel){
+  if(data&&typeof data==='object'){
+   this.shards=Number.isFinite(data.shards)?clamp(Math.floor(data.shards),0,1e9):0;
+   for(const d of BOSS_DEFS){const saved=data.records?.[d.level],historic=data.totalClears?.[d.level],current=Number.isFinite(saved?.clears)?clamp(Math.floor(saved.clears),0,1e6):0;this.totalClears[d.level]=Math.max(current,Number.isFinite(historic)?clamp(Math.floor(historic),0,1e9):0);if(!saved||d.level>boardLevel)continue;const r=this.records[d.level];r.clears=Number.isFinite(saved.clears)?clamp(Math.floor(saved.clears),0,1e6):0;r.hp=Number.isFinite(saved.hp)?clamp(Math.round(saved.hp),0,d.hp):d.hp;r.pending=saved.pending===true&&r.hp===0;if(r.hp===0&&!r.pending&&!r.clears)r.hp=d.hp;}
+   if(BOSS_DEFS.some(d=>d.level===data.activeLevel&&d.level<=boardLevel))this.activeLevel=data.activeLevel;
+  }
+  this.syncLevel(boardLevel);
+ }
+}
+const FEVER_DURATION=20,FEVER_CHARGE_PER_HIT=2,FEVER_BALL={name:'피버공',color:'#ffc18e',shade:'#c5603c'};
+class FeverTime{
+ constructor(){this.reset();}
+ reset(){this.charge=0;this.remaining=0;this.earnings=0;}
+ get active(){return this.remaining>0;}
+ get ready(){return !this.active&&this.charge>=100;}
+ hit(type,amount=FEVER_CHARGE_PER_HIT){if(this.active||this.ready||!Number.isInteger(type)||type<0||type>6||!Number.isFinite(amount)||amount<=0)return false;this.charge=Math.min(100,this.charge+amount);return this.ready;}
+ start(){if(!this.ready)return false;this.charge=0;this.remaining=FEVER_DURATION;this.earnings=0;return true;}
+ tick(dt){if(!this.active||!Number.isFinite(dt)||dt<=0)return false;this.remaining=Math.max(0,this.remaining-dt);if(this.remaining<1e-8)this.remaining=0;return !this.active;}
+ recordMoney(amount){if(this.active)this.earnings+=amount;}
+ snapshot(){return {charge:this.charge,remaining:this.remaining,earnings:this.earnings};}
+ restore(data){this.reset();if(!data||typeof data!=='object')return;const clean=(v,max)=>Number.isFinite(v)?clamp(v,0,max):0;this.remaining=clean(data.remaining,FEVER_DURATION);this.charge=this.active?0:Math.floor(clean(data.charge,100));this.earnings=Math.floor(clean(data.earnings,1e12));}
+}
+class Economy{
+ constructor(random=Math.random){this.random=random;this.level=1;this.xp=0;this.money=0;this.upgrades=0;this.attempts=0;this.hits=0;this.drops=0;this.earned=0;this.rebirths=0;this.fever=new FeverTime();}
+ get need(){return this.level>=15?0:60+35*(this.level-1)+12*(this.level-1)**2;}
+ get permanentXP(){return 1+this.rebirths*.25;}
+ get permanentMoney(){return 1+this.rebirths*.10;}
+ get multiplier(){return (1.1**this.upgrades)*this.permanentXP;}
+ get growthBallGain(){return 2*this.permanentXP;}
+ moneyAmount(base){return Math.round(base*this.permanentMoney)*(this.fever.active?2:1);}
+ get gain(){return 10*this.multiplier;}
+ addXP(gain){if(this.level>=15||!Number.isFinite(gain)||gain<=0)return {gain:0,levels:0};this.xp+=gain;let levels=0;while(this.level<15&&this.xp+1e-8>=this.need){this.xp=Math.max(0,this.xp-this.need);this.level++;levels++;}if(this.level===15)this.xp=0;return {gain,levels};}
+ grow(){return this.addXP(this.gain);}
+ get chance(){return (8/9)**this.attempts;}
+ upgrade(){if(this.money<50||this.level>=15)return {ok:false};const chance=this.chance;this.money-=50;const success=this.random()<chance;this.attempts++;if(success)this.upgrades++;return {ok:true,success,chance,nextChance:this.chance};}
+ hit(ballId='basic',moneyMultiplier=ballId==='gold'?2:1){this.hits++;if(this.random()<.05){const amount=this.moneyAmount((1+Math.floor(this.random()*15))*moneyMultiplier);this.money+=amount;this.earned+=amount;this.drops++;this.fever.recordMoney(amount);return amount;}return 0;}
+}
+class BallCollection{
+ constructor(){this.owned=['basic'];this.equipped=['basic'];this.permanentSlots=1;this.mastery=new BallMastery();}
+ slots(level){return Math.max(this.permanentSlots,level>=10?3:level>=5?2:1);}
+ buy(id,econ){const def=BALL_BY_ID[id];if(!def||!Number.isFinite(def.price)||this.owned.includes(id))return {ok:false,reason:'owned'};if(econ.money<def.price)return {ok:false,reason:'money'};econ.money-=def.price;this.owned.push(id);return {ok:true};}
+ equip(id,level,replaceId){if(!this.owned.includes(id)||this.equipped.includes(id))return false;if(this.equipped.length<this.slots(level))this.equipped.push(id);else{const index=Math.max(0,this.equipped.indexOf(replaceId));this.equipped[index]=id;}return true;}
+ unequip(id){if(this.equipped.length<=1||!this.equipped.includes(id))return false;this.equipped=this.equipped.filter(x=>x!==id);return true;}
+}
+function canRebirth(econ,bosses){return econ.level===15&&bosses.records[15].clears>0;}
+function performRebirth(econ,collection,bosses){
+ if(!canRebirth(econ,bosses))return {ok:false};
+ econ.rebirths++;econ.level=1;econ.xp=0;econ.money=0;econ.upgrades=0;econ.attempts=0;econ.fever.reset();collection.permanentSlots=3;bosses.resetCycle();
+ return {ok:true,rebirths:econ.rebirths,experience:econ.permanentXP,money:econ.permanentMoney};
+}
+
+const GOAL_DEFS=[
+ {id:'bumper-50',kind:'bumpers',target:50,title:'범퍼 50회 적중',hint:'초록색 원형 범퍼를 맞혀요. 번개 타격도 포함!',reward:{slots:2,money:80}},
+ {id:'portal-10',kind:'portals',target:10,title:'포털 10회 이용',hint:'보라색 포털을 통과해 반대편으로 이동해요.',reward:{money:100}},
+ {id:'upper-75',kind:'upper',target:75,title:'5레벨 이상 맵의 상층부 도달',hint:'공을 맵 위쪽 25%까지 올려요. 포털·스프링을 이용!',reward:{money:150}},
+ {id:'boss-5',kind:'boss',level:5,target:1,title:'태엽 보물상자 격파',hint:'상층부 보스에게 공 쏘기! 열린 자물쇠가 약점이에요.',reward:{shards:2}},
+ {id:'fever-3',kind:'fevers',target:3,title:'피버 타임 3회 발동',hint:'기믹으로 충전한 뒤 피버 버튼을 눌러요.',reward:{money:200}},
+ {id:'boss-10',kind:'boss',level:10,target:1,title:'회전 방패 금고 격파',hint:'방패가 열릴 때 아래 자물쇠를 노려요.',reward:{shards:3}},
+ {id:'boss-15',kind:'boss',level:15,target:1,title:'황금 금고 격파',hint:'충격파 뒤 열린 자물쇠를 노려요. 피버도 활용!',reward:{money:300,shards:5}},
+ {id:'rebirth-1',kind:'rebirth',target:1,title:'첫 번째 환생',hint:'15레벨 + 황금 금고 격파 후 환생 버튼을 눌러요.',reward:{money:400}}
+];
+class GoalJourney{
+ constructor(){this.stage=0;this.repeatTarget=2;this.stats={bumpers:0,portals:0,upper:0,fevers:0};}
+ recordHit(type,chain=false){const key=type===0?'bumpers':type===4&&!chain?'portals':null;if(!key)return false;const cap=key==='bumpers'?50:10;if(this.stats[key]>=cap)return false;this.stats[key]++;return true;}
+ recordFever(){if(this.stats.fevers>=3)return false;this.stats.fevers++;return true;}
+ observe(engine){if(engine.level<5||this.stats.upper>=75)return false;let best=this.stats.upper;for(const b of engine.balls){if(Number.isFinite(b.y))best=Math.max(best,Math.floor(clamp((engine.height-b.y)/(engine.height-38)*100,0,75)));}if(best===this.stats.upper)return false;this.stats.upper=best;return true;}
+ definition(index=this.stage){return GOAL_DEFS[index]||{id:'repeat-rebirth-'+this.repeatTarget,kind:'rebirth',target:this.repeatTarget,title:this.repeatTarget+'번째 환생',hint:'새 회차도 15레벨과 황금 금고를 넘어 환생해요.',reward:{money:400}};}
+ progress(def,econ,bosses){const value=def.kind==='boss'?(bosses?.totalClears?.[def.level]||0):def.kind==='rebirth'?econ.rebirths:this.stats[def.kind];return Math.min(def.target,Math.max(0,value||0));}
+ current(econ,bosses){const def=this.definition(),value=this.progress(def,econ,bosses);return {...def,value,ready:value>=def.target};}
+ rewardFor(def,econ){return {money:def.reward.money?econ.moneyAmount(def.reward.money):0,shards:def.reward.shards||0,slots:def.reward.slots||0};}
+ claim(expectedId,econ,collection,bosses){
+  const goal=this.current(econ,bosses);if(goal.id!==expectedId||!goal.ready)return {ok:false};
+  const reward=this.rewardFor(goal,econ),oldSlots=collection.slots(econ.level);
+  if(this.stage<GOAL_DEFS.length){this.stage++;if(this.stage===GOAL_DEFS.length)this.repeatTarget=Math.max(2,econ.rebirths+1);}else this.repeatTarget++;
+  collection.permanentSlots=Math.max(collection.permanentSlots,reward.slots);econ.money+=reward.money;econ.earned+=reward.money;econ.fever.recordMoney(reward.money);bosses.shards+=reward.shards;
+  return {ok:true,id:goal.id,title:goal.title,...reward,newSlot:collection.slots(econ.level)>oldSlots};
+ }
+ snapshot(){return {stage:this.stage,repeatTarget:this.repeatTarget,stats:{...this.stats}};}
+ restore(data,econ){
+  if(!data||typeof data!=='object')return;
+  this.stage=Number.isInteger(data.stage)?clamp(data.stage,0,GOAL_DEFS.length):0;
+  this.repeatTarget=Number.isInteger(data.repeatTarget)&&data.repeatTarget>=2?Math.min(data.repeatTarget,1e9):Math.max(2,econ.rebirths+1);
+  for(const [key,cap] of Object.entries({bumpers:50,portals:10,upper:75,fevers:3})){const value=data.stats?.[key];this.stats[key]=Number.isFinite(value)?clamp(Math.floor(value),0,cap):0;}
+ }
+}
+
+const SAVE_KEY='growball.progress.v3';
+function progressData(econ,collection,auto,bosses=null,goals=null){return {version:8,mastery:collection.mastery.snapshot(),savedAt:Date.now(),economy:Object.fromEntries(['level','xp','money','upgrades','attempts','hits','drops','earned','rebirths'].map(k=>[k,econ[k]])),owned:[...collection.owned],equipped:[...collection.equipped],auto,bosses:bosses?.snapshot()||null,fever:econ.fever.snapshot(),goals:goals?.snapshot()||null};}
+function restoreProgress(raw,econ,collection,bosses=null,goals=null){
+ let data;try{data=JSON.parse(raw);}catch{return null;}
+ if(!data||![3,4,5,6,7,8].includes(data.version)||!data.economy||!Number.isInteger(data.economy.level)||data.economy.level<1||data.economy.level>15)return null;
+ const clean=(v,max=1e12)=>Number.isFinite(v)&&v>=0?Math.min(v,max):0;
+ econ.level=data.economy.level;econ.xp=econ.level===15?0:Math.min(clean(data.economy.xp),econ.need-1e-6);
+ for(const key of ['money','upgrades','attempts','hits','drops','earned'])econ[key]=Math.floor(clean(data.economy[key],key==='upgrades'?200:1e12));
+ econ.attempts=Math.max(econ.attempts,econ.upgrades);econ.rebirths=data.version>=5?Math.floor(clean(data.economy.rebirths,1e6)):0;const goalHistory=goals||new GoalJourney();goalHistory.restore(data.version>=7?data.goals:null,econ);collection.permanentSlots=econ.rebirths>0?3:goalHistory.stage>0?2:1;
+ collection.owned=['basic',...new Set((Array.isArray(data.owned)?data.owned:[]).filter(id=>typeof id==='string'&&BALLS.some(b=>b.id===id)&&id!=='basic'))];
+ collection.equipped=[...new Set((Array.isArray(data.equipped)?data.equipped:[]).filter(id=>collection.owned.includes(id)))].slice(0,collection.slots(econ.level));
+ if(!collection.equipped.length)collection.equipped=['basic'];
+ collection.mastery.restore(data.version>=8?data.mastery:null,collection.owned);
+ econ.fever.restore(data.version>=6?data.fever:null);bosses?.restore(data.bosses,econ.level);return {auto:data.auto!==false};
+}
+const LAYOUT_NAMES=['클래식 아케이드','갈라지는 V 레인','스위치백 지그재그','다이아몬드 정원','더블 헬릭스','위성 궤도','사선 크리스털 숲','포털 쌍둥이 회랑','계단식 부스터','대칭 크로스 타워','세 갈래 스카이웨이','물결치는 자석 계곡','나선형 천공 회랑','거울 성채','골든 그랜드 타워'];
+const TYPE_KEYS=['bumpers','crystals','spinners','boosts','portals','magnets','springs'];
+const seeded=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+const pointSegmentDistance=(x,y,w)=>{const dx=w[2]-w[0],dy=w[3]-w[1],t=clamp(((x-w[0])*dx+(y-w[1])*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(x-w[0]-dx*t,y-w[1]-dy*t);};
+function countsForLevel(level){
+ const counts=[3,3,1,2,2,1,1],additions=[0,1,3,6,0,2,5,0,1,3,[4,4],0,6,1,2,3,5,0,1,[4,4],6,0,2,3,1,0];let next=0,previous=13;
+ for(let l=2;l<=level;l++){const total=13+Math.round(26*(l-1)/14);let available=total-previous;while(available>0){const extra=additions[next%additions.length],group=Array.isArray(extra)?extra:[extra];if(group.length>available){counts[0]++;available--;continue;}for(const type of group)counts[type]++;available-=group.length;next++;}previous=total;}
+ return counts;
+}
+function buildMap(level){
+ level=clamp(Math.floor(level),1,15);const height=Math.round(750*(1+2.5*(level-1)/14)),counts=countsForLevel(level),total=counts.reduce((a,b)=>a+b,0),map={level,height,total,counts,name:LAYOUT_NAMES[level-1],bumpers:[],crystals:[],spinners:[],boosts:[],portals:[],magnets:[],springs:[],rails:[]};
+ map.boundary=[[75,24,465,24],[465,24,516,75],[516,75,516,height-130],[516,height-130,491,height-73],[491,height-73,412,height-37],[412,height-37,128,height-37],[128,height-37,49,height-73],[49,height-73,24,height-130],[24,height-130,24,75],[24,75,75,24]];
+ map.rails.push([30,height-230,66,height-178],[510,height-230,474,height-178]);
+ if(level===1){
+  map.bumpers=[{x:217,y:159,r:29},{x:323,y:159,r:29},{x:270,y:237,r:30}];map.crystals=[{x:411,y:92,r:14},{x:449,y:139,r:15},{x:453,y:193,r:14}];map.spinners=[{x:118,y:324,r:55,phase:0,dir:1}];map.boosts=[{x1:53,y1:222,x2:90,y2:132},{x1:462,y1:444,x2:480,y2:366}];map.portals=[{x:95,y:472,r:24},{x:440,y:285,r:24}];map.magnets=[{x:275,y:399,r:21}];map.springs=[{x:410,y:546,r:28}];
+ }else{
+  const random=seeded(860921+level*9811),rows=Math.ceil(total/3),rowGap=(height-385)/Math.max(1,rows-1),slots=[];
+  for(let row=0;row<rows;row++)for(let col=0;col<3;col++){
+   const p=row/Math.max(1,rows-1),side=col-1;let x=110+col*160,y=135+row*rowGap;
+   switch(level){
+    case 2:x=270+side*(90+80*p);y+=col===1?-25:14;break;
+    case 3:x+=row%2===0?28:-28;y+=side*20;break;
+    case 4:x=270+side*(100+66*Math.abs(Math.sin(p*Math.PI*2)));y+=col===1?30:-10;break;
+    case 5:x+=Math.sin(p*Math.PI*3+col*1.5)*36;y+=Math.cos(p*Math.PI*3+col*1.5)*20;break;
+    case 6:x=270+side*(130+28*Math.cos(row*1.7));y+=Math.sin(col*2.1+row)*28;break;
+    case 7:x+=side*8+(row%3-1)*23;y+=side*35;break;
+    case 8:x=col===1?270+(row%2?45:-45):col===0?100:440;y+=col===1?33:-14;break;
+    case 9:x+=((row+col)%3-1)*22;y+=col*26-26;break;
+    case 10:x=270+side*(row%2?107:175);y+=side===0?-37:14;break;
+    case 11:x=95+col*175+Math.sin(row*1.1)*20;y+=(row%2?1:-1)*side*29;break;
+    case 12:x+=Math.sin(p*Math.PI*4)*37;y+=Math.cos(row+col*2)*24;break;
+    case 13:x=270+side*(128+35*Math.sin(row*.9)) +Math.sin(p*Math.PI*3)*25;y+=Math.sin(col*2.094+row)*36;break;
+    case 14:x=270+side*(row%3===0?102:172);y+=col===1?(row%2?35:-35):0;break;
+    case 15:{const zone=Math.floor(p*4);x+=zone%2?Math.sin(row*1.3+col)*31:side*((row%3-1)*22);y+=zone%2?side*33:col===1?-30:10;break;}
+   }
+   slots.push({x:clamp(x,82,458),y:clamp(y,106,height-237),row,col});
+  }
+  // A fixed level seed picks a repeatable route. Each level has its own geometric profile.
+  const remaining=[...counts],cycle=[0,1,3,4,2,0,6,5,1],types=[];let n=0;
+  while(types.length<total){const type=cycle[n++%cycle.length];if(remaining[type]>0){types.push(type);remaining[type]--;}}
+  const occupied=level>=5?[{x:270,y:190,r:158}]:[];
+  for(let i=0;i<total;i++){
+   const type=types[i],r=[29,15,45,47,25,23,27][type],slot=slots[i],minimumY=100+r,maximumY=height-212-r;let pos=null,best=null,bestScore=-Infinity;
+   for(let attempt=0;attempt<420;attempt++){
+    let x,y;if(attempt===0){x=slot.x;y=slot.y;}else if(attempt<80){x=slot.x+(random()-.5)*100;y=slot.y+(random()-.5)*rowGap*.9;}else{x=72+random()*396;y=minimumY+random()*(maximumY-minimumY);}
+    x=clamp(x,49+r,491-r);y=clamp(y,minimumY,maximumY);
+    const clearance=occupied.reduce((m,o)=>Math.min(m,Math.hypot(x-o.x,y-o.y)-r-o.r),Infinity),score=clearance-Math.hypot(x-slot.x,y-slot.y)*.008;
+    if(score>bestScore){bestScore=score;best={x,y};}if(clearance>=19){pos={x,y};break;}
+   }
+   pos??=best;occupied.push({...pos,r});const obj={...pos,r};
+   if(type===2){obj.r=43;obj.phase=random()*TAU;obj.dir=(i+level)%2?1:-1;}
+   if(type===3){const lean=(obj.x<270?1:-1)*(12+random()*15);obj.x1=obj.x-lean/2;obj.y1=obj.y+39;obj.x2=obj.x+lean/2;obj.y2=obj.y-39;obj.r=7;}
+   map[TYPE_KEYS[type]].push(obj);
+  }
+  // Short guide rails change the routes without separating any chamber completely.
+  const gates=1+Math.floor((level-1)/3);
+  for(let i=0;i<gates;i++){
+   const side=(i+level)%2,anchorY=240+(height-510)*(i+.4)/Math.max(1,gates),length=65+(level%4)*15;
+   for(const shift of [0,35,-35,70,-70]){
+    const y=clamp(anchorY+shift,160,height-280),w=side?[508,y,508-length,y+(i%2?28:-28)]:[32,y,32+length,y+(i%2?-28:28)];
+    if(occupied.every(o=>pointSegmentDistance(o.x,o.y,w)>o.r+22)){map.rails.push(w);break;}
+   }
+  }
+ }
+ TYPE_KEYS.forEach((key,type)=>map[key].forEach((o,i)=>{o.key=key+'-'+i;o.type=type;if(type===3){o.x=(o.x1+o.x2)/2;o.y=(o.y1+o.y2)/2;}}));
+ const ordered=[...map.portals].sort((a,b)=>a.y-b.y);for(let i=0;i<ordered.length/2;i++){const a=ordered[i],b=ordered[ordered.length-1-i];a.pairKey=b.key;b.pairKey=a.key;a.pair=i;b.pair=i;}
+ map.objects=TYPE_KEYS.flatMap(key=>map[key]);return map;
+}
+class Pinball{
+ constructor(onHit=()=>{},onEffect=()=>{},random=Math.random){
+  this.random=random;this.onHit=onHit;this.onEffect=onEffect;this.time=0;this.auto=true;this.manual=[false,false];this.flippers=[{x:53,y:637,a:.18,target:.18,until:0,cool:0},{x:487,y:637,a:.18,target:.18,until:0,cool:0}];this.flash=Array(8).fill(-10);this.bosses=null;this.boss=null;this.bossSpawn=0;this.bossReady=0;this.bossPulse=0;this.bossLaunchReady=0;this.objectFlash={};this.totalSteps=0;this.safetyBounces=0;this.focusId='basic';this.mastery=null;this.activeBall=null;this.balls=[];this.setLevel(1);this.setEquipped(['basic']);
+ }
+ get ball(){return this.activeBall||this.balls.find(b=>b.id===this.focusId)||this.balls[0];}
+ statsFor(ball=this.ball){return ballStats(ball.id,ball.temporary?null:this.mastery);}
+ restart(equipped){const {onHit,onEffect,random,auto,bosses,focusId,mastery}=this;Object.assign(this,new Pinball(onHit,onEffect,random));this.auto=auto;this.focusId=focusId;this.mastery=mastery;this.setEquipped(equipped);if(bosses)this.attachBosses(bosses);}
+ createBall(id,index){const def=BALL_BY_ID[id];return {id,x:230+index*40,y:this.height-212-index*28,vx:(index%2?-1:1)*(170+index*35),vy:-590*this.power,r:def.r,cooldowns:{},portalReady:this.time+.8,trail:[],trailTick:0,slowTime:0,bottomTime:0,flipperLast:[-10,-10],charge:0,phaseUntil:0,phaseStarted:-1e9,nextPhase:this.time+8};}
+ setEquipped(ids){const valid=[...new Set(ids)].filter(id=>BALLS.some(def=>def.id===id)).slice(0,3);if(!valid.length)valid.push('basic');const temporary=this.balls.filter(b=>b.temporary).slice(0,2);this.balls=[...valid.map((id,i)=>this.balls.find(b=>!b.temporary&&b.id===id)||this.createBall(id,i)),...temporary];if(!valid.includes(this.focusId))this.focusId=valid[0];}
+ syncFever(active){
+  if(!active){this.balls=this.balls.filter(b=>!b.temporary);return;}
+  const anchor=this.ball,existing=this.balls.filter(b=>b.temporary).length;
+  for(let i=existing;i<2;i++){
+   const b=this.createBall('basic',i),sign=i===0?-1:1;
+   const candidates=[{x:anchor.x+sign*48,y:anchor.y+32},{x:anchor.x+sign*82,y:anchor.y-25},{x:anchor.x+sign*40,y:anchor.y+86}];
+   const pos=candidates.map(p=>({x:clamp(p.x,50,490),y:clamp(p.y,50,this.height-100)})).find(p=>this.map.objects.every(o=>Math.hypot(p.x-o.x,p.y-o.y)>b.r+(o.type===3?48:o.r)+5)&&this.walls.every(w=>pointSegmentDistance(p.x,p.y,w)>b.r+9)&&(!this.boss||Math.abs(p.x-this.boss.x)>this.boss.w/2+18||Math.abs(p.y-this.boss.y)>this.boss.h/2+18));
+   if(pos){b.x=pos.x;b.y=pos.y;}b.vx=sign*(210+i*40);b.vy=-690*this.power;b.temporary=true;b.feverIndex=i;this.balls.push(b);
+  }
+ }
+ setLevel(level){
+  const oldHeight=this.height||750;this.map=buildMap(level);this.height=this.map.height;this.power=Math.sqrt(this.height/750);this.level=this.map.level;
+  for(const key of TYPE_KEYS)this[key]=this.map[key];this.walls=[...this.map.boundary,...this.map.rails];this.flippers.forEach(f=>{f.y=this.height-113;});this.objectFlash={};
+  for(const b of this.balls){
+   b.y=clamp(b.y+this.height-oldHeight,42,this.height-80);b.cooldowns={};b.portalReady=this.time+.8;b.trail.length=0;b.bottomTime=0;
+   const blocked=this.map.objects.some(o=>Math.hypot(b.x-o.x,b.y-o.y)<b.r+(o.type===3?48:o.r)+14)||this.map.rails.some(w=>pointSegmentDistance(b.x,b.y,w)<25);
+   if(blocked){b.x=270;b.y=this.height-188;b.vx=(this.random()-.5)*230;b.vy=-660*this.power;}
+  }
+  return this.height-oldHeight;
+ }
+ attachBosses(bosses){this.bosses=bosses;this.syncBoss();}
+ syncBoss(){
+  this.bosses?.syncLevel(this.level);const d=this.bosses?.definition;
+  if(!d){this.boss=null;return;}
+  if(this.boss?.level===d.level&&this.boss.record===this.bosses.record&&this.boss.record.hp>0)return;
+  this.boss={...d,key:'boss-'+d.level,type:7,x:270,y:190,w:d.level===15?122:108,h:d.level===15?92:78,open:false,record:this.bosses.record,shieldAngle:0,enraged:false};this.bossSpawn=this.time;this.bossReady=this.time+1.8;this.bossPulse=0;
+ }
+ get bossAlive(){return !!this.boss&&this.boss.record.hp>0&&this.time>=this.bossReady;}
+ updateBoss(){
+  const boss=this.boss;if(!boss||boss.record.hp<=0)return;const elapsed=Math.max(0,this.time-this.bossReady);
+  boss.enraged=boss.level===15&&boss.record.hp<=boss.hp/2;const speed=boss.enraged?1.45:1,t=elapsed*speed;
+  boss.x=boss.level===5?270+Math.sin(t*.75)*70:270;boss.shieldAngle=t*.9;
+  const cycle=boss.level===5?6:boss.level===10?7:8;boss.phase=t%cycle;boss.open=boss.phase>=(boss.level===5?3.6:boss.level===10?4.4:5);
+  if(boss.level===15&&this.bossAlive){const pulse=Math.floor((t+3)/8);if(pulse>this.bossPulse){this.bossPulse=pulse;for(const b of this.balls){const dx=b.x-boss.x,dy=b.y-boss.y,d=Math.hypot(dx,dy);if(d<310&&d>1){b.vx+=dx/d*380;b.vy+=dy/d*380;}}this.onEffect('boss-pulse',boss.x,boss.y,{color:boss.color});}}
+ }
+ bossShields(){const boss=this.boss;if(!this.bossAlive||boss.level!==10||boss.open)return [];return [0,1,2].map(i=>({x:boss.x+Math.cos(boss.shieldAngle+i*TAU/3)*102,y:boss.y+Math.sin(boss.shieldAngle+i*TAU/3)*70,r:15}));}
+ launchAtBoss(){if(!this.bossAlive||this.time<this.bossLaunchReady)return false;const b=this.ball;b.x=this.boss.x;b.y=this.boss.y+175;b.vx=0;b.vy=-590;b.trail=[];b.portalReady=this.time+1;this.bossLaunchReady=this.time+8;this.onEffect('portal',b.x,b.y);return true;}
+ hit(type,key,x,y,chain=false){
+  const b=this.ball;if(this.time<(b.cooldowns[key]??-1))return false;const stats=this.statsFor(b);
+  if(type===7){
+   if(!this.bossAlive)return false;const boss=this.boss,phased=b.id==='ghost'&&this.time<b.phaseUntil,weak=!chain&&boss.open&&b.y>boss.y+boss.h*.3&&Math.abs(b.x-boss.x)<34;
+   const armor=boss.level===15&&!boss.open&&!phased?.5:1,damage=stats.attack*(chain?.5:weak?stats.weakDamage:1)*(phased?stats.phaseDamage:1)*armor,result=this.bosses.damage(damage);if(!result)return false;
+   this.onEffect('boss-hit',x,y,{...result,weak,chain,phased,color:boss.color});
+  }
+  b.cooldowns[key]=this.time+(type===7?.45:.3);this.flash[type]=this.time;this.objectFlash[key]=this.time;const masteryResult=this.mastery?.hit(b.id,type,chain,!!b.temporary);this.onHit(type,x,y,key,b,chain,masteryResult);
+  if(!chain&&b.id==='lightning'&&++b.charge>=10){
+   b.charge=0;const candidates=[...this.map.objects,...(this.bossAlive?[this.boss]:[])],targets=candidates.filter(o=>o.key!==key).sort((a,c)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(c.x-x,c.y-y)).slice(0,stats.chainTargets);
+   for(const o of targets){this.onEffect('lightning',x,y,{x:o.x,y:o.y});this.hit(o.type,o.key,o.x,o.y,true);}
+  }
+  return true;
+ }
+ box(x,y,w,h,restitution=1){
+  const b=this.ball,left=x-w/2,right=x+w/2,top=y-h/2,bottom=y+h/2;let qx=clamp(b.x,left,right),qy=clamp(b.y,top,bottom),dx=b.x-qx,dy=b.y-qy,d=Math.hypot(dx,dy),nx,ny;
+  if(d>=b.r)return null;
+  if(d<1e-8){const distances=[b.x-left,right-b.x,b.y-top,bottom-b.y],face=distances.indexOf(Math.min(...distances));nx=face===0?-1:face===1?1:0;ny=face===2?-1:face===3?1:0;if(nx)qx=nx<0?left:right;if(ny)qy=ny<0?top:bottom;}else{nx=dx/d;ny=dy/d;}
+  b.x=qx+nx*(b.r+.15);b.y=qy+ny*(b.r+.15);const vn=b.vx*nx+b.vy*ny;if(vn<0){b.vx-=(1+restitution)*vn*nx;b.vy-=(1+restitution)*vn*ny;}return {nx,ny,impact:-vn};
+ }
+ collideBoss(phased){
+  if(!this.bossAlive)return;const boss=this.boss,b=this.ball;
+  if(!phased)for(const shield of this.bossShields()){const collision=this.circle(shield.x,shield.y,shield.r,1.08);if(collision&&collision.impact>15){b.vx+=collision.nx*65;b.vy+=collision.ny*65;this.onEffect('boss-shield',shield.x,shield.y);}}
+  if(phased){if(Math.abs(b.x-boss.x)<boss.w/2+b.r&&Math.abs(b.y-boss.y)<boss.h/2+b.r)this.hit(7,boss.key,boss.x,boss.y);}
+  else{const collision=this.box(boss.x,boss.y,boss.w,boss.h,1.03);if(collision&&collision.impact>12&&this.hit(7,boss.key,boss.x,boss.y)){b.vx+=collision.nx*90;b.vy+=collision.ny*90;}}
+ }
+ circle(x,y,r,restitution=1){const b=this.ball,dx=b.x-x,dy=b.y-y,d=Math.hypot(dx,dy);if(d>=b.r+r)return null;const nx=d>1e-8?dx/d:0,ny=d>1e-8?dy/d:-1;b.x=x+nx*(b.r+r+.15);b.y=y+ny*(b.r+r+.15);const vn=b.vx*nx+b.vy*ny;if(vn<0){b.vx-=(1+restitution)*vn*nx;b.vy-=(1+restitution)*vn*ny;}return {nx,ny,impact:-vn};}
+ segment(x1,y1,x2,y2,r=3,restitution=.94){const b=this.ball,dx=x2-x1,dy=y2-y1,q=clamp(((b.x-x1)*dx+(b.y-y1)*dy)/(dx*dx+dy*dy||1),0,1);return this.circle(x1+q*dx,y1+q*dy,r,restitution);}
+ step(dt){
+  const fastest=Math.max(...this.balls.map(b=>Math.hypot(b.vx,b.vy))),steps=Math.max(1,Math.ceil(fastest*dt/6)),delta=dt/steps;
+  for(let n=0;n<steps;n++){
+   this.time+=delta;this.totalSteps++;this.updateBoss();const H=this.height;
+   for(let i=0;i<2;i++){const f=this.flippers[i];if(this.auto&&this.balls.some(b=>b.y>H-236&&b.y<H-71&&b.vy>30&&(i===0?b.x<296:b.x>244))&&this.time>f.cool){f.until=this.time+.14;f.cool=this.time+.32;}f.target=(this.manual[i]||this.time<f.until)?-.40:.18;f.a+=(f.target-f.a)*Math.min(1,delta*28);}
+   for(const b of this.balls){this.activeBall=b;this.integrate(delta);}this.activeBall=null;
+  }
+ }
+ integrate(dt){
+  const b=this.ball,H=this.height,P=this.power;
+  if(b.id==='ghost'&&this.time>=b.nextPhase){b.phaseStarted=this.time;b.phaseUntil=this.time+this.statsFor(b).phaseDuration;b.nextPhase=this.time+8;b.vy=-850*P;b.vx=(270-b.x)*.65;this.onEffect('phase',b.x,b.y);}
+  const phased=b.id==='ghost'&&this.time<b.phaseUntil;
+  if(!phased)for(const m of this.magnets){const dx=m.x-b.x,dy=m.y-b.y,d=Math.hypot(dx,dy);if(d>32&&d<94&&this.time>(b.cooldowns[m.key]??0)){const a=780*(1-d/110);b.vx+=dx/d*a*dt;b.vy+=dy/d*a*dt;}}
+  b.vy+=275*dt;const drag=Math.exp(-.026*dt);b.vx*=drag;b.vy*=drag;b.x+=b.vx*dt;b.y+=b.vy*dt;
+  for(const w of phased?this.map.boundary:this.walls)this.segment(...w,4,.94);
+  this.collideBoss(phased);
+  if(!phased){
+  for(const c of this.bumpers){const hit=this.circle(c.x,c.y,c.r,1.08);if(hit&&hit.impact>20&&this.hit(0,c.key,c.x,c.y)){const force=Math.max(460*P,Math.hypot(b.vx,b.vy)+95);b.vx=hit.nx*force;b.vy=hit.ny*force;}}
+  for(const c of this.crystals){const hit=this.circle(c.x,c.y,c.r,.98);if(hit&&hit.impact>18&&this.hit(1,c.key,c.x,c.y)){const speed=Math.max(380*P,Math.hypot(b.vx,b.vy)),angle=Math.atan2(b.vy,b.vx)+(this.random()-.5)*.7;b.vx=Math.cos(angle)*speed;b.vy=Math.sin(angle)*speed;}}
+  for(const s of this.spinners)for(let i=0;i<2;i++){const a=s.phase+this.time*.87*s.dir+i*Math.PI/2,c=Math.cos(a)*s.r,d=Math.sin(a)*s.r,hit=this.segment(s.x-c,s.y-d,s.x+c,s.y+d,7,1);if(hit&&hit.impact>15&&this.hit(2,s.key,b.x,b.y)){const dx=b.x-s.x,dy=b.y-s.y,len=Math.max(1,Math.hypot(dx,dy));b.vx+=(-dy/len)*235*s.dir+hit.nx*95;b.vy+=(dx/len)*235*s.dir+hit.ny*95;}}
+  for(const r of this.boosts){const hit=this.segment(r.x1,r.y1,r.x2,r.y2,7,1);if(hit&&hit.impact>10&&this.hit(3,r.key,b.x,b.y)){const dx=r.x2-r.x1,dy=r.y2-r.y1,d=Math.hypot(dx,dy);b.vx=dx/d*650*P+hit.nx*175;b.vy=dy/d*780*P+hit.ny*100;}}
+  if(this.time>b.portalReady)for(const p of this.portals){if(Math.hypot(b.x-p.x,b.y-p.y)<p.r+b.r-2){const target=this.portals.find(o=>o.key===p.pairKey),angle=target.x<270?-.85:-2.29;this.hit(4,p.key,p.x,p.y);this.onEffect('portal',target.x,target.y);b.x=target.x+Math.cos(angle)*(target.r+b.r+9);b.y=target.y+Math.sin(angle)*(target.r+b.r+9);b.vx=Math.cos(angle)*525*P;b.vy=Math.sin(angle)*525*P;b.portalReady=this.time+1.1;b.trail.length=0;break;}}
+  for(const m of this.magnets){const hit=this.circle(m.x,m.y,m.r,.92);if(hit&&hit.impact>8&&this.hit(5,m.key,m.x,m.y)){const angle=Math.atan2(hit.ny,hit.nx);b.vx=Math.cos(angle)*580*P;b.vy=Math.sin(angle)*580*P;b.cooldowns[m.key]=this.time+.85;}}
+  for(const s of this.springs){const hit=this.circle(s.x,s.y,s.r,.94);if(hit&&hit.impact>12&&this.hit(6,s.key,s.x,s.y)){b.vx=(s.x<270?1:-1)*(100+this.random()*150);b.vy=-810*P;}}
+  }
+  for(let i=0;i<2;i++){const f=this.flippers[i],sign=i===0?1:-1,tx=f.x+sign*Math.cos(f.a)*228,ty=f.y+Math.sin(f.a)*228,along=clamp(((b.x-f.x)*(tx-f.x)+(b.y-f.y)*(ty-f.y))/(228*228),0,1);if(b.vy<0&&b.y>f.y+along*(ty-f.y)+2)continue;const hit=this.segment(f.x,f.y,tx,ty,12,.82);if(hit&&hit.impact>8&&b.y<f.y+57&&this.time-b.flipperLast[i]>.14){b.flipperLast[i]=this.time;if(f.target<0){b.vy=-(710+this.random()*100)*P;b.vx=(i===0?1:-1)*(90+this.random()*165)+(b.x-270)*.1;}else{b.vy=-Math.max(215*P,Math.abs(b.vy));b.vx+=(i===0?1:-1)*42;}this.onEffect('flipper',b.x,b.y);}}
+  if(b.y>H-58){b.y=H-58;b.vy=-760*P;b.vx=(270-b.x)*1.5+(this.random()-.5)*200;this.safetyBounces++;this.onEffect('safety',b.x,H-44);}
+  b.x=clamp(b.x,38,502);b.y=clamp(b.y,38,H-58);if(b.x<=38&&b.vx<0)b.vx=Math.abs(b.vx);if(b.x>=502&&b.vx>0)b.vx=-Math.abs(b.vx);if(b.y<=38&&b.vy<0)b.vy=Math.abs(b.vy);
+  const speed=Math.hypot(b.vx,b.vy),maxSpeed=875*P;if(speed>maxSpeed){b.vx*=maxSpeed/speed;b.vy*=maxSpeed/speed;}if(speed<75)b.slowTime+=dt;else b.slowTime=0;
+  b.bottomTime=b.y>H-210?b.bottomTime+dt:0;
+  if(b.slowTime>1.3||b.bottomTime>3){b.vx=(this.random()-.5)*350;b.vy=-780*P;b.slowTime=0;b.bottomTime=0;this.onEffect('safety',b.x,b.y);}
+  b.trailTick+=dt;if(b.trailTick>1/60){b.trailTick=0;b.trail.push({x:b.x,y:b.y});if(b.trail.length>15)b.trail.shift();}
+ }
+}
+</script>
+<script id="game-ui">
+(()=>{
+const $=id=>document.getElementById(id),econ=new Economy(),collection=new BallCollection(),bosses=new BossJourney(),goals=new GoalJourney(),canvas=$('board'),ctx=canvas.getContext('2d');
+let restored=null,saveDirty=false,saveTimer=0,storageAvailable=true,lastFeverUIKey='',feverSaveElapsed=0,lastGoalUIKey='',lastGoalReadyId='',shownGoalId='';
+try{const raw=window.localStorage.getItem(SAVE_KEY);if(raw){restored=restoreProgress(raw,econ,collection,bosses,goals);if(!restored)$('save-status').textContent='저장 내용을 읽지 못했어요. 새 진행을 시작합니다.';}}catch{storageAvailable=false;$('save-status').textContent='자동 저장을 사용할 수 없어요. 브라우저의 저장 허용을 확인해 주세요.';$('save-status').classList.add('error');}
+if(!ctx){$('level-note').textContent='이 브라우저에서는 게임판을 그릴 수 없어요. Safari나 Chrome에서 열어주세요.';return;}
+const DPR=Math.min(window.devicePixelRatio||1,2);canvas.width=540*DPR;canvas.height=750*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+let particles=[],ripples=[],floaters=[],bolts=[],pendingXP=0,uiDirty=false,paused=false,soundOn=false,audioCtx=null,lastAudio=0,lastFrame=0,accumulator=0,toastTimer=0,holdStart=0,holdRepeat=0,activeGrowPointer=null,lastUpgradeReady=false,theme=THEMES[0],rowTimers=Array(7).fill(0);
+const camera={mode:'follow',y:0,drag:null};
+const miniMap=document.createElement('canvas');miniMap.id='mini-map';miniMap.className='mini-map';miniMap.setAttribute('aria-label','전체 지도. 누르거나 드래그하여 해당 구간 보기');$('machine').append(miniMap);const miniCtx=miniMap.getContext('2d');
+const cameraHud=document.createElement('span');cameraHud.className='camera-hud';cameraHud.textContent='공 추적';$('machine').append(cameraHud);
+const backToBall=document.createElement('button');backToBall.className='back-to-ball';backToBall.textContent='공 따라가기';backToBall.hidden=true;$('machine').append(backToBall);
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rows=[...document.querySelectorAll('.gimmick-row')];
+function tone(frequency=650,duration=.05,type='sine',volume=.035){if(!soundOn)return;try{audioCtx??=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const now=audioCtx.currentTime;if(now-lastAudio<.035)return;lastAudio=now;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(frequency,now);o.frequency.exponentialRampToValueAtTime(Math.max(80,frequency*.65),now+duration);g.gain.setValueAtTime(volume,now);g.gain.exponentialRampToValueAtTime(.001,now+duration);o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+duration);}catch{soundOn=false;updateSound();}}
+function burst(x,y,color,count=12){if(reduceMotion)count=3;for(let i=0;i<count;i++){const a=Math.random()*TAU,s=45+Math.random()*180;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.45+Math.random()*.35,max:.8,color,r:1.4+Math.random()*2.2});}if(particles.length>190)particles.splice(0,particles.length-190);ripples.push({x,y,r:8,life:.45,color});if(ripples.length>24)ripples.shift();}
+const engine=new Pinball((type,x,y,key,ball,chain,masteryResult)=>{
+ const stats=engine.statsFor(ball),amount=econ.hit(ball.id,stats.money);goals.recordHit(type,chain);if(econ.fever.hit(type,FEVER_CHARGE_PER_HIT+(!chain&&!ball.temporary?stats.feverBonus:0))){toast('FEVER READY','피버 준비 완료!','원하는 순간 발동 · 20초간 공 +2 · 돈 ×2');tone(980,.13,'triangle',.04);}burst(x,y,GCOL[type]||'#ffd591',chain?5:9);tone([690,1100,450,780,360,260,880,330][type],.07,'sine',.027);if(rows[type]){rows[type].classList.add('active');clearTimeout(rowTimers[type]);rowTimers[type]=setTimeout(()=>rows[type].classList.remove('active'),450);}
+ if(amount){floaters.push({x,y:y-10,text:'+'+amount+'원'+(econ.fever.active?' ×2!':ball.id==='gold'?' (황금)':''),life:1.25,color:'#ffdf83'});burst(x,y,'#ffe08b',18);$('wallet').classList.remove('pop');void $('wallet').offsetWidth;$('wallet').classList.add('pop');tone(1350,.13,'triangle',.06);$('announcer').textContent=(ball.temporary?FEVER_BALL.name:BALL_BY_ID[ball.id].name)+' '+amount+'원 획득. 보유 금액 '+econ.money+'원.';}
+ if(ball.id==='growth'&&!chain&&econ.level<15){const gain=stats.growthXP*econ.permanentXP;pendingXP+=gain;floaters.push({x,y:y-25,text:'+'+format(gain)+' EXP',life:.85,color:BALL_BY_ID.growth.color});}
+ if(masteryResult?.levels){
+  burst(ball.x,ball.y,stats.color,24);
+  if(masteryResult.level===5||masteryResult.level===10){toast('BALL EVOLUTION',BALL_BY_ID[ball.id].name+' 숙련도 '+masteryResult.level,masteryResult.level===5?'첫 진화 해금! 아래 숙련도 버튼에서 선택':masteryResult.branch?'최종 진화! 외형과 능력이 더 강해졌어요':'최종 진화 해금! 원하는 방향을 선택하세요');tone(1250,.22,'triangle',.05);}
+  else floaters.push({x:ball.x,y:ball.y-28,text:'공 숙련도 '+masteryResult.level+'!',life:1.5,color:stats.color});
+ }
+ if(floaters.length>30)floaters.splice(0,floaters.length-30);uiDirty=true;markSave();
+},(kind,x,y,target)=>{if(kind==='boss-hit'){floaters.push({x,y:y-55,text:(target.weak?'약점! ':target.phased?'관통! ':'')+'−'+target.damage,life:1,color:target.weak?'#fff1a2':'#ffd19a'});burst(x,y,target.color,target.killed?42:12);if(target.killed){tone(1150,.3,'triangle',.065);ripples.push({x,y,r:40,life:1,color:target.color});}}if(kind==='boss-pulse'){ripples.push({x,y,r:30,life:1.3,color:target.color,pulse:true});tone(110,.16,'triangle',.025);}if(kind==='boss-shield')burst(x,y,'#8acbff',3);if(kind==='portal')burst(x,y,GCOL[4],16);if(kind==='safety')burst(x,y,theme.accent,6);if(kind==='flipper')tone(160,.055,'triangle',.025);if(kind==='phase')burst(x,y,BALL_BY_ID.ghost.color,12);if(kind==='lightning'){bolts.push({x,y,tx:target.x,ty:target.y,life:.3});tone(1050,.08,'sawtooth',.014);}});
+engine.mastery=collection.mastery;engine.setLevel(econ.level);engine.setEquipped(collection.equipped);engine.auto=restored?.auto??true;engine.attachBosses(bosses);engine.syncFever(econ.fever.active);
+camera.y=clamp(engine.ball.y-412,0,engine.height-750);
+function markSave(immediate=false){saveDirty=true;if(immediate){clearTimeout(saveTimer);saveTimer=0;saveProgress();}else if(!saveTimer)saveTimer=setTimeout(()=>{saveTimer=0;saveProgress();},1000);}
+function saveProgress(){if(!saveDirty)return;try{window.localStorage.setItem(SAVE_KEY,JSON.stringify(progressData(econ,collection,engine.auto,bosses,goals)));saveDirty=false;storageAvailable=true;$('save-status').classList.remove('error');$('save-status').textContent='이 브라우저에 자동 저장됨 · 다른 기기·파일과는 별도 진행';}catch{storageAvailable=false;$('save-status').classList.add('error');$('save-status').textContent='자동 저장에 실패했어요. 이 창을 유지하고 브라우저 저장 허용을 확인해 주세요.';}}
+function updateFever(){
+ const f=econ.fever,seconds=f.remaining.toFixed(1),ready=f.ready,key=[f.active,ready,f.charge,seconds,f.earnings,paused,engine.balls.length].join('|');
+ if(key===lastFeverUIKey)return;lastFeverUIKey=key;
+ $('fever-panel').classList.toggle('active',f.active);$('fever-panel').classList.toggle('ready',ready);$('machine').classList.toggle('fever-active',f.active);
+ $('fever-title').textContent=f.active?'ϟ FEVER TIME!':ready?'ϟ 피버 준비 완료':'ϟ 피버 타임';
+ $('fever-meter-text').textContent=f.active?seconds+'초':f.charge+' / 100';
+ $('fever-fill').style.width=(f.active?f.remaining/FEVER_DURATION*100:f.charge)+'%';
+ $('fever-track').setAttribute('aria-label',f.active?'피버 남은 시간':'피버 충전');$('fever-track').setAttribute('aria-valuemax',f.active?FEVER_DURATION:100);$('fever-track').setAttribute('aria-valuenow',f.active?seconds:f.charge);$('fever-track').setAttribute('aria-valuetext',f.active?seconds+'초 남음':f.charge+'% 충전');
+ $('fever-start').disabled=!ready||paused;$('fever-button-text').textContent=f.active?'공 '+engine.balls.length+'개 · 획득 금액 ×2':ready?(paused?'다시 시작하면 피버 발동 가능':'피버 발동! 20초간 공 +2 · 돈 ×2'):'피버 충전 '+f.charge+' / 100';
+ $('fever-status').textContent=f.active?(paused?'일시정지 중 · ':'')+'이번 피버 획득 '+format(f.earnings)+'원 · 종료 시 임시 공 2개가 사라져요.':ready?'충전 완료! 보스 앞에서도 원하는 순간 발동하세요.':(f.earnings?'지난 피버 '+format(f.earnings)+'원 · ':'')+'기본 적중 +2 · 진화 보너스 별도 · 100에 발동!';
+}
+function startFever(){
+ if(paused||document.hidden||rebirthDialog.open)return false;flushHits();if(!econ.fever.start())return false;
+ stopHold();goals.recordFever();feverSaveElapsed=0;engine.syncFever(true);updateUI();markSave(true);
+ for(const b of engine.balls.filter(b=>b.temporary))burst(b.x,b.y,FEVER_BALL.color,22);
+ toast('FEVER TIME','피버 타임!','20초 · 임시 공 +2 · 획득 금액 ×2');tone(1450,.3,'triangle',.06);return true;
+}
+function stepGame(dt){
+ const active=econ.fever.active;engine.step(dt);if(goals.observe(engine)){uiDirty=true;markSave();}flushHits();
+ if(active){
+  const ended=econ.fever.tick(dt);saveDirty=true;feverSaveElapsed+=dt;
+  if(ended){const temporary=engine.balls.filter(b=>b.temporary);engine.syncFever(false);for(const b of temporary)burst(b.x,b.y,FEVER_BALL.color,8);updateUI();markSave(true);toast('FEVER END','피버 종료!','이번 피버 획득 '+format(econ.fever.earnings)+'원');}
+  else if(feverSaveElapsed>=1){feverSaveElapsed=0;markSave();}
+ }
+}
+$('fever-start').addEventListener('click',startFever);
+const rebirthDialog=$('rebirth-dialog');let rebirthModalActive=false,rebirthPausedBefore=false,rebirthReturnFocus=null,rebirthCloseFocus=null;
+function updateRebirth(){
+ const ready=canRebirth(econ,bosses),levelDone=econ.level===15,bossDone=bosses.records[15].clears>0;
+ $('rebirth-count').textContent=format(econ.rebirths);$('rebirth-badge-count').textContent=format(econ.rebirths);$('rebirth-badge').setAttribute('aria-label','환생 '+econ.rebirths+'회 · 환생 정보 보기');
+ $('rebirth-run').textContent=econ.rebirths?format(econ.rebirths+1)+'번째 성장 여정 · 슬롯 3개 유지':'첫 번째 성장 여정';
+ $('rebirth-xp').textContent='×'+econ.permanentXP.toFixed(2);$('rebirth-money').textContent='×'+econ.permanentMoney.toFixed(2);$('rebirth-next-xp').textContent='다음 ×'+(econ.permanentXP+.25).toFixed(2);$('rebirth-next-money').textContent='다음 ×'+(econ.permanentMoney+.10).toFixed(2);
+ $('drop-rebirth-bonus').textContent='×'+econ.permanentMoney.toFixed(2);$('machine').classList.toggle('reborn',econ.rebirths>0);
+ $('rebirth-level-check').textContent=(levelDone?'✓':'○')+' 15레벨 달성';$('rebirth-level-check').classList.toggle('done',levelDone);
+ $('rebirth-boss-check').textContent=(bossDone?'✓':'○')+' 황금 금고 격파';$('rebirth-boss-check').classList.toggle('done',bossDone);
+ $('rebirth-open').disabled=!ready;$('rebirth-open').textContent=ready?'↻ '+(econ.rebirths+1)+'번째 환생하기':levelDone?'황금 금고를 격파하면 환생!':'15레벨 + 황금 금고 격파 필요';
+ $('rebirth-quick').hidden=!levelDone;$('rebirth-quick').disabled=!ready;$('rebirth-quick').textContent=ready?'↻ 환생하고 더 빠르게 성장':'황금 금고 격파 후 환생';
+ if(levelDone)$('hold-hint').textContent=ready?'환생 준비 완료! 공과 영구 보너스를 간직해요.':'황금 금고를 격파하면 환생할 수 있어요.';
+}
+function openRebirth(){
+ flushHits();if(rebirthDialog.open||!canRebirth(econ,bosses))return;
+ rebirthReturnFocus=document.activeElement;rebirthCloseFocus=null;rebirthPausedBefore=paused;rebirthModalActive=true;setPaused(true);
+ $('rebirth-dialog-title').textContent=(econ.rebirths+1)+'번째 환생을 시작할까요?';
+ $('rebirth-review-xp').textContent='×'+econ.permanentXP.toFixed(2)+' → ×'+(econ.permanentXP+.25).toFixed(2);$('rebirth-review-money').textContent='×'+econ.permanentMoney.toFixed(2)+' → ×'+(econ.permanentMoney+.10).toFixed(2);
+ $('rebirth-review-cash').textContent='보유 '+format(econ.money)+'원 → 0원';
+ $('rebirth-review-upgrades').textContent='강화 성공 '+econ.upgrades+'회 / 시도 '+econ.attempts+'회 → 0';
+ $('rebirth-review-balls').textContent='수집한 공 '+collection.owned.length+'종 · 장착 '+collection.equipped.map(id=>BALL_BY_ID[id].name).join(', ');
+ $('rebirth-review-shards').textContent='보스 조각 '+format(bosses.shards)+'개';
+ $('rebirth-confirm').disabled=false;rebirthDialog.showModal();$('rebirth-cancel').focus({preventScroll:true});
+}
+function finishRebirthDialog(){
+ if(!rebirthModalActive)return;rebirthModalActive=false;setPaused(rebirthPausedBefore);
+ const target=rebirthCloseFocus||rebirthReturnFocus||$('rebirth-open');if(!target.disabled)target.focus?.({preventScroll:true});
+}
+function closeRebirth(target=null){rebirthCloseFocus=target;if(rebirthDialog.open)rebirthDialog.close();finishRebirthDialog();}
+function confirmRebirth(){
+ if(!rebirthDialog.open||!rebirthModalActive)return;
+ const result=performRebirth(econ,collection,bosses);if(!result.ok){closeRebirth();updateUI();return;}
+ $('rebirth-confirm').disabled=true;stopHold();pendingXP=0;uiDirty=false;particles=[];ripples=[];floaters=[];bolts=[];
+ for(let i=0;i<rows.length;i++){clearTimeout(rowTimers[i]);rows[i].classList.remove('active');}
+ feverSaveElapsed=0;engine.restart(collection.equipped);camera.mode='follow';camera.y=0;camera.drag=null;lastFrame=0;accumulator=0;lastUpgradeReady=false;
+ $('upgrade-result').textContent='새 회차의 첫 강화는 100% 성공해요.';
+ $('boss-message').textContent='새 여정 시작! 5레벨 첫 격파 보상은 '+econ.moneyAmount(100)+'원 + 조각 2개.';
+ $('collection-message').textContent='공 '+collection.owned.length+'종과 장착 슬롯 3개를 그대로 이어받았어요.';
+ $('rebirth-message').textContent=econ.rebirths+'번째 환생 완료! 경험치 ×'+econ.permanentXP.toFixed(2)+' · 획득 금액 ×'+econ.permanentMoney.toFixed(2)+'.';
+ updateTheme();updateAuto();updateUI();closeRebirth($('grow'));markSave(true);
+ for(let i=0;i<6;i++)burst(80+i*76,170+(i%2)*140,i%2?'#d8b1ff':theme.accent,16);
+ toast('REBIRTH '+econ.rebirths,'다시, 더 강하게!','경험치 ×'+econ.permanentXP.toFixed(2)+' · 돈 ×'+econ.permanentMoney.toFixed(2));tone(1080,.25,'triangle',.055);
+}
+$('rebirth-open').addEventListener('click',openRebirth);$('rebirth-quick').addEventListener('click',openRebirth);$('rebirth-confirm').addEventListener('click',confirmRebirth);$('rebirth-cancel').addEventListener('click',()=>closeRebirth());
+rebirthDialog.addEventListener('cancel',event=>{event.preventDefault();closeRebirth();});rebirthDialog.addEventListener('close',finishRebirthDialog);
+$('rebirth-badge').addEventListener('click',()=>{if(canRebirth(econ,bosses))openRebirth();else $('rebirth-panel').scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});});
+const bossViews=BOSS_DEFS.map(def=>{
+ const row=document.createElement('div');row.className='boss-row';row.style.setProperty('--boss-color',def.color);const title=document.createElement('div');title.className='boss-row-title';title.innerHTML='<small>LV. '+def.level+'</small>'+def.name;const reward=document.createElement('span');reward.className='boss-row-reward';const action=document.createElement('button');action.addEventListener('click',()=>{if(bosses.activeLevel===def.level){focusBoss();return;}if(bosses.replay(def.level,econ.level)){engine.syncBoss();focusBoss();$('boss-message').textContent=def.name+' 재도전! 보상 '+econ.moneyAmount(def.replayMoney)+'원 + 조각 1개.';updateUI();markSave(true);}});
+ row.append(title);row.append(reward);row.append(action);$('boss-milestones').append(row);return {def,row,reward,action};
+});
+function updateBossPanel(){
+ $('boss-clear-count').textContent=BOSS_DEFS.filter(d=>bosses.records[d.level].clears>0).length+' / 3 CLEAR';$('boss-shards').textContent=String(bosses.shards);$('boss-history').textContent='현재 '+(econ.rebirths+1)+'회차 · 누적 보스 격파 '+BOSS_DEFS.reduce((sum,d)=>sum+bosses.totalClears[d.level],0)+'회';
+ const crownOwned=collection.owned.includes('crown');$('craft-crown').disabled=crownOwned||bosses.shards<10;$('craft-crown').textContent=crownOwned?'왕관공 합성 완료 · 컬렉션에서 장착':bosses.shards<10?'왕관공 합성까지 조각 '+(10-bosses.shards)+'개':'조각 10개로 왕관공 합성';
+ for(const {def,row,reward,action} of bossViews){const r=bosses.records[def.level],locked=econ.level<def.level,active=bosses.activeLevel===def.level;row.classList.toggle('active',active);reward.textContent=r.clears?'이번 회차 '+r.clears+'회 · 재도전 '+econ.moneyAmount(def.replayMoney)+'원 + 조각 1':econ.moneyAmount(def.money)+'원 + 조각 '+def.shards+' · 이번 회차 첫 격파';action.disabled=locked||(!active&&!!bosses.activeLevel);action.textContent=locked?'LV. '+def.level:active?'전투 중':r.clears?'재도전':'대기';action.setAttribute('aria-label',def.name+' '+action.textContent);action.title=def.pattern;}
+ updateBossHud();
+}
+function updateBossHud(){
+ const boss=engine.boss,record=boss?.record,active=!!boss&&record.hp>0,next=BOSS_DEFS.find(d=>d.level>econ.level);
+ $('boss-title').textContent=active?'LV. '+boss.level+' '+boss.name:next?'다음 보스 · LV. '+next.level:'보스 상자 전부 격파!';
+ $('boss-hp-text').textContent=active?record.hp+' / '+boss.hp:next?'LOCKED':'CLEAR';
+ $('boss-hp-fill').style.width=(active?record.hp/boss.hp*100:0)+'%';$('boss-hp-track').setAttribute('aria-valuemax',active?boss.hp:1);$('boss-hp-track').setAttribute('aria-valuenow',active?record.hp:0);
+ let state=active?(engine.time<engine.bossReady?'등장 중…':boss.open?'자물쇠 약점 노출!':boss.level===10?'방패 회전 중':boss.level===15?(boss.enraged?'분노 · 장갑 피해 50%':'장갑 활성 · 피해 50%'):'움직이는 상자를 맞혀요'):next?'게임판을 성장시켜 만나요':'보스 목록에서 재도전 가능';
+ if(active&&boss.level===15&&boss.phase>=3.7&&boss.phase<5)state='충격파 곧 발동!';
+ $('boss-state').textContent=state;$('boss-view').disabled=!active;$('boss-view').setAttribute('aria-pressed',String(camera.mode==='boss'));
+ const wait=Math.max(0,Math.ceil(engine.bossLaunchReady-engine.time));$('boss-launch').disabled=!engine.bossAlive||paused||wait>0;$('boss-launch').textContent=wait>0?'발사 '+wait+'초':'공 쏘기 ↑';$('boss-launch').classList.toggle('ready',engine.bossAlive&&!paused&&!wait);
+}
+function focusBoss(){if(!engine.boss)return;camera.mode='boss';camera.y=0;camera.drag=null;updateCameraLabels();}
+$('boss-view').addEventListener('click',focusBoss);
+$('boss-launch').addEventListener('click',()=>{if(paused||!engine.launchAtBoss())return;focusBoss();tone(620,.1,'triangle',.04);updateBossHud();});
+function craftCrown(){if(!bosses.craft(collection))return;$('boss-message').textContent='왕관공 완성! 공 컬렉션에서 장착해 보스를 강하게 때려요.';$('collection-message').textContent='왕관공을 합성했어요. 보스 공격력 22!';toast('BOSS REWARD','왕관공 합성!','보스 공격력 22 · 컬렉션에서 장착');tone(1320,.22,'triangle',.05);updateUI();markSave(true);}
+$('craft-crown').addEventListener('click',craftCrown);
+const cardViews=BALLS.map(def=>{
+ const card=document.createElement('div');card.className='ball-card';card.id='ball-card-'+def.id;card.setAttribute('data-ball',def.id);card.style.setProperty('--ball-color',def.color);card.style.setProperty('--ball-shade',def.shade);
+ const orb=document.createElement('span');orb.className='ball-orb';orb.textContent=def.icon;orb.setAttribute('aria-hidden','true');
+ const info=document.createElement('div'),name=document.createElement('span'),rarity=document.createElement('span'),description=document.createElement('p'),attack=document.createElement('span');name.className='ball-name';name.textContent=def.name;rarity.className='ball-rarity';rarity.textContent=def.rarity;description.className='ball-description';description.textContent=def.description;attack.className='ball-attack';info.append(name);info.append(rarity);info.append(description);info.append(attack);
+ const action=document.createElement('button');action.className='ball-action';action.addEventListener('click',()=>collectionAction(def.id));
+ const masteryBox=document.createElement('div');masteryBox.className='mastery-box';const heading=document.createElement('div');heading.className='mastery-heading';const level=document.createElement('b'),progress=document.createElement('span');heading.append(level);heading.append(progress);
+ const track=document.createElement('div');track.className='mastery-track';track.setAttribute('role','progressbar');track.setAttribute('aria-label',def.name+' 숙련도');track.setAttribute('aria-valuemin',0);const fill=document.createElement('div');fill.className='mastery-fill';track.append(fill);
+ const next=document.createElement('p');next.className='mastery-next';const choices=document.createElement('details');choices.className='evolution-options';const summary=document.createElement('summary');choices.append(summary);
+ const routes=EVOLUTIONS[def.id].map(route=>{const button=document.createElement('button');button.className='evolution-choice';button.style.setProperty('--route-color',route.color);button.setAttribute('aria-pressed','false');const title=document.createElement('strong'),first=document.createElement('span'),final=document.createElement('span'),state=document.createElement('small');title.textContent=route.names.join(' → ');first.textContent='숙련도 5: '+route.effects[0];final.textContent='숙련도 10: '+route.effects[1];state.className='route-state';button.append(title);button.append(first);button.append(final);button.append(state);button.addEventListener('click',()=>chooseEvolution(def.id,route.id));choices.append(button);return {route,button,state};});
+ masteryBox.append(heading);masteryBox.append(track);masteryBox.append(next);masteryBox.append(choices);card.append(orb);card.append(info);card.append(action);card.append(masteryBox);$('collection-grid').append(card);return {def,card,action,orb,name,description,attack,level,progress,track,fill,next,choices,summary,routes};
+});
+function chooseEvolution(id,branch){
+ if(!collection.owned.includes(id)||!collection.mastery.choose(id,branch))return false;
+ const stats=ballStats(id,collection.mastery),b=engine.balls.find(ball=>!ball.temporary&&ball.id===id);
+ if(b){if(id==='ghost')b.phaseUntil=b.phaseStarted+stats.phaseDuration;burst(b.x,b.y,stats.color,24);}
+ $('collection-message').textContent=BALL_BY_ID[id].name+' → '+stats.name+'! 선택한 효과가 바로 적용돼요. 방향 변경은 무료예요.';
+ updateUI();markSave(true);toast('BALL EVOLUTION',stats.name,stats.tier===2?'최종 진화 적용 · 언제든 무료 변경':'첫 진화 적용 · 숙련도 10에 최종 진화');tone(1300,.2,'triangle',.05);return true;
+}
+function updateMasteryCard(view,owned){
+ const {def,card,orb,name,description,attack,level,progress,track,fill,next,choices,summary,routes}=view,p=collection.mastery.progress(def.id),stats=ballStats(def.id,collection.mastery),route=EVOLUTIONS[def.id].find(e=>e.id===p.branch);
+ card.style.setProperty('--ball-color',stats.color);orb.textContent=stats.icon;orb.classList.toggle('evolved',stats.tier>0);orb.classList.toggle('final-evolution',stats.tier===2);name.textContent=stats.tier?stats.name:def.name;
+ description.textContent=stats.tier?def.name+' · '+route.effects[stats.tier-1]+(def.id==='gold'&&p.branch==='festival'?' · 돈 드롭 ×2 유지':def.id==='growth'&&p.branch==='bloom'?' · 기본 경험치 +2 유지':''):def.description;
+ attack.textContent='보스 공격력 '+format(stats.attack)+' · 숙련도 +'+Math.round((p.level-1)*3)+'%';
+ level.textContent=owned?'공 숙련도 '+p.level+' / 10':'수집 후 숙련도 성장';progress.textContent=!owned?'미보유':p.max?'MAX':p.xp+' / '+p.need;
+ track.setAttribute('aria-valuemax',p.max?1:p.need);track.setAttribute('aria-valuenow',p.max?1:p.xp);track.setAttribute('aria-valuetext',owned?'숙련도 '+p.level+(p.max?' 최대 레벨':', 다음 레벨까지 '+(p.need-p.xp)+'회 직접 적중'):'미보유');fill.style.width=(!owned?0:p.max?100:p.xp/p.need*100)+'%';
+ next.textContent=!owned?'진화 효과를 미리 보고 원하는 공을 모아요.':p.level<5?'첫 진화까지 직접 적중 '+(MASTERY_THRESHOLDS[4]-p.hits)+'회':!p.branch?'진화 가능! 아래에서 원하는 방향을 선택해요.':p.max?'최종 진화 완료 · 환생해도 유지돼요.':'최종 진화까지 직접 적중 '+(MASTERY_THRESHOLDS[9]-p.hits)+'회';
+ summary.textContent=owned&&p.tier&&!p.branch?'✦ 진화 선택 가능':stats.tier?'진화 방향 변경 · 무료':'진화 미리 보기';choices.classList.toggle('ready',owned&&p.tier>0&&!p.branch);
+ for(const {route,button,state} of routes){const selected=p.branch===route.id;button.disabled=!owned||p.tier===0;button.setAttribute('aria-pressed',String(selected));state.textContent=!owned?'공 수집 후 숙련도 5에 해금':p.tier===0?'공 숙련도 5에 해금':selected?'✓ 선택 중 · '+(p.tier===2?'최종 진화':'첫 진화'):'이 방향 선택 · 무료';button.setAttribute('aria-label',def.name+' '+route.names[p.tier===2?1:0]+' · '+state.textContent);}
+}
+const slotViews=[0,1,2].map(i=>{const button=document.createElement('button');button.className='ball-slot';button.addEventListener('click',()=>{const id=collection.equipped[i];if(!id)return;engine.focusId=id;focusBall();updateCollection();});$('ball-slots').append(button);return button;});
+function updateCollection(){
+ const slots=collection.slots(econ.level);$('collection-count').textContent=String(collection.owned.length).padStart(2,'0')+' / '+String(BALLS.length).padStart(2,'0');$('slot-count').textContent='장착 '+collection.equipped.length+' / '+slots+' · 공을 누르면 추적';
+ for(const view of cardViews){const {def,card,action}=view;
+  const owned=collection.owned.includes(def.id),equipped=collection.equipped.includes(def.id);card.classList.toggle('owned',owned);card.classList.toggle('equipped',equipped);updateMasteryCard(view,owned);
+  action.disabled=owned?equipped&&collection.equipped.length===1:def.id==='crown'?bosses.shards<10:econ.money<def.price;
+  action.textContent=owned?(equipped?(collection.equipped.length===1?'장착 중':'장착 해제'):collection.equipped.length<slots?'장착하기':'추적 공과 교체'):def.id==='crown'?(bosses.shards<10?'보스 조각 '+bosses.shards+' / 10':'조각 10개로 합성'):(econ.money<def.price?def.price+'원 · '+(def.price-econ.money)+'원 더 모으기':def.price+'원으로 수집');
+  action.setAttribute('aria-label',def.name+' · '+action.textContent);action.title=!owned?(def.id==='crown'?'보스를 격파해 조각 10개를 모으세요':'구매하면 계속 보유해요'):equipped?(collection.equipped.length===1?'마지막 공은 해제할 수 없어요':'수집은 유지하고 장착만 해제해요'):collection.equipped.length>=slots?BALL_BY_ID[engine.focusId].name+' 대신 장착':'빈 슬롯에 장착';
+ }
+ slotViews.forEach((button,i)=>{
+  const id=collection.equipped[i],locked=i>=slots;button.disabled=locked||!id;button.setAttribute('aria-pressed',String(!!id&&engine.focusId===id));
+  if(id){const def=BALL_BY_ID[id];button.style.setProperty('--ball-color',ballStats(id,collection.mastery).color);button.innerHTML='<span class="slot-dot" aria-hidden="true"></span>'+def.name;button.setAttribute('aria-label',def.name+' 따라가기');}
+  else{button.textContent=locked?(i===1?'목표 / LV. 5':'LV. 10 해금'):'빈 슬롯';button.setAttribute('aria-label',locked?(i===1?'첫 목표 보상 또는 5레벨에 슬롯 해금':'10레벨에 슬롯 해금'):'공 컬렉션에서 추가 장착 가능');}
+ });
+}
+function collectionAction(id){
+ const def=BALL_BY_ID[id];
+ if(id==='crown'&&!collection.owned.includes(id)){craftCrown();return;}
+ if(!collection.owned.includes(id)){const result=collection.buy(id,econ);if(!result.ok)return;$('collection-message').textContent=def.name+' 수집 완료! 장착 버튼을 눌러 출발하세요.';toast('NEW BALL',def.name+' 수집!',def.price+'원 사용 · 이제 장착할 수 있어요');tone(1200,.2,'triangle',.05);}
+ else{
+  if(collection.equipped.includes(id)){if(!collection.unequip(id))return;$('collection-message').textContent=def.name+' 장착 해제. 수집한 공은 계속 보유해요.';}
+  else{const replacing=collection.equipped.length>=collection.slots(econ.level);if(!collection.equip(id,econ.level,engine.focusId))return;engine.focusId=id;$('collection-message').textContent=def.name+(replacing?'으로 추적 공을 교체했어요.':' 장착! 함께 튕기기 시작해요.');}
+  engine.setEquipped(collection.equipped);focusBall();tone(760,.08,'triangle',.03);
+ }
+ updateUI();markSave(true);
+}
+$('collection-jump').addEventListener('click',()=>{$('collection-panel').open=true;$('collection-panel').scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});});
+$('mastery-jump').addEventListener('click',()=>{const view=cardViews.find(v=>v.def.id===engine.focusId);if(!view)return;$('collection-panel').open=true;view.choices.open=true;view.card.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'center'});view.summary.focus({preventScroll:true});});
+function updateBallStatus(){
+ const b=engine.ball,stats=engine.statsFor(b),p=collection.mastery.progress(b.id);let detail='함께 튕겨요!';
+ if(b.id==='gold')detail='돈 드롭 금액 ×'+format(stats.money);
+ if(b.id==='lightning')detail='번개 '+b.charge+' / 10 · '+stats.chainTargets+'개 연쇄';
+ if(b.id==='growth')detail=econ.level>=15?'게임판 만렙 · 숙련도는 계속 성장':'기믹 적중 경험치 +'+format(stats.growthXP*econ.permanentXP);
+ if(b.id==='ghost')detail=engine.time<b.phaseUntil?'통과 중 '+Math.max(0,b.phaseUntil-engine.time).toFixed(1)+'초 · 보스 ×'+stats.phaseDamage:'통과까지 '+Math.max(0,Math.ceil(b.nextPhase-engine.time))+'초';
+ if(b.id==='crown')detail='보스 공격력 '+format(stats.attack)+' · 약점 ×'+stats.weakDamage;
+ if(b.id==='basic'&&stats.tier)detail=stats.money>1?'돈 드롭 금액 ×'+stats.money:'기믹 직접 적중 피버 +'+(2+stats.feverBonus);
+ $('ball-status').textContent=stats.name+' · '+detail;
+ const ready=p.tier>0&&!p.branch;$('mastery-jump').classList.toggle('ready',ready);$('mastery-jump').style.setProperty('--ball-color',stats.color);$('mastery-focus-level').textContent='공 숙련도 '+p.level;
+ $('mastery-focus-next').textContent=ready?'진화 선택하기!':p.max?'최종 진화 · 방향 변경':(p.need-p.xp)+'회 적중 후 레벨업 · '+(p.level<5?'5레벨 진화':'10레벨 최종 진화');
+}
+const format=n=>Number.isInteger(n)?n.toLocaleString('ko-KR'):n.toLocaleString('ko-KR',{maximumFractionDigits:2});
+THEMES.forEach((t,i)=>{const s=document.createElement('div');s.className='swatch';s.style.background=t.accent;s.title='레벨 '+(i+1)+' · '+LAYOUT_NAMES[i];$('palette').append(s);});
+const quantityLabels=rows.map(row=>{const label=document.createElement('span');label.className='gimmick-quantity';row.append(label);return label;});
+
+const goalViews=GOAL_DEFS.map((def,index)=>{const row=document.createElement('li'),title=document.createElement('strong'),hint=document.createElement('small'),progress=document.createElement('small'),reward=document.createElement('small');reward.className='goal-road-reward';title.textContent=String(index+1).padStart(2,'0')+' · '+def.title;hint.textContent=def.hint;row.append(title);row.append(hint);row.append(progress);row.append(reward);$('goal-list').append(row);return {def,row,progress,reward};});
+function goalRewardText(reward){const parts=[];if(reward.slots)parts.push(collection.permanentSlots>=reward.slots?'열린 슬롯 유지':'2번째 슬롯 영구 해금');if(reward.money)parts.push(format(reward.money)+'원');if(reward.shards)parts.push('보스 조각 '+reward.shards+'개');return parts.join(' · ');}
+function goalProgressText(def,value){return def.kind==='upper'?value+' / '+def.target+'% 높이':def.kind==='boss'?(value?'격파 완료':'0 / 1회 격파'):value+' / '+def.target+'회';}
+function updateGoalUI(){
+ const goal=goals.current(econ,bosses),reward=goals.rewardFor(goal,econ),key=[goal.id,goal.value,econ.level,econ.rebirths,econ.fever.active,collection.permanentSlots,...Object.values(goals.stats),...Object.values(bosses.totalClears)].join('|');
+ if(key===lastGoalUIKey)return;lastGoalUIKey=key;shownGoalId=goal.id;
+ $('goal-step').textContent=goals.stage<GOAL_DEFS.length?String(goals.stage+1).padStart(2,'0')+' / 08':'환생 여정';
+ $('goal-title').textContent=goal.title;
+ let hint=goal.hint;if(goal.kind==='upper'&&econ.level<5&&!goal.ready)hint='5레벨부터 집계해요. 먼저 게임판을 성장시켜요.';if(goal.kind==='boss'&&econ.level<goal.level&&!goal.ready)hint=goal.level+'레벨에 등장해요. 현재 '+econ.level+'레벨 → 게임판 성장!';
+ $('goal-hint').textContent=goal.ready?'목표 달성! 보상을 받고 다음 목표로 이어가요.':hint;
+ $('goal-progress-text').textContent=goalProgressText(goal,goal.value);$('goal-reward').textContent='보상: '+goalRewardText(reward);
+ $('goal-fill').style.width=(goal.value/goal.target*100)+'%';$('goal-track').setAttribute('aria-valuemax',goal.target);$('goal-track').setAttribute('aria-valuenow',goal.value);$('goal-track').setAttribute('aria-valuetext',goalProgressText(goal,goal.value));$('goal-track').setAttribute('aria-label',goal.title+' 진행도');
+ $('goal-claim').disabled=!goal.ready;$('goal-claim').setAttribute('aria-label',goal.title+' 보상 받기');$('next-goal').classList.toggle('ready',goal.ready);
+ for(let i=0;i<goalViews.length;i++){const view=goalViews[i],done=i<goals.stage,value=goals.progress(view.def,econ,bosses),complete=value>=view.def.target;view.row.classList.toggle('done',done);view.row.classList.toggle('current',i===goals.stage);view.progress.textContent=done?'✓ 보상 수령 완료':(complete?(i===goals.stage?'✓ 지금 수령 가능':'✓ 기록 달성 · 앞 목표 보상부터 받아요'):goalProgressText(view.def,value));view.reward.textContent=done?'':goalRewardText(goals.rewardFor(view.def,econ));}
+ $('goal-repeat').textContent=goals.stage<GOAL_DEFS.length?'8개 목표를 끝내면 다음 환생 목표가 계속 이어져요.':'다음 환생 목표: '+goals.repeatTarget+'회 · 보상 '+format(econ.moneyAmount(400))+'원';
+ if(goal.ready&&lastGoalReadyId!==goal.id){lastGoalReadyId=goal.id;$('announcer').textContent=goal.title+' 달성! 다음 목표판에서 확정 보상을 받아요.';}
+}
+function claimGoal(){
+ const expectedId=shownGoalId,current=goals.current(econ,bosses),label=goalRewardText(goals.rewardFor(current,econ)),result=goals.claim(expectedId,econ,collection,bosses);if(!result.ok)return false;
+ if(result.slots)$('collection-message').textContent=result.newSlot?'두 번째 슬롯이 열렸어요! 받은 돈으로 공을 수집하고 추가 장착해요.':'열린 슬롯을 간직하고 목표의 돈 보상도 받았어요.';
+ if(result.shards)$('boss-message').textContent='목표 보상으로 보스 조각 '+result.shards+'개 획득! 모은 조각 '+bosses.shards+'개.';
+ updateUI();markSave(true);toast('GOAL CLEAR','목표 달성! 엌ㅋㅋ',label);tone(1180,.2,'triangle',.045);return true;
+}
+$('goal-claim').addEventListener('click',claimGoal);
+$('goal-toggle').addEventListener('click',()=>{const open=$('goal-roadmap').hidden;$('goal-roadmap').hidden=!open;$('goal-toggle').setAttribute('aria-expanded',String(open));$('goal-toggle').textContent=open?'여정 접기':'여정 보기';});
+
+const percent=value=>value>0&&value<.0001?'<0.01%':format(value*100)+'%';
+function updateTheme(){theme=THEMES[econ.level-1];document.documentElement.style.setProperty('--accent',theme.accent);const hex=theme.accent.slice(1);document.documentElement.style.setProperty('--accent-rgb',[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)).join(','));$('machine').style.background=`linear-gradient(135deg,hsl(${theme.h} ${theme.s-8}% 30%),hsl(${theme.h} ${theme.s}% 10%) 50%,hsl(${theme.h} ${theme.s}% 24%))`;$('machine').style.borderColor=`hsl(${theme.h} 28% 40%)`;$('theme-name').textContent=theme.name;[...$('palette').children].forEach((s,i)=>{s.classList.toggle('reached',i<econ.level);s.classList.toggle('current',i===econ.level-1);});miniMap.width=108;miniMap.height=Math.round(engine.height/5);miniMap.hidden=engine.height<=750;quantityLabels.forEach((label,i)=>label.textContent=engine.map.counts[i]+'개');}
+function updateUI(){
+ const max=econ.level>=15;
+ $('money').textContent=econ.money.toLocaleString('ko-KR')+'원';$('hit-count').textContent=econ.hits.toLocaleString('ko-KR');$('efficiency').textContent=econ.multiplier.toFixed(2);$('stage').textContent='LV. '+String(econ.level).padStart(2,'0');$('big-level').textContent=String(econ.level).padStart(2,'0');
+ $('level-title').textContent=max?'골든 마스터 달성!':econ.level===1?(econ.rebirths?'환생 후의 첫 게임판':'첫 번째 게임판'):theme.name;$('level-note').innerHTML=max?'기믹 39개, 높이 3.5배의 최종 맵!<br>핀볼은 계속 즐길 수 있어요.':'레벨마다 다른 배치로 진화하고<br>새 구간이 위쪽으로 확장돼요.';
+ $('layout-name').textContent=String(econ.level).padStart(2,'0')+' · '+engine.map.name;$('map-count').textContent=engine.map.total+' / 39개';$('map-height').textContent='×'+(engine.height/750).toFixed(2)+' / ×3.50';$('map-info').textContent='기믹 '+engine.map.total+'개 · 높이 ×'+(engine.height/750).toFixed(2);
+ $('level-progress-label').textContent=max?'레벨 15 · MAX':'레벨 '+econ.level+' → '+(econ.level+1);$('xp-text').textContent=max?'성장 완료!':format(econ.xp)+' / '+econ.need.toLocaleString('ko-KR')+' EXP';$('xp-fill').style.width=(max?100:clamp(econ.xp/econ.need*100,0,100))+'%';$('xp-track').setAttribute('aria-valuemax',max?1:econ.need);$('xp-track').setAttribute('aria-valuenow',max?1:econ.xp.toFixed(2));
+ $('grow').disabled=max;$('grow-gain').textContent=max?'MAX':`+${format(econ.gain)} EXP`;$('hold-hint').textContent=max?'만렙 달성! 공은 계속 튕기고 돈도 계속 나와요.':'한 번씩 누르거나, 꾹 눌러서 쭉 성장!';
+ $('upgrade').disabled=econ.money<50||max;$('upgrade-desc').textContent=max?'만렙이라 더 강화할 필요가 없어요':`성공 시 ${econ.multiplier.toFixed(2)}배 → ${(econ.multiplier*1.1).toFixed(2)}배`;$('upgrade-cost').textContent=max?'완료':'50원';$('upgrade-chance').textContent=percent(econ.chance);$('upgrade-attempts').textContent='성공 '+econ.upgrades+' / 시도 '+econ.attempts;
+ $('upgrade').title=max?'최대 레벨에 도달했습니다':econ.money<50?(50-econ.money)+'원을 더 모으면 도전할 수 있어요':`성공률 ${percent(econ.chance)}. 성공·실패 모두 50원 사용. 성공 시 성장 효율 ×1.1.`;
+ const ready=econ.money>=50&&!max;if(ready&&!lastUpgradeReady){$('announcer').textContent='50원 달성! 성공률 '+percent(econ.chance)+'로 성장 효율 강화를 시도할 수 있어요.';}lastUpgradeReady=ready;updateCollection();updateBallStatus();updateBossPanel();updateRebirth();updateFever();updateGoalUI();
+}
+function toast(label,title,detail){$('toast-label').textContent=label;$('toast-title').textContent=title;$('toast-detail').textContent=detail;$('board-toast').classList.toggle('failure',label==='FAILED');$('board-toast').classList.toggle('fever-toast',label.startsWith('FEVER'));$('board-toast').classList.toggle('goal-toast',label.startsWith('GOAL'));$('board-toast').classList.toggle('mastery-toast',label==='BALL EVOLUTION');$('board-toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('board-toast').classList.remove('show'),2100);$('announcer').textContent=title+'. '+detail;}
+function finishGrowth(result){
+ if(result.levels){
+  const oldLevel=engine.level,change=engine.setLevel(econ.level);camera.y=clamp(camera.y+change,0,engine.height-750);particles=[];ripples=[];floaters=[];bolts=[];updateTheme();
+  const previousBoss=bosses.activeLevel;engine.syncBoss();if(bosses.activeLevel&&bosses.activeLevel!==previousBoss)$('boss-message').textContent=bosses.definition.name+' 등장! 상층부에서 기다려요. 공 쏘기로 도전해 보세요.';
+  const unlocked=collection.slots(econ.level)>collection.slots(oldLevel);toast(econ.level===15?'MAX LEVEL':unlocked?'NEW BALL SLOT':'MAP EVOLVED','레벨 '+econ.level,unlocked?'공 '+collection.slots(econ.level)+'개 동시 장착 해금!':engine.map.name+' · '+engine.map.total+'개');
+  if(unlocked)$('collection-message').textContent='새 슬롯 해금! 이제 공 '+collection.slots(econ.level)+'개를 함께 굴릴 수 있어요.';
+  $('machine').classList.remove('level-up');void $('machine').offsetWidth;$('machine').classList.add('level-up');for(let i=0;i<5;i++)burst(80+i*94,camera.y+210+Math.random()*220,theme.accent,14);tone(980,.22,'triangle',.06);
+ }
+ if(econ.level===15)stopHold();updateUI();markSave();
+}
+function grow(){const result=econ.grow();if(!result.gain)return;const f=document.createElement('span');f.className='float-exp';f.textContent='+'+format(result.gain)+' EXP';f.style.left=(42+Math.random()*16)+'%';$('growth-area').append(f);setTimeout(()=>f.remove(),680);tone(450+econ.level*35,.045,'sine',.027);finishGrowth(result);}
+function flushHits(){
+ if(pendingXP){const xp=pendingXP;pendingXP=0;finishGrowth(econ.addXP(xp));uiDirty=false;}else if(uiDirty){updateUI();uiDirty=false;}
+ if(bosses.record?.pending){const reward=bosses.claim(econ);if(reward){$('boss-message').textContent=reward.name+' 격파! '+reward.money+'원 + 조각 '+reward.shards+'개'+(bosses.shards>=10&&!collection.owned.includes('crown')?' · 왕관공을 합성할 수 있어요.':'');toast('BOSS CLEAR',reward.name+' 격파!','+'+reward.money+'원 · 보스 조각 +'+reward.shards);engine.syncBoss();if(!engine.boss&&camera.mode==='boss')focusBall();updateUI();markSave(true);}}
+}
+function stopHold(){clearTimeout(holdStart);clearInterval(holdRepeat);activeGrowPointer=null;}
+$('grow').addEventListener('pointerdown',e=>{if(e.button!==0||$('grow').disabled||activeGrowPointer!==null)return;activeGrowPointer=e.pointerId;$('grow').setPointerCapture(e.pointerId);grow();if(econ.level<15)holdStart=setTimeout(()=>{holdRepeat=setInterval(grow,120);},330);});
+for(const name of ['pointerup','pointercancel','lostpointercapture'])$('grow').addEventListener(name,stopHold);
+$('grow').addEventListener('click',e=>{if(e.detail===0)grow();});
+$('upgrade').addEventListener('click',()=>{const result=econ.upgrade();if(!result.ok)return;if(result.success){toast('SUCCESS','강화 성공 엌ㅋㅋ',`이제 한 번에 ${format(econ.gain)} EXP!`);tone(1250,.18,'triangle',.055);}else{toast('FAILED','아앗, 강화 실패!',`효율은 그대로 · 다음 ${percent(result.nextChance)}`);tone(170,.22,'triangle',.04);}$('upgrade-result').textContent=`${econ.attempts}번째 시도 ${result.success?'성공':'실패'} · 50원 사용 · 효율 ${econ.multiplier.toFixed(2)}배`;updateUI();markSave(true);});
+function updateAuto(){$('auto').textContent=engine.auto?'자동 ON':'자동 OFF';$('auto').setAttribute('aria-pressed',String(engine.auto));canvas.setAttribute('aria-label','레벨별로 13개에서 39개까지 늘어나는 기믹과 긴 플리퍼가 있는 핀볼. 자동 플리퍼 '+(engine.auto?'켜짐':'꺼짐')+'.');}
+$('auto').addEventListener('click',()=>{engine.auto=!engine.auto;updateAuto();markSave();});
+function setFlipper(i,on){engine.manual[i]=on;$(i===0?'left-flipper':'right-flipper').classList.toggle('pressed',on);}
+['left-flipper','right-flipper'].forEach((id,i)=>{const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();el.setPointerCapture(e.pointerId);setFlipper(i,true);});for(const type of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(type,()=>setFlipper(i,false));el.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();setFlipper(i,true);}});el.addEventListener('keyup',()=>setFlipper(i,false));});
+function setPaused(value){if(rebirthDialog.open&&!value)return;paused=value;stopHold();setFlipper(0,false);setFlipper(1,false);$('pause-overlay').hidden=!paused;$('pause').setAttribute('aria-pressed',String(paused));$('pause').setAttribute('aria-label',paused?'게임 다시 시작':'게임 일시정지');$('pause').title=paused?'다시 시작':'일시정지';$('pause-mark').setAttribute('d',paused?'M5 3L17 10L5 17Z':'M4 3H8V17H4ZM12 3H16V17H12Z');lastFrame=0;accumulator=0;updateFever();if(econ.fever.active)markSave(true);}
+$('pause').addEventListener('click',()=>setPaused(!paused));$('resume').addEventListener('click',()=>setPaused(false));
+function updateSound(){$('sound').setAttribute('aria-pressed',String(soundOn));$('sound').setAttribute('aria-label',soundOn?'소리 끄기':'소리 켜기');$('sound').title=soundOn?'소리 끄기':'소리 켜기';$('sound-mark').setAttribute('d',soundOn?'M16 7Q21 12 16 17M19 3Q27 12 19 21':'M16 9L22 15M22 9L16 15');}
+$('sound').addEventListener('click',()=>{soundOn=!soundOn;updateSound();if(soundOn)tone(750,.08);});
+document.addEventListener('keydown',e=>{if(rebirthDialog.open)return;if(e.code==='KeyA'||e.code==='ArrowLeft'){e.preventDefault();setFlipper(0,true);}else if(e.code==='KeyD'||e.code==='ArrowRight'){e.preventDefault();setFlipper(1,true);}else if(e.code==='KeyP'&&!e.repeat)setPaused(!paused);else if(e.code==='KeyF'&&!e.repeat&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.target?.isContentEditable&&!['INPUT','TEXTAREA','SELECT'].includes(e.target?.tagName)){e.preventDefault();startFever();}});
+document.addEventListener('keyup',e=>{if(e.code==='KeyA'||e.code==='ArrowLeft')setFlipper(0,false);if(e.code==='KeyD'||e.code==='ArrowRight')setFlipper(1,false);});
+window.addEventListener('blur',()=>{stopHold();setFlipper(0,false);setFlipper(1,false);});window.addEventListener('pagehide',()=>{flushHits();saveProgress();});document.addEventListener('visibilitychange',()=>{flushHits();saveProgress();stopHold();setFlipper(0,false);setFlipper(1,false);lastFrame=0;accumulator=0;});
+const line=(x1,y1,x2,y2,color,width=2)=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.stroke();};
+const circle=(x,y,r,fill,stroke,width=1)=>{ctx.beginPath();ctx.arc(x,y,r,0,TAU);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke();}};
+function textAt(text,x,y,size,color,weight=650){ctx.fillStyle=color;const safeWeight=clamp(Math.round(weight/100)*100,100,900);ctx.font=`${safeWeight} ${size}px -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y);}
+function numberTag(n,x,y,color){circle(x,y,12,'#101b22',color,1);textAt(String(n).padStart(2,'0'),x,y+1,10,color,700);}
+function lit(o){return clamp(1-(engine.time-(engine.objectFlash[o.key]??-10))/.25,0,1);}
+function focusBall(){
+ camera.mode='follow';camera.y=clamp(engine.ball.y-412,0,engine.height-750);camera.drag=null;updateCameraLabels();
+}
+function updateCameraLabels(){
+ const overview=camera.mode==='overview';
+ $('camera-view').textContent=overview?'공 따라가기':'전체 맵 보기';
+ $('camera-view').setAttribute('aria-pressed',String(overview));
+ backToBall.hidden=camera.mode==='follow';
+ const heightPercent=Math.round(clamp((engine.height-engine.ball.y)/(engine.height-38),0,1)*100);
+ cameraHud.textContent=camera.mode==='boss'?'보스 상층부':(overview?'전체 맵':camera.mode==='manual'?'자유 보기':BALL_BY_ID[engine.focusId].name+' 추적')+' · '+heightPercent+'%';
+ if(!overview&&camera.mode==='manual')backToBall.textContent=(engine.ball.y<camera.y?'↑ ':engine.ball.y>camera.y+750?'↓ ':'')+'공 따라가기';
+ else backToBall.textContent='공 따라가기';
+}
+$('camera-view').addEventListener('click',()=>{if(camera.mode==='overview')focusBall();else{camera.mode='overview';camera.drag=null;updateCameraLabels();}});
+backToBall.addEventListener('click',focusBall);
+canvas.addEventListener('pointerdown',e=>{
+ if(e.button!==0||engine.height<=750)return;
+ e.preventDefault();canvas.setPointerCapture(e.pointerId);
+ const rect=canvas.getBoundingClientRect();
+ if(camera.mode==='overview')camera.y=clamp((e.clientY-rect.top)/rect.height*engine.height-375,0,engine.height-750);
+ camera.mode='manual';camera.drag={id:e.pointerId,y:e.clientY};updateCameraLabels();
+});
+canvas.addEventListener('pointermove',e=>{
+ if(!camera.drag||camera.drag.id!==e.pointerId)return;
+ const scale=750/canvas.getBoundingClientRect().height;
+ camera.y=clamp(camera.y-(e.clientY-camera.drag.y)*scale,0,engine.height-750);camera.drag.y=e.clientY;
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>{camera.drag=null;});
+canvas.addEventListener('wheel',e=>{
+ if(engine.height<=750)return;e.preventDefault();camera.mode='manual';camera.y=clamp(camera.y+e.deltaY,0,engine.height-750);updateCameraLabels();
+},{passive:false});
+function panMini(e){
+ const r=miniMap.getBoundingClientRect();camera.mode='manual';
+ camera.y=clamp((e.clientY-r.top)/r.height*engine.height-375,0,engine.height-750);updateCameraLabels();
+}
+let miniPointer=null;
+miniMap.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();miniPointer=e.pointerId;miniMap.setPointerCapture(e.pointerId);panMini(e);});
+miniMap.addEventListener('pointermove',e=>{if(miniPointer===e.pointerId)panMini(e);});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])miniMap.addEventListener(type,()=>{miniPointer=null;});
+function drawMini(){
+ if(!miniCtx||miniMap.hidden)return;
+ const H=engine.height;
+ miniCtx.setTransform(miniMap.width/540,0,0,miniMap.height/H,0,0);
+ miniCtx.clearRect(0,0,540,H);miniCtx.fillStyle='#101c1ddd';miniCtx.fillRect(0,0,540,H);
+ miniCtx.strokeStyle=theme.accent+'77';miniCtx.lineWidth=10;miniCtx.strokeRect(24,24,492,H-61);
+ for(const w of engine.map.rails){miniCtx.beginPath();miniCtx.moveTo(w[0],w[1]);miniCtx.lineTo(w[2],w[3]);miniCtx.strokeStyle='#8bad98';miniCtx.stroke();}
+ for(const o of engine.map.objects){miniCtx.beginPath();miniCtx.arc(o.x,o.y,o.type===2?27:18,0,TAU);miniCtx.fillStyle=GCOL[o.type];miniCtx.fill();}
+ if(engine.boss&&engine.boss.record.hp>0){const b=engine.boss;miniCtx.fillStyle=b.color;miniCtx.fillRect(b.x-48,b.y-36,96,72);miniCtx.strokeStyle='#fff3c4';miniCtx.lineWidth=9;miniCtx.strokeRect(b.x-48,b.y-36,96,72);}
+ if(camera.mode!=='overview'){miniCtx.fillStyle=theme.accent+'1c';miniCtx.fillRect(24,camera.y,492,750);miniCtx.strokeStyle='#e3fff2';miniCtx.lineWidth=13;miniCtx.strokeRect(25,camera.y+7,490,736);}
+ for(const b of engine.balls){const focused=!b.temporary&&b.id===engine.focusId;miniCtx.beginPath();miniCtx.arc(b.x,b.y,focused?29:23,0,TAU);miniCtx.fillStyle=(b.temporary?FEVER_BALL:BALL_BY_ID[b.id]).color;miniCtx.fill();if(focused){miniCtx.strokeStyle='#fff';miniCtx.lineWidth=7;miniCtx.stroke();}}
+}
+function drawBoss(){
+ const boss=engine.boss;if(!boss||boss.record.hp<=0)return;const {x,y,w,h,color}=boss,entering=engine.time<engine.bossReady,flash=clamp(1-(engine.time-(engine.objectFlash[boss.key]??-10))/.25,0,1);
+ ctx.save();ctx.globalAlpha=entering?.45:1;
+ line(98,345,442,345,color+'33',1);textAt('B O S S   C H A M B E R',270,326,11,color+'aa',700);
+ ctx.fillStyle='#070d11bb';ctx.beginPath();ctx.roundRect(166,96,208,7,4);ctx.fill();ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(166,96,208*boss.record.hp/boss.hp,7,4);ctx.fill();
+ if(boss.level===10){ctx.beginPath();ctx.ellipse(x,y,102,70,0,0,TAU);ctx.strokeStyle=color+'44';ctx.lineWidth=1.5;ctx.stroke();for(const shield of engine.bossShields()){ctx.save();ctx.shadowColor=color;ctx.shadowBlur=12;circle(shield.x,shield.y,shield.r,'#234467',color,2);line(shield.x-6,shield.y,shield.x+6,shield.y,'#d4efff',2);ctx.restore();}}
+ if(boss.level===15){const warning=boss.phase>=3.7&&boss.phase<5;circle(x,y,79,null,warning?'#ffb09d':color+'44',warning?3:1);if(warning){ctx.save();ctx.setLineDash([6,8]);circle(x,y,118,null,'#ff9876aa',2);ctx.restore();}if(boss.enraged)textAt('분노',x+90,y-53,12,'#ffb099',800);}
+ ctx.save();ctx.translate(x,y);ctx.shadowColor=flash?'#fff':color;ctx.shadowBlur=flash*28+(boss.open?15:7);
+ const body=ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);body.addColorStop(0,boss.level===5?'#3b6b51':boss.level===10?'#35556e':'#a68136');body.addColorStop(1,boss.level===5?'#183b30':boss.level===10?'#192b41':'#4b3618');
+ ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,12);ctx.fillStyle=body;ctx.fill();ctx.strokeStyle=flash?'#fff':color;ctx.lineWidth=2.5;ctx.stroke();
+ line(-w/2+2,-h/2+24,w/2-2,-h/2+24,color+'aa',2);
+ if(boss.level===5){line(-w/2+18,-h/2+3,-w/2+18,h/2-3,color+'aa',7);line(w/2-18,-h/2+3,w/2-18,h/2-3,color+'aa',7);}
+ if(boss.level===10){circle(0,-7,17,'#182b3b',color,2);for(let i=0;i<4;i++){const a=engine.time+i*Math.PI/2;line(Math.cos(a)*4,Math.sin(a)*4-7,Math.cos(a)*13,Math.sin(a)*13-7,color,2);}}
+ if(boss.level===15){textAt('XV',0,-8,26,'#ffdf8b',800);if(!boss.open){line(-w/2+5,-h/2+6,w/2-5,h/2-5,'#e8c27088',5);line(w/2-5,-h/2+6,-w/2+5,h/2-5,'#e8c27088',5);}}
+ for(const sx of [-1,1])for(const sy of [-1,1])circle(sx*(w/2-8),sy*(h/2-8),2.4,color);
+ if(boss.open){ctx.shadowColor='#ffed9e';ctx.shadowBlur=25;line(-29,h/2,29,h/2,'#fff0a6',8);}
+ circle(0,h/2-6,11,boss.open?'#ffe9a1':'#453e2b',color,2);circle(0,h/2-8,3,'#332a17');line(0,h/2-7,0,h/2-1,'#332a17',3);
+ ctx.restore();
+ textAt(entering?'보스 등장!':boss.open?'아래 자물쇠 ×2':boss.level===15?'장갑 피해 50%':boss.level===10?'회전 방패':'좌우 이동',x,boss.level===10?294:y+h/2+24,12,boss.open?'#fff2b0':color,750);
+ ctx.restore();
+}
+function drawBoard(){
+ const t=engine.time,H=engine.height,h=theme.h,s=theme.s,l=theme.l,fever=econ.fever.active;
+ const overview=camera.mode==='overview',zoom=overview?750/H:1,offsetX=(540-540*zoom)/2,viewTop=overview?0:camera.y,viewBottom=overview?H:camera.y+750;
+ const visible=(o,margin=110)=>overview||o.y>=viewTop-margin&&o.y<=viewBottom+margin;
+ ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,540,750);
+ ctx.fillStyle='#0a1418';ctx.fillRect(0,0,540,750);
+ ctx.save();ctx.translate(offsetX,overview?0:-camera.y);ctx.scale(zoom,zoom);
+ const bg=ctx.createLinearGradient(0,0,540,H);
+ bg.addColorStop(0,'hsl('+h+' '+s+'% '+(l+5)+'%)');bg.addColorStop(.55,'hsl('+h+' '+s+'% '+(l-4)+'%)');bg.addColorStop(1,'hsl('+h+' '+(s-12)+'% '+(l+2)+'%)');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,540,H);if(fever){ctx.fillStyle='#ff82430c';ctx.fillRect(0,0,540,H);}
+ ctx.save();ctx.globalAlpha=.15;
+ const gridStart=Math.max(44,44+Math.floor((viewTop-44)/23)*23);
+ for(let x=44;x<516;x+=23)for(let y=gridStart;y<Math.min(H-35,viewBottom+23);y+=23)circle(x,y,.7,theme.accent);
+ ctx.restore();
+ ctx.save();ctx.shadowColor=fever?'#ffb37b':theme.accent;ctx.shadowBlur=fever?22:13;ctx.beginPath();
+ engine.map.boundary.forEach((w,i)=>{if(i===0)ctx.moveTo(w[0],w[1]);ctx.lineTo(w[2],w[3]);});
+ ctx.closePath();ctx.lineWidth=fever?3.5:2.5;ctx.strokeStyle=fever?'#ffbe8ccd':'hsla('+h+',55%,75%,.55)';ctx.stroke();ctx.restore();
+ line(12,95,12,H-160,'hsla('+h+',45%,65%,.27)',3);line(528,95,528,H-160,'hsla('+h+',45%,65%,.27)',3);
+ for(let i=0,y=132;y<H-140;y+=49,i++){if(y<viewTop-10||y>viewBottom+10)continue;circle(12,y,2.2,i%3===Math.floor(t*1.3)%3?theme.accent:'hsla('+h+',40%,60%,.25)');circle(528,y,2.2,(i+1)%3===Math.floor(t*1.3)%3?theme.accent:'hsla('+h+',40%,60%,.25)');}
+ textAt('G R O W B A L L',270,54,15,theme.accent,750);
+ textAt((econ.rebirths?'REBIRTH '+econ.rebirths+' · ':'')+'LEVEL '+String(econ.level).padStart(2,'0')+' / '+engine.map.total+' GIMMICKS',270,80,10,'hsla('+h+',45%,80%,.65)',600);
+ for(let y=H-680,n=1;y>100;y-=470,n++){
+  if(y<viewTop-20||y>viewBottom+20)continue;
+  line(38,y,502,y,'hsla('+h+',45%,65%,.09)',1);
+  textAt(String(n).padStart(2,'0'),45,y-14,10,'hsla('+h+',40%,80%,.30)');
+ }
+ for(const w of engine.map.rails){line(...w,'#0a111aaa',11);line(...w,'hsla('+h+',45%,72%,.6)',3);}
+ // 01: individual pop bumpers
+ for(const c of engine.bumpers){if(!visible(c))continue;const hit=lit(c);circle(c.x,c.y+5,c.r+6,'#0005');
+  ctx.save();ctx.shadowColor=GCOL[0];ctx.shadowBlur=12+hit*25;circle(c.x,c.y,c.r+4+hit*3,'hsl('+h+' 35% 19%)',GCOL[0],2.4);ctx.restore();
+  const gr=ctx.createRadialGradient(c.x-8,c.y-10,2,c.x,c.y,c.r);gr.addColorStop(0,'hsl('+h+' 40% '+(40+hit*15)+'%)');gr.addColorStop(1,'hsl('+h+' 50% 19%)');
+  circle(c.x,c.y,c.r-3,gr,'hsla('+h+',60%,87%,.7)',1);circle(c.x,c.y,c.r-12,'#0d222588',GCOL[0],1);textAt('01',c.x,c.y,12,GCOL[0]);
+ }
+ // 02: crystalline deflectors
+ for(const c of engine.crystals){if(!visible(c))continue;const hit=lit(c);ctx.save();ctx.translate(c.x,c.y);ctx.rotate(.15);
+  ctx.shadowColor=GCOL[1];ctx.shadowBlur=9+hit*25;ctx.beginPath();ctx.moveTo(0,-c.r-7);ctx.lineTo(c.r+1,0);ctx.lineTo(0,c.r+7);ctx.lineTo(-c.r-1,0);ctx.closePath();ctx.fillStyle=hit>.1?'#ffdb92':'#725b2d';ctx.fill();ctx.strokeStyle=GCOL[1];ctx.lineWidth=2;ctx.stroke();line(0,-c.r-7,0,c.r+7,'#ffe5a890',1);line(-c.r-1,0,c.r+1,0,'#ffe5a890',1);ctx.restore();
+ }
+ // 03: rotating paddles
+ for(const o of engine.spinners){if(!visible(o))continue;circle(o.x,o.y,o.r+7,null,'#83c6ff28',1);ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.phase+t*.87*o.dir);
+  for(let i=0;i<2;i++){ctx.save();ctx.rotate(i*Math.PI/2);line(-o.r,3,o.r,3,'#0006',17);ctx.shadowColor=GCOL[2];ctx.shadowBlur=lit(o)*25;line(-o.r,0,o.r,0,'#395e78',14);line(-o.r,-2,o.r,-2,GCOL[2],3);circle(-o.r+5,0,3,GCOL[2]);circle(o.r-5,0,3,GCOL[2]);ctx.restore();}
+  ctx.restore();circle(o.x,o.y,17,'#203b4f',GCOL[2],2);textAt('03',o.x,o.y+1,12,GCOL[2]);
+ }
+ // 04: upward launch rails
+ for(const r of engine.boosts){if(!visible(r))continue;ctx.save();ctx.translate(r.x1,r.y1);const len=Math.hypot(r.x2-r.x1,r.y2-r.y1);ctx.rotate(Math.atan2(r.y2-r.y1,r.x2-r.x1)+Math.PI/2);
+  line(-12,0,-12,-len,'#f5ae8070',2);line(12,0,12,-len,'#f5ae8070',2);line(0,0,0,-len,'#714a35',12);
+  for(let i=0;i<3;i++){const y=-((i*28+t*44)%len);ctx.globalAlpha=.35+.65*(1+i)/3;ctx.beginPath();ctx.moveTo(-6,y+4);ctx.lineTo(0,y-3);ctx.lineTo(6,y+4);ctx.strokeStyle=GCOL[3];ctx.lineWidth=2.4;ctx.stroke();}ctx.restore();
+  textAt('04',r.x+(r.x<270?25:-25),r.y,10,GCOL[3]);
+ }
+ // 05: paired long-distance portals
+ for(const p of engine.portals){if(!visible(p))continue;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(t*.65);ctx.shadowColor=GCOL[4];ctx.shadowBlur=10+lit(p)*20;circle(0,0,25,'#190d37',GCOL[4],2);
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,0,30,i*TAU/3,i*TAU/3+1.1);ctx.strokeStyle=GCOL[4];ctx.lineWidth=3;ctx.stroke();}
+  ctx.rotate(-t*1.7);for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(0,0,5+i*4,.5+i,4+i);ctx.strokeStyle='rgba(197,160,255,'+(.25+i*.13)+')';ctx.lineWidth=1.4;ctx.stroke();}ctx.restore();
+  textAt('05 · '+String.fromCharCode(65+p.pair),p.x,p.y+43,11,GCOL[4]);
+ }
+ // 06: magnetic cores
+ for(const m of engine.magnets){if(!visible(m))continue;ctx.save();
+  for(let i=0;i<3;i++){const phase=(t*.42+i/3)%1;circle(m.x,m.y,26+phase*60,null,'rgba(251,145,183,'+(1-phase)*.18+')',1);}
+  ctx.shadowColor=GCOL[5];ctx.shadowBlur=14+lit(m)*25;circle(m.x,m.y,m.r+5,'#462334',GCOL[5],1.6);circle(m.x,m.y,m.r-4,'#27141e','#fb91b780',1);textAt('06',m.x,m.y,13,GCOL[5]);ctx.restore();
+ }
+ // 07: upward power springs
+ for(const sp of engine.springs){if(!visible(sp))continue;const compression=lit(sp)*7;circle(sp.x,sp.y+5,sp.r+5,'#0005');ctx.save();ctx.shadowColor=GCOL[6];ctx.shadowBlur=lit(sp)*28;circle(sp.x,sp.y,sp.r,'#595428',GCOL[6],2);ctx.restore();
+  ctx.beginPath();ctx.moveTo(sp.x-12,sp.y+10);for(let i=0;i<5;i++)ctx.lineTo(sp.x+(i%2?10:-10),sp.y+7-i*(4-compression*.18));ctx.strokeStyle=GCOL[6];ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();line(sp.x-11,sp.y-12+compression,sp.x+11,sp.y-12+compression,GCOL[6],3);textAt('07',sp.x,sp.y+40,10,GCOL[6]);
+ }
+ if(engine.boss&&visible(engine.boss,185))drawBoss();
+ // The bottom remains anchored while new space is added above.
+ line(150,H-50,390,H-50,'hsla('+h+',65%,73%,.15)',10);line(150,H-50,390,H-50,'hsla('+h+',65%,73%,.55)',2);textAt('∞  NO DRAIN',270,H-21,11,'hsla('+h+',40%,81%,.62)',650);
+ for(let i=0;i<2;i++){const f=engine.flippers[i],sign=i===0?1:-1,x=f.x+sign*Math.cos(f.a)*228,y=f.y+Math.sin(f.a)*228;line(f.x,f.y+5,x,y+5,'#0007',29);ctx.save();ctx.shadowColor=theme.accent;ctx.shadowBlur=f.target<0?17:3;line(f.x,f.y,x,y,'hsl('+h+' 36% 35%)',24);line(f.x,f.y-3,x,y-3,theme.accent,16);ctx.restore();line(f.x+sign*12,f.y-7,x-sign*10,y-7,'#f3fff899',2);circle(f.x,f.y,13,'#31453f',theme.accent,2);circle(f.x,f.y,5,theme.accent);}
+ for(const r of ripples){ctx.globalAlpha=clamp(r.life/(r.pulse?1.3:.45),0,1)*.55;circle(r.x,r.y,r.r,null,r.color,1.4);}ctx.globalAlpha=1;
+ for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);circle(p.x,p.y,p.r,p.color);}ctx.globalAlpha=1;
+ for(const bolt of bolts){ctx.save();ctx.globalAlpha=clamp(bolt.life/.3,0,1);ctx.shadowColor='#83c6ff';ctx.shadowBlur=18;const mx=(bolt.x+bolt.tx)/2+15,my=(bolt.y+bolt.ty)/2-10;line(bolt.x,bolt.y,mx,my,'#83c6ff',5);line(mx,my,bolt.tx,bolt.ty,'#e6f8ff',3);ctx.restore();}
+ for(const b of engine.balls){
+  const def=b.temporary?FEVER_BALL:engine.statsFor(b),phased=b.id==='ghost'&&engine.time<b.phaseUntil;
+  if(!reduceMotion){for(let i=1;i<b.trail.length;i++){ctx.globalAlpha=i/b.trail.length*(phased?.5:.35);line(b.trail[i-1].x,b.trail[i-1].y,b.trail[i].x,b.trail[i].y,def.color,i/b.trail.length*(b.id==='gold'?15:10));}ctx.globalAlpha=1;}
+  if(!visible(b,25))continue;circle(b.x+2,b.y+4,b.r+2,'#0006');ctx.save();ctx.shadowColor=def.color;ctx.shadowBlur=phased?25:14;ctx.globalAlpha=phased?.6:1;
+  const ballGrad=ctx.createRadialGradient(b.x-3,b.y-4,1,b.x,b.y,b.r);ballGrad.addColorStop(0,'#fff');ballGrad.addColorStop(.42,def.color);ballGrad.addColorStop(1,def.shade);circle(b.x,b.y,b.r,ballGrad,def.color,1);
+  if(b.id==='lightning'){line(b.x+2,b.y-5,b.x-3,b.y+1,'#1a3650',1.5);line(b.x-3,b.y+1,b.x+2,b.y+1,'#1a3650',1.5);line(b.x+2,b.y+1,b.x-2,b.y+6,'#1a3650',1.5);}
+  if(b.id==='growth'){line(b.x,b.y-4,b.x,b.y+4,'#34521c',2);line(b.x-4,b.y,b.x+4,b.y,'#34521c',2);}
+  if(b.temporary){line(b.x-4,b.y,b.x+4,b.y,'#7b3424',1.5);line(b.x,b.y-4,b.x,b.y+4,'#7b3424',1.5);circle(b.x,b.y,b.r+3,null,'#ffb68399',1);}if(b.id==='gold')textAt('₩',b.x,b.y+1,11,'#654513',800);
+  if(b.id==='crown'){ctx.beginPath();ctx.moveTo(b.x-6,b.y+4);ctx.lineTo(b.x-7,b.y-4);ctx.lineTo(b.x-2,b.y);ctx.lineTo(b.x,b.y-6);ctx.lineTo(b.x+2,b.y);ctx.lineTo(b.x+7,b.y-4);ctx.lineTo(b.x+6,b.y+4);ctx.closePath();ctx.fillStyle='#803624';ctx.fill();}
+  if(b.id==='ghost'){circle(b.x-3,b.y-1,1.7,'#463657');circle(b.x+3,b.y-1,1.7,'#463657');if(phased)circle(b.x,b.y,b.r+6,null,def.color,1);}
+  if(!b.temporary&&def.tier){
+   const turn=reduceMotion?0:t*.75;ctx.globalAlpha=.8;ctx.lineWidth=1.4;ctx.strokeStyle=def.color;
+   for(let i=0;i<def.tier+1;i++){const a=turn+i*TAU/(def.tier+1);ctx.beginPath();ctx.arc(b.x,b.y,b.r+4+def.tier,a,a+.8);ctx.stroke();if(def.tier===2)circle(b.x+Math.cos(a)*(b.r+8),b.y+Math.sin(a)*(b.r+8),1.6,def.color);}
+  }
+  ctx.restore();circle(b.x-3,b.y-4,1.7,'#fff');if(engine.balls.length>1&&!b.temporary&&b.id===engine.focusId)circle(b.x,b.y,b.r+5,null,def.color+'99',1);
+ }
+ for(const f of floaters){ctx.globalAlpha=clamp(f.life/.4,0,1);ctx.save();ctx.shadowColor='#100e00';ctx.shadowBlur=6;textAt(f.text,f.x,f.y,f.text.includes('EXP')?17:22,f.color||'#ffdf83',850);ctx.restore();}ctx.globalAlpha=1;
+ ctx.restore();
+ if(fever||econ.fever.ready){ctx.save();ctx.fillStyle=fever?'#422823f2':'#2f2c20ee';ctx.strokeStyle='#ffc98c';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(157,11,226,26,9);ctx.fill();ctx.stroke();textAt(fever?'FEVER  '+econ.fever.remaining.toFixed(1)+'s  ·  CASH ×2':'FEVER READY · BUTTON BELOW',270,24,11,'#ffe0b4',800);ctx.restore();}
+ drawMini();updateCameraLabels();
+}
+function animate(now){
+ requestAnimationFrame(animate);if(document.hidden){lastFrame=0;return;}if(!lastFrame)lastFrame=now;const dt=Math.min((now-lastFrame)/1000,.05);lastFrame=now;
+ if(!paused){
+  accumulator+=dt;let steps=0;while(accumulator>=1/120&&steps<7){stepGame(1/120);accumulator-=1/120;steps++;}
+  for(const bolt of bolts)bolt.life-=dt;bolts=bolts.filter(b=>b.life>0);
+  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=80*dt;p.life-=dt;}particles=particles.filter(p=>p.life>0);
+  for(const r of ripples){r.r+=(r.pulse?240:85)*dt;r.life-=dt;}ripples=ripples.filter(r=>r.life>0);
+  for(const f of floaters){f.y-=37*dt;f.life-=dt;}floaters=floaters.filter(f=>f.life>0);
+ }
+ if(camera.mode==='boss'){camera.y=0;}
+ if(camera.mode==='follow'){
+  const target=clamp(engine.ball.y-412+clamp(engine.ball.vy*.055,-90,90),0,engine.height-750);
+  if(reduceMotion||Math.abs(target-camera.y)>690)camera.y=target;
+  else camera.y+=(target-camera.y)*(1-Math.exp(-dt*9));
+ }
+ camera.y=clamp(camera.y,0,engine.height-750);updateBallStatus();updateBossHud();updateFever();drawBoard();
+}
+if(bosses.activeLevel)$('boss-message').textContent=bosses.definition.name+' 도전 중! 보스 체력과 조각도 자동 저장돼요.';
+if(!bosses.activeLevel&&econ.rebirths){const next=BOSS_DEFS.find(d=>d.level>econ.level);$('boss-message').textContent=next?next.level+'레벨 보스의 첫 격파 보상: '+econ.moneyAmount(next.money)+'원 + 조각 '+next.shards+'개.':'황금 금고까지 격파! 다음 환생에 도전할 수 있어요.';}
+if(restored)$('collection-message').textContent='보유한 공 '+collection.owned.length+'종과 '+econ.level+'레벨 진행을 불러왔어요.';
+updateTheme();updateAuto();updateUI();flushHits();drawBoard();requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
