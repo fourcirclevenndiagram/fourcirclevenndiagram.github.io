@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#161c1f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JJ Console">
+  <meta name="description" content="반으로 접은 화면을 위한 가상 스튜디오 관제 단말. 오브젝트 생성, JJMarblocity, 편집 PC를 전용 키보드로 감시하세요.">
+  <title>JJ Studio · Duo Console</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23171d20'/%3E%3Cpath d='M16 17v21q0 10 10 10t10-10V17M30 17v21q0 10 10 10t10-10V17' fill='none' stroke='%23aec4bc' stroke-width='4'/%3E%3C/svg%3E">
+  <style>
+:root{color-scheme:dark;--split:50%;--bg:#161c1f;--panel:#1b2225;--edge:#303a3e;--muted:#8c9a9f;--text:#e0e7e6;--accent:#a7bfb4;--level-0:#ec9c96;--level-1:#d7aa98;--level-2:#d1ae83;--level-3:#c9bc88;--level-4:#aab6a9;--level-5:#9eafb9;--level-6:#9fb7ac;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;font-size:13px}
+*{box-sizing:border-box}body{margin:0;background:#111618;color:var(--text);overscroll-behavior:none}button,input,select{font:inherit}button{color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid #c2d7ca;outline-offset:3px}button{touch-action:manipulation}button,select{-webkit-user-select:none;user-select:none}svg{fill:none;stroke:currentColor;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round}button svg{pointer-events:none}.icon-sprite{position:absolute;width:0;height:0;overflow:hidden}.console{height:100vh;height:100dvh;display:grid;grid-template-rows:minmax(0,calc(var(--split) - 9px)) 18px minmax(0,1fr);overflow:hidden;max-width:1800px;margin:auto}.monitor{min-height:0;background:var(--bg);display:flex;flex-direction:column;padding:0 24px;padding-top:env(safe-area-inset-top,0);overflow:hidden}.topbar{height:65px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--edge);gap:8px}.brand{display:flex;gap:12px;align-items:center;flex-shrink:0}.brand-mark{font:600 26px ui-monospace,monospace;letter-spacing:-3px;color:#cbd7d1}.brand-mark>span{color:#7f9990}.brand strong{display:block;font-size:11px;font-weight:600;letter-spacing:1.6px}.brand-sub{display:block;color:#819096;font:9px ui-monospace,monospace;letter-spacing:1.05px;margin-top:5px}.header-right{display:flex;gap:14px;align-items:center}.simulation{font-size:10px;letter-spacing:.3px;color:#9eb5aa;white-space:nowrap}.simulation i,.stream-label i,.deck-heading i,.node-lights i,.card-state i{width:5px;height:5px;display:inline-block;background:#9cb2a4;border-radius:50%;margin-right:6px;vertical-align:2px}#clock{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#b6c2c5;letter-spacing:.8px}.icon-button{border:0;background:transparent;padding:5px;display:grid;place-items:center;color:#95a4a8;border-radius:4px}.icon-button:hover{background:#293236;color:#d6e0dc}.icon-button svg{width:17px;height:17px}.systems{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px 0 14px;flex-shrink:0}.system-card{position:relative;overflow:hidden;text-align:left;padding:13px 14px 10px;background:#1c2326;border:1px solid #303b3f;border-radius:6px;min-width:0;transition:background .18s,border-color .18s}.system-card:hover{background:#222b2e}.system-card[aria-pressed=true]{border-color:#95aba1;background:#232d2e}.card-heading{display:flex;align-items:center;gap:7px;font-weight:500;font-size:12px;white-space:nowrap;min-width:0}.card-icon{width:14px;height:14px;color:#a2b7ae;flex-shrink:0}.card-state{margin-left:auto;color:#99afa5;font-size:10px;font-weight:400;display:flex;align-items:center;gap:4px}.card-state i{margin:0;vertical-align:0;width:4px;height:4px}.card-main{height:76px;display:flex;align-items:center;justify-content:space-between;gap:3px}.eyebrow{display:block;font:8px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1.1px;color:#87969c;white-space:nowrap}.big-value{display:flex;align-items:baseline;gap:7px;margin-top:4px}.big-value b{font:400 32px ui-monospace,SFMono-Regular,Consolas,monospace;color:#e1e9e5;letter-spacing:-1.4px;font-variant-numeric:tabular-nums}.big-value small{font:9px ui-monospace,monospace;color:#9ba9ad}.tiny-stat{text-align:right;padding-top:11px}.tiny-stat b{display:block;font:15px ui-monospace,monospace;color:#b7c8c3;font-variant-numeric:tabular-nums}.tiny-stat span{display:block;font-size:8px;color:#86969c;margin-top:4px;white-space:nowrap}#objectCanvas{width:90px;height:60px;opacity:.75;flex-shrink:0}.card-meta{display:flex;align-items:center;gap:13px;white-space:nowrap;min-width:0;color:#84959b;font-size:9px;height:22px;border-top:1px solid #2c373b;padding-top:7px}.card-meta b{color:#b8c4c4;font:10px ui-monospace,monospace;font-weight:400}.channel-caption{font:7px ui-monospace,monospace;letter-spacing:.5px}.spark{width:70px;height:19px;margin-left:auto;stroke-width:1.2;opacity:.9;flex-shrink:0}.stream-toolbar{display:flex;align-items:center;gap:15px;min-height:35px;flex-shrink:0}.stream-label{font-size:11px;display:flex;align-items:center;white-space:nowrap;color:#b1c0c2}.stream-label i{width:4px;height:4px;margin-right:7px}.stream-label i.held{background:#c5b58e}.stream-filters{display:flex;gap:3px;align-items:center;margin-left:auto}.stream-filters button{padding:4px 10px;border:0;border-radius:3px;font-size:10px;background:transparent;color:#8e9ea4}.stream-filters button.active{background:#303c3e;color:#d7e2dc}.stream-filters button:hover{color:#e1e9e6}select{color:#b7c4c7;border:1px solid #364347;background:#20292d;font-size:10px;border-radius:4px;padding:5px 6px}.event-table{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:#3d494d transparent}.table-head,.event-row{display:grid;grid-template-columns:68px 65px 54px minmax(0,1fr);gap:12px;align-items:center}.table-head{position:sticky;top:0;background:var(--bg);height:23px;font-size:9px;color:#6d818a;border-bottom:1px solid #303b40;z-index:1}.event-row{width:100%;position:relative;border:0;border-bottom:1px solid #252f34;text-align:left;min-height:32px;padding:5px 0;background:transparent;font-size:11px}.event-row:hover{background:#202b2f}.event-row.selected{background:#2a3739;box-shadow:inset 2px 0 #a5b8ac}.event-row.selected .event-message{white-space:normal;line-height:1.65}.event-row time{font:10px ui-monospace,monospace;color:#748a95;letter-spacing:.15px}.event-source{color:#90a4ac;font-size:10px}.severity{color:var(--level);font-size:10px;white-space:nowrap;display:flex;align-items:center;gap:5px}.severity:before{content:'';display:block;width:4px;height:4px;background:var(--level);border-radius:50%;flex-shrink:0}.event-message{color:#bdcbd0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:18px}.event-row.acked .event-message{color:#78908e}.event-row.acked:after{content:'✓';color:#96b1a1;position:absolute;right:2px;font-size:10px}.event-row.resolved .severity{opacity:.6}.empty-state{text-align:center;padding:24px 8px;color:#7f929b;font-size:11px}.monitor-footer{min-height:28px;flex-shrink:0;display:flex;gap:10px;align-items:center;justify-content:space-between;color:#788e98;font-size:9px}.monitor-footer #screenStatus{font:8px ui-monospace,monospace;letter-spacing:.25px;color:#81969c}.footer-sep{padding:0 6px;color:#4d6069}.footer-protocol{font:9px ui-monospace,monospace;letter-spacing:.8px;color:#60747e}.hinge{display:flex;align-items:center;justify-content:center;gap:20px;background:#101618;border-top:1px solid #2e393d;border-bottom:1px solid #354145;position:relative;z-index:2}.hinge span{height:1px;width:50px;background:#354045}.hinge b{font:7px ui-monospace,monospace;letter-spacing:2.6px;color:#697d85}.control-deck{min-height:0;display:flex;flex-direction:column;background:#232b2f;padding:0 24px max(9px,env(safe-area-inset-bottom));box-shadow:inset 0 1px 10px #11171955}.command-strip{display:flex;align-items:center;gap:9px;margin-top:14px;padding:0 12px;min-height:40px;border:1px solid #39474d;border-radius:4px;background:#1a2226;color:#9db0b6;flex-shrink:0}.command-prompt{font:11px ui-monospace,monospace;color:#8fa49e;white-space:nowrap}.command-prompt b{color:#bbd0c3;padding-left:6px}.command-strip input{font:12px ui-monospace,monospace;background:transparent;border:0;outline:0;min-width:0;color:#cad9d4;flex:1;caret-color:transparent;cursor:default;letter-spacing:.25px}.command-strip input::placeholder{color:#667c86;font:10px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0}.command-strip input:focus-visible{outline:0}.cursor-block{width:5px;height:12px;background:#9cb3a6;margin-left:-7px;opacity:.7;animation:blink 1.3s steps(1) infinite;display:none}.command-mode{font:8px ui-monospace,monospace;letter-spacing:1px;color:#7f969d}.command-strip>button{border:1px solid #44545b;border-radius:3px;font:10px ui-monospace,monospace;background:#263137;color:#a4b8c0;min-width:23px;height:22px}.deck-heading{min-height:35px;display:flex;align-items:center;gap:10px;font:8px ui-monospace,monospace;letter-spacing:1px;color:#9aadb4;flex-shrink:0}.deck-heading>span:first-child{white-space:nowrap}.deck-heading i{width:4px;height:4px;vertical-align:1px;background:#afc1b5}.deck-heading #actionStatus{margin-left:auto;text-align:right;font:10px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#a3b8b0;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%}.deck-model{margin-left:16px;color:#617983;font:8px ui-monospace,monospace;white-space:nowrap}.keyboard{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:20px;min-height:0;flex:1;max-height:340px;width:100%;max-width:1380px;align-self:center;position:relative}.typing-keys{display:flex;flex-direction:column;gap:7px;min-width:0;min-height:0;padding:7px;background:#1c2529;border:1px solid #37464d;border-radius:7px;box-shadow:0 2px 5px #11191d55}.key-row{display:flex;gap:5px;min-height:0;flex:1}.key{min-width:0;min-height:0;flex:1;border:1px solid #4d606a;border-bottom:3px solid #1b282f;border-radius:4px;background:linear-gradient(160deg,#394b55,#30434e);box-shadow:0 1px 0 #66809022,inset 0 1px 0 #7d939b1a;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#bfcfd4;font:12px ui-monospace,SFMono-Regular,Consolas,monospace;position:relative;padding:3px 0;transition:background .1s,transform .06s,border-color .1s}.key:hover{background:#425962}.key.pressed,.key:active{transform:translateY(2px);border-bottom-width:1px;background:#536b74;box-shadow:inset 0 1px 4px #15212a66}.key.small-label{font-size:9px;color:#91aab6}.key.mod-on{border-color:#9eaea4;color:#d0ddd5;background:#4b6060}.key .secondary{font-size:7px;color:#7893a2;position:absolute;top:4px;left:6px}.key-space{font-size:8px!important;color:#7c96a2!important;letter-spacing:3px}.key.enter-key{background:linear-gradient(155deg,#566d67,#435d56);color:#d5e1d8;border-color:#6c8178;border-bottom-color:#263e35;font-size:10px}.key.enter-key:hover{background:#667e73}.monitor-keys{min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.05fr 1fr 1fr 1fr;gap:7px;padding:7px;background:#1c2529;border:1px solid #37464d;border-radius:7px;box-shadow:0 2px 5px #11191d55}.special-key{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-width:0;min-height:0;padding:4px 2px;position:relative;border:1px solid #4d626b;border-bottom:3px solid #18272f;border-radius:4px;background:linear-gradient(150deg,#354a55,#2c404c);color:#c5d2d5;transition:background .15s,transform .08s}.special-key:hover{background:#455c65}.special-key:active,.special-key.pressed{transform:translateY(2px);border-bottom-width:1px}.special-key svg{width:15px;height:15px;color:#9bb5bd}.special-key strong{font-weight:500;font-size:10px;white-space:nowrap}.special-key small{font:7px ui-monospace,monospace;letter-spacing:1px;color:#7f9ba9}.special-number{position:absolute;left:5px;top:4px;font:6px ui-monospace,monospace;color:#7a949e}.urgent-key{grid-column:1 / -1;flex-direction:row;gap:10px;background:linear-gradient(160deg,#574844,#473c38);border-color:#77635a;border-bottom-color:#302924;color:#d5c5b5}.urgent-key svg{color:#cab19b}.urgent-key small{color:#ac9380}.urgent-key:hover{background:#64534c}.special-key[aria-pressed=true]{border-color:#a6bbb0;background:#4b645c}.urgent-key[aria-pressed=true]{background:#805a4c;border-color:#c39b80}.special-key.busy svg{animation:spin 1.5s linear infinite}.deck-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:30px;margin-top:auto;padding-top:7px;flex-shrink:0;font:8px ui-monospace,monospace;color:#718b97;letter-spacing:.55px}.deck-footer>span{font-size:7px;letter-spacing:1px}.deck-footer b{font-weight:400;padding:0 5px}.node-lights{display:flex;gap:15px}.node-lights i{width:3px;height:3px;margin-right:5px;vertical-align:1px}.deck-footer>button{border:0;background:transparent;color:#819da8;font-size:9px;padding:4px}.deck-footer>button span{font:8px ui-monospace,monospace;margin-left:6px;color:#acc1c4}.panel-dialog{color:var(--text);background:#202a2e;border:1px solid #4c5c62;border-radius:10px;padding:24px;width:calc(100% - 36px);max-width:500px;max-height:85dvh;box-shadow:0 20px 90px #0008;overflow:auto}.panel-dialog::backdrop{background:#090e12b8;backdrop-filter:blur(5px)}.dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}.dialog-heading .eyebrow{font-size:8px;color:#9eb5b3}.dialog-heading h2{font-size:20px;letter-spacing:-.7px;font-weight:500;margin:7px 0 0}.close-dialog{font:22px ui-monospace,monospace;background:transparent;border:0;color:#9eb1bb;width:32px;height:32px;align-self:flex-start}.setting-line{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:23px 0 12px;font-size:12px;color:#c1d0d4}.setting-line small{display:block;font-size:10px;color:#819ba6;margin-top:7px}.setting-line output{font:16px ui-monospace,monospace;color:#b1c7b8}.setting-line input{accent-color:#a4b9a9;width:17px;height:17px;cursor:pointer}input[type=range]{width:100%;accent-color:#b0c7b8;margin:8px 0 14px;cursor:ew-resize}.split-preview{display:flex;flex-direction:column;height:65px;border:1px solid #40565f;border-radius:5px;overflow:hidden;font-size:8px;color:#89a0aa;text-align:center}.split-preview span{flex:1;display:flex;align-items:center;justify-content:center}.split-preview i{height:5px;background:#101a20;border-block:1px solid #3f555e}.simulation-note{padding:13px 14px;background:#192329;border-radius:5px;font-size:11px;color:#8ea4ac;line-height:1.8;margin-top:23px;border:1px solid #344a54}.text-button{margin-top:15px;color:#b4c5c3;background:transparent;border:1px solid #4b626a;padding:9px 12px;border-radius:4px;font-size:10px}.dialog-description{font-size:11px;color:#93aab3;line-height:1.8;margin:0 0 17px}.catalog-dialog{max-width:720px}.catalog-filters{display:flex;gap:8px;align-items:center;margin-bottom:13px}.catalog-filters select{font-size:11px;padding:8px}.catalog-filters>span{margin-left:auto;font:11px ui-monospace,monospace;color:#b2c7ba}.level-legend{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #40545c;padding-bottom:13px;margin-bottom:4px}.legend-item{font-size:9px;color:var(--level);padding:4px 6px;background:#172229;border-radius:3px;border:1px solid transparent}.legend-item.active{border-color:var(--level)}.catalog-rows{display:flex;flex-direction:column}.catalog-event{padding:12px 2px;border:0;border-bottom:1px solid #344952;background:transparent;color:#bfced1;text-align:left;line-height:1.7;font-size:11px;display:flex;gap:14px}.catalog-event:hover{background:#2b3c43}.catalog-event span{font:9px ui-monospace,monospace;color:#7f9aa7;padding-top:3px}.help-commands{display:grid;grid-template-columns:1fr 1fr;gap:8px}.help-command{display:flex;flex-direction:column;gap:7px;border:1px solid #3f565f;border-radius:4px;background:#1a272e;text-align:left;padding:12px}.help-command code{color:#bed3c3;font:12px ui-monospace,monospace}.help-command span{color:#92acb7;font-size:10px}.help-footnote{color:#8ea7af;font-size:11px;line-height:1.8;margin:18px 0 0}@keyframes arrive{from{background:#3b514b66}to{background:transparent}}@keyframes blink{50%{opacity:0}}@keyframes spin{to{transform:rotate(360deg)}}
+@media(min-width:1250px){.monitor{padding-inline:35px}.control-deck{padding-inline:35px}.topbar{height:70px}.systems{gap:16px}.system-card{padding:15px 18px 12px}.card-main{height:80px}.keyboard{grid-template-columns:minmax(0,1fr) 235px;gap:24px}.special-key strong{font-size:11px}.key{font-size:14px}.key.small-label{font-size:10px}}
+@media(max-width:850px){.monitor{padding-inline:14px}.topbar{height:52px}.brand{gap:9px}.brand-mark{font-size:23px}.brand strong{font-size:9px;letter-spacing:1.2px}.brand-sub{font-size:7px;letter-spacing:.5px}.header-right{gap:9px}.systems{gap:8px;padding-top:12px;padding-bottom:10px}.system-card{padding:10px 10px 8px}.card-heading{font-size:10px;gap:5px}.card-state{font-size:8px}.card-main{height:66px}.big-value b{font-size:27px}.big-value small{font-size:7px}.eyebrow{font-size:6px;letter-spacing:.6px}.tiny-stat b{font-size:12px}.tiny-stat span{font-size:7px}#objectCanvas{width:65px;height:55px}.card-meta{font-size:8px;gap:8px}.card-meta b{font-size:8px}.channel-caption{display:none}.spark{width:50px}.control-deck{padding-inline:14px}.keyboard{grid-template-columns:minmax(0,1fr) 158px;gap:12px}.typing-keys{gap:6px;padding:6px}.key-row{gap:4px}.key{font-size:11px}.key.small-label{font-size:8px}.monitor-keys{gap:6px;padding:6px}.special-key{gap:3px}.special-key strong{font-size:9px}.special-key small{font-size:6px}.special-key svg{width:14px;height:14px}.deck-model{display:none}.deck-footer{font-size:7px}.node-lights{gap:10px}.stream-toolbar{gap:8px}.table-head,.event-row{grid-template-columns:61px 52px 42px minmax(0,1fr);gap:8px}.event-row{font-size:10px;min-height:30px}.event-row time{font-size:9px}.event-source,.severity{font-size:9px}.footer-protocol{display:none}}
+@media(max-width:600px){.monitor{padding-inline:10px}.topbar{height:46px}.brand-sub{display:none}.brand-mark{font-size:22px}.brand strong{font-size:8px;letter-spacing:.7px}.header-right{gap:6px}#clock{font-size:9px;letter-spacing:0}.simulation{font-size:8px}.icon-button{padding:3px}.icon-button svg{width:15px;height:15px}.systems{gap:5px;padding-top:10px;padding-bottom:6px}.system-card{padding:8px 7px 6px;border-radius:4px}.card-icon{width:11px;height:11px}.card-heading{font-size:9px;gap:4px}.card-state{font-size:0;gap:0}.card-state i{width:4px;height:4px}.card-main{height:61px;gap:0}.eyebrow{font-size:5px;letter-spacing:.3px}.big-value{gap:3px}.big-value b{font-size:24px;letter-spacing:-1px}.big-value small{font-size:6px}.tiny-stat{display:none}#objectCanvas{position:absolute;right:0;top:22px;width:45px;height:50px;opacity:.26;pointer-events:none}.card-meta{gap:5px;font-size:7px;height:20px;padding-top:5px}.card-meta b{font-size:7px}.spark{width:34px;height:16px}.stream-toolbar{min-height:33px;gap:6px}.stream-label{font-size:9px}.stream-filters{gap:0}.stream-filters button{font-size:9px;padding:4px 7px}.stream-toolbar select{font-size:8px;padding:4px 3px;max-width:80px}.table-head,.event-row{grid-template-columns:48px 34px 33px minmax(0,1fr);gap:6px}.table-head{font-size:8px;height:21px}.event-row{font-size:10px;min-height:29px;padding-block:5px}.event-source{font-size:8px}.event-row time{font-size:8px;letter-spacing:-.4px}.severity{font-size:8px;gap:3px}.severity:before{width:3px;height:3px}.monitor-footer{font-size:8px;min-height:24px;gap:5px}.monitor-footer #screenStatus{font-size:6px;letter-spacing:0}.hinge{gap:12px}.hinge b{font-size:6px;letter-spacing:2px}.hinge span{width:30px}.control-deck{padding-inline:10px}.command-strip{margin-top:10px;min-height:36px;padding-inline:9px;gap:5px}.command-prompt{font-size:9px}.command-prompt b{padding-left:2px}.command-strip input{font-size:10px}.command-strip input::placeholder{font-size:8px}.command-mode{display:none}.deck-heading{min-height:31px;font-size:6px;letter-spacing:.6px}.deck-heading #actionStatus{font-size:8px;max-width:55%}.keyboard{grid-template-columns:minmax(0,1fr) 108px;gap:7px;max-height:340px}.typing-keys{gap:5px;padding:4px;border-radius:5px}.key-row{gap:3px}.key{font-size:10px;border-radius:3px;border-bottom-width:2px}.key.small-label{font-size:7px;letter-spacing:-.5px}.key .secondary{font-size:5px;left:3px;top:3px}.key-space{font-size:6px!important;letter-spacing:1.3px}.key.enter-key{font-size:8px}.monitor-keys{gap:5px;padding:4px;border-radius:5px}.special-key{border-bottom-width:2px;border-radius:3px;gap:3px}.special-key svg{width:14px;height:14px}.special-key strong{font-size:8px;letter-spacing:-.4px}.special-key small{font-size:5px;letter-spacing:.4px}.special-number{font-size:5px;top:3px;left:3px}.urgent-key{gap:5px}.deck-footer{font-size:6px;gap:5px;min-height:28px;letter-spacing:0}.deck-footer>span{font-size:5px;letter-spacing:.5px}.node-lights{gap:7px}.node-lights i{margin-right:3px}.deck-footer>button{font-size:8px;padding:3px 0}.deck-footer>button span{font-size:7px;margin-left:4px}.panel-dialog{padding:19px}.catalog-filters select{font-size:10px}.dialog-description{font-size:10px}.catalog-event{font-size:10px;gap:10px}}
+@media(max-width:390px){.header-right{gap:3px}.simulation{font-size:0}.simulation i{margin:0}.keyboard{grid-template-columns:minmax(0,1fr) 98px;gap:6px}.key{font-size:8px}.key.small-label{font-size:6px}.card-heading{font-size:8px}.big-value b{font-size:22px}.card-meta .spark{width:25px}.stream-filters button{padding-inline:5px}.event-source{font-size:7px}.deck-footer>span{display:none}}
+@media(max-height:750px){.topbar{height:44px}.systems{padding-top:8px;padding-bottom:5px}.system-card{padding-block:7px}.card-main{height:51px}.big-value b{font-size:24px}.card-meta{height:18px;padding-top:3px}.command-strip{margin-top:7px;min-height:32px}.deck-heading{min-height:26px}.deck-footer{min-height:23px}.keyboard{gap:10px}.typing-keys,.monitor-keys{gap:4px;padding:4px}.special-key{gap:2px}.special-key svg{width:12px;height:12px}.special-key small{font-size:5px}.table-head{height:19px}.event-row{min-height:27px}.monitor-footer{min-height:22px}.key .secondary{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.event-row.new-event{animation:arrive .45s ease-out}.key[aria-pressed=true]{color:#d2e0d8}
+
+  </style>
+</head>
+<body>
+<svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 9 5v8l-9 5-9-5V8l9-5Zm0 0v18M3 8l9 5 9-5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="4"/><path d="m10 9 5 3-5 3V9Z"/></symbol>
+  <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 10h6v4H9zM9 3v3m6-3v3M9 18v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-7 0v6"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m6 0h5v-5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3Zm5 3h4"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M5 12h3l2-4 4 8 2-4h3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/></symbol>
+  <symbol id="i-cycle" viewBox="0 0 24 24"><path d="M19 8a8 8 0 0 0-14-2L2 9m0-5v5h5m-2 7a8 8 0 0 0 14 2l3-3m0 5v-5h-5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6l8-3Zm0 5v5m0 3h.01"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h6l2 2 2-2h6v15h-6l-2 2-2-2H4V4Zm8 2v15"/></symbol>
+</svg>
+<main class="console" id="console">
+  <section class="monitor" aria-label="상단 가상 시스템 감시 화면">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">JJ<span>_</span></span><div><strong>STUDIO CONSOLE</strong><span class="brand-sub">PERSONAL OPERATIONS / 03</span></div></div>
+      <div class="header-right"><span class="simulation"><i></i> 가상 관제</span><time id="clock">00:00:00</time><button class="icon-button" id="catalogBtn" aria-label="420종 메시지 사전" title="메시지 사전"><svg><use href="#i-book"/></svg></button><button class="icon-button" id="fullBtn" aria-label="전체 화면" title="전체 화면"><svg><use href="#i-expand"/></svg></button><button class="icon-button" id="settingsBtn" aria-label="화면 설정" title="화면 설정"><svg><use href="#i-settings"/></svg></button></div>
+    </header>
+    <div class="systems" aria-label="세 시스템의 상태">
+      <button class="system-card" data-system="gen" aria-label="오브젝트 생성 시스템 이벤트 보기" aria-pressed="false">
+        <div class="card-heading"><svg class="card-icon"><use href="#i-box"/></svg><span>오브젝트 생성</span><span class="card-state" id="state-gen"><i></i>정상</span></div>
+        <div class="card-main"><div><span class="eyebrow">GENERATED OBJECTS</span><div class="big-value"><b id="genCount">3,842</b><small>OBJ</small></div></div><canvas id="objectCanvas" width="100" height="65" aria-label="회전하는 가상 와이어프레임 오브젝트"></canvas></div>
+        <div class="card-meta"><span>대기 <b id="genQueue">08</b></span><span><b id="genRate">42</b> / min</span><svg class="spark" id="spark-gen" viewBox="0 0 100 22" aria-label="생성 처리량 추이"></svg></div>
+      </button>
+      <button class="system-card" data-system="channel" aria-label="JJMarblocity 가상 채널 이벤트 보기" aria-pressed="false">
+        <div class="card-heading"><svg class="card-icon"><use href="#i-play"/></svg><span>JJMarblocity</span><span class="card-state" id="state-channel"><i></i>정상</span></div>
+        <div class="card-main"><div><span class="eyebrow">VIEWS · LAST 28 DAYS</span><div class="big-value"><b id="viewCount">12,806</b><small>VIEW</small></div></div><div class="tiny-stat"><b id="watchTime">249.0</b><span>시청시간 h</span></div></div>
+        <div class="card-meta"><span>업로드 <b id="uploadPct">68%</b></span><span class="channel-caption">MARBLE DYNAMICS</span><svg class="spark" id="spark-channel" viewBox="0 0 100 22" aria-label="가상 조회수 추이"></svg></div>
+      </button>
+      <button class="system-card" data-system="edit" aria-label="가상 영상편집 PC 이벤트 보기" aria-pressed="false">
+        <div class="card-heading"><svg class="card-icon"><use href="#i-chip"/></svg><span>영상편집 PC</span><span class="card-state" id="state-edit"><i></i>정상</span></div>
+        <div class="card-main"><div><span class="eyebrow">RENDER PROGRESS</span><div class="big-value"><b id="renderPct">42.8</b><small>%</small></div></div><div class="tiny-stat"><b id="gpuTemp">64°</b><span>GPU TEMP</span></div></div>
+        <div class="card-meta"><span>CPU <b id="cpuPct">48%</b></span><span>RAM <b id="ramUsed">21.4</b> G</span><svg class="spark" id="spark-edit" viewBox="0 0 100 22" aria-label="가상 편집 PC 부하 추이"></svg></div>
+      </button>
+    </div>
+    <div class="stream-toolbar"><div class="stream-label"><i id="liveDot"></i><span id="streamTitle">이벤트 스트림</span></div><div class="stream-filters" role="group" aria-label="시스템 필터"><button data-filter="all" class="active" aria-pressed="true">전체</button><button data-filter="gen" aria-pressed="false">생성</button><button data-filter="channel" aria-pressed="false">채널</button><button data-filter="edit" aria-pressed="false">편집</button></div><select id="levelFilter" aria-label="메시지 등급 필터"><option value="all">모든 등급</option><option value="urgent">긴급 · 심각</option><option value="0">긴급</option><option value="1">심각</option><option value="2">오류</option><option value="3">경고</option><option value="4">주의</option><option value="5">정보</option><option value="6">통지</option></select></div>
+    <div class="event-table" role="region" aria-label="가상 이벤트 로그" tabindex="0"><div class="table-head"><span>시각</span><span>시스템</span><span>등급</span><span>메시지</span></div><div id="eventRows" role="group" aria-label="이벤트 목록"></div><div class="empty-state" id="emptyState" hidden>이 조건에 해당하는 이벤트를 기다리고 있습니다.</div></div>
+    <footer class="monitor-footer"><span><span id="pendingCount">0</span> 미확인 <span class="footer-sep">/</span> <span id="eventCount">0</span> 수신</span><span id="screenStatus">LOCAL SIMULATION · 실제 시스템 연결 없음</span><span class="footer-protocol">JJ / OP–01</span></footer>
+  </section>
+  <div class="hinge" aria-hidden="true"><span></span><b>FOLD LINE</b><span></span></div>
+  <section class="control-deck" aria-label="하단 관제 전용 키보드">
+    <div class="command-strip"><span class="command-prompt">jj@studio <b>›</b></span><input readonly inputmode="none" id="commandInput" autocomplete="off" aria-label="전용 키보드 명령 입력" placeholder="help 를 입력하거나 오른쪽 관제키를 누르세요"><span class="cursor-block" aria-hidden="true"></span><span class="command-mode" id="commandMode">READY</span><button id="helpBtn" title="명령어 도움말" aria-label="명령어 도움말">?</button></div>
+    <div class="deck-heading"><span><i></i> OPERATOR KEYBOARD</span><span id="actionStatus" role="status" aria-live="polite">관제 준비 완료</span><span class="deck-model">DUO / K–07</span></div>
+    <div class="keyboard" id="keyboard">
+      <div class="typing-keys" id="typingKeys" aria-label="영문 키보드"></div>
+      <div class="monitor-keys" aria-label="7개의 시스템 감시 전용 키">
+        <button class="special-key urgent-key" data-action="urgent" aria-pressed="false"><span class="special-number">01</span><svg><use href="#i-shield"/></svg><strong>긴급 집중</strong><small>PRIORITY</small></button>
+        <button class="special-key" data-action="ack"><span class="special-number">02</span><svg><use href="#i-check"/></svg><strong>수신 확인</strong><small>ACK</small></button>
+        <button class="special-key" data-action="scan"><span class="special-number">03</span><svg><use href="#i-scan"/></svg><strong>정밀 진단</strong><small>DIAG</small></button>
+        <button class="special-key" data-action="pause" aria-pressed="false"><span class="special-number">04</span><svg><use href="#i-pause"/></svg><strong>수신 정지</strong><small>HOLD</small></button>
+        <button class="special-key" data-action="export"><span class="special-number">05</span><svg><use href="#i-save"/></svg><strong>로그 저장</strong><small>EXPORT</small></button>
+        <button class="special-key" data-action="sound" aria-pressed="false"><span class="special-number">06</span><svg><use href="#i-bell"/></svg><strong>경보음 꺼짐</strong><small>AUDIO OFF</small></button>
+        <button class="special-key" data-action="cycle"><span class="special-number">07</span><svg><use href="#i-cycle"/></svg><strong>시스템 전환</strong><small>SELECT</small></button>
+      </div>
+    </div>
+    <div class="deck-footer"><div class="node-lights"><span><i></i>GEN</span><span><i></i>CHANNEL</span><span><i></i>EDIT</span></div><span>7 LEVELS <b>·</b> 420 MESSAGES</span><button id="foldBtn" title="화면 분할 조절">화면 분할 <span id="splitLabel">50 : 50</span></button></div>
+  </section>
+</main>
+<dialog id="settingsDialog" class="panel-dialog settings-dialog" aria-labelledby="settingsTitle">
+  <div class="dialog-heading"><div><span class="eyebrow">DISPLAY & SIMULATION</span><h2 id="settingsTitle">관제 설정</h2></div><button class="close-dialog" aria-label="설정 닫기">×</button></div>
+  <label class="setting-line" for="splitRange"><span>접히는 위치 <small>중앙 여백을 화면의 접힘선에 맞추세요</small></span><output id="splitOutput">50%</output></label><input type="range" id="splitRange" min="38" max="62" value="50" aria-label="윗화면 비율">
+  <div class="split-preview"><span>시스템 감시</span><i></i><span>전용 키보드</span></div>
+  <label class="setting-line" for="speedSelect"><span>이벤트 수신 속도</span><select id="speedSelect"><option value="slow">여유롭게 · 약 6초</option><option value="normal" selected>기본 · 약 3초</option><option value="fast">분주하게 · 약 1초</option></select></label>
+  <label class="setting-line" for="motionToggle"><span>오브젝트 애니메이션</span><input type="checkbox" id="motionToggle" checked></label>
+  <label class="setting-line" for="hapticToggle"><span>키 입력 진동 <small>지원하는 기기에서 작동합니다</small></span><input type="checkbox" id="hapticToggle" checked></label>
+  <div class="simulation-note">이 단말의 수치와 메시지는 모두 가상입니다. YouTube나 PC에 접속하지 않으며, 명령은 이 화면 안에서만 작동합니다.</div>
+  <button class="text-button" id="resetLayout">화면 비율 초기화</button>
+</dialog>
+<dialog id="catalogDialog" class="panel-dialog catalog-dialog" aria-labelledby="catalogTitle">
+  <div class="dialog-heading"><div><span class="eyebrow">EVENT DICTIONARY / 420</span><h2 id="catalogTitle">메시지 사전</h2></div><button class="close-dialog" aria-label="메시지 사전 닫기">×</button></div>
+  <p class="dialog-description">세 시스템 × 7등급 × 20종. 메시지를 누르면 가상 이벤트를 발생시킵니다.</p>
+  <div class="catalog-filters"><select id="catalogSystem" aria-label="메시지 사전 시스템"><option value="gen">오브젝트 생성</option><option value="channel">JJMarblocity</option><option value="edit">영상편집 PC</option></select><select id="catalogLevel" aria-label="메시지 사전 등급"></select><span id="catalogCount">20종</span></div>
+  <div id="levelLegend" class="level-legend"></div><div id="catalogRows" class="catalog-rows"></div>
+</dialog>
+<dialog id="helpDialog" class="panel-dialog help-dialog" aria-labelledby="helpTitle"><div class="dialog-heading"><div><span class="eyebrow">OPERATOR REFERENCE</span><h2 id="helpTitle">관제 명령어</h2></div><button class="close-dialog" aria-label="도움말 닫기">×</button></div><p class="dialog-description">아래 키보드나 실제 키보드로 입력한 뒤 Enter. 명령을 눌러도 실행됩니다.</p><div id="helpCommands" class="help-commands"></div><p class="help-footnote">이벤트 행을 누르면 선택됩니다. 수신 확인은 선택한 이벤트에, 선택이 없으면 현재 필터의 미확인 이벤트 전체에 적용됩니다. 긴급 집중은 긴급·심각 등급만 표시합니다.</p></dialog>
+<script>
+/* Each system has 7 severity levels × 20 authored event definitions. */
+window.CONSOLE_EVENTS = {
+  gen: [
+    [
+      '생성 코어 응답 중단. 모든 오브젝트 출력을 차단했습니다.',
+      '장면 메모리 손상 감지. 현재 시뮬레이션을 격리했습니다.',
+      '생성 노드 전체 연결 끊김. 대기열을 보호 모드로 전환했습니다.',
+      '좌표 계산값이 유효 범위를 이탈했습니다. 배치를 즉시 중단합니다.',
+      '충돌 계산 무한 반복 감지. 물리 엔진 비상 정지.',
+      '원본 프리셋 무결성 검증 실패. 자동 덮어쓰기를 차단했습니다.',
+      '작업 저장소 접근 불가. 미저장 오브젝트를 메모리에 보존합니다.',
+      '지오메트리 버퍼 한계 초과. 새 작업을 수신하지 않습니다.',
+      '마스터 시드 동기화 실패. 재현 불가능한 배치를 격리했습니다.',
+      '모든 렌더 워커가 정지했습니다. 마지막 정상 장면을 유지합니다.',
+      '출력 경로 쓰기 잠금 상실. 생성 파일 전송을 차단했습니다.',
+      '의존성 그래프 순환 폭주. 전체 파이프라인을 정지했습니다.',
+      '오브젝트 ID 중복 폭증. 현재 배치의 등록을 취소했습니다.',
+      '중력 필드 계산 발산. 물리 월드를 비상 동결했습니다.',
+      '스냅샷 복구 지점이 손상되었습니다. 현재 세션을 보호합니다.',
+      '분산 생성 결과 불일치. 모든 노드의 출력을 격리했습니다.',
+      '메시 할당자 장애. 진행 중인 조립 작업을 긴급 중단합니다.',
+      '좌표계 변환 행렬 손상. 장면 게시를 차단했습니다.',
+      '생성 서비스 하트비트 전체 소실. 수동 점검이 필요합니다.',
+      '검증되지 않은 결과가 출력 버퍼에 진입했습니다. 비상 격리 완료.'
+    ],
+    [
+      '주 생성 노드가 오프라인입니다. 예비 노드로 전환합니다.',
+      '메시 생성 실패율이 35%를 넘었습니다. 배치를 보류합니다.',
+      '오브젝트 저장소 여유 공간이 2% 미만입니다.',
+      '물리 검증 워커 3개가 연속 종료되었습니다.',
+      '장면 복구가 두 차례 실패했습니다. 자동 복구를 대기합니다.',
+      '텍스처 풀 고갈 임박. 고해상도 생성을 보류했습니다.',
+      '생성 대기열 잠금 충돌이 해소되지 않고 있습니다.',
+      '충돌체 변환 결과의 절반 이상이 유효하지 않습니다.',
+      '작업 분배기의 소유권을 확인할 수 없습니다.',
+      '스냅샷 기록이 10분 동안 중단되었습니다.',
+      '예비 노드까지 메모리 압박 상태에 진입했습니다.',
+      '출력 검증 서비스가 응답하지 않아 게시가 대기 중입니다.',
+      '오브젝트 참조 유실로 장면 의존성이 끊어졌습니다.',
+      '프리셋 레지스트리 버전 불일치. 신규 조립이 불가능합니다.',
+      '물리 월드의 시간 동기화가 지속적으로 실패합니다.',
+      '배치 체크포인트가 기록되지 않았습니다. 재시작을 보류합니다.',
+      'GPU 생성 워커의 장치 복구가 실패했습니다.',
+      '필수 머티리얼 묶음이 손상되었습니다. 작업을 격리합니다.',
+      '생성 결과 전송 재시도 한도를 초과했습니다.',
+      '장면 병합 과정에서 원본 참조를 복구하지 못했습니다.'
+    ],
+    [
+      '오브젝트 {object}의 메시 생성에 실패했습니다.',
+      '프리셋을 해석하지 못했습니다. 해당 작업만 건너뜁니다.',
+      '텍스처 디코딩 오류. 기본 머티리얼로 대체했습니다.',
+      '충돌체 구성 실패. 오브젝트를 검수 대기열에 넣었습니다.',
+      '배치 파일 저장 실패. 임시 보관함에 기록했습니다.',
+      '장면 그래프에 존재하지 않는 부모 노드가 지정되었습니다.',
+      '버텍스 인덱스가 경계를 벗어나 해당 메시를 제외했습니다.',
+      '물리 속성에 음수 질량이 입력되어 요청을 거부했습니다.',
+      '시드 형식이 잘못되었습니다. 작업을 다시 요청해야 합니다.',
+      'LOD 단계 변환 오류. 원본 메시를 유지합니다.',
+      '출력 파일 체크섬이 일치하지 않습니다. 재전송합니다.',
+      '애니메이션 키프레임 시간이 역전되어 적용하지 못했습니다.',
+      '워커 {node} 작업 시간 초과. 다른 워커에 재할당합니다.',
+      '법선 벡터 계산 실패. 자동 보정을 예약했습니다.',
+      '프리팹 연결 대상을 찾지 못해 인스턴스 생성을 취소했습니다.',
+      '메시 압축 작업이 실패했습니다. 비압축 사본을 보존합니다.',
+      'UV 좌표에 유효하지 않은 값이 있어 텍스처링을 건너뜁니다.',
+      '이벤트 훅 실행 오류. 후처리를 다시 시도합니다.',
+      '중복된 오브젝트 키로 등록이 거부되었습니다.',
+      '배치 결과의 스키마 검증 실패. 게시를 보류합니다.'
+    ],
+    [
+      '생성 대기열이 {queue}건입니다. 처리 지연이 예상됩니다.',
+      '워커 {node} 응답 지연. 작업량을 분산합니다.',
+      '지오메트리 캐시 적중률이 평소보다 낮습니다.',
+      '충돌체 수가 권장 한도에 근접했습니다.',
+      '생성 프레임 시간이 24ms를 초과했습니다.',
+      '텍스처 메모리가 85%를 사용 중입니다.',
+      '오브젝트 {object}에 겹친 면이 발견되었습니다.',
+      '물리 서브스텝이 부족해 정밀 모드를 권장합니다.',
+      '저장소 응답이 느립니다. 로컬 버퍼를 사용합니다.',
+      '일부 프리셋이 이전 스키마로 작성되어 있습니다.',
+      '폴리곤 예산 초과 예상. 세부 단계 축소를 예약했습니다.',
+      '생성 속도가 최근 평균 대비 20% 감소했습니다.',
+      '배치 간 시드 간격이 좁아 유사 결과가 예상됩니다.',
+      '메시 병합 시간이 기준보다 길어지고 있습니다.',
+      '워커 간 결과 편차가 허용 한도에 근접했습니다.',
+      '장면 외곽에 경계 밖 오브젝트가 감지되었습니다.',
+      '분할 생성 중 작은 파편 메시가 증가하고 있습니다.',
+      '프레임 간 속도 변화가 커 충돌 누락 가능성이 있습니다.',
+      '검수 대기 파일이 쌓이고 있습니다. 자동 게시를 늦춥니다.',
+      '동시 출력 요청이 많아 전송 대역폭을 제한했습니다.'
+    ],
+    [
+      '오브젝트 {object}의 원점이 중심에서 벗어나 있습니다.',
+      '장면에 사용하지 않는 머티리얼 4개가 남아 있습니다.',
+      '임시 생성 파일 정리 시점이 다가왔습니다.',
+      '다음 배치의 예상 처리량이 현재보다 많습니다.',
+      '난수 시드를 고정한 상태로 생성 중입니다.',
+      '작은 충돌체 일부가 단순 도형으로 대체되었습니다.',
+      'LOD 자동 선택으로 미리보기 세부 단계가 낮아졌습니다.',
+      '출력 이름에 공백이 있어 표준 형식으로 변경했습니다.',
+      '최근 장면에 동일 프리셋 사용 빈도가 높습니다.',
+      '생성 워커 한 대가 예약 점검을 앞두고 있습니다.',
+      '텍스처 해상도가 미리보기 권장값보다 높습니다.',
+      '일부 오브젝트에 기본 마찰 계수가 사용되었습니다.',
+      '조립 결과 중 비활성 노드 6개를 발견했습니다.',
+      '다음 체크포인트까지 임시 메모리를 유지합니다.',
+      '장면 이름이 이전 출력과 유사합니다. 구분자를 추가했습니다.',
+      '미리보기 카메라 시야 밖에 생성 결과가 있습니다.',
+      '출력 대기 오브젝트의 수명이 설정값에 근접했습니다.',
+      '배치 종료 후 캐시 정리를 수행할 예정입니다.',
+      '생성 요청의 선택적 태그가 비어 있습니다.',
+      '프리셋 설명과 실제 크기 단위가 다릅니다.'
+    ],
+    [
+      '새 생성 배치를 시작했습니다. 시드 {seed}.',
+      '워커 {node}에 작업을 할당했습니다.',
+      '오브젝트 {object}의 메시 조립을 시작합니다.',
+      '충돌체 검증이 진행 중입니다.',
+      '텍스처 캐시를 불러왔습니다.',
+      '장면 그래프를 병합하고 있습니다.',
+      '생성 대기열을 우선순위 순으로 재정렬했습니다.',
+      '폴리곤 예산을 현재 장면에 맞춰 갱신했습니다.',
+      '시뮬레이션 시간 간격을 1/120초로 설정했습니다.',
+      '새 오브젝트의 질량 중심을 계산했습니다.',
+      '프리셋 레지스트리 동기화를 시작했습니다.',
+      '다음 배치에 사용할 머티리얼을 준비합니다.',
+      '생성 워커 부하를 균등하게 배분했습니다.',
+      '중간 장면 스냅샷을 기록하고 있습니다.',
+      '출력 전 지오메트리 검사를 수행합니다.',
+      '물리 월드에 새 충돌 그룹을 등록했습니다.',
+      '오브젝트 미리보기 회전을 시작했습니다.',
+      '빈 슬롯에 재시도 작업을 배정했습니다.',
+      '메시 경량화 작업을 백그라운드에서 실행합니다.',
+      '배치 {batch}의 후처리 단계로 이동했습니다.'
+    ],
+    [
+      '오브젝트 {object} 생성 완료. 검증을 통과했습니다.',
+      '배치 {batch}의 모든 결과를 저장했습니다.',
+      '생성 워커 {node}의 상태가 정상입니다.',
+      '새 프리셋 묶음을 정상적으로 등록했습니다.',
+      '장면 스냅샷 기록 완료.',
+      '충돌체 검사 완료. 겹침이 없습니다.',
+      '텍스처 패킹을 완료했습니다.',
+      '메시 최적화 완료. 출력 크기를 줄였습니다.',
+      '물리 월드의 안정성 검증을 통과했습니다.',
+      '생성 대기열이 모두 처리되었습니다.',
+      '오브젝트 저장소 연결이 정상입니다.',
+      '임시 파일 정리를 완료했습니다.',
+      '출력 체크섬 검증을 통과했습니다.',
+      '프리셋 동기화가 완료되었습니다.',
+      '노드 간 시드 일치 검사를 통과했습니다.',
+      '예비 생성 노드의 준비가 완료되었습니다.',
+      'LOD 변환 결과를 정상적으로 저장했습니다.',
+      '머티리얼 참조 검사를 통과했습니다.',
+      '생성 결과가 미리보기 장면에 반영되었습니다.',
+      '정기 상태 점검 완료. 생성 시스템이 정상입니다.'
+    ]
+  ],
+  channel: [
+    [
+      '채널 접근 토큰 검증 실패. 모든 관리 작업을 중단했습니다.',
+      '예약 공개 대상과 업로드 파일이 다릅니다. 공개를 차단했습니다.',
+      '채널 소유권 응답을 확인할 수 없습니다. 연결을 격리합니다.',
+      '공개 전 최종 파일이 손상되었습니다. 예약을 긴급 보류합니다.',
+      '가상 스트림 송출이 완전히 끊겼습니다. 비상 대기 화면으로 전환.',
+      '관리 명령 서명 불일치. 자동 작업 실행을 차단했습니다.',
+      '업로드 마스터 파일이 유실되었습니다. 원본 복구가 필요합니다.',
+      '연속 업로드 요청이 비정상 증가해 전체 전송을 차단했습니다.',
+      '콘텐츠와 메타데이터 연결이 손상되었습니다. 게시를 동결합니다.',
+      '채널 동기화 과정에서 삭제 명령 충돌. 변경을 모두 보류합니다.',
+      '예정 영상의 오디오 트랙이 비어 있습니다. 공개를 중단했습니다.',
+      '계정 연결 인증서가 무효합니다. 관제 연결을 긴급 종료합니다.',
+      '중복 게시가 반복 감지되었습니다. 발행 큐를 비상 정지합니다.',
+      '라이브 인코더와 백업 송출기가 모두 응답하지 않습니다.',
+      '게시 데이터 무결성 검증 실패. 마지막 정상 상태를 보존합니다.',
+      '채널 설정 일괄 변경 요청이 충돌했습니다. 쓰기 작업을 차단합니다.',
+      '잘못된 원본 해시가 등록되었습니다. 업로드 전체를 격리합니다.',
+      '예약 작업의 시간 기준이 손상되어 자동 공개를 정지했습니다.',
+      '가상 송출 키 유효성 상실. 송출 프로세스를 보호 종료합니다.',
+      '분석 데이터 복구 중 원본 불일치. 자동 반영을 긴급 중단합니다.'
+    ],
+    [
+      '업로드 재개 지점을 복구하지 못했습니다.',
+      '예약 공개까지 남은 시간이 처리 예상 시간보다 짧습니다.',
+      '고해상도 변환 작업이 연속 실패했습니다.',
+      '채널 연동 인증이 만료되어 갱신이 필요합니다.',
+      '썸네일과 영상 연결 정보가 일치하지 않습니다.',
+      '업로드 큐의 마스터 파일을 읽을 수 없습니다.',
+      '동영상 처리 상태가 장시간 정지되어 있습니다.',
+      '채널 동기화가 30분 이상 중단되었습니다.',
+      '가상 라이브 스트림 프레임 손실이 25%를 넘었습니다.',
+      '예약 영상의 필수 메타데이터가 유실되었습니다.',
+      '분석 집계 스냅샷을 복원하지 못했습니다.',
+      '댓글 수집 워커가 모두 재시도 한도에 도달했습니다.',
+      '백업 전송 경로가 오프라인입니다.',
+      '콘텐츠 식별자 중복으로 게시 대기열이 잠겼습니다.',
+      '영상 길이와 업로드 명세가 크게 다릅니다.',
+      '공개 설정 동기화 결과를 확인할 수 없습니다.',
+      '장시간 음성 공백이 검출되어 검수를 대기합니다.',
+      '가상 채널 API의 요청 한도가 소진되었습니다.',
+      '최종 화질 검증에서 프레임 손상 비율을 초과했습니다.',
+      '원본과 업로드 사본의 오디오 길이가 일치하지 않습니다.'
+    ],
+    [
+      '영상 {video} 업로드에 실패했습니다. 재시도를 예약합니다.',
+      '썸네일 파일 형식을 해석할 수 없습니다.',
+      '분석 데이터 요청 시간이 초과되었습니다.',
+      '예약 공개 시각이 유효하지 않습니다.',
+      '재생목록 항목 추가에 실패했습니다.',
+      '자막 파일의 타임코드 구문에 오류가 있습니다.',
+      '제목 길이가 허용 범위를 벗어났습니다.',
+      '영상 설명 저장 요청이 거부되었습니다.',
+      '댓글 수집 페이지를 읽지 못했습니다.',
+      '업로드 청크 {chunk}의 체크섬이 일치하지 않습니다.',
+      '오디오 처리 작업이 오류로 종료되었습니다.',
+      '채널 배너 미리보기 생성에 실패했습니다.',
+      '분석 보고서의 필수 열이 누락되었습니다.',
+      '동영상 식별자를 조회할 수 없습니다.',
+      '썸네일 크기가 업로드 요구 조건에 맞지 않습니다.',
+      '자막 언어 코드가 지원되지 않습니다.',
+      '통계 캐시 갱신 중 충돌이 발생했습니다.',
+      '재생목록 순서 저장에 실패했습니다.',
+      '예약 작업 응답이 누락되어 상태를 다시 확인합니다.',
+      '영상 검수 결과를 저장하지 못했습니다.'
+    ],
+    [
+      '업로드 전송 속도가 최근 평균보다 낮습니다.',
+      '고해상도 처리 시간이 예상보다 길어지고 있습니다.',
+      '예약 영상의 썸네일이 아직 지정되지 않았습니다.',
+      '이전 영상과 제목이 매우 유사합니다.',
+      '실시간 통계 집계가 지연되고 있습니다.',
+      '가상 API 요청 한도의 85%를 사용했습니다.',
+      '오디오 피크가 권장 범위에 근접했습니다.',
+      '자막 일부가 영상 종료 시각을 넘어갑니다.',
+      '영상 시작 구간에 검은 프레임이 감지되었습니다.',
+      '업로드 대기열이 5개를 넘었습니다.',
+      '가상 라이브의 비트레이트가 불안정합니다.',
+      '설명에 등록된 참조 링크가 응답하지 않습니다.',
+      '썸네일의 작은 글자는 축소 시 읽기 어려울 수 있습니다.',
+      '예약 공개 시각과 로컬 시간대가 다릅니다.',
+      '동일 영상의 업로드 재시도가 반복되고 있습니다.',
+      '분석 지표의 일부 구간이 아직 집계되지 않았습니다.',
+      '영상 중간에 프레임 중복이 감지되었습니다.',
+      '배경 음악 음량이 장면별로 크게 달라집니다.',
+      '최종 검수 체크포인트가 완료되지 않았습니다.',
+      '공개 예정 영상의 종료 화면이 누락되었습니다.'
+    ],
+    [
+      '새 영상에 재생목록이 아직 지정되지 않았습니다.',
+      '설명 마지막 줄의 해시태그를 확인해 주세요.',
+      '신규 시청자 비율이 최근 기준선보다 높습니다.',
+      '모바일 시청 비중이 증가하고 있습니다.',
+      '시청시간에는 집계 지연이 포함될 수 있습니다.',
+      '제목의 팀 색상 순서가 썸네일과 다릅니다.',
+      '미완성 자막 초안이 남아 있습니다.',
+      '업로드 원본에 선택적 챕터 정보가 없습니다.',
+      '예약 영상의 고정 댓글 초안이 비어 있습니다.',
+      '최근 영상의 첫 30초 구간을 검토할 수 있습니다.',
+      '가상 분석 표본 수가 아직 적습니다.',
+      '썸네일 대체 시안이 2개 보관되어 있습니다.',
+      '영상의 언어 설정이 자동 감지로 되어 있습니다.',
+      '재생목록 설명이 최근 영상 주제와 다릅니다.',
+      '지난 업로드의 임시 파일이 남아 있습니다.',
+      '기본 설명 템플릿에 빈 항목이 있습니다.',
+      '가상 통계의 시간 기준을 한국 시간으로 표시합니다.',
+      '이전 초안의 태그가 일부 남아 있습니다.',
+      '게시 대기 영상의 섬네일 검수 시점이 다가왔습니다.',
+      '영상 설명에 제작 도구 정보를 추가할 수 있습니다.'
+    ],
+    [
+      'JJMarblocity 가상 채널의 통계를 동기화합니다.',
+      '영상 {video}의 업로드를 시작했습니다.',
+      '새 시청시간 집계 구간을 불러왔습니다.',
+      '실시간 조회 추세를 갱신했습니다.',
+      '고해상도 동영상 처리가 진행 중입니다.',
+      '썸네일 후보를 미리보기 캐시에 불러왔습니다.',
+      '업로드 전 오디오 레벨 검사를 시작합니다.',
+      '예약 공개 대기열을 조회했습니다.',
+      '재생목록 순서를 읽어 왔습니다.',
+      '자막 타임라인을 정렬하고 있습니다.',
+      '영상 설명 템플릿을 적용했습니다.',
+      '새 댓글 집계 구간을 확인했습니다.',
+      '영상 메타데이터를 검수하고 있습니다.',
+      '업로드 청크 {chunk} 전송 중입니다.',
+      '채널 분석의 최근 48시간 구간을 갱신했습니다.',
+      '게시 전 파일 무결성 검사를 시작합니다.',
+      '시청 유지율의 가상 표본을 수집했습니다.',
+      '동영상 목록 캐시를 새로 불러왔습니다.',
+      '종료 화면 배치 정보를 확인했습니다.',
+      '다음 영상의 예약 설정을 읽었습니다.'
+    ],
+    [
+      '영상 {video} 업로드 완료.',
+      '썸네일 적용이 완료되었습니다.',
+      '채널 통계 동기화가 완료되었습니다.',
+      '고해상도 동영상 처리가 완료되었습니다.',
+      '자막 타임코드 검사를 통과했습니다.',
+      '영상 설명이 정상적으로 저장되었습니다.',
+      '예약 공개 설정을 확인했습니다.',
+      '재생목록 갱신이 완료되었습니다.',
+      '새 시청시간 구간이 반영되었습니다.',
+      '업로드 사본의 무결성 검사를 통과했습니다.',
+      '최종 오디오 레벨 검사를 통과했습니다.',
+      '가상 채널 연결이 정상입니다.',
+      '댓글 집계가 완료되었습니다.',
+      '영상 검수 체크포인트를 저장했습니다.',
+      '업로드 임시 파일을 정리했습니다.',
+      '종료 화면 설정을 저장했습니다.',
+      '분석 스냅샷을 정상적으로 기록했습니다.',
+      '새 썸네일 미리보기가 준비되었습니다.',
+      '중복 업로드 검사를 통과했습니다.',
+      '정기 점검 완료. 채널 모니터가 정상입니다.'
+    ]
+  ],
+  edit: [
+    [
+      '편집 워크스테이션 응답 중단. 마지막 자동 저장본을 보호합니다.',
+      'GPU 온도 비상 한계 도달. 렌더 작업을 즉시 중단합니다.',
+      '프로젝트 볼륨 연결이 끊겼습니다. 모든 쓰기를 차단했습니다.',
+      '전원 유지 시간이 부족합니다. 작업을 긴급 저장합니다.',
+      '프로젝트 파일 손상 감지. 원본 덮어쓰기를 금지합니다.',
+      '시스템 메모리 할당 실패. 렌더 파이프라인을 비상 정지합니다.',
+      '출력 디스크 I/O 장애. 인코딩 결과를 격리했습니다.',
+      '냉각 팬 전체 회전 신호 소실. 계산 부하를 차단합니다.',
+      '미디어 RAID의 복수 볼륨이 오프라인입니다.',
+      '작업 시간선 데이터 불일치. 프로젝트를 보호 모드로 전환합니다.',
+      '인코더 프로세스가 반복 충돌합니다. 자동 재시작을 중단합니다.',
+      '스토리지 쓰기 오류가 급증했습니다. 캐시 출력을 동결합니다.',
+      '운영체제 하트비트 소실. 원격 명령을 보류합니다.',
+      '자동 저장본과 원본 모두 검증에 실패했습니다.',
+      '비정상 전압 감지. 가상 전원 보호 절차를 시작합니다.',
+      '출력 파일의 프레임 순서가 손상되었습니다. 납품을 차단합니다.',
+      '미디어 참조 전체 유실. 현재 프로젝트를 비상 격리합니다.',
+      'CPU 열 보호 신호가 발생했습니다. 렌더 작업을 종료합니다.',
+      '작업 디스크 파일 시스템 오류. 새 출력을 금지합니다.',
+      '백업 스냅샷 복구 중 손상 확산 감지. 자동 복구를 정지합니다.'
+    ],
+    [
+      'GPU 장치가 분리되었습니다. 소프트웨어 렌더를 대기합니다.',
+      '시스템 메모리 사용량이 97%를 넘었습니다.',
+      '출력 디스크 여유 공간이 예상 결과물보다 작습니다.',
+      '자동 저장이 연속 5회 실패했습니다.',
+      'CPU가 장시간 열 제한 상태에 머물러 있습니다.',
+      '렌더 원본 미디어의 절반 이상을 찾을 수 없습니다.',
+      '인코더 복구 재시도 한도에 도달했습니다.',
+      '미디어 캐시 데이터베이스를 열지 못했습니다.',
+      '필수 효과 플러그인이 로드되지 않았습니다.',
+      '프로젝트 백업 볼륨이 오프라인입니다.',
+      '출력 파일 검증에서 다수의 손상 프레임이 발견되었습니다.',
+      '오디오 장치 응답이 장시간 끊겼습니다.',
+      '인코딩 큐 잠금을 해제하지 못했습니다.',
+      '외장 스토리지 연결이 반복적으로 끊어집니다.',
+      '작업 디스크의 쓰기 지연이 임계값을 초과했습니다.',
+      '필수 색상 프로파일이 손상되었습니다.',
+      '최종 렌더의 오디오 스트림을 생성하지 못했습니다.',
+      '가상 UPS가 배터리 보호 상태로 전환되었습니다.',
+      '프로젝트 시간 기준을 복구하지 못했습니다.',
+      '렌더 노드의 세션 인증이 만료되었습니다.'
+    ],
+    [
+      '프레임 {frame} 렌더링에 실패했습니다. 재시도합니다.',
+      '원본 클립을 찾을 수 없습니다. 대체 미디어를 대기합니다.',
+      '효과 플러그인 초기화에 실패했습니다.',
+      '오디오 샘플 변환 중 오류가 발생했습니다.',
+      '출력 경로에 쓰기 권한이 없습니다.',
+      'GPU 메모리 할당 실패. 해당 프레임을 보류합니다.',
+      '프록시 파일을 읽지 못했습니다. 원본으로 전환합니다.',
+      '색상 변환 테이블을 불러올 수 없습니다.',
+      '타임라인 참조 클립 ID가 일치하지 않습니다.',
+      '인코딩 청크 병합에 실패했습니다.',
+      '오디오 파형 캐시 생성 중 오류가 발생했습니다.',
+      '출력 코덱 초기화 요청이 거부되었습니다.',
+      '렌더 임시 파일의 체크섬이 다릅니다.',
+      '자막 렌더링에 필요한 글꼴을 찾지 못했습니다.',
+      '외부 미디어의 읽기 요청이 시간 초과되었습니다.',
+      '멀티캠 동기화 기준점을 찾지 못했습니다.',
+      '프레임 보간 작업이 오류로 종료되었습니다.',
+      '내보내기 프리셋의 매개변수가 유효하지 않습니다.',
+      '자동 저장 파일 이름 충돌. 새 경로에 재시도합니다.',
+      '완료된 렌더 파일의 길이 검증이 실패했습니다.'
+    ],
+    [
+      'GPU 온도가 {temp}°C입니다. 냉각 상태를 관찰합니다.',
+      '메모리 사용량이 85%에 근접했습니다.',
+      '렌더 속도가 실시간 재생 속도보다 낮습니다.',
+      '출력 디스크 여유 공간이 15% 미만입니다.',
+      '원본 클립의 프레임레이트가 타임라인과 다릅니다.',
+      '오디오 피크 클리핑이 감지되었습니다.',
+      '미디어 캐시 크기가 권장 한도를 넘었습니다.',
+      'GPU 부하가 장시간 95% 이상입니다.',
+      '인코더 입력 버퍼가 부족합니다.',
+      '백그라운드 작업이 편집 성능에 영향을 주고 있습니다.',
+      '렌더 예상 완료 시각이 지연되고 있습니다.',
+      '일부 클립에 색상 공간 정보가 없습니다.',
+      '내보내기 비트레이트가 원본보다 크게 높습니다.',
+      '외장 디스크 전송 속도가 불안정합니다.',
+      '타임라인 시작 부분에 짧은 빈 구간이 있습니다.',
+      '효과 플러그인의 처리 지연이 증가했습니다.',
+      '자동 저장 간격이 권장값보다 깁니다.',
+      '디코더가 일부 프레임을 건너뛰었습니다.',
+      '출력 해상도와 시퀀스 해상도가 다릅니다.',
+      '렌더 큐의 동시 작업 수가 권장값을 초과했습니다.'
+    ],
+    [
+      '프록시 대신 원본 미디어로 미리보기 중입니다.',
+      '사용하지 않는 렌더 캐시가 남아 있습니다.',
+      '프로젝트에 연결되지 않은 미디어가 3개 있습니다.',
+      '색상 관리가 자동 감지 모드로 설정되어 있습니다.',
+      '최근 자동 저장 후 3분이 지났습니다.',
+      '타임라인에 비활성 오디오 트랙이 남아 있습니다.',
+      '다음 렌더 작업의 예상 크기가 큽니다.',
+      '편집 미리보기 품질을 절반으로 설정했습니다.',
+      '미디어 파일의 이름이 프로젝트 내부 이름과 다릅니다.',
+      '외장 디스크의 예약 백업 시점이 다가왔습니다.',
+      '시퀀스에 기본 전환 효과가 사용되었습니다.',
+      '일부 클립의 오디오 채널이 비활성입니다.',
+      '이전 버전의 프로젝트 사본이 열려 있습니다.',
+      '렌더 후 작업 디스크 정리를 권장합니다.',
+      '편집 화면의 안전 영역 표시가 꺼져 있습니다.',
+      '출력 파일 이름에 버전 번호가 없습니다.',
+      '미리보기 캐시에 이전 효과 결과가 남아 있습니다.',
+      '내보내기 대상 폴더에 동일한 이름의 파일이 있습니다.',
+      '프로젝트 종료 후 백업 검증을 수행할 예정입니다.',
+      '미디어 라이브러리의 선택적 태그가 비어 있습니다.'
+    ],
+    [
+      '프로젝트 MARBLE_DYNAMICS의 렌더를 시작했습니다.',
+      'GPU 가속 인코더를 초기화했습니다.',
+      '프레임 {frame} 처리 중입니다.',
+      '오디오 믹스다운을 시작했습니다.',
+      '편집 프로젝트 자동 저장 중입니다.',
+      '미디어 캐시를 재구성하고 있습니다.',
+      '원본 클립의 메타데이터를 읽었습니다.',
+      '프록시 생성 작업을 대기열에 넣었습니다.',
+      '효과 처리용 셰이더를 준비합니다.',
+      '출력 볼륨의 여유 공간을 확인했습니다.',
+      '인코딩 속도 측정값을 갱신했습니다.',
+      '렌더 큐의 다음 작업을 준비하고 있습니다.',
+      '타임라인 참조를 검사합니다.',
+      '백업 스냅샷을 기록하고 있습니다.',
+      '색상 변환 파이프라인을 구성했습니다.',
+      '프레임 캐시를 GPU에 전송했습니다.',
+      '출력 파일에 컨테이너 정보를 기록합니다.',
+      '오디오 샘플레이트를 48kHz로 맞췄습니다.',
+      '완료된 청크를 순서대로 병합합니다.',
+      '최종 출력의 무결성 검사를 시작합니다.'
+    ],
+    [
+      '편집 프로젝트 자동 저장 완료.',
+      '렌더 청크 저장을 완료했습니다.',
+      'GPU 상태 점검을 통과했습니다.',
+      '오디오 믹스다운이 완료되었습니다.',
+      '출력 파일 무결성 검증 완료.',
+      '미디어 캐시 정리가 완료되었습니다.',
+      '프록시 생성이 완료되었습니다.',
+      '프로젝트 백업을 정상적으로 저장했습니다.',
+      '원본 미디어 참조 검사를 통과했습니다.',
+      '색상 프로파일 검증을 통과했습니다.',
+      '렌더 노드 연결이 정상입니다.',
+      '타임라인 동기화가 완료되었습니다.',
+      '출력 컨테이너 기록을 완료했습니다.',
+      '오디오 채널 매핑 검사를 통과했습니다.',
+      '가상 워크스테이션이 유휴 상태로 전환되었습니다.',
+      '팬 회전 속도가 정상 범위입니다.',
+      '출력 프레임 수 검사를 통과했습니다.',
+      '효과 플러그인 캐시가 준비되었습니다.',
+      '렌더 작업이 정상적으로 완료되었습니다.',
+      '정기 점검 완료. 편집 시스템이 정상입니다.'
+    ]
+  ]
+};
+
+</script>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const LEVELS = [
+    {name:'긴급',short:'EMRG',color:'#ec9c96'},
+    {name:'심각',short:'CRIT',color:'#d7aa98'},
+    {name:'오류',short:'ERRO',color:'#d1ae83'},
+    {name:'경고',short:'WARN',color:'#c9bc88'},
+    {name:'주의',short:'CAUT',color:'#aab6a9'},
+    {name:'정보',short:'INFO',color:'#9eafb9'},
+    {name:'통지',short:'NOTE',color:'#9fb7ac'}
+  ];
+  const SYSTEMS = {gen:{name:'오브젝트 생성',short:'생성',code:'GEN'},channel:{name:'JJMarblocity',short:'채널',code:'CHN'},edit:{name:'영상편집 PC',short:'편집',code:'EDT'}};
+  const DATA = window.CONSOLE_EVENTS;
+  const DEFAULTS = {split:50,speed:'normal',motion:!matchMedia('(prefers-reduced-motion: reduce)').matches,haptic:true};
+  let preferences;
+  try { preferences = {...DEFAULTS,...JSON.parse(localStorage.getItem('jj-duo-console-v1') || '{}')}; } catch { preferences = {...DEFAULTS}; }
+  preferences.split = Math.max(38,Math.min(62,Number(preferences.split)||50));
+  if (!['slow','normal','fast'].includes(preferences.speed)) preferences.speed='normal';
+  const state = {events:[],received:0,id:0,filter:'all',level:'all',selected:null,lastRendered:0,paused:false,sound:false,shift:false,caps:false,command:'',scanning:false,generated:3842,queue:8,rate:42,views:12806,watch:249,upload:68,render:42.8,cpu:48,ram:21.4,temp:64,seed:281730,batch:124,frame:13867,renderJob:1,uploadJob:1,nextAt:0,started:Date.now(),histories:{gen:[],channel:[],edit:[]},used:{},recovery:{}};
+  const time = date => new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(date);
+  const random = (min,max) => min+Math.random()*(max-min);
+  const pick = list => list[Math.floor(Math.random()*list.length)];
+  const format = n => Math.floor(n).toLocaleString('en-US');
+  let audioContext;
+  let statusTimer;
+  function savePreferences() { try {localStorage.setItem('jj-duo-console-v1',JSON.stringify(preferences));} catch {} }
+  function applySplit() {
+    $('console').style.setProperty('--split',preferences.split+'%');
+    $('splitRange').value=preferences.split;
+    $('splitOutput').textContent=preferences.split+'%';
+    $('splitLabel').textContent=preferences.split+' : '+(100-preferences.split);
+  }
+  applySplit();
+  $('speedSelect').value=preferences.speed;
+  $('motionToggle').checked=preferences.motion;
+  $('hapticToggle').checked=preferences.haptic;
+  function feedback() {if(preferences.haptic && navigator.vibrate) navigator.vibrate(7);}
+  function setStatus(text,timeout=5500) {
+    clearTimeout(statusTimer);
+    $('actionStatus').textContent=text;
+    if(timeout) statusTimer=setTimeout(()=>{$('actionStatus').textContent=state.paused?'수신 보류 중 · HOLD로 재개':'관제 준비 완료';},timeout);
+  }
+  function beep(level) {
+    if(!state.sound || level>2) return;
+    try {
+      audioContext ??= new (window.AudioContext||window.webkitAudioContext)();
+      if(audioContext.state==='suspended') audioContext.resume().catch(()=>{});
+      const osc=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime;
+      osc.type='sine'; osc.frequency.setValueAtTime(level===0?680:480,at);
+      gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(.045,at+.02);gain.gain.exponentialRampToValueAtTime(.0001,at+.17);
+      osc.connect(gain);gain.connect(audioContext.destination);osc.start(at);osc.stop(at+.2);
+    } catch { setStatus('이 브라우저는 경보음을 지원하지 않습니다.'); }
+  }
+  function nextIndex(system,level) {
+    const key=system+level;
+    if(!state.used[key]?.length) state.used[key]=Array.from({length:20},(_,i)=>i).sort(()=>Math.random()-.5);
+    return state.used[key].pop();
+  }
+  function interpolate(text) {
+    const vars={object:'OBJ-'+String(state.generated+1).padStart(5,'0'),queue:Math.max(state.queue,24),node:'N0'+Math.ceil(random(0,4)),seed:state.seed,batch:'B'+String(state.batch).padStart(4,'0'),video:'MD-'+String(38+state.uploadJob).padStart(3,'0'),chunk:Math.floor(random(12,96)),frame:state.frame,temp:Math.max(78,state.temp)};
+    return text.replace(/\{(\w+)\}/g,(_,key)=>String(vars[key]??key));
+  }
+  function emit(system,level,index,options={}) {
+    const chosen=index??nextIndex(system,level);
+    const event={id:++state.id,system,level,code:SYSTEMS[system].code+'-'+level+String(chosen+1).padStart(2,'0'),message:interpolate(DATA[system][level][chosen]),timestamp:options.timestamp??Date.now(),acked:false,resolved:false};
+    state.events.unshift(event);state.received++;
+    if(state.events.length>240) state.events.length=240;
+    if(level<=2) state.recovery[system]=Date.now()+random(25000,45000);
+    if(!options.silent) beep(level);
+    if(!options.defer) renderEvents();
+    updateSystemStates();
+    return event;
+  }
+  function matches(e) {
+    return (state.filter==='all'||e.system===state.filter)&&(state.level==='all'||(state.level==='urgent'?e.level<=1:e.level===Number(state.level)));
+  }
+  function activeLevel(system) {
+    const levels=state.events.filter(e=>e.system===system&&!e.resolved&&e.level<=3).map(e=>e.level);
+    return levels.length?Math.min(...levels):6;
+  }
+  function updateSystemStates() {
+    for(const system of Object.keys(SYSTEMS)) {
+      const l=activeLevel(system),el=$('state-'+system);
+      const label=l<=1?'격리':l===2?'오류':l===3?'확인':'정상';
+      el.replaceChildren();
+      const dot=document.createElement('i');dot.style.background=LEVELS[l].color;
+      el.append(dot,document.createTextNode(label));
+      el.style.color=LEVELS[l].color;
+      el.title=SYSTEMS[system].name+' · '+(l===6?'정상':LEVELS[l].name+' 이벤트 있음');
+      const node=document.querySelectorAll('.node-lights i')[Object.keys(SYSTEMS).indexOf(system)];
+      if(node) node.style.background=LEVELS[l].color;
+    }
+  }
+  function renderEvents() {
+    const parent=$('eventRows'),scroller=parent.parentElement,oldTop=scroller.scrollTop,oldHeight=scroller.scrollHeight;
+    const fragment=document.createDocumentFragment();
+    const events=state.events.filter(matches).slice(0,120);
+    for(const event of events) {
+      const button=document.createElement('button');
+      button.className='event-row'+(event.id>state.lastRendered&&Date.now()-event.timestamp<2000?' new-event':'')+(event.acked?' acked':'')+(event.resolved?' resolved':'')+(state.selected===event.id?' selected':'');
+      button.dataset.id=event.id;button.style.setProperty('--level',LEVELS[event.level].color);
+      button.setAttribute('aria-pressed',String(state.selected===event.id));
+      button.title=event.code+' · '+event.message+(event.acked?' · 확인 완료':'');
+      const stamp=document.createElement('time');stamp.dateTime=new Date(event.timestamp).toISOString();stamp.textContent=time(event.timestamp);
+      const source=document.createElement('span');source.className='event-source';source.textContent=SYSTEMS[event.system].short;
+      const badge=document.createElement('span');badge.className='severity';badge.textContent=LEVELS[event.level].name;
+      const message=document.createElement('span');message.className='event-message';message.textContent=event.message;
+      button.append(stamp,source,badge,message);
+      button.addEventListener('click',()=>{state.selected=state.selected===event.id?null:event.id;renderEvents();setStatus(state.selected?event.code+' 선택 · 수신 확인 가능':'이벤트 선택 해제');});
+      fragment.append(button);
+    }
+    parent.replaceChildren(fragment);
+    state.lastRendered=state.id;
+    if(oldTop>5) scroller.scrollTop=Math.max(0,oldTop+scroller.scrollHeight-oldHeight);
+    $('emptyState').hidden=events.length>0;
+    $('pendingCount').textContent=state.events.filter(e=>!e.acked).length;
+    $('eventCount').textContent=state.received.toLocaleString();
+  }
+  function setFilter(system) {
+    if(!SYSTEMS[system]&&system!=='all') return;
+    state.filter=system;state.selected=null;
+    document.querySelectorAll('[data-filter]').forEach(b=>{const on=b.dataset.filter===system;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});
+    document.querySelectorAll('.system-card').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.system===system)));
+    renderEvents();
+  }
+  function setLevel(level) {
+    state.level=level;state.selected=null;$('levelFilter').value=level;
+    document.querySelector('[data-action=urgent]').setAttribute('aria-pressed',String(level==='urgent'));
+    renderEvents();
+  }
+  function openDialog(id) {const dialog=$(id);if(!dialog.open) dialog.showModal();}
+  function closeDialog(dialog) {dialog.close();}
+  document.querySelectorAll('.close-dialog').forEach(b=>b.addEventListener('click',()=>closeDialog(b.closest('dialog'))));
+  document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}}));
+  $('settingsBtn').addEventListener('click',()=>openDialog('settingsDialog'));
+  $('foldBtn').addEventListener('click',()=>openDialog('settingsDialog'));
+  $('splitRange').addEventListener('input',e=>{preferences.split=Number(e.target.value);applySplit();savePreferences();});
+  $('speedSelect').addEventListener('change',e=>{preferences.speed=e.target.value;state.nextAt=0;savePreferences();});
+  $('motionToggle').addEventListener('change',e=>{preferences.motion=e.target.checked;savePreferences();drawObject(performance.now());});
+  $('hapticToggle').addEventListener('change',e=>{preferences.haptic=e.target.checked;savePreferences();});
+  $('resetLayout').addEventListener('click',()=>{preferences.split=50;applySplit();savePreferences();});
+  $('fullBtn').addEventListener('click',async()=>{
+    try {if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else setStatus('Safari에서는 홈 화면에 추가하면 더 넓게 볼 수 있습니다.');} catch {setStatus('브라우저 메뉴의 전체 화면 기능을 사용해 주세요.');}
+  });
+  document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.filter)));
+  document.querySelectorAll('.system-card').forEach(b=>b.addEventListener('click',()=>setFilter(state.filter===b.dataset.system?'all':b.dataset.system)));
+  $('levelFilter').addEventListener('change',e=>setLevel(e.target.value));
+  function resolveSystem(system) {
+    state.events.forEach(e=>{if(e.system===system){e.resolved=true;}});
+    delete state.recovery[system];
+    emit(system,6,19,{silent:true});
+  }
+  async function scan() {
+    if(state.scanning) {setStatus('이미 정밀 진단이 진행 중입니다.');return;}
+    state.scanning=true;
+    const targets=state.filter==='all'?Object.keys(SYSTEMS):[state.filter];
+    const button=document.querySelector('[data-action=scan]');button.classList.add('busy');button.disabled=true;
+    $('commandMode').textContent='SCANNING';
+    for(let i=0;i<targets.length;i++) {
+      const system=targets[i];
+      setStatus(SYSTEMS[system].name+' · 연결 / 무결성 / 대기열 진단 중',0);
+      await new Promise(r=>setTimeout(r,1100));
+      resolveSystem(system);
+    }
+    state.scanning=false;button.disabled=false;button.classList.remove('busy');
+    $('commandMode').textContent=state.paused?'HOLD':'READY';
+    setStatus(targets.length+'개 가상 시스템 진단 완료 · 정상 복구');
+  }
+  function exportLogs() {
+    const payload={name:'JJ Studio Duo Console',simulation:true,exportedAt:new Date().toISOString(),timezone:'Asia/Seoul',received:state.received,filter:{system:state.filter,severity:state.level},metrics:{generated:state.generated,views:state.views,watchHours:Number(state.watch.toFixed(2)),renderPercent:Number(state.render.toFixed(1))},events:state.events.map(e=>({...e,systemName:SYSTEMS[e.system].name,severity:LEVELS[e.level].name,timestamp:new Date(e.timestamp).toISOString()}))};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+    const a=document.createElement('a');a.href=url;a.download='JJ_Studio_Log_'+new Date().toISOString().slice(0,19).replaceAll(':','-')+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    setStatus(state.events.length+'개 이벤트 로그를 JSON 파일로 저장했습니다.');
+  }
+  function action(name) {
+    feedback();
+    const button=document.querySelector('[data-action="'+name+'"]');
+    button?.classList.add('pressed');setTimeout(()=>button?.classList.remove('pressed'),160);
+    switch(name) {
+      case 'urgent':setLevel(state.level==='urgent'?'all':'urgent');setStatus(state.level==='urgent'?'긴급 집중 · 긴급 / 심각 이벤트만 표시':'전체 등급 감시로 복귀');break;
+      case 'ack': {
+        let events;
+        if(state.selected)events=state.events.filter(e=>e.id===state.selected&&!e.acked);
+        else events=state.events.filter(e=>matches(e)&&!e.acked);
+        events.forEach(e=>e.acked=true);renderEvents();setStatus(events.length?events.length+'개 이벤트 수신 확인 · 진단으로 장애를 복구할 수 있습니다.':'확인할 새 이벤트가 없습니다.');break;
+      }
+      case 'scan':void scan();break;
+      case 'pause':state.paused=!state.paused;button.setAttribute('aria-pressed',String(state.paused));button.querySelector('strong').textContent=state.paused?'수신 재개':'수신 정지';button.querySelector('small').textContent=state.paused?'RESUME':'HOLD';$('liveDot').classList.toggle('held',state.paused);$('streamTitle').textContent=state.paused?'수신 보류 중':'이벤트 스트림';$('commandMode').textContent=state.paused?'HOLD':'READY';$('screenStatus').textContent=state.paused?'HOLD · 가상 시스템과 이벤트 수신 일시 정지':'LOCAL SIMULATION · 실제 시스템 연결 없음';setStatus(state.paused?'가상 수치와 자동 이벤트 수신을 정지했습니다.':'가상 시스템 수신을 재개했습니다.');state.nextAt=Date.now()+3000;break;
+      case 'export':exportLogs();break;
+      case 'sound':state.sound=!state.sound;button.setAttribute('aria-pressed',String(state.sound));button.querySelector('strong').textContent=state.sound?'경보음 켜짐':'경보음 꺼짐';button.querySelector('small').textContent=state.sound?'AUDIO ON':'AUDIO OFF';if(state.sound)beep(2);setStatus(state.sound?'긴급 · 심각 · 오류 이벤트의 경보음을 켰습니다.':'경보음을 껐습니다.');break;
+      case 'cycle':{const order=['all','gen','channel','edit'];setFilter(order[(order.indexOf(state.filter)+1)%4]);setStatus('감시 대상 · '+(SYSTEMS[state.filter]?.name??'모든 시스템'));break;}
+    }
+  }
+  document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>action(b.dataset.action)));
+  // The command field is readonly so touch typing always uses this custom keyboard.
+  const keyRows=[
+    [{label:'esc',key:'Escape',size:1.1},...'1234567890'.split('').map((k,i)=>({label:k,key:k,shift:'!@#$%^&*()'[i]})),{label:'⌫',key:'Backspace',size:1.7}],
+    [{label:'tab',key:'Tab',size:1.3},...'qwertyuiop'.split('').map(k=>({label:k.toUpperCase(),key:k})),{label:'[ ]',key:'[',shift:']',size:1.5}],
+    [{label:'caps',key:'CapsLock',size:1.6},...'asdfghjkl'.split('').map(k=>({label:k.toUpperCase(),key:k})),{label:'enter',key:'Enter',size:2.2}],
+    [{label:'shift',key:'Shift',size:1.9},...'zxcvbnm'.split('').map(k=>({label:k.toUpperCase(),key:k})),{label:',',key:',',shift:'<'},{label:'.',key:'.',shift:'>'},{label:'↑',key:'ArrowUp',size:1.4}],
+    [{label:'ctrl',key:'Control',size:1.25},{label:'alt',key:'Alt',size:1.1},{label:'⌘',key:'Meta',size:1.1},{label:'S T U D I O',key:' ',size:5.65},{label:'←',key:'ArrowLeft'},{label:'↓',key:'ArrowDown'},{label:'→',key:'ArrowRight'}]
+  ];
+  const history=[];let historyIndex=0;let cursor=0;let ctrlLatch=false;let altLatch=false;
+  function paintCommand() {const input=$('commandInput');input.value=state.command;input.setSelectionRange(cursor,cursor);$('commandMode').textContent=state.scanning?'SCANNING':state.paused?'HOLD':state.command?'INPUT':'READY';}
+  function modifiers() {document.querySelectorAll('.key').forEach(b=>{b.classList.toggle('mod-on',(b.dataset.key==='Shift'&&state.shift)||(b.dataset.key==='CapsLock'&&state.caps)||(b.dataset.key==='Control'&&ctrlLatch)||(b.dataset.key==='Alt'&&altLatch));});}
+  function onKey(key,shiftValue,physical=false) {
+    $('commandInput').focus({preventScroll:true});
+    if(key==='Enter') {executeCommand(state.command);state.command='';cursor=0;historyIndex=history.length;paintCommand();return;}
+    if(key==='Escape') {state.command='';cursor=0;state.selected=null;setLevel('all');paintCommand();setStatus('입력과 등급 필터를 초기화했습니다.');return;}
+    if(key==='Backspace') {if(cursor>0){state.command=state.command.slice(0,cursor-1)+state.command.slice(cursor);cursor--;}paintCommand();return;}
+    if(key==='Delete') {state.command=state.command.slice(0,cursor)+state.command.slice(cursor+1);paintCommand();return;}
+    if(key==='Shift') {state.shift=!state.shift;modifiers();return;}
+    if(key==='CapsLock') {state.caps=!state.caps;modifiers();return;}
+    if(key==='Control'||key==='Meta') {ctrlLatch=!ctrlLatch;modifiers();return;}
+    if(key==='Alt') {altLatch=!altLatch;modifiers();return;}
+    if(key==='ArrowUp'||key==='ArrowDown') {historyIndex=Math.max(0,Math.min(history.length,historyIndex+(key==='ArrowUp'?-1:1)));state.command=history[historyIndex]||'';cursor=state.command.length;paintCommand();return;}
+    if(key==='ArrowLeft'||key==='ArrowRight') {cursor=Math.max(0,Math.min(state.command.length,cursor+(key==='ArrowLeft'?-1:1)));paintCommand();return;}
+    if(key==='Tab') {const root=state.command.split(' ')[0];const match=COMMANDS.find(c=>c.command.startsWith(root));if(match){state.command=match.command;cursor=state.command.length;}paintCommand();return;}
+    if(ctrlLatch) {
+      if(key.toLowerCase()==='l'){state.command='';cursor=0;}
+      else if(key.toLowerCase()==='c'){state.command='';cursor=0;setStatus('명령 입력 취소');}
+      else setStatus('이 관제 단말은 Ctrl+C와 Ctrl+L을 지원합니다.');
+      ctrlLatch=false;modifiers();paintCommand();return;
+    }
+    if(altLatch){altLatch=false;modifiers();setStatus('Alt 조합은 이 관제 단말에 지정되지 않았습니다.');return;}
+    if(key.length===1&&state.command.length<100) {
+      let char=key;
+      if(!physical)char=/[a-z]/.test(key)?(state.shift!==state.caps?key.toUpperCase():key):(state.shift&&shiftValue?shiftValue:key);
+      state.command=state.command.slice(0,cursor)+char+state.command.slice(cursor);cursor+=char.length;
+      if(state.shift){state.shift=false;modifiers();}paintCommand();
+    }
+  }
+  for(const row of keyRows) {
+    const container=document.createElement('div');container.className='key-row';
+    for(const spec of row) {
+      const b=document.createElement('button');b.className='key'+(spec.label.length>2?' small-label':'')+(spec.key===' '?' key-space':'')+(spec.key==='Enter'?' enter-key':'');
+      b.dataset.key=spec.key;b.style.flex=String(spec.size||1);b.textContent=spec.label;b.setAttribute('aria-label',spec.key===' '?'스페이스':spec.key==='Backspace'?'한 글자 지우기':spec.key==='Enter'?'명령 실행':spec.label);
+      if(spec.shift){const secondary=document.createElement('span');secondary.className='secondary';secondary.textContent=spec.shift;b.append(secondary);}
+      b.addEventListener('click',()=>{feedback();onKey(spec.key,spec.shift);});container.append(b);
+    }
+    $('typingKeys').append(container);
+  }
+  const COMMANDS=[
+    {command:'status',label:'세 시스템 상태 확인'},
+    {command:'diag',label:'현재 감시 대상 정밀 진단'},
+    {command:'ack',label:'선택 또는 표시 중인 이벤트 확인'},
+    {command:'focus gen',label:'오브젝트 생성 시스템 선택'},
+    {command:'focus channel',label:'JJMarblocity 선택'},
+    {command:'focus edit',label:'영상편집 PC 선택'},
+    {command:'focus all',label:'모든 시스템 선택'},
+    {command:'urgent',label:'긴급 집중 켜기 / 끄기'},
+    {command:'pause',label:'자동 수신 일시 정지'},
+    {command:'resume',label:'자동 수신 재개'},
+    {command:'export',label:'전체 이벤트 JSON 저장'},
+    {command:'demo',label:'선택 시스템에 긴급 이벤트 발생'},
+    {command:'catalog',label:'420종 메시지 사전'},
+    {command:'clear',label:'표시 로그 지우기'},
+    {command:'sound',label:'경보음 켜기 / 끄기'},
+    {command:'help',label:'명령어 도움말'}
+  ];
+  function executeCommand(raw) {
+    const command=raw.trim().toLowerCase();if(!command)return;
+    history.push(command);if(history.length>40)history.shift();historyIndex=history.length;
+    const [verb,arg]=command.split(/\s+/);
+    if(verb==='focus'){if(arg==='all'||SYSTEMS[arg]){setFilter(arg);setStatus('감시 대상 · '+(SYSTEMS[arg]?.name??'모든 시스템'));}else setStatus('사용법: focus all / gen / channel / edit');return;}
+    switch(verb) {
+      case 'help':openDialog('helpDialog');break;
+      case 'catalog':openCatalog();break;
+      case 'diag':action('scan');break;
+      case 'ack':action('ack');break;
+      case 'urgent':action('urgent');break;
+      case 'pause':if(!state.paused)action('pause');else setStatus('이미 자동 수신을 보류하고 있습니다.');break;
+      case 'resume':if(state.paused)action('pause');else setStatus('자동 수신이 진행 중입니다.');break;
+      case 'export':action('export');break;
+      case 'sound':action('sound');break;
+      case 'clear':state.events=[];state.selected=null;state.recovery={};updateSystemStates();renderEvents();setStatus('표시 중인 로그를 비웠습니다. 전체 수신 횟수는 유지됩니다.');break;
+      case 'demo':{const system=state.filter==='all'?'gen':state.filter;setLevel('all');emit(system,0);setStatus(SYSTEMS[system].name+' · 가상 긴급 이벤트 발생 · 정밀 진단으로 복구');break;}
+      case 'status':setStatus(Object.keys(SYSTEMS).map(s=>SYSTEMS[s].short+': '+(activeLevel(s)<=3?LEVELS[activeLevel(s)].name:'정상')).join('  /  '),9000);break;
+      default:setStatus('알 수 없는 명령: '+command+' · help로 명령어를 확인하세요.');
+    }
+  }
+  $('helpBtn').addEventListener('click',()=>openDialog('helpDialog'));
+  for(const item of COMMANDS){const b=document.createElement('button');b.className='help-command';const code=document.createElement('code');code.textContent=item.command;const label=document.createElement('span');label.textContent=item.label;b.append(code,label);b.addEventListener('click',()=>{$('helpDialog').close();executeCommand(item.command);});$('helpCommands').append(b);}
+  document.addEventListener('keydown',e=>{
+    if(document.querySelector('dialog[open]'))return;
+    if(e.target instanceof HTMLSelectElement||e.target instanceof HTMLTextAreaElement||e.target instanceof HTMLInputElement&&!e.target.readOnly)return;
+    if(e.target instanceof HTMLButtonElement&&['Enter',' '].includes(e.key))return;
+    if(e.ctrlKey||e.metaKey){if(['l','c'].includes(e.key.toLowerCase())&&document.activeElement===$('commandInput')){e.preventDefault();state.command='';cursor=0;paintCommand();}return;}
+    if(e.altKey)return;
+    if(['Shift','CapsLock','Control','Meta','Alt'].includes(e.key))return;
+    if(e.key==='Tab')return;
+    if(e.key.length===1||['Enter','Backspace','Delete','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Escape'].includes(e.key)) {
+      e.preventDefault();onKey(e.key,null,true);
+      const key=[...document.querySelectorAll('.key')].find(b=>b.dataset.key===e.key.toLowerCase()||b.dataset.key===e.key);
+      key?.classList.add('pressed');setTimeout(()=>key?.classList.remove('pressed'),110);
+    }
+  });
+  $('commandInput').addEventListener('click',()=>{cursor=state.command.length;paintCommand();});
+  function renderCatalog() {
+    const system=$('catalogSystem').value,level=Number($('catalogLevel').value),parent=$('catalogRows');
+    $('catalogCount').textContent=DATA[system][level].length+'종';
+    parent.replaceChildren();
+    DATA[system][level].forEach((text,i)=>{const b=document.createElement('button');b.className='catalog-event';const number=document.createElement('span');number.textContent=SYSTEMS[system].code+'-'+level+String(i+1).padStart(2,'0');const copy=document.createElement('div');copy.textContent=interpolate(text);b.append(number,copy);b.addEventListener('click',()=>{setFilter(system);setLevel('all');emit(system,level,i);$('catalogDialog').close();setStatus(LEVELS[level].name+' 가상 이벤트를 발생시켰습니다.');});parent.append(b);});
+    document.querySelectorAll('.legend-item').forEach((b,i)=>b.classList.toggle('active',i===level));
+  }
+  LEVELS.forEach((level,i)=>{const option=document.createElement('option');option.value=i;option.textContent=level.name+' · '+level.short;$('catalogLevel').append(option);const legend=document.createElement('button');legend.className='legend-item';legend.style.setProperty('--level',level.color);legend.textContent=level.name+' 20';legend.addEventListener('click',()=>{$('catalogLevel').value=i;renderCatalog();});$('levelLegend').append(legend);});
+  $('catalogLevel').value='6';
+  function openCatalog() {if(state.filter!=='all')$('catalogSystem').value=state.filter;renderCatalog();openDialog('catalogDialog');}
+  $('catalogBtn').addEventListener('click',openCatalog);
+  $('catalogSystem').addEventListener('change',renderCatalog);
+  $('catalogLevel').addEventListener('change',renderCatalog);
+  for(const system of Object.keys(SYSTEMS)){state.histories[system]=Array.from({length:32},(_,i)=>45+Math.sin(i*.75)*12+random(-10,10));}
+  function renderSpark(system) {
+    const values=state.histories[system];
+    const points=values.map((v,i)=>(i/(values.length-1)*100).toFixed(1)+','+(21-v/100*20).toFixed(1)).join(' ');
+    const line=document.createElementNS('http://www.w3.org/2000/svg','polyline');line.setAttribute('points',points);line.setAttribute('fill','none');line.setAttribute('stroke',system==='edit'?'#a8b6bf':'#93afa3');line.setAttribute('vector-effect','non-scaling-stroke');$('spark-'+system).replaceChildren(line);
+  }
+  function updateMetrics() {
+    if(!state.paused) {
+      if(activeLevel('gen')>2){state.rate=Math.max(25,Math.min(59,state.rate+random(-3,3)));state.generated+=Math.random()<state.rate/60?1:0;state.queue=Math.max(0,Math.min(18,state.queue+(Math.random()<.5?-1:1)));}
+      if(activeLevel('channel')>2){if(Math.random()<.3)state.views++;state.watch+=random(.0005,.002);state.upload=Math.min(100,state.upload+random(.04,.16));if(state.upload===100){emit('channel',6,0,{silent:true});state.uploadJob++;state.upload=0;}}
+      if(activeLevel('edit')>2){state.render=Math.min(100,state.render+random(.025,.1));state.frame+=Math.floor(random(12,28));if(state.render===100){emit('edit',6,18,{silent:true});state.renderJob++;state.render=0;state.frame=0;}state.cpu=Math.max(33,Math.min(79,state.cpu+random(-3,3)));state.temp=Math.max(59,Math.min(73,state.temp+random(-.4,.4)));state.ram=Math.max(19,Math.min(24,state.ram+random(-.08,.08)));}
+      for(const [system,value] of [['gen',state.rate*1.4],['channel',45+Math.sin(Date.now()/10000)*15+random(-9,9)],['edit',state.cpu]]){state.histories[system].push(value);state.histories[system].shift();renderSpark(system);}
+      for(const system of Object.keys(SYSTEMS)){if(state.recovery[system]&&Date.now()>state.recovery[system])resolveSystem(system);}
+      // Warnings settle automatically; severe faults recover explicitly or via the simulated watchdog.
+      let changed=false;for(const event of state.events){if(event.level===3&&!event.resolved&&Date.now()-event.timestamp>45000){event.resolved=true;changed=true;}}
+      if(changed){renderEvents();updateSystemStates();}
+    }
+    $('genCount').textContent=format(state.generated);$('genQueue').textContent=String(state.queue).padStart(2,'0');$('genRate').textContent=Math.round(state.rate);
+    $('viewCount').textContent=format(state.views);$('watchTime').textContent=state.watch.toFixed(1);$('uploadPct').textContent=Math.floor(state.upload)+'%';
+    $('renderPct').textContent=state.render.toFixed(1);$('cpuPct').textContent=Math.round(state.cpu)+'%';$('ramUsed').textContent=state.ram.toFixed(1);$('gpuTemp').textContent=Math.round(state.temp)+'°';
+    $('clock').textContent=time(Date.now());
+  }
+  function autoEvent() {
+    const now=Date.now();if(state.paused||state.scanning||now<state.nextAt)return;
+    const interval={slow:6000,normal:3200,fast:1200}[preferences.speed];state.nextAt=now+interval+random(-interval*.2,interval*.2);
+    const systems=Object.keys(SYSTEMS).filter(s=>activeLevel(s)>2);if(!systems.length)return;
+    const system=pick(systems),roll=Math.random();
+    // Most traffic is routine; rare failures create a recoverable local incident.
+    const level=roll<.003?0:roll<.009?1:roll<.025?2:roll<.09?3:roll<.22?4:roll<.56?5:6;
+    emit(system,level);
+  }
+  const canvas=$('objectCanvas'),ctx=canvas.getContext('2d');
+  const points=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7],[0,6],[1,7]];
+  let lastDraw=0;
+  function drawObject(at) {
+    if(!ctx)return;
+    const angle=preferences.motion&&!state.paused?at/9000:0.55,c=Math.cos(angle),s=Math.sin(angle),tilt=.45;
+    ctx.clearRect(0,0,100,65);
+    const transformed=points.map(([x,y,z])=>{const rx=x*c-z*s,rz=x*s+z*c,ry=y*Math.cos(tilt)-rz*Math.sin(tilt),depth=y*Math.sin(tilt)+rz*Math.cos(tilt),scale=19/(1+depth*.12);return [50+rx*scale,32+ry*scale,depth];});
+    for(const [a,b] of edges){ctx.beginPath();ctx.moveTo(transformed[a][0],transformed[a][1]);ctx.lineTo(transformed[b][0],transformed[b][1]);ctx.strokeStyle='rgba(165,195,180,'+(0.35+(transformed[a][2]+2)*.1)+')';ctx.lineWidth=.7;ctx.stroke();}
+    for(const [x,y] of transformed){ctx.beginPath();ctx.arc(x,y,1.4,0,Math.PI*2);ctx.fillStyle='#b9cdc2';ctx.fill();}
+  }
+  function frame(at) {if(at-lastDraw>70&&!document.hidden){drawObject(at);lastDraw=at;}requestAnimationFrame(frame);}
+  // Seed a small, clearly simulated recent history so the monitor is useful immediately.
+  [['gen',5,0],['channel',6,2],['edit',5,2],['gen',6,0],['channel',5,4],['edit',3,4],['gen',5,15],['edit',6,0],['channel',5,3]].forEach(([system,level,index],i)=>emit(system,level,index,{timestamp:Date.now()-(9-i)*3200,silent:true,defer:true}));
+  renderEvents();updateMetrics();Object.keys(SYSTEMS).forEach(renderSpark);
+  state.nextAt=Date.now()+3200;
+  setInterval(()=>{updateMetrics();autoEvent();},1000);
+  requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
