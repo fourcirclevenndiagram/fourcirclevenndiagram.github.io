@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121d23">
+<title>OSPF 경로 실습실 · RouteLab</title>
+<meta name="description" content="CCNP 단일 영역 OSPF 실습. 네 개의 라우터에서 송신 비용을 조정하고 SPF, ECMP, 비대칭 경로를 검증하세요.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23baf86a'/%3E%3Cpath d='M9 29V17l11-6 11 6v12M9 18l11 6 11-6M20 24v9' fill='none' stroke='%23172527' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:light;--ink:#182626;--muted:#546561;--quiet:#6b7975;--line:#dbe3dd;--dark:#132023;--green:#c0f584;--deep:#305f3e;--paper:#f3f6f2;--white:#fff;--mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;--sans:Inter,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans CJK KR","Malgun Gothic","Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.58 var(--sans);word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}button,input,select{font:inherit}button{cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}button,a,input,select{touch-action:manipulation}button{background:none;border:0}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #429577;outline-offset:3px}button:disabled{cursor:default}.symbols{position:absolute;width:0;height:0;overflow:hidden}.ico{width:1.2em;height:1.2em;stroke:currentColor;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex:none}.mono,code,pre{font-family:var(--mono)}h1,h2,h3,p{margin:0}a{color:var(--deep)}[hidden]{display:none!important}
+.topbar{background:var(--dark);color:#fff;border-bottom:1px solid #233733}.topinner,.wrap{max-width:1460px;margin:0 auto;padding-inline:clamp(23px,4.3vw,68px)}.topinner{height:65px;display:flex;align-items:stretch;gap:clamp(24px,4.3vw,64px)}.brand{display:flex;align-items:center;color:#eff6ef;text-decoration:none;font-size:27px;letter-spacing:-1.35px;font-weight:770;line-height:1}.brand span{font-weight:440}.brand .mark{width:33px;height:33px;color:var(--green);margin:-5px 9px 0 0}.topinner nav{display:flex;gap:26px;align-items:stretch}.topinner nav button{position:relative;display:flex;align-items:center;gap:6px;padding:2px 1px 0;font-size:14px;font-weight:620;color:#a8b8b4}.topinner nav button.active,.topinner nav button:hover{color:#f2faee}.topinner nav button.active:after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--green)}.topinner nav .ico{width:15px}.track{margin-left:auto;display:flex;gap:9px;align-items:center;color:#d5e2d6;font:600 12px var(--mono);letter-spacing:1.1px}.trackmark{display:flex;gap:2px;align-items:end;height:13px}.trackmark i{background:var(--green);display:block;width:3px;height:5px}.trackmark i:nth-child(2){height:8px}.trackmark i:last-child{height:12px}
+.wrap{padding-top:27px;padding-bottom:50px}.crumb{display:flex;align-items:center;gap:11px;font-size:12px;color:#65736e}.crumb b{font-weight:400;color:#99a59e}.crumb strong{font:650 12px var(--mono);color:#465d50}.intro{display:flex;align-items:center;justify-content:space-between;gap:36px;margin:10px 0 25px}.intro h1{font-size:clamp(35px,3.15vw,50px);line-height:1.23;font-weight:770;letter-spacing:-.058em}.intro p{font-size:16px;color:var(--muted);margin-top:8px;letter-spacing:-.035em}.progress{min-width:172px;align-self:center}.progress>div:first-child{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:610;color:var(--muted)}.progress strong{font:700 17px var(--mono);color:var(--ink)}.progress em{font:500 13px var(--mono);color:#64736b}.bars{display:flex;gap:4px;margin-top:8px}.bars i{flex:1;height:5px;background:#d9e3da;border-radius:2px}.bars i.done{background:#598258}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:21px}.step{display:flex;align-items:center;gap:12px;min-height:55px;border:1px solid #d2dcd4;border-radius:9px;background:#fafcf9;padding:9px 15px;text-align:left;font-size:15px;font-weight:670;letter-spacing:-.03em}.step:hover{background:#edf3e9;border-color:#b5c7b3}.step.active{background:#e7f4d9;border-color:#88a76d;color:#243f26;box-shadow:inset 0 0 0 .3px #88a76d}.stepnum{display:grid;place-items:center;width:27px;height:27px;flex:none;border:1px solid #d9e0d8;background:#eff3ef;border-radius:6px;color:#66786c;font:650 12px var(--mono)}.step.active .stepnum{background:#294638;color:#d5f7aa;border-color:#294638}.step.complete .stepnum:not(.active){color:#3d6849}.step.active.complete .stepnum{color:var(--green)}.step .ico{width:16px;height:16px}
+.workbench{display:grid;grid-template-columns:minmax(0,1.86fr) minmax(320px,1fr);grid-template-areas:"map task" "analysis concept";gap:17px;align-items:start}.card{background:white;border:1px solid var(--line);border-radius:13px;overflow:hidden;box-shadow:0 2px 3px #13292305}.topocard{grid-area:map}.taskcard{grid-area:task;padding:21px 22px}.analysiscard{grid-area:analysis}.conceptcard{grid-area:concept;padding:21px 22px}.cardhead,.analysishead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 21px}.card h2{font-size:18px;line-height:1.35;letter-spacing:-.045em;font-weight:730}.cardhead h2,.analysishead h2{display:flex;align-items:center;gap:9px}.cardhead .ico,.analysishead .ico{width:21px;color:#42594c}.area{font:600 12px var(--mono);color:#49674d;display:flex;align-items:center;gap:7px;border:1px solid #d5e2d4;padding:4px 9px;border-radius:5px;background:#f3f8f0}.area i,.boardmeta i{width:6px;height:6px;border-radius:50%;background:#789e61}
+.board{background:#101d22;color:#e7eee7;position:relative}.boardmeta,.legend{display:flex;align-items:center;gap:17px;padding:0 21px;min-height:33px;position:relative}.boardmeta{padding-top:7px;justify-content:space-between;font:550 11px var(--mono);color:#acbfb7;letter-spacing:.5px;background:linear-gradient(#152427,#111e22)}.boardmeta span:first-child{display:flex;align-items:center;gap:8px}.boardmeta b{color:#556b65;font-weight:400;margin:0 4px}.boardmeta i{background:#b5ef83;width:5px;height:5px}.legend{background:#111f23;min-height:36px;padding-bottom:5px;font-size:12px;color:#c8d3cc;gap:17px}.legend span{display:flex;align-items:center;gap:7px}.legend .legendinfo{margin-left:auto;color:#9cafaa}.active-line,.backup-line{width:23px;height:0;border-top:2px solid #b9ef82}.backup-line{border-top:2px dashed #7c9595}#topology{min-width:0}
+.stats{display:grid;grid-template-columns:1fr 1.52fr 1fr;align-items:center;background:#fbfcfa;border-bottom:1px solid var(--line);padding:13px 0}.stat{padding:0 20px;border-left:1px solid var(--line);min-width:0}.stat:first-child{border-left:0}.stat span,.stat strong{display:block}.stat span{font-size:12px;font-weight:530;color:#637269;line-height:1.4}.stat strong{font:650 17px/1.5 var(--mono);white-space:nowrap;letter-spacing:-.045em}.stat strong em{font:500 12px var(--mono);font-style:normal;letter-spacing:0;margin-left:5px;color:#657a6b}.stat .pathvalue{color:#315c3b}.directionbar{padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}.directionbar>span{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}.seg,.analysistabs{display:flex;padding:3px;border-radius:6px;background:#eef2ed;gap:3px}.seg button,.analysistabs button{font:580 12px/1.25 var(--mono);color:#5b6a61;border-radius:4px;padding:6px 10px}.seg button.active,.analysistabs button.active{color:#294936;background:white;box-shadow:0 1px 4px #273c2c20}.inspection{border-top:1px solid var(--line);background:#f5f8f3;color:#506756;padding:11px 20px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:10px}.inspection button{font-size:12px;text-decoration:underline}.inspection strong{color:var(--ink)}
+.taskhead{display:flex;justify-content:space-between;align-items:center}.mission-label{display:inline-flex;align-items:center;gap:6px;font:700 11px var(--mono);letter-spacing:1px;color:#3b623a;background:#edf6e4;border:1px solid #dbebd1;border-radius:4px;padding:5px 8px}.mission-label .ico{height:15px;width:15px}.mission-code{font:500 12px var(--mono);color:#64756c}.taskcard h2{font-size:clamp(21px,1.72vw,26px);line-height:1.34;margin:13px 0 7px;letter-spacing:-.054em}.description{color:#485950;font-size:15px;line-height:1.7;letter-spacing:-.025em}.description b{color:#283e32}.changebox{display:flex;align-items:center;gap:12px;background:#f4f7f2;border:1px solid #dfe7de;padding:10px 12px;border-radius:6px;margin-top:15px}.changebox .ico{width:19px;color:#5c7560}.changebox .device{font:650 14px var(--mono);color:#304d39}.changebox .small{display:block;font-size:12px;color:#627366}.changebox .delta{margin-left:auto;white-space:nowrap;font:650 16px var(--mono);color:#385c35}.delta em{color:#78867b;font-weight:500;font-style:normal}.taskform{margin-top:17px;border-top:1px solid #e4e9e2;padding-top:15px}.fieldgroup{border:0;padding:0;margin:0}.fieldgroup legend,.fieldlabel{display:block;font-size:14px;font-weight:650;margin-bottom:7px;letter-spacing:-.02em}.choices{display:flex;gap:6px}.choice{flex:1;position:relative}.choice input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}.choice span{font-size:14px;font-weight:610;border:1px solid #cbd5ce;display:block;text-align:center;border-radius:6px;padding:8px 2px;color:#4f5e54;background:white}.choice input:checked+span{border-color:#688c58;background:#e9f4df;color:#274c30;box-shadow:inset 0 0 0 .5px #688c58}.choice input:focus-visible+span{outline:2px solid #429577;outline-offset:2px}.inputrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px}.inputrow .fieldlabel{margin:0}.numbox{position:relative;width:124px}.numbox input{width:100%;border:1px solid #cbd5ce;color:var(--ink);background:#fff;border-radius:6px;padding:7px 42px 7px 11px;font:600 16px var(--mono);height:38px}.numbox span{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:#6e796e;font:500 12px var(--mono)}input[type=number]{appearance:textfield;-moz-appearance:textfield}input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.action{display:flex;justify-content:center;align-items:center;gap:7px;min-height:43px;width:100%;border-radius:6px;background:var(--green);color:#1c3623;border:1px solid #addd77;font-weight:720;font-size:15px;margin-top:16px}.action:hover{background:#afe972}.action .ico{width:17px}.hint{font-size:13px;line-height:1.6;color:#546350;margin-top:12px}.hint summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px;width:fit-content;min-height:26px}.hint summary .ico:last-child{width:14px}.hint[open] summary .ico:last-child{transform:rotate(180deg)}.hint summary::-webkit-details-marker{display:none}.hint p{margin:5px 0 0;background:#f5f8f1;border-radius:4px;padding:9px 12px}.feedback{font-size:14px;line-height:1.65;padding:11px 12px;border-radius:6px;margin-top:13px;color:#72431a;background:#fff5e7;border:1px solid #edd5b4}.feedback.good{background:#edf7e7;color:#315a38;border-color:#ccdfc5}.feedback strong{display:block}.feedback:empty{display:none}.selectwrap{position:relative}.selectwrap .ico{position:absolute;top:50%;right:12px;width:17px;transform:translateY(-50%);pointer-events:none}.selectwrap select{width:100%;appearance:none;-webkit-appearance:none;background:white;padding:9px 32px 9px 11px;border:1px solid #cbd5ce;color:var(--ink);border-radius:6px;font:500 15px var(--mono)}.formnote{font-size:13px;color:var(--quiet);margin-top:8px}.codepreview{margin:9px 0 0;background:#f2f5f1;color:#3d5144;border:1px solid #dfe5dc;padding:8px 10px;border-radius:5px;font:12px/1.5 var(--mono);white-space:pre-wrap}.subactions{display:flex;align-items:center;justify-content:space-between;gap:8px}.subactions .hint{flex:1}.reset{margin-top:10px;display:flex;align-items:center;gap:6px;color:#607063;font-size:13px;padding:5px 0}.reset .ico{width:14px}.analysishead{padding-block:14px;border-bottom:1px solid #e2e8e1}.analysistabs button{font:590 12px var(--sans);padding:5px 9px}.analysiscontent{padding:4px 20px 12px}.candidate{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.9fr) auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #e7ece6}.candidate:last-child{border-bottom:0}.pathcell{display:flex;align-items:center;gap:9px}.pathcell .markline{height:3px;width:17px;background:#769a56;border-radius:2px;flex:none}.candidate:not(.elected) .markline{background:repeating-linear-gradient(to right,#95a49d 0 4px,transparent 4px 6px)}.candidate strong{font:620 15px var(--mono);color:#314237;letter-spacing:-.035em;white-space:nowrap}.candidate .formula{font:500 13px var(--mono);color:#67786b;white-space:nowrap}.candidate .tag{background:#e7f1de;color:#41683b;font-size:12px;line-height:1.5;font-weight:630;border-radius:4px;padding:2px 7px}.candidate:not(.elected) .tag{background:#f0f3ef;color:#64736a}.prefixnote{font-size:12px;color:#68776c;margin-top:3px}.rib{margin:14px 17px 5px;background:#142227;color:#d6efcc;border-radius:7px;padding:13px 14px;overflow-x:auto;font:13px/1.8 var(--mono);word-break:normal}.ribnote{font-size:13px;color:var(--quiet);margin:7px 18px 14px}.concepthead{display:flex;align-items:center;gap:9px;color:#465d48}.concepthead h2{font-size:16px;color:var(--ink)}#concept h3{font-size:16px;margin:12px 0 4px;letter-spacing:-.035em}#concept p{font-size:14px;line-height:1.7;color:var(--muted)}.noteslink{display:flex;align-items:center;gap:7px;color:#476541;font-size:13px;font-weight:630;margin:10px 0 0;padding:2px 0}.noteslink .ico{width:14px}
+dialog{width:min(650px,calc(100% - 32px));max-height:85vh;border:1px solid var(--line);box-shadow:0 22px 90px #10231f33;border-radius:14px;background:#fcfdfa;color:var(--ink);padding:0}dialog::backdrop{background:#0b1d22a6}.dialoghead{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;background:#132023;color:#f2faeb;position:sticky;top:0;z-index:1}.dialoghead small{font-size:11px;color:#b7db9e;letter-spacing:.8px}.dialoghead h2{font-size:23px;line-height:1.4}.iconbtn{width:38px;height:38px;display:grid;place-items:center;border:1px solid #4b5e56;border-radius:7px;color:#dfe9df}.note-section{padding:20px 23px;border-bottom:1px solid var(--line)}.note-section h3{font-size:17px;color:#2d4e36;margin-bottom:6px}.note-section p,.note-section li{font-size:15px;color:#48594f}.note-section code{color:#365e3a}.note-section pre{margin:10px 0 6px;background:#162529;color:#daf1cc;border-radius:6px;padding:13px 14px;overflow-x:auto;font:13px/1.7 var(--mono)}.note-section pre code{color:inherit}.note-section a{font-size:14px}.note-section ul,.note-section ol{margin:6px 0;padding-left:22px}
+@media(min-width:1500px){.wrap{padding-top:34px}.intro{margin-block:13px 28px}}
+@media(max-width:1000px){.topinner,.wrap{padding-inline:22px}.workbench{grid-template-columns:minmax(0,1.55fr) minmax(292px,1fr);gap:12px}.taskcard,.conceptcard{padding:17px}.step{padding:8px 11px;gap:8px}.stats .stat{padding-inline:12px}.stat strong{font-size:15px}.legend,.boardmeta{padding-inline:15px}.cardhead,.analysishead{padding-inline:15px}.analysishead h2{font-size:16px}.analysiscontent{padding-inline:11px}.candidate{gap:6px}.candidate strong{font-size:13px}.candidate .formula{font-size:12px}.pathcell{gap:5px}}
+@media(max-width:760px){.topinner,.wrap{padding-inline:16px}.topinner{height:56px;gap:22px}.topinner nav{gap:15px}.track{display:none}.intro h1{font-size:34px}.workbench{grid-template-columns:1fr;grid-template-areas:"map" "task" "analysis" "concept";gap:13px}.wrap{padding-top:17px}.intro{margin:8px 0 18px;gap:16px}.intro p{font-size:14px}.progress{min-width:94px}.progress>div:first-child{font-size:11px}.steps{margin-bottom:14px;gap:5px}.step{min-height:48px;gap:6px;font-size:13px;padding:7px}.stepnum{width:21px;height:21px;font-size:10px}.taskcard,.conceptcard{padding:18px}.cardhead h2,.analysishead h2{font-size:17px}.analysiscontent{padding-inline:16px}.candidate strong{font-size:14px}.stat strong{font-size:17px}.cardhead{padding-block:12px}.numbox{width:138px}.action{min-height:44px}.boardmeta{min-height:27px}.legend{min-height:31px}.directionbar{padding:9px 14px}.choice span{font-size:15px}.dialoghead{padding:15px 18px}.note-section{padding:16px 18px}}
+@media(max-width:530px){.brand{font-size:21px;letter-spacing:-1px}.brand .mark{width:26px;height:26px;margin-right:5px}.topinner{justify-content:space-between;gap:7px}.topinner nav{gap:11px}.topinner nav button{font-size:12px}.topinner nav .ico{display:none}.wrap,.topinner{padding-inline:12px}.intro{flex-wrap:wrap;gap:10px}.intro h1{font-size:32px}.intro p{margin-top:5px}.progress{display:flex;align-items:center;gap:9px;width:100%}.progress>div:first-child{gap:7px;font-size:12px}.progress strong,.progress em{font-size:12px}.bars{width:65px;margin:0;gap:2px}.bars i{height:4px}.steps{gap:4px}.step{flex-direction:column;align-items:flex-start;justify-content:center;padding:6px 7px;min-height:55px;gap:3px;border-radius:6px;font-size:12px}.stepnum{background:none;border:0;width:auto;height:auto;font-size:10px;font-weight:700}.step.active .stepnum{background:none;color:#405a30}.step .ico{width:12px;height:12px}.stats .stat{padding-inline:10px}.stat strong{font-size:14px}.stat span{font-size:11px}.stat strong em{font-size:10px;margin-left:2px}.legend{font-size:11px;gap:12px}.card{border-radius:10px}.candidate{grid-template-columns:minmax(0,1.15fr) minmax(0,.9fr) auto}.candidate .tag{font-size:11px}.pathcell .markline{width:12px}.analysishead{gap:4px}.analysistabs button{font-size:11px}.directionbar>span{font-size:12px}.seg button{padding:6px 8px}}
+@media(max-width:345px){.topinner nav{gap:8px}.wrap,.topinner{padding-inline:8px}.stat strong{font-size:12px}.candidate strong{font-size:12px}.legend .legendinfo{font-size:10px}}
+.lsa{padding:12px 18px 15px}.lsachoose{display:flex;align-items:center;gap:9px;font-size:13px;color:#54665a}.lsachoose select{padding:4px 8px;border:1px solid #cbd5ce;background:white;color:var(--ink);border-radius:4px;font:14px var(--mono)}.lsachoose small{margin-left:auto;font:12px var(--mono)}.lsa table{border-collapse:collapse;width:100%;margin:9px 0;font-size:13px;text-align:left}.lsa th,.lsa td{border-bottom:1px solid #e0e7de;padding:5px 6px}.lsa th{color:#586f5d;font-weight:550;background:#f4f7f2}.lsa td{font-family:var(--mono)}.lsa th:last-child,.lsa td:last-child{text-align:right}.analysishead{flex-wrap:wrap}
+
+</style>
+
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" class="symbols" aria-hidden="true"><defs>
+<symbol id="i-logo" viewBox="0 0 38 38"><path d="m5 17 14-8 14 8-14 8z" fill="currentColor"/><path d="m5 22 14 8 14-8M5 27l14 8 14-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></symbol>
+<symbol id="i-net" viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="5" rx="1"/><rect x="2" y="16" width="7" height="5" rx="1"/><rect x="15" y="16" width="7" height="5" rx="1"/><path d="M12 8v4m-7 4v-4h14v4"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M3 4.5c4-.7 6-.4 9 1.7 3-2.1 5-2.4 9-1.7v14c-4-.7-6-.4-9 1.6-3-2-5-2.3-9-1.6zM12 6.2V20"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19.5 6.8"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 24 24"><path d="M8.5 16.5c0-2.5-3.2-3.4-3.2-7.1a6.7 6.7 0 0 1 13.4 0c0 3.7-3.2 4.6-3.2 7.1zm.6 3h5.8m-4.3 2h2.8"/></symbol>
+<symbol id="i-cmd" viewBox="0 0 24 24"><path d="m4 6.5 5.5 5.5L4 17.5m8 0h8"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24"><path d="M3.5 5v6h6m-6-.1a8.5 8.5 0 1 1 2 7"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></symbol>
+<symbol id="i-route" viewBox="0 0 24 24"><circle cx="5" cy="7" r="2.5"/><circle cx="19" cy="17" r="2.5"/><path d="M7.5 7H14a3 3 0 0 1 0 6H9a2 2 0 0 0 0 4h7.5"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M3 8h16l-4-4m6 12H5l4 4"/></symbol>
+<symbol id="i-chip" viewBox="0 0 24 24"><rect x="5" y="6.5" width="14" height="11" rx="2"/><path d="M9 3v3.5M15 3v3.5M9 17.5V21m6-3.5V21M2 10h3m-3 4h3m14-4h3m-3 4h3"/></symbol>
+<symbol id="i-slider" viewBox="0 0 24 24"><path d="M3 7h5m5 0h8M3 17h11m5 0h2"/><circle cx="10.5" cy="7" r="2.5"/><circle cx="16.5" cy="17" r="2.5"/></symbol>
+</defs></svg>
+<header class="topbar"><div class="topinner">
+<a href="#main" class="brand" aria-label="RouteLab 실습실"><svg class="mark"><use href="#i-logo"/></svg>Route<span>Lab</span></a>
+<nav aria-label="주 메뉴"><button id="guidedNav">시나리오 실습</button><button id="freeNav">자유 실습</button><button id="notesNav"><svg class="ico"><use href="#i-book"/></svg>개념 노트</button></nav>
+<span class="track"><span class="trackmark"><i></i><i></i><i></i></span>CCNP ENTERPRISE</span>
+</div></header>
+<main id="main" class="wrap">
+<div class="crumb"><span>학습 워크스페이스</span><b>/</b><span>라우팅</span><b>/</b><strong>OSPF</strong></div>
+<div class="intro"><div><h1>OSPF 경로 실습실</h1><p>인터페이스 비용을 조정하고, 패킷이 선택하는 경로를 예측해 보세요.</p></div>
+<div class="progress"><div><span>시나리오 진행률</span><strong id="progressCount">0 <em>/ 4</em></strong></div><div class="bars" id="progressBars"></div></div></div>
+<div id="steps" class="steps" role="group" aria-label="실습 시나리오 선택"></div>
+<div class="workbench">
+<section class="card topocard" aria-labelledby="topotitle">
+<div class="cardhead"><h2 id="topotitle"><svg class="ico"><use href="#i-net"/></svg>네트워크 토폴로지</h2><span class="area"><i></i>Area 0</span></div>
+<div class="board"><div class="boardmeta"><span><i></i>TOPOLOGY VIEW</span><span>OSPFv2 <b>/</b> IPv4</span></div>
+<div id="topology" aria-label="실시간 경로 토폴로지"></div>
+<div class="legend"><span><i class="active-line"></i>선택 경로</span><span><i class="backup-line"></i>대체 경로</span><span class="legendinfo">숫자 = 송신 비용</span></div></div>
+<div class="stats" id="stats"></div>
+<div class="directionbar"><span><svg class="ico"><use href="#i-swap"/></svg>트래픽 방향</span><div class="seg" role="group" aria-label="트래픽 방향"><button id="forward">R1 → R4</button><button id="backward">R4 → R1</button></div></div>
+<div id="inspection" class="inspection" hidden></div>
+</section>
+<aside class="card taskcard" aria-labelledby="tasktitle"><div class="taskhead"><span class="mission-label"><svg class="ico"><use href="#i-target"/></svg><span id="missionLabel"></span></span><span class="mission-code" id="missionCode"></span></div><div id="taskBody"></div></aside>
+<section class="card analysiscard"><div class="analysishead"><h2><svg class="ico"><use href="#i-route"/></svg>경로 분석</h2><div class="analysistabs" role="group" aria-label="분석 보기"><button id="compareTab">경로 비교</button><button id="ribTab">라우팅 테이블</button><button id="lsaTab">LSDB</button></div></div><div id="analysisBody"></div></section>
+<section class="card conceptcard"><div class="concepthead"><svg class="ico"><use href="#i-book"/></svg><h2>핵심 개념</h2></div><div id="concept"></div><button class="noteslink" id="openNotes">개념 노트 열기 <svg class="ico"><use href="#i-book"/></svg></button></section>
+</div>
+</main>
+<dialog id="notesDialog" aria-labelledby="notesTitle"><div class="dialoghead"><div><small class="mono">ROUTELAB / FIELD NOTES</small><h2 id="notesTitle">개념 노트</h2></div><button class="iconbtn" id="closeNotes" aria-label="노트 닫기"><svg class="ico"><use href="#i-close"/></svg></button></div><div id="notesBody"></div></dialog>
+
+<script>
+(function () {
+  'use strict';
+
+  const defaults = { '12': 10, '21': 10, '24': 10, '42': 10, '13': 5, '31': 5, '34': 25, '43': 25 };
+  const devices = {
+    '12': ['Gi0/0', '10.12.0.1'], '21': ['Gi0/0', '10.12.0.2'],
+    '13': ['Gi0/1', '10.13.0.1'], '31': ['Gi0/0', '10.13.0.2'],
+    '24': ['Gi0/1', '10.24.0.1'], '42': ['Gi0/0', '10.24.0.2'],
+    '34': ['Gi0/1', '10.34.0.1'], '43': ['Gi0/1', '10.34.0.2']
+  };
+
+  function baseCosts() {
+    return { ...defaults };
+  }
+
+  function iface(key) {
+    if (!Object.prototype.hasOwnProperty.call(devices, key)) {
+      throw new RangeError('토폴로지에 없는 인터페이스입니다.');
+    }
+    const [router, peer] = String(key);
+    const [name, ip] = devices[key];
+    return { name, router: 'R' + router, peer: 'R' + peer, ip, nextHop: devices[peer + router][1] };
+  }
+
+  function solve(costs, reverse = false) {
+    for (const key of Object.keys(defaults)) {
+      const value = costs && costs[key];
+      if (!Number.isInteger(value) || value < 1 || value > 65535) {
+        throw new RangeError('R' + key[0] + ' → R' + key[1] + ' 비용은 1~65535의 정수여야 합니다.');
+      }
+    }
+    const source = reverse ? '4' : '1';
+    const target = reverse ? '1' : '4';
+    // Positive weights exclude loops. This diamond has exactly two simple paths.
+    const candidates = ['2', '3'].map(via => {
+      const segments = [costs[source + via], costs[via + target], 1];
+      return {
+        via, nodes: [source, via, target], costs: segments,
+        metric: segments[0] + segments[1] + segments[2]
+      };
+    });
+    const metric = Math.min(candidates[0].metric, candidates[1].metric);
+    const paths = candidates.filter(candidate => candidate.metric === metric).map(candidate => candidate.nodes);
+    return { paths, metric, candidates };
+  }
+
+  function rib(costs, reverse = false) {
+    const { paths, metric } = solve(costs, reverse);
+    const source = reverse ? '4' : '1';
+    const destination = reverse ? '1' : '4';
+    const prefix = 'O     10.0.0.' + destination + '/32 ';
+    const routes = paths.map(([from, via], index) => {
+      const link = iface(from + via);
+      const label = index === 0 ? prefix : ' '.repeat(prefix.length);
+      return label + '[110/' + metric + '] via ' + link.nextHop + ', 00:00:00, ' + link.name;
+    });
+    return ['R' + source + '# show ip route ospf', ...routes].join('\n');
+  }
+
+  const api = Object.freeze({ baseCosts, solve, rib, iface });
+  if (typeof window !== 'undefined') window.OSPFLab = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})();
+
+</script>
+<script>
+(() => {
+  'use strict';
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  let observer;
+  let current;
+
+  const defs = `
+    <defs>
+      <pattern id="pf-dots" width="15" height="15" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r=".8" fill="#759793" opacity=".30"/>
+      </pattern>
+      <radialGradient id="pf-wash" cx="47%" cy="47%" r="65%">
+        <stop offset="0" stop-color="#203637"/><stop offset="1" stop-color="#101d22"/>
+      </radialGradient>
+      <linearGradient id="pf-deck" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+        <stop offset="0" stop-color="#97b6ae"/><stop offset=".47" stop-color="#658d85"/><stop offset="1" stop-color="#527c74"/>
+      </linearGradient>
+      <linearGradient id="pf-front" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+        <stop stop-color="#426762"/><stop offset="1" stop-color="#213c3b"/>
+      </linearGradient>
+      <linearGradient id="pf-side" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+        <stop stop-color="#476f67"/><stop offset="1" stop-color="#2d4a47"/>
+      </linearGradient>
+      <radialGradient id="pf-shadow"><stop stop-color="#040d10" stop-opacity=".84"/><stop offset="1" stop-color="#040d10" stop-opacity="0"/></radialGradient>
+      <g id="pf-router">
+        <ellipse cx="2" cy="22" rx="45" ry="14" fill="url(#pf-shadow)"/>
+        <path d="M-40 -6 L-8 -23 L40 -6 L40 5 L8 23 L-40 5 Z" fill="#152c2b" stroke="#101e20" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M-40 -10 L-8 -28 L40 -10 L8 8 Z" fill="url(#pf-deck)" stroke="#9cb7ae" stroke-width="1.05" stroke-linejoin="round"/>
+        <path d="M-40 -10 L8 8 V22 L-40 4 Z" fill="url(#pf-front)" stroke="#466a64" stroke-width=".8" stroke-linejoin="round"/>
+        <path d="M8 8 L40 -10 V4 L8 22 Z" fill="url(#pf-side)" stroke="#5b8277" stroke-width=".8" stroke-linejoin="round"/>
+        <path d="M-39 -8 L7.8 9.3 L39.5 -8" stroke="#bbd1bc" stroke-opacity=".72" stroke-width=".9" fill="none"/>
+        <path d="M-39 1.5 L7.8 19 L39 1.4" stroke="#243c39" stroke-width=".9" fill="none"/>
+        <g transform="matrix(.88 .33 -.83 .46 0 -9.4)" fill="#d4e3d4">
+          <path d="M-2 -3 H-10 V-7 L-17 0 L-10 7 V3 H-2 Z"/>
+          <path d="M2 -3 H10 V-7 L17 0 L10 7 V3 H2 Z"/>
+          <path d="M-2 -6 V-12 H-6 L0 -18 L6 -12 H2 V-6 Z"/>
+          <path d="M-2 6 V12 H-6 L0 18 L6 12 H2 V6 Z"/>
+        </g>
+        <g transform="matrix(1 .372 0 1 -36 -5.6)">
+          <rect x="0" y="1" width="7.3" height="5.5" rx=".8" fill="#132f30" stroke="#789b88" stroke-width=".65"/>
+          <rect x="9.4" y="1" width="7.3" height="5.5" rx=".8" fill="#132f30" stroke="#789b88" stroke-width=".65"/>
+          <rect x="18.8" y="1" width="7.3" height="5.5" rx=".8" fill="#132f30" stroke="#789b88" stroke-width=".65"/>
+          <path d="M2 2.7h3 M11.4 2.7h3 M21 2.7h3" stroke="#718e81" stroke-width=".65"/>
+          <rect x="33" y="2.6" width="4" height="1.6" rx=".6" fill="#cefb90"/>
+          <rect x="38.3" y="2.6" width="1.8" height="1.6" rx=".6" fill="#b8ded1"/>
+        </g>
+        <g transform="matrix(1 -.55 0 1 12 9.5)" stroke="#223e3a" stroke-width="1.35" stroke-linecap="round">
+          <path d="M1 0v4 M4 0v4 M7 0v4 M10 0v4 M13 0v4 M16 0v4 M19 0v4 M22 0v4"/>
+        </g>
+      </g>
+    </defs>`;
+
+  function coordinateMark(x, y) {
+    return `<path d="M${x - 4} ${y}h8 M${x} ${y - 4}v8" stroke="#81a5a0" opacity=".42" stroke-width=".75"/>`;
+  }
+
+  // The same Bézier supplies the cable, the motion track and its direction marker.
+  function bezier(a, b) {
+    const dx = b.x - a.x;
+    const cx = dx * .37;
+    const cp = [a, {x: a.x + cx, y: a.y}, {x: b.x - cx, y: b.y}, b];
+    const path = `M${a.x} ${a.y}C${cp[1].x} ${a.y} ${cp[2].x} ${b.y} ${b.x} ${b.y}`;
+    const at = t => {
+      const v = 1 - t;
+      return {
+        x: v ** 3 * a.x + 3 * v * v * t * cp[1].x + 3 * v * t * t * cp[2].x + t ** 3 * b.x,
+        y: v ** 3 * a.y + 3 * v * v * t * a.y + 3 * v * t * t * b.y + t ** 3 * b.y
+      };
+    };
+    return {path, at};
+  }
+
+  function edgeDrawing(pair, nodes, scale, model, activeArcs) {
+    const source = model.reverse ? pair[1] : pair[0];
+    const destination = model.reverse ? pair[0] : pair[1];
+    const key = source + destination;
+    const [left, right] = pair.map(id => nodes[id]);
+    const offset = 20 * scale;
+    const start = {x: left.x + offset, y: left.y - 2 * scale};
+    const end = {x: right.x - offset, y: right.y - 2 * scale};
+    const cable = model.reverse ? bezier(end, start) : bezier(start, end);
+    const chip = cable.at(.5);
+    const arrow = cable.at(.77);
+    const ahead = cable.at(.78);
+    const angle = Math.atan2(ahead.y - arrow.y, ahead.x - arrow.x) * 180 / Math.PI;
+    const active = activeArcs.has(key);
+    const chosen = model.selected === key;
+    const cost = Number(model.costs[key]);
+    const chipWidth = Math.max(34, String(cost).length * 8.5 + 15);
+    const color = active ? '#c2f78b' : '#829b9b';
+    return `<g class="pf-edge" role="button" tabindex="0" focusable="true" data-arc="${key}" aria-label="R${source}에서 R${destination} 방향, 비용 ${cost}" aria-pressed="${chosen}">
+      <title>R${source} → R${destination} · Cost ${cost}</title>
+      <path d="${cable.path}" fill="none" stroke="transparent" stroke-width="32" pointer-events="stroke"/>
+      ${active ? `<path d="${cable.path}" fill="none" stroke="#90cb66" stroke-width="7" opacity=".09"/>` : ''}
+      <path d="${cable.path}" fill="none" stroke="${color}" stroke-width="${active ? 2.45 : 1.8}" ${active ? '' : 'stroke-dasharray="5 5"'} stroke-linecap="round" pointer-events="none"/>
+      <g transform="translate(${arrow.x} ${arrow.y}) rotate(${angle})" pointer-events="none">
+        <path d="M-3.2 -3.2 L1.5 0 L-3.2 3.2" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      ${active ? `<circle class="pf-packet" r="2.7" fill="#ebffc4" pointer-events="none"><animateMotion path="${cable.path}" dur="4.4s" begin="${pair[0] === '1' ? '0s' : '-2.2s'}" repeatCount="indefinite"/></circle>` : ''}
+      <g transform="translate(${chip.x} ${chip.y})">
+        <rect class="pf-focus-ring" x="${-chipWidth/2-3}" y="-14" width="${chipWidth + 6}" height="28" rx="7" fill="none" stroke="#e7ffdc" stroke-width="1.5" opacity="0"/>
+        <rect x="${-chipWidth/2}" y="-11" width="${chipWidth}" height="22" rx="4" fill="${active ? '#293e31' : '#1c2c32'}" stroke="${chosen ? '#e0f2d7' : active ? '#72975a' : '#526a6e'}" stroke-width="${chosen ? 1.6 : 1}"/>
+        <text y="4.6" text-anchor="middle" font-size="13.8" font-weight="700" fill="${active ? '#d8ffb9' : '#d1dedc'}">${cost}</text>
+      </g></g>`;
+  }
+
+  function render(container, model) {
+    const width = Math.max(280, Math.min(1080, Math.round(container.clientWidth || 720)));
+    const small = width < 480;
+    const height = Math.round(small ? Math.max(235, width * .59) : Math.max(270, Math.min(340, width * .408)));
+    const scale = Math.min(1.26, Math.max(.64, width / 700));
+    const leftX = Math.round(width * (small ? .128 : .135));
+    const nodes = {
+      '1': {x:leftX, y:height * .46},
+      '2': {x:width * .5, y:height * .198},
+      '3': {x:width * .5, y:height * .756},
+      '4': {x:width-leftX, y:height * .46}
+    };
+    const activeArcs = new Set();
+    (model.paths || []).forEach(path => path.slice(1).forEach((id,i) => activeArcs.add(String(path[i])+String(id))));
+    const oldKey = container.contains(document.activeElement) ? document.activeElement?.dataset?.arc : null;
+    const arcs = [['1','2'], ['2','4'], ['1','3'], ['3','4']].map(p => edgeDrawing(p,nodes,scale,model,activeArcs)).join('');
+    const labels = Object.entries(nodes).map(([id, p]) => {
+      const role = id === (model.reverse ? '4':'1') ? '출발' : id === (model.reverse ? '1':'4') ? '목적지' : '';
+      const labelY = 22 * scale + (small ? 14 : 17);
+      return `<g transform="translate(${p.x} ${p.y})" pointer-events="none">
+        <use href="#pf-router" transform="scale(${scale})"/>
+        <text y="${labelY}" text-anchor="middle" font-size="${small ? 15 : 17}" fill="#f1f6ef" font-weight="700">R${id}</text>
+        ${role ? `<text y="${labelY + 16}" text-anchor="middle" font-family="system-ui,sans-serif" fill="#a7bcb7" font-size="12">${role}</text>` : ''}
+      </g>`;
+    }).join('');
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+    svg.setAttribute('role','group');
+    svg.setAttribute('aria-label','Area 0 연결도. 각 링크 비용을 누르면 해당 송신 인터페이스가 선택됩니다.');
+    svg.style.cssText='display:block;width:100%;height:auto;background:#101d22;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;';
+    const corners = [[17,17],[width-17,17],[17,height-17],[width-17,height-17]].map(([x,y]) => coordinateMark(x,y)).join('');
+    svg.innerHTML = `${defs}<style>
+      .pf-edge{cursor:pointer;touch-action:manipulation;outline:none}
+      .pf-edge:focus-visible .pf-focus-ring{opacity:1}
+      @media (hover:hover){.pf-edge:hover .pf-focus-ring{opacity:.65}}
+      @media(prefers-reduced-motion:reduce){.pf-packet{display:none}}
+      </style>
+      <rect width="100%" height="100%" fill="url(#pf-wash)"/>
+      <rect width="100%" height="100%" fill="url(#pf-dots)"/>
+      ${corners}${arcs}${labels}`;
+    container.replaceChildren(svg);
+    const activate = event => {
+      const edge = event.target.closest('[data-arc]');
+      if (edge) model.onSelect?.(edge.dataset.arc);
+    };
+    svg.addEventListener('click',activate);
+    svg.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        activate(event);
+      }
+    });
+    if (oldKey) svg.querySelector('[data-arc="'+oldKey+'"]')?.focus({preventScroll:true});
+    return width;
+  }
+
+  window.drawTopology = (container,model) => {
+    observer?.disconnect();
+    current = container;
+    let lastWidth = render(container,model);
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => {
+        if (container !== current || !container.isConnected || !container.clientWidth) return;
+        const width = Math.max(280,Math.min(1080,Math.round(container.clientWidth)));
+        if (width !== lastWidth) lastWidth = render(container, model);
+      });
+      observer.observe(container);
+    }
+  };
+})();
+
+</script>
+<script>
+window.OSPFNotes = `
+<section class="note-section">
+  <h3>목적지까지의 비용을 어떻게 더할까?</h3>
+  <p>Area 0의 각 라우터는 자신을 출발점으로 최단 경로 트리(SPF)를 계산합니다. 같은 목적지 프리픽스를 향하는 영역 내부 경로끼리는 총비용이 가장 낮은 경로를 선택합니다.</p>
+  <p>패킷이 링크를 건널 때마다 <strong>송신 측 인터페이스</strong>의 cost를 더하세요. 목적지가 R4의 <code>10.0.0.4/32</code>라면 R4가 광고한 Loopback0 비용까지 더합니다. 이 실습에서 양 끝 라우터의 Loopback0 비용은 각각 1입니다.</p>
+</section>
+<section class="note-section">
+  <h3>라우팅 테이블에서 무엇을 확인할까?</h3>
+  <p><code>O</code>는 OSPF 영역 내부 경로를 뜻합니다. <code>[110/21]</code>에서 110은 Cisco 기본 관리 거리(AD), 21은 목적지까지의 누적 OSPF 비용입니다. <code>via</code> 뒤 주소는 패킷을 전달할 다음 홉입니다.</p>
+  <p>두 경로의 총비용이 최솟값으로 같고 다음 홉이 서로 다르면 ECMP를 구성할 수 있습니다. 이 실습은 두 다음 홉을 모두 설치합니다. 실제 장비에서는 설치 가능한 경로 수가 설정에 따라 달라지고, 흐름 단위 해시를 사용하면 한 TCP 연결의 패킷은 대개 같은 다음 홉을 이용합니다.</p>
+</section>
+<section class="note-section">
+  <h3>한쪽 비용을 바꾸면 돌아오는 경로는?</h3>
+  <p>R1에서 R2 쪽 인터페이스를 조정하면 <strong>R1 → R2</strong> 비용이 바뀝니다. <strong>R2 → R1</strong> 비용은 R2의 인터페이스가 결정합니다. 왕복 경로를 진단할 때는 R1과 R4를 번갈아 출발점으로 삼아 각각 계산하세요.</p>
+</section>
+<section class="note-section">
+  <h3>IOS에서 설정과 경로 검증하기</h3>
+  <p>초기 토폴로지에서 R1의 Gi0/0 비용을 25로 올리는 예시입니다. <code>ip ospf cost</code>에는 1~65535 사이의 정수를 지정합니다.</p>
+  <pre><code>R1# configure terminal
+R1(config)# interface GigabitEthernet0/0
+R1(config-if)# ip ospf cost 25
+R1(config-if)# end
+R1# show ip ospf interface GigabitEthernet0/0
+R1# show ip route 10.0.0.4</code></pre>
+  <p>첫 번째 조회에서 <code>Cost: 25</code>를 확인하세요. 수렴 후 R2 경유는 25 + 10 + 1 = 36, R3 경유는 5 + 25 + 1 = 31입니다. 두 번째 조회에서는 R3 쪽 다음 홉과 메트릭 31을 확인할 수 있습니다.</p>
+</section>
+<section class="note-section">
+  <h3>원문 자료</h3>
+  <p><a href="https://datatracker.ietf.org/doc/html/rfc2328#section-16.1" target="_blank" rel="noopener noreferrer">RFC 2328 §16.1 · 영역 내부 최단 경로 계산</a></p>
+  <p><a href="https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/iproute_ospf/command/iro-cr-book/m_ospf-a1.html" target="_blank" rel="noopener noreferrer">Cisco IOS 명령어 레퍼런스 · ip ospf cost</a></p>
+</section>`;
+
+</script>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const {baseCosts, solve, rib, iface} = window.OSPFLab;
+  const icon = id => '<svg class="ico" aria-hidden="true"><use href="#i-' + id + '"/></svg>';
+  const routerPath = nodes => nodes.map(id => 'R' + id).join(' → ');
+  const pad = n => String(n).padStart(2, '0');
+  const lessons = [
+    {tab:'경로 예측', title:'비용 변경 후 경로 예측', description:'R1에서 R2로 나가는 비용을 <b>10에서 25로</b> 올릴 예정입니다. 변경 후 R4의 Loopback0까지 사용할 다음 홉과 총비용을 예측하세요.', key:'12', hint:'R2 경유 식의 첫 번째 항을 25로 바꿔 보세요. R3 경유 비용과 비교하고, 두 경로 모두 마지막에 목적지 Loopback0 비용 1을 더하세요.', principle:'비용은 목적지까지 더합니다', note:'링크를 지날 때마다 송신 측 인터페이스 비용을 더합니다. 목적지 프리픽스를 광고하는 인터페이스의 비용도 포함합니다.'},
+    {tab:'비용 조정', title:'대기 경로를 주 경로로', description:'R3의 R4 방향 인터페이스를 조정하세요. R1에서 R4의 Loopback0까지 <b>R3를 경유하는 총비용이 정확히 20</b>이 되어야 합니다.', key:'34', hint:'R3 경유 총비용은 R1 → R3 비용 5, 바꿀 비용, Loopback0 비용 1의 합입니다. 현재 R2 경유 비용 21보다 작아야 합니다.', principle:'송신 인터페이스에서 조정합니다', note:'ip ospf cost는 해당 인터페이스가 패킷을 내보내는 방향에 적용됩니다. 인접 라우터의 반대 방향 값은 별도로 설정합니다.'},
+    {tab:'ECMP 구성', title:'두 다음 홉을 함께 설치', description:'R3 → R4 비용이 <b>14</b>인 상태입니다. R1 → R3 비용 하나를 조정해 R1이 R4의 Loopback0에 대해 <b>R2와 R3를 모두 다음 홉으로</b> 설치하게 하세요.', key:'13', hint:'R2 쪽은 10 + 10 + 1입니다. R3 쪽은 설정할 비용 + 14 + 1입니다. 두 식이 같아지는 값을 구하세요.', principle:'동일 비용 경로를 RIB에서 확인합니다', note:'같은 프리픽스에 대한 최저 비용이 같으면 여러 다음 홉을 설치할 수 있습니다. 이 실습은 두 경로까지 허용합니다.'},
+    {tab:'비대칭 경로', title:'왕복 경로 분리', description:'요청은 R1에서 <b>R2 경유</b>, 응답은 R4에서 <b>R3 경유</b>로 보내세요. 매 시도마다 초기값에서 R4의 송신 인터페이스 하나만 바꿔, R2를 거치는 회신 후보의 비용을 <b>41</b>로 맞추세요.', key:'42', hint:'역방향에서 R2를 거치는 식은 R4 → R2 비용 + R2 → R1 비용 10 + Loopback0 비용 1입니다. R4의 Router-LSA에서 R2에 연결된 인터페이스를 찾을 수 있습니다.', principle:'각 라우터는 자신을 뿌리로 SPF를 계산합니다', note:'정방향과 역방향에서 더하는 송신 비용이 다를 수 있습니다. 트래픽 방향을 전환한 뒤 각 라우터의 다음 홉을 비교하세요.'}
+  ];
+  const newState = idx => ({
+    costs:{...baseCosts(),...(idx === 2 ? {'34':14} : {})}, reverse:idx===3,
+    edge:null, edit:idx===3?'':lessons[idx]?.key || '12', input:'', answer:'', passed:false, feedback:null, hint:false
+  });
+  const states = lessons.map((_,i)=>newState(i));
+  const freeState = newState(-1);
+  let mode = 'guided', index = 0, analysis = 'compare', lsaRouter = '1';
+  let completed = [false,false,false,false];
+  try {
+    const saved = JSON.parse(localStorage.getItem('routelab-ospf-progress-1'));
+    if(Array.isArray(saved) && saved.length===4) completed=saved.map(v=>v===true);
+  } catch { /* A restricted browser can still run every exercise. */ }
+  const current = () => mode==='free'?freeState:states[index];
+  const isFree = () => mode==='free';
+  const setPressed=(id,yes)=>{
+    $(id).classList.toggle('active', yes);
+    $(id).setAttribute('aria-pressed',String(yes));
+  };
+  function saveProgress() {
+    try{localStorage.setItem('routelab-ospf-progress-1',JSON.stringify(completed));}catch{}
+  }
+  function header() {
+    const n=completed.filter(Boolean).length;
+    $('progressCount').innerHTML=n+' <em>/ 4</em>';
+    $('progressBars').innerHTML=completed.map(d=>'<i class="'+(d?'done':'')+'"></i>').join('');
+    $('progressBars').setAttribute('aria-label',n+'개 완료');
+    setPressed('freeNav',isFree()); setPressed('guidedNav',!isFree());
+    $('steps').innerHTML=lessons.map((l,i)=>'<button type="button" class="step '+(!isFree()&&index===i?'active ':'')+(completed[i]?'complete':'')+'" aria-pressed="'+(!isFree()&&i===index)+'" data-step="'+i+'" aria-label="'+(i+1)+'단계 '+l.tab+(completed[i]?', 완료':'')+'"><span class="stepnum">'+(completed[i]?icon('check'):pad(i+1))+'</span>'+l.tab+'</button>').join('');
+  }
+  function showLab(i,fromNext=false) {
+    mode='guided'; index=i; lsaRouter=states[i].reverse?'4':'1';
+    redraw();
+    if(fromNext && matchMedia('(max-width:760px)').matches) $('steps').scrollIntoView({block:'start'});
+  }
+  function network() {
+    const s=current();
+    const result=solve(s.costs,s.reverse);
+    const next=result.paths.map(p=>'R'+p[1]).join(' + ');
+    const currentCost=document.querySelector('.changebox .delta');
+    if(currentCost && !isFree() && (index===1 || index===2))currentCost.textContent=s.costs[s.edit]+' cost';
+    window.drawTopology($('topology'),{reverse:s.reverse,costs:s.costs,paths:result.paths,selected:s.edge,onSelect:inspect});
+    $('stats').innerHTML='<div class="stat"><span>선택된 다음 홉</span><strong class="pathvalue">'+next+'</strong></div><div class="stat"><span>목적지 프리픽스</span><strong>10.0.0.'+(s.reverse?'1':'4')+'/32</strong></div><div class="stat"><span>최저 경로 비용</span><strong>'+result.metric+'<em>cost</em></strong></div>';
+    setPressed('forward',!s.reverse);setPressed('backward',s.reverse);
+    const detail=$('inspection');
+    detail.hidden=!s.edge;
+    if(s.edge) {
+      const e=iface(s.edge);
+      detail.innerHTML='<span><strong>'+e.router+' '+e.name+'</strong> · '+e.ip+'/30 · '+e.peer+' 방향 비용 <b>'+s.costs[s.edge]+'</b></span><button type="button" id="hideInspection">닫기</button>';
+      $('hideInspection').onclick=()=>{s.edge=null;network();};
+    }
+    analysisPanel();
+  }
+  function inspect(key) {
+    const s=current();
+    s.edge=key;
+    if(isFree()){s.edit=key;s.input=String(s.costs[key]);s.feedback=null;task();}
+    network();
+  }
+  function direction(reverse) {
+    const s=current();
+    if(s.reverse===reverse)return;
+    s.reverse=reverse;s.edge=null;lsaRouter=reverse?'4':'1';network();
+  }
+  function analysisPanel() {
+    const s=current(), result=solve(s.costs,s.reverse);
+    for(const k of ['compare','rib','lsa'])setPressed(k+'Tab',k===analysis);
+    if(analysis==='rib'){
+      $('analysisBody').innerHTML='<pre class="rib"></pre><p class="ribnote">목적지 Loopback0 경로만 발췌한 모의 출력입니다. 대괄호는 [관리 거리/OSPF 비용]입니다.</p>';
+      $('analysisBody').querySelector('pre').textContent=rib(s.costs,s.reverse);
+    }else if(analysis==='lsa'){
+      const routerLabel='R'+lsaRouter;
+      const records=Object.keys(s.costs).filter(k=>k[0]===lsaRouter).sort();
+      $('analysisBody').innerHTML='<div class="lsa"><div class="lsachoose"><label for="lsaSelect">광고 라우터</label><select id="lsaSelect">'+['1','2','3','4'].map(r=>'<option value="'+r+'" '+(r===lsaRouter?'selected':'')+'>R'+r+'</option>').join('')+'</select><small>Type 1 · Router-LSA</small></div><table><thead><tr><th>로컬 인터페이스</th><th>이웃 라우터</th><th>송신 비용</th></tr></thead><tbody>'+records.map(key=>'<tr><td>'+routerLabel+' '+iface(key).name+'</td><td>'+iface(key).peer+'</td><td>'+s.costs[key]+'</td></tr>').join('')+'</tbody></table><p class="prefixnote">LSDB의 point-to-point 링크 발췌 · 인터페이스 이름은 토폴로지와 대조해 표시합니다.</p></div>';
+      $('lsaSelect').onchange=e=>{lsaRouter=e.target.value;analysisPanel();$('lsaSelect').focus({preventScroll:true});};
+    }else{
+      $('analysisBody').innerHTML='<div class="analysiscontent">'+result.candidates.map(c=>{
+        const chosen=c.metric===result.metric;
+        return '<div class="candidate '+(chosen?'elected':'')+'"><div class="pathcell"><i class="markline"></i><strong>'+routerPath(c.nodes)+'</strong></div><span class="formula">'+c.costs.join(' + ')+' = <b>'+c.metric+'</b></span><span class="tag">'+(chosen?(result.paths.length>1?'ECMP':'선택'):'대체')+'</span></div>';
+      }).join('')+'<p class="prefixnote">각 식의 마지막 1은 목적지 Loopback0의 광고 비용입니다.</p></div>';
+    }
+  }
+  const edgeOptions=keys=>keys.map(k=>{const e=iface(k);return '<option value="'+k+'">'+e.router+' '+e.name+' → '+e.peer+'</option>';}).join('');
+  const inputMarkup=(label,suffix)=>'<div class="inputrow"><label class="fieldlabel" for="value">'+label+'</label><div class="numbox"><input id="value" type="number" inputmode="numeric" min="1" max="'+(suffix==='metric'?'131071':'65535')+'" step="1" placeholder="입력" autocomplete="off"><span>'+suffix+'</span></div></div>';
+  function task() {
+    const s=current(),free=isFree(),l=lessons[index];
+    const done=!free&&s.passed;
+    $('missionLabel').textContent=free?'SANDBOX':'MISSION '+pad(index+1);
+    $('missionCode').textContent=free?'MANUAL':'시나리오 '+pad(index+1)+' / 04';
+    const edge=s.edit||null, info=edge?iface(edge):null;
+    const title=free?'인터페이스 자유 설정':l.title;
+    const desc=free?'토폴로지의 링크를 누르거나 송신 인터페이스를 선택하세요. 비용을 적용한 뒤 왕복 방향의 다음 홉을 비교해 보세요.':l.description;
+    let body='<h2 id="tasktitle">'+title+'</h2><p class="description">'+desc+'</p>';
+    if(!free&&index!==3&&info){
+      const display = index===0?'10 → 25':String(s.costs[edge])+' cost';
+      body+='<div class="changebox">'+icon('slider')+'<div><span class="device">'+info.router+' · '+info.name+'</span><span class="small">'+info.peer+' 방향 송신 인터페이스</span></div><span class="delta">'+display+'</span></div>';
+    }
+    if(!done){
+      body+='<form id="labform" class="taskform" novalidate>';
+      if(!free&&index===0){
+        body+='<fieldset class="fieldgroup"><legend>예상 다음 홉</legend><div class="choices">'+[['2','R2 경유'],['3','R3 경유'],['both','ECMP']].map(([v,t])=>'<label class="choice"><input type="radio" name="hop" value="'+v+'" '+(s.answer===v?'checked':'')+'><span>'+t+'</span></label>').join('')+'</div></fieldset>'+inputMarkup('예상 총비용','metric');
+      }else{
+        if(free||index===3)body+='<label class="fieldlabel" for="edgeSelect">송신 인터페이스 선택</label><div class="selectwrap"><select id="edgeSelect">'+(!free?'<option value="">인터페이스 선택</option>':'')+edgeOptions(free?['12','13','21','24','31','34','42','43']:['42','43'])+'</select>'+icon('chev')+'</div>';
+        body+=inputMarkup('설정할 송신 비용','cost')+'<pre class="codepreview" id="cmdPreview"></pre>';
+      }
+      body+='<button class="action" type="submit">'+icon(free?'slider':'check')+(free?'변경 적용':index===0?'예측 검증하기':'설정 적용 및 검증')+'</button></form>';
+    }
+    body+='<div id="feedback" role="status" aria-live="polite" class="feedback"></div>';
+    if(done)body+='<button id="nextStep" class="action">'+icon(index===3?'slider':'check')+(index===3?'자유 실습 시작':'다음 시나리오')+'</button>';
+    body+='<div class="subactions">'+(!free?'<details class="hint" '+(s.hint?'open':'')+'><summary>'+icon('bulb')+'힌트 보기'+icon('chev')+'</summary><p>'+l.hint+'</p></details>':'')+'<button type="button" class="reset" id="reset">'+icon('reset')+'초기 설정 복원</button></div>';
+    $('taskBody').innerHTML=body;
+    $('concept').innerHTML='<h3>'+(free?'링크 비용은 방향별로 저장됩니다':l.principle)+'</h3><p>'+(free?'같은 링크라도 R1 → R2와 R2 → R1은 별개입니다. LSDB 탭에서 각 라우터가 광고하는 비용을 확인할 수 있습니다.':l.note)+'</p>';
+    if(!done){
+      const input=$('value');input.value=s.input;
+      input.oninput=()=>{s.input=input.value;s.feedback=null;feedback();cmdPreview();};
+      const select=$('edgeSelect');
+      if(select){
+        select.value=s.edit;
+        select.onchange=()=>{
+          s.edit=select.value;s.edge=s.edit||null;
+          if(free && s.edit){s.reverse=['21','31','42','43'].includes(s.edit);lsaRouter=s.reverse?'4':'1';}
+          s.input=s.edit?String(s.costs[s.edit]):'';input.value=s.input;
+          s.feedback=null;feedback();cmdPreview();network();
+        };
+      }
+      document.querySelectorAll('input[name="hop"]').forEach(r=>r.onchange=()=>{s.answer=r.value;s.feedback=null;feedback();});
+      $('labform').onsubmit=e=>{e.preventDefault();submit();};
+      cmdPreview();
+    }else{$('nextStep').onclick=()=>index===3?openFree(true):showLab(index+1,true);}
+    const hint=document.querySelector('.hint');if(hint)hint.ontoggle=()=>{s.hint=hint.open;};
+    $('reset').onclick=()=>{
+      Object.assign(s,newState(free?-1:index));lsaRouter=s.reverse?'4':'1';
+      redraw();s.feedback={title:'초기 설정을 복원했습니다.',text:'현재 실습을 처음부터 다시 시도할 수 있습니다.',good:true};feedback();
+    };
+    feedback();
+  }
+  function cmdPreview(){
+    const el=$('cmdPreview');if(!el)return;
+    const s=current();if(!s.edit){el.textContent='송신 인터페이스를 선택하세요.';return;}
+    const inf=iface(s.edit),raw=s.input;
+    el.textContent=inf.router+'(config-if)# ip ospf cost '+(/^\d+$/.test(raw)?raw:'<cost>');
+  }
+  function feedback(){
+    const f=current().feedback,box=$('feedback');if(!box)return;
+    box.replaceChildren();box.classList.toggle('good',!!f?.good);
+    if(f){const title=document.createElement('strong');title.textContent=f.title;box.append(title,document.createTextNode(f.text));}
+  }
+  function report(title,text,good=false){current().feedback={title,text,good};feedback();}
+  function submit(){
+    const s=current(),free=isFree(),prediction=!free&&index===0;
+    if(prediction&&!s.answer){report('예상 다음 홉을 골라 주세요.','R2, R3 또는 ECMP 중 하나를 선택하세요.');document.querySelector('[name="hop"]').focus();return;}
+    if(!prediction&&!s.edit){report('송신 인터페이스를 선택하세요.','어느 인터페이스의 광고 비용을 바꿀지 지정하세요.');$('edgeSelect').focus();return;}
+    const value=Number(s.input),max=prediction?131071:65535;
+    if(!/^\d+$/.test(s.input)||!Number.isSafeInteger(value)||value<1||value>max){report('입력값을 확인해 주세요.','1~'+max+' 사이의 정수를 입력하세요.');$('value').focus();return;}
+    if(prediction){
+      const trial={...s.costs,'12':25};const result=solve(trial);
+      const expected=result.paths.length===2?'both':result.paths[0][1];
+      if(s.answer!==expected||value!==result.metric){
+        const clue=s.answer!==expected?'두 후보의 변경 후 비용을 다시 비교하세요.':'다음 홉은 맞습니다. 목적지 Loopback0의 비용까지 포함해 보세요.';
+        report('다시 계산해 보세요.',clue+' 토폴로지는 변경 전 상태입니다.');return;
+      }
+      s.costs=trial;s.edge='12';s.reverse=false;
+    }else{
+      if(!free && index===3)s.costs=baseCosts();
+      s.costs[s.edit]=value;s.edge=s.edit;
+      if(free){
+        const r=solve(s.costs,s.reverse);
+        report('송신 비용 '+value+'을 적용했습니다.',iface(s.edit).router+' → '+iface(s.edit).peer+' 설정을 반영했습니다. 현재 조회 방향의 최저 비용은 '+r.metric+'입니다.',true);network();return;
+      }
+      s.reverse=index===3;
+    }
+    const forward=solve(s.costs,false),reverse=solve(s.costs,true);
+    const chosen=(r,via)=>r.paths.length===1&&r.paths[0][1]===via;
+    const ok=prediction|| (index===1&&chosen(forward,'3')&&forward.metric===20) ||
+      (index===2&&forward.paths.length===2) ||
+      (index===3&&chosen(forward,'2')&&chosen(reverse,'3')&&reverse.candidates[0].metric===41);
+    lsaRouter=s.reverse?'4':'1';
+    if(!ok){
+      const read=r=>r.paths.map(p=>'R'+p[1]).join(' + ')+' 경유, 비용 '+r.metric;
+      const msg=index===3?'회신은 '+read(reverse)+'입니다. R2를 거치는 회신 후보 비용은 '+reverse.candidates[0].metric+'입니다.':'R2 경유 '+forward.candidates[0].metric+', R3 경유 '+forward.candidates[1].metric+'입니다. '+(index===1?'R3 쪽 총비용을 20에 맞춰 보세요.':'두 총비용이 같아야 두 다음 홉이 설치됩니다.');
+      report('설정이 적용됐습니다. 목표를 다시 확인하세요.',msg);network();return;
+    }
+    const messages=[
+      'R2 경유는 25 + 10 + 1 = 36, R3 경유는 5 + 25 + 1 = 31입니다. 변경을 적용해 R3가 다음 홉이 되었습니다.',
+      'R3의 송신 비용 14를 반영하면 5 + 14 + 1 = 20입니다. R2 경로보다 비용이 1 낮아 R3가 선택됩니다.',
+      'R2 경유는 10 + 10 + 1, R3 경유는 6 + 14 + 1입니다. 둘 다 21이므로 RIB에 두 다음 홉을 설치합니다.',
+      '정방향은 R2 경유 21, 역방향은 R3 경유 31입니다. 회신의 R2 후보 비용은 41입니다. 트래픽 방향을 바꿔 두 RIB를 비교해 보세요.'
+    ];
+    completed[index]=true;s.passed=true;s.feedback={title:'시나리오 완료',text:messages[index],good:true};saveProgress();redraw();$('nextStep')?.focus({preventScroll:true});
+  }
+  function openFree(scroll=false){mode='free';lsaRouter=freeState.reverse?'4':'1';if(freeState.input==='')freeState.input=String(freeState.costs[freeState.edit]);redraw();if(scroll) $('steps').scrollIntoView({block:'start'});}
+  function redraw(){header();task();network();}
+  $('freeNav').onclick=()=>openFree();
+  $('guidedNav').onclick=()=>showLab(index);
+  $('steps').onclick=e=>{const b=e.target.closest('button[data-step]');if(b)showLab(Number(b.dataset.step));};
+  $('forward').onclick=()=>direction(false);$('backward').onclick=()=>direction(true);
+  for(const k of ['compare','rib','lsa']) $(k+'Tab').onclick=()=>{analysis=k;analysisPanel();};
+  $('notesBody').innerHTML=window.OSPFNotes;
+  const dialog=$('notesDialog');
+  const openNotes=()=>{dialog.showModal();dialog.scrollTop=0;};
+  $('notesNav').onclick=openNotes;$('openNotes').onclick=openNotes;$('closeNotes').onclick=()=>dialog.close();
+  dialog.onclick=e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();};
+  redraw();
+})();
+
+</script>
+</body></html>
